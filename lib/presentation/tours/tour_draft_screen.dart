@@ -7,11 +7,16 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
+import '../widgets/app_hero_card.dart';
+import '../widgets/app_list_tile.dart';
+import '../widgets/app_primary_button.dart';
+import '../widgets/app_section_card.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
 
 class TourDraftScreen extends ConsumerStatefulWidget {
@@ -122,21 +127,24 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
             children: [
               // Date/time card
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: FCard(
-                  title: Text(l.tourDraftWhenTitle),
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+                child: AppSectionCard(
+                  icon: FIcons.calendarClock,
+                  title: l.tourDraftWhenTitle,
                   child: Column(
                     children: [
-                      FTile(
+                      AppListTile(
                         prefix: const Icon(FIcons.calendar),
-                        title: Text(l.tourDraftDate),
-                        subtitle: Text(DateFormat('EEE d MMM yyyy', 'fr').format(_date)),
+                        title: l.tourDraftDate,
+                        subtitle: DateFormat('EEE d MMM yyyy', 'fr').format(_date),
                         onPress: _pickDate,
                       ),
-                      FTile(
+                      const SizedBox(height: AppSpacing.sm),
+                      AppListTile(
                         prefix: const Icon(FIcons.clock),
-                        title: Text(l.tourDraftStart),
-                        subtitle: Text(formatHm(_startMinutes)),
+                        title: l.tourDraftStart,
+                        subtitle: formatHm(_startMinutes),
                         onPress: _pickTime,
                       ),
                     ],
@@ -145,11 +153,13 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
               ),
               // "Étapes" heading
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md, AppSpacing.md, AppSpacing.md, 4),
                 child: Text(
                   l.tourDraftStepsTitle,
-                  style: theme.typography.sm.copyWith(
-                    color: theme.colors.mutedForeground,
+                  style: theme.typography.lg.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colors.foreground,
                   ),
                 ),
               ),
@@ -158,79 +168,66 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                 child: Material(
                   type: MaterialType.transparency,
                   child: ReorderableListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: bundle.orderedClients.length,
-                  onReorder: (oldIndex, newIndex) {
-                    final order =
-                        bundle.orderedClients.map((c) => c.id).toList();
-                    if (newIndex > oldIndex) newIndex -= 1;
-                    final id = order.removeAt(oldIndex);
-                    order.insert(newIndex, id);
-                    setState(() => _manualOrder = order);
-                    _refresh();
-                  },
-                  itemBuilder: (_, i) {
-                    final c = bundle.orderedClients[i];
-                    final arr = bundle.result.arrivalMinutes[i];
-                    final dep = bundle.result.departureMinutes[i];
-                    final fee = formatEuros(bundle.result.feeShareCents[i]);
-                    return FTile(
-                      key: ValueKey(c.id),
-                      prefix: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: theme.colors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          '${i + 1}',
-                          style: theme.typography.sm.copyWith(
-                            color: theme.colors.primaryForeground,
-                            fontWeight: FontWeight.bold,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md),
+                    itemCount: bundle.orderedClients.length,
+                    onReorder: (oldIndex, newIndex) {
+                      final order =
+                          bundle.orderedClients.map((c) => c.id).toList();
+                      if (newIndex > oldIndex) newIndex -= 1;
+                      final id = order.removeAt(oldIndex);
+                      order.insert(newIndex, id);
+                      setState(() => _manualOrder = order);
+                      _refresh();
+                    },
+                    itemBuilder: (_, i) {
+                      final c = bundle.orderedClients[i];
+                      final arr = bundle.result.arrivalMinutes[i];
+                      final dep = bundle.result.departureMinutes[i];
+                      final fee = formatEuros(bundle.result.feeShareCents[i]);
+                      return AppListTile(
+                        key: ValueKey(c.id),
+                        prefix: Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: theme.colors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '${i + 1}',
+                            style: theme.typography.sm.copyWith(
+                              color: theme.colors.primaryForeground,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
-                      title: Text(
-                        c.name,
-                        style: theme.typography.md.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                      subtitle: Text(
-                        '${l.tourDraftStopArrivalFmt(formatHm(arr), formatHm(dep))} · $fee',
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                        title: c.name,
+                        subtitle:
+                            '${l.tourDraftStopArrivalFmt(formatHm(arr), formatHm(dep))} · $fee',
+                        suffix: const Icon(FIcons.gripVertical),
+                      );
+                    },
+                  ),
                 ),
               ),
               // Summary footer
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                child: FCard.raw(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Text(
-                      l.tourDraftSummaryTotal(
-                        (bundle.result.totalDistanceMeters / 1000).toStringAsFixed(1),
-                        formatDuration(bundle.result.totalDriveSeconds ~/ 60),
-                        formatDuration(bundle.result.totalShearingMinutes),
-                        formatHm(bundle.result.endTimeMinutes),
-                      ),
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
-                      ),
-                    ),
-                  ),
+                padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+                child: AppHeroCard(
+                  bigNumber:
+                      (bundle.result.totalDistanceMeters / 1000).toStringAsFixed(0),
+                  label: 'km au total',
+                  subtitle:
+                      '${formatDuration(bundle.result.totalDriveSeconds ~/ 60)} de trajet · Fin ${formatHm(bundle.result.endTimeMinutes)}',
                 ),
               ),
               // Action row
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
                     children: [
                       FButton(
@@ -241,11 +238,11 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                         },
                         child: Text(l.tourDraftOptimise),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: FButton(
+                        child: AppPrimaryButton(
+                          label: l.tourDraftConfirm,
                           onPress: () => _save(bundle),
-                          child: Text(l.tourDraftConfirm),
                         ),
                       ),
                     ],
