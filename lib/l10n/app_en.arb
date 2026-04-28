@@ -10,6 +10,13 @@
   "emptyToursTitle": "No tours",
   "emptyToursBody": "Plan your first tour from the Clients tab.",
   "settingsBaseAddressTitle": "Home base",
+  "settingsBaseAddressEdit": "Edit address",
   "settingsDefaultsTitle": "Defaults",
-  "settingsDataTitle": "Data"
+  "settingsRadiusLabel": "Default radius (km)",
+  "settingsMinPerSheepLabel": "Minutes per sheep (default)",
+  "settingsTariffLabel": "Travel fee (€ / 10 km)",
+  "settingsDataTitle": "Data",
+  "settingsExportData": "Export data",
+  "settingsImportData": "Import data",
+  "settingsSave": "Save"
 }

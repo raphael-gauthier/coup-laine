@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../presentation/onboarding/onboarding_screen.dart';
+import '../../presentation/settings/settings_screen.dart';
 import '../../state/providers.dart';
 
 class _Placeholder extends StatelessWidget {
@@ -50,7 +51,7 @@ class AppRouter {
             StatefulShellBranch(routes: [
               GoRoute(
                 path: '/settings',
-                builder: (_, __) => const _Placeholder('Paramètres'),
+                builder: (_, __) => const SettingsScreen(),
               ),
             ]),
           ],

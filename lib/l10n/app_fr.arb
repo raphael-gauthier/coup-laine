@@ -10,6 +10,13 @@
   "emptyToursTitle": "Aucune tournée",
   "emptyToursBody": "Composez votre première tournée depuis l'onglet Clients.",
   "settingsBaseAddressTitle": "Adresse de base",
+  "settingsBaseAddressEdit": "Modifier l'adresse",
   "settingsDefaultsTitle": "Valeurs par défaut",
-  "settingsDataTitle": "Données"
+  "settingsRadiusLabel": "Rayon par défaut (km)",
+  "settingsMinPerSheepLabel": "Minutes par mouton (par défaut)",
+  "settingsTariffLabel": "Tarif déplacement (€ / 10 km)",
+  "settingsDataTitle": "Données",
+  "settingsExportData": "Exporter les données",
+  "settingsImportData": "Importer les données",
+  "settingsSave": "Enregistrer"
 }
