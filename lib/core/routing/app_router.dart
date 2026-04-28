@@ -3,6 +3,9 @@ import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../presentation/clients/client_detail_screen.dart';
+import '../../presentation/clients/client_form_screen.dart';
+import '../../presentation/clients/clients_list_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/settings/settings_screen.dart';
 import '../../state/providers.dart';
@@ -33,13 +36,39 @@ class AppRouter {
           path: '/onboarding',
           builder: (_, __) => const OnboardingScreen(),
         ),
+        GoRoute(
+          path: '/proximity/:pivotId',
+          builder: (_, state) => _Placeholder(
+            'Proximité ${state.pathParameters['pivotId']}',
+          ),
+        ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, shell) => _ShellScaffold(shell: shell),
           branches: [
             StatefulShellBranch(routes: [
               GoRoute(
                 path: '/clients',
-                builder: (_, __) => const _Placeholder('Clients'),
+                builder: (_, __) => const ClientsListScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'new',
+                    builder: (_, __) => const ClientFormScreen(),
+                  ),
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, state) => ClientDetailScreen(
+                      clientId: int.parse(state.pathParameters['id']!),
+                    ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        builder: (_, state) => ClientFormScreen(
+                          clientId: int.parse(state.pathParameters['id']!),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ]),
             StatefulShellBranch(routes: [
