@@ -54,10 +54,12 @@ class _AddressAutocompleteFieldState
   }
 
   void _onChanged(String value) {
-    if (value == _justPickedLabel) {
-      _justPickedLabel = null;
-      return;
-    }
+    // After a pick, the TextEditingController may fire its listeners
+    // multiple times (text change + selection change). Keep ignoring
+    // until the user actually types something different from the
+    // picked label.
+    if (value == _justPickedLabel) return;
+    _justPickedLabel = null;
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () => _search(value));
   }
