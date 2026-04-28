@@ -12,6 +12,7 @@ import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
 import '../../core/design_tokens.dart';
 import '../../domain/models/settings.dart';
+import '../../domain/use_cases/client_status.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 import '../tours/tours_list_screen.dart' show toursAsyncProvider;
@@ -19,6 +20,19 @@ import '../widgets/address_autocomplete_field.dart';
 import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
+import '../widgets/color_swatch_picker.dart';
+
+Color _hexToColor(String hex) {
+  final cleaned = hex.replaceAll('#', '');
+  return Color(int.parse(cleaned, radix: 16) | 0xFF000000);
+}
+
+String _colorToHex(Color c) {
+  // Drop the alpha channel — we only persist RGB.
+  final argb = c.toARGB32();
+  final hex = (argb & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase();
+  return '#$hex';
+}
 
 final _settingsAsyncProvider = FutureProvider<Settings?>((ref) {
   return ref.watch(settingsRepositoryProvider).read();
@@ -86,6 +100,25 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
       _draft.defaultRadiusKm != widget.initial.defaultRadiusKm ||
       _draft.defaultMinutesPerSheep != widget.initial.defaultMinutesPerSheep ||
       _draft.travelFeeEurosPerBracket != widget.initial.travelFeeEurosPerBracket;
+
+  Future<void> _persistMarkerColor(ClientStatus status, String hex) async {
+    await ref.read(settingsRepositoryProvider).updateMarkerColor(status, hex);
+    ref.invalidate(_settingsAsyncProvider);
+    ref.invalidate(clientsAsyncProvider);
+    if (!mounted) return;
+    setState(() {
+      _draft = switch (status) {
+        ClientStatus.defaultStatus =>
+          _draft.copyWith(markerDefaultColor: hex),
+        ClientStatus.waiting =>
+          _draft.copyWith(markerWaitingColor: hex),
+        ClientStatus.overdue =>
+          _draft.copyWith(markerOverdueColor: hex),
+        ClientStatus.recompute =>
+          _draft.copyWith(markerRecomputeColor: hex),
+      };
+    });
+  }
 
   Future<void> _save() async {
     final didBaseChange =
@@ -256,6 +289,44 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
           ),
           const SizedBox(height: AppSpacing.md),
 
+          // --- Couleurs des marqueurs ---
+          AppSectionCard(
+            icon: FIcons.droplet,
+            title: 'Couleurs des marqueurs',
+            child: Column(
+              children: [
+                _MarkerColorRow(
+                  label: 'Par défaut',
+                  currentHex: _draft.markerDefaultColor,
+                  defaultHex: '#4A6B52',
+                  onPicked: (hex) => _persistMarkerColor(ClientStatus.defaultStatus, hex),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _MarkerColorRow(
+                  label: 'En attente',
+                  currentHex: _draft.markerWaitingColor,
+                  defaultHex: '#C77B5C',
+                  onPicked: (hex) => _persistMarkerColor(ClientStatus.waiting, hex),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _MarkerColorRow(
+                  label: 'En retard',
+                  currentHex: _draft.markerOverdueColor,
+                  defaultHex: '#B33A3A',
+                  onPicked: (hex) => _persistMarkerColor(ClientStatus.overdue, hex),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _MarkerColorRow(
+                  label: 'À recalculer',
+                  currentHex: _draft.markerRecomputeColor,
+                  defaultHex: '#A89F92',
+                  onPicked: (hex) => _persistMarkerColor(ClientStatus.recompute, hex),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
           // --- Données ---
           AppSectionCard(
             icon: FIcons.database,
@@ -377,6 +448,52 @@ class _ThemeOption extends ConsumerWidget {
               ref.invalidate(themeModeProvider);
               ref.invalidate(_settingsAsyncProvider);
             },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Marker color row
+// ---------------------------------------------------------------------------
+
+class _MarkerColorRow extends StatelessWidget {
+  final String label;
+  final String currentHex;
+  final String defaultHex;
+  final ValueChanged<String> onPicked;
+
+  const _MarkerColorRow({
+    required this.label,
+    required this.currentHex,
+    required this.defaultHex,
+    required this.onPicked,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return AppListTile(
+      prefix: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: _hexToColor(currentHex),
+          shape: BoxShape.circle,
+          border: Border.all(color: theme.colors.border),
+        ),
+      ),
+      title: label,
+      subtitle: currentHex.toUpperCase(),
+      suffix: const Icon(FIcons.chevronRight),
+      onPress: () async {
+        final picked = await showColorSwatchPicker(
+          context: context,
+          current: _hexToColor(currentHex),
+          defaultColor: _hexToColor(defaultHex),
+          title: 'Couleur — $label',
+        );
+        if (picked != null) onPicked(_colorToHex(picked));
+      },
     );
   }
 }
