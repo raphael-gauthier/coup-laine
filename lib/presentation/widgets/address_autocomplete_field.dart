@@ -34,6 +34,12 @@ class _AddressAutocompleteFieldState
   bool _loading = false;
   String? _error;
 
+  /// Set to the label of the suggestion the user just picked. The next
+  /// onChange callback (fired by the controller when we write `r.label`
+  /// into it) will see the same value and skip the search — preventing
+  /// the dropdown from re-appearing immediately after a pick.
+  String? _justPickedLabel;
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +54,10 @@ class _AddressAutocompleteFieldState
   }
 
   void _onChanged(String value) {
+    if (value == _justPickedLabel) {
+      _justPickedLabel = null;
+      return;
+    }
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () => _search(value));
   }
@@ -76,7 +86,10 @@ class _AddressAutocompleteFieldState
   }
 
   void _pick(GeocodingResult r) {
+    _debounce?.cancel();
+    _justPickedLabel = r.label;
     _controller.text = r.label;
+    FocusManager.instance.primaryFocus?.unfocus();
     setState(() {
       _results = const [];
     });
