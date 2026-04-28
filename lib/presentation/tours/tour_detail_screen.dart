@@ -6,11 +6,17 @@ import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
+import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/tour.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
+import '../widgets/app_badge.dart';
+import '../widgets/app_hero_card.dart';
+import '../widgets/app_list_tile.dart';
+import '../widgets/app_primary_button.dart';
+import '../widgets/app_section_card.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
 
 final _tourByIdProvider =
@@ -82,71 +88,39 @@ class _Body extends ConsumerWidget {
     final driveMin = bundle.tour.totalDriveSeconds ~/ 60;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      padding: AppSizes.screenPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Hero card
-          FCard.raw(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Status badge
-                  FBadge(
-                    variant: completed
-                        ? FBadgeVariant.secondary
-                        : FBadgeVariant.primary,
-                    child: Text(completed
-                        ? l.toursStatusCompleted
-                        : l.toursStatusPlanned),
-                  ),
-                  const SizedBox(height: 12),
-                  // Total fee
-                  Text(
-                    formatEuros(bundle.tour.totalTravelFeeCents),
-                    style: theme.typography.xl4.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colors.foreground,
-                    ),
-                  ),
-                  Text(
-                    l.tourDetailFeeTotalCaption,
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.mutedForeground,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Sub-line
-                  Text(
-                    '$km km · ${formatDuration(driveMin)} de trajet · Départ ${formatHm(bundle.tour.startTimeMinutes)}',
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          AppHeroCard(
+            badge: completed
+                ? AppBadge.completed(context)
+                : AppBadge.planned(context),
+            bigNumber: formatEuros(bundle.tour.totalTravelFeeCents),
+            label: l.tourDetailFeeTotalCaption,
+            subtitle: '$km km · ${formatDuration(driveMin)} de trajet · Départ ${formatHm(bundle.tour.startTimeMinutes)}',
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
 
           // Long-day badge
           if (_estimatedTourEnd(bundle) > 20 * 60) ...[
-            FBadge(
-              variant: FBadgeVariant.secondary,
-              child: Text(l.tourDetailLongDay),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+              child: AppBadge.longDay(context),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
           ],
 
-          // Schedule card
-          FCard(
-            title: Text(l.tourDetailScheduleTitle),
+          // Schedule section
+          AppSectionCard(
+            icon: FIcons.listOrdered,
+            title: l.tourDetailScheduleTitle,
             child: Column(
               children: [
-                for (var i = 0; i < bundle.stops.length; i++)
-                  FTile(
+                for (var i = 0; i < bundle.stops.length; i++) ...[
+                  if (i > 0) const SizedBox(height: AppSpacing.sm),
+                  AppListTile(
                     prefix: Container(
                       width: 28,
                       height: 28,
@@ -163,36 +137,34 @@ class _Body extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    title: Text(bundle.stops[i].clientId == null
+                    title: bundle.stops[i].clientId == null
                         ? '${bundle.stops[i].clientNameSnapshot} ${l.tourDetailDeleted}'
-                        : bundle.stops[i].clientNameSnapshot),
-                    subtitle: Text(
-                      '${formatHm(bundle.stops[i].estimatedArrivalMinutes)} → '
-                      '${formatHm(bundle.stops[i].estimatedDepartureMinutes)} · '
-                      '${bundle.stops[i].sheepCountSnapshot} moutons',
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
-                      ),
-                    ),
+                        : bundle.stops[i].clientNameSnapshot,
+                    subtitle: '${formatHm(bundle.stops[i].estimatedArrivalMinutes)} → '
+                        '${formatHm(bundle.stops[i].estimatedDepartureMinutes)} · '
+                        '${bundle.stops[i].sheepCountSnapshot} moutons',
                     suffix: Text(
                       formatEuros(bundle.stops[i].feeShareCents),
                       style: theme.typography.sm.copyWith(
                         color: theme.colors.mutedForeground,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: 24),
 
           // Mark-as-completed CTA
-          if (!completed)
-            FButton(
-              prefix: const Icon(FIcons.check),
+          if (!completed) ...[
+            const SizedBox(height: AppSpacing.md),
+            AppPrimaryButton(
+              label: l.tourDetailComplete,
+              prefixIcon: FIcons.check,
               onPress: () => _confirmComplete(context, ref),
-              child: Text(l.tourDetailComplete),
             ),
+          ],
         ],
       ),
     );
