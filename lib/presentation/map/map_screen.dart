@@ -1,11 +1,13 @@
 // lib/presentation/map/map_screen.dart
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart' show Material, MaterialType;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../core/design_tokens.dart';
@@ -15,6 +17,7 @@ import '../../domain/use_cases/client_status.dart';
 import '../../state/map_controller.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
+import 'client_pin_popup.dart';
 
 String _removeAccents(String s) {
   const tr = {
@@ -206,6 +209,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 final visibleClients = clients
                     .where((c) => visibleStatuses.contains(c.status))
                     .toList();
+                final selectedId = ref.watch(mapSelectedClientIdProvider);
+                final selectedClient = selectedId == null
+                    ? null
+                    : visibleClients.firstWhereOrNull((c) => c.id == selectedId);
                 return SafeArea(
                   child: Stack(
                     children: [
@@ -219,6 +226,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           initialZoom: 11,
                           minZoom: 6,
                           maxZoom: 17,
+                          onTap: (_, __) {
+                            if (ref.read(mapSelectedClientIdProvider) != null) {
+                              ref.read(mapSelectedClientIdProvider.notifier).state = null;
+                            }
+                          },
                         ),
                         children: [
                           TileLayer(
@@ -253,14 +265,45 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                   width: 32,
                                   height: 40,
                                   alignment: Alignment.bottomCenter,
-                                  child: Icon(
-                                    FIcons.mapPin,
-                                    color: _resolveColor(c, settings),
-                                    size: 32,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      final currentSelected = ref.read(mapSelectedClientIdProvider);
+                                      if (currentSelected == c.id) {
+                                        context.push('/clients/${c.id}');
+                                      } else {
+                                        ref.read(mapSelectedClientIdProvider.notifier).state = c.id;
+                                      }
+                                    },
+                                    child: Icon(
+                                      FIcons.mapPin,
+                                      color: _resolveColor(c, settings),
+                                      size: 32,
+                                    ),
                                   ),
                                 ),
                             ],
                           ),
+                          if (selectedClient != null)
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  point: LatLng(
+                                    selectedClient.coordinates.lat,
+                                    selectedClient.coordinates.lon,
+                                  ),
+                                  width: 280,
+                                  height: 140,
+                                  alignment: const Alignment(0, -1.6),
+                                  child: ClientPinPopup(
+                                    client: selectedClient,
+                                    onOpenDetail: () {
+                                      ref.read(mapSelectedClientIdProvider.notifier).state = null;
+                                      context.push('/clients/${selectedClient.id}');
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                       Positioned(
