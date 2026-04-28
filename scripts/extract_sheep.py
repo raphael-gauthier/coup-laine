@@ -35,7 +35,7 @@ ANDROID_RES = ROOT / "android" / "app" / "src" / "main" / "res"
 # Logo source is 1640x856 — sheep occupies roughly the left 42%.
 CROP_LEFT = 0.005
 CROP_TOP = 0.02
-CROP_RIGHT = 0.42
+CROP_RIGHT = 0.36
 CROP_BOTTOM = 0.99
 
 # Soft alpha threshold based on luminance.
