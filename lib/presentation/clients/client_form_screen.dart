@@ -6,11 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
 import '../widgets/address_autocomplete_field.dart';
+import '../widgets/app_primary_button.dart';
+import '../widgets/app_section_card.dart';
 import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
 class ClientFormScreen extends ConsumerStatefulWidget {
@@ -185,13 +188,14 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         title: Text(widget.isEdit ? l.clientFormTitleEdit : l.clientFormTitleNew),
       ),
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        padding: AppSizes.screenPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Section: Identité
-            FCard(
-              title: Text(l.clientFormSectionIdentity),
+            AppSectionCard(
+              icon: FIcons.user,
+              title: l.clientFormSectionIdentity,
               child: Column(
                 children: [
                   FTextField(
@@ -204,7 +208,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     label: Text(l.clientFormName),
                     error: _nameError != null ? Text(_nameError!) : null,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   FTextField(
                     control: FTextFieldControl.managed(controller: _phoneCtrl),
                     label: Text(l.clientFormPhone),
@@ -213,11 +217,12 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
 
             // Section: Adresse
-            FCard(
-              title: Text(l.clientFormSectionAddress),
+            AppSectionCard(
+              icon: FIcons.mapPin,
+              title: l.clientFormSectionAddress,
               child: AddressAutocompleteField(
                 initialLabel: _addressLabel,
                 onPicked: (r) => setState(() {
@@ -228,11 +233,12 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                 }),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
 
             // Section: Tonte
-            FCard(
-              title: Text(l.clientFormSectionShearing),
+            AppSectionCard(
+              icon: FIcons.scissors,
+              title: l.clientFormSectionShearing,
               child: Column(
                 children: [
                   FTextField(
@@ -247,7 +253,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     error: _sheepError != null ? Text(_sheepError!) : null,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   FTextField(
                     control: FTextFieldControl.managed(
                       controller: _minOverrideCtrl,
@@ -260,7 +266,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     error: _minOverrideError != null ? Text(_minOverrideError!) : null,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   FTextField(
                     control: FTextFieldControl.managed(controller: _notesCtrl),
                     label: Text(l.clientFormNotes),
@@ -269,28 +275,15 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
 
             // Save button
-            FButton(
+            AppPrimaryButton(
+              label: l.clientFormSave,
               onPress: _saving ? null : _submit,
-              child: _saving
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: FCircularProgress(size: FCircularProgressSizeVariant.sm),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(l.clientFormSave),
-                      ],
-                    )
-                  : Text(l.clientFormSave),
+              loading: _saving,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.md),
           ],
         ),
       ),
