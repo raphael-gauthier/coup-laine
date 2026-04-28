@@ -185,28 +185,31 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       final arr = bundle.result.arrivalMinutes[i];
                       final dep = bundle.result.departureMinutes[i];
                       final fee = formatEuros(bundle.result.feeShareCents[i]);
-                      return AppListTile(
+                      return Padding(
                         key: ValueKey(c.id),
-                        prefix: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            color: theme.colors.primary,
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '${i + 1}',
-                            style: theme.typography.sm.copyWith(
-                              color: theme.colors.primaryForeground,
-                              fontWeight: FontWeight.bold,
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: AppListTile(
+                          prefix: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: theme.colors.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${i + 1}',
+                              style: theme.typography.sm.copyWith(
+                                color: theme.colors.primaryForeground,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
+                          title: c.name,
+                          subtitle:
+                              '${l.tourDraftStopArrivalFmt(formatHm(arr), formatHm(dep))} · $fee',
+                          suffix: const Icon(FIcons.gripVertical),
                         ),
-                        title: c.name,
-                        subtitle:
-                            '${l.tourDraftStopArrivalFmt(formatHm(arr), formatHm(dep))} · $fee',
-                        suffix: const Icon(FIcons.gripVertical),
                       );
                     },
                   ),
