@@ -5,6 +5,7 @@
   "tabClients": "Clients",
   "tabTours": "Tournées",
   "tabSettings": "Paramètres",
+  "tabMap": "Carte",
   "emptyClientsTitle": "Aucun client",
   "emptyClientsBody": "Ajoutez votre premier client avec le bouton ci-dessous.",
   "emptyToursTitle": "Aucune tournée",

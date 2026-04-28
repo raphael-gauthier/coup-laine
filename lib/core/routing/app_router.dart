@@ -10,6 +10,7 @@ import '../../presentation/clients/client_form_screen.dart';
 import '../../presentation/clients/clients_list_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/settings/settings_screen.dart';
+import '../../presentation/map/map_screen.dart';
 import '../../presentation/tours/tour_detail_screen.dart';
 import '../../presentation/tours/tour_draft_screen.dart';
 import '../../presentation/tours/tours_list_screen.dart';
@@ -88,6 +89,12 @@ class AppRouter {
             ]),
             StatefulShellBranch(routes: [
               GoRoute(
+                path: '/map',
+                builder: (_, __) => const MapScreen(),
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
                 path: '/settings',
                 builder: (_, __) => const SettingsScreen(),
               ),
@@ -119,6 +126,10 @@ class _ShellScaffold extends StatelessWidget {
           FBottomNavigationBarItem(
             icon: const Icon(FIcons.route),
             label: Text(l.tabTours),
+          ),
+          FBottomNavigationBarItem(
+            icon: const Icon(FIcons.compass),
+            label: Text(l.tabMap),
           ),
           FBottomNavigationBarItem(
             icon: const Icon(FIcons.settings),

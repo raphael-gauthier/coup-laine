@@ -5,6 +5,7 @@
   "tabClients": "Clients",
   "tabTours": "Tours",
   "tabSettings": "Settings",
+  "tabMap": "Map",
   "emptyClientsTitle": "No clients",
   "emptyClientsBody": "Add your first client with the button below.",
   "emptyToursTitle": "No tours",
