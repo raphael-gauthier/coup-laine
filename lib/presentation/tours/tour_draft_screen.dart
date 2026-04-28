@@ -1,7 +1,9 @@
 // lib/presentation/tours/tour_draft_screen.dart
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show ReorderableListView, TimeOfDay, showDatePicker, showTimePicker;
+import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -102,33 +104,59 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
     final async = ref.watch(tourDraftProvider);
-    return Scaffold(
-      appBar: AppBar(title: Text(l.tourDraftTitle)),
-      body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+
+    return FScaffold(
+      resizeToAvoidBottomInset: true,
+      header: FHeader.nested(title: Text(l.tourDraftTitle)),
+      child: async.when(
+        loading: () => const Center(child: FCircularProgress()),
         error: (e, _) => Center(child: Text('$e')),
         data: (bundle) {
           if (bundle == null) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: FCircularProgress());
           }
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ListTile(
-                leading: const Icon(Icons.calendar_today),
-                title: Text(l.tourDraftDate),
-                subtitle: Text(DateFormat('EEE dd/MM/yyyy', 'fr').format(_date)),
-                onTap: _pickDate,
+              // Date/time card
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: FCard(
+                  title: Text(l.tourDraftWhenTitle),
+                  child: Column(
+                    children: [
+                      FTile(
+                        prefix: const Icon(FIcons.calendar),
+                        title: Text(l.tourDraftDate),
+                        subtitle: Text(DateFormat('EEE d MMM yyyy', 'fr').format(_date)),
+                        onPress: _pickDate,
+                      ),
+                      FTile(
+                        prefix: const Icon(FIcons.clock),
+                        title: Text(l.tourDraftStart),
+                        subtitle: Text(formatHm(_startMinutes)),
+                        onPress: _pickTime,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              ListTile(
-                leading: const Icon(Icons.schedule),
-                title: Text(l.tourDraftStart),
-                subtitle: Text(formatHm(_startMinutes)),
-                onTap: _pickTime,
+              // "Étapes" heading
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+                child: Text(
+                  l.tourDraftStepsTitle,
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
               ),
-              const Divider(),
+              // Reorderable list
               Expanded(
                 child: ReorderableListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: bundle.orderedClients.length,
                   onReorder: (oldIndex, newIndex) {
                     final order =
@@ -143,45 +171,79 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                     final c = bundle.orderedClients[i];
                     final arr = bundle.result.arrivalMinutes[i];
                     final dep = bundle.result.departureMinutes[i];
-                    return ListTile(
+                    final fee = formatEuros(bundle.result.feeShareCents[i]);
+                    return FTile(
                       key: ValueKey(c.id),
-                      leading: CircleAvatar(child: Text('${i + 1}')),
-                      title: Text(c.name),
-                      subtitle: Text(l.tourDraftStopArrivalFmt(
-                        formatHm(arr),
-                        formatHm(dep),
-                      )),
-                      trailing: Text(formatEuros(bundle.result.feeShareCents[i])),
+                      prefix: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: theme.colors.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${i + 1}',
+                          style: theme.typography.sm.copyWith(
+                            color: theme.colors.primaryForeground,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        c.name,
+                        style: theme.typography.md.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      subtitle: Text(
+                        '${l.tourDraftStopArrivalFmt(formatHm(arr), formatHm(dep))} · $fee',
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.mutedForeground,
+                        ),
+                      ),
                     );
                   },
                 ),
               ),
-              const Divider(),
+              // Summary footer
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(l.tourDraftSummaryTotal(
-                  (bundle.result.totalDistanceMeters / 1000).toStringAsFixed(1),
-                  formatDuration(bundle.result.totalDriveSeconds ~/ 60),
-                  formatDuration(bundle.result.totalShearingMinutes),
-                  formatHm(bundle.result.endTimeMinutes),
-                )),
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: FCard.raw(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Text(
+                      l.tourDraftSummaryTotal(
+                        (bundle.result.totalDistanceMeters / 1000).toStringAsFixed(1),
+                        formatDuration(bundle.result.totalDriveSeconds ~/ 60),
+                        formatDuration(bundle.result.totalShearingMinutes),
+                        formatHm(bundle.result.endTimeMinutes),
+                      ),
+                      style: theme.typography.sm.copyWith(
+                        color: theme.colors.mutedForeground,
+                      ),
+                    ),
+                  ),
+                ),
               ),
+              // Action row
               SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   child: Row(
                     children: [
-                      OutlinedButton(
-                        onPressed: () {
+                      FButton(
+                        variant: FButtonVariant.outline,
+                        onPress: () {
                           setState(() => _manualOrder = null);
                           _refresh();
                         },
                         child: Text(l.tourDraftOptimise),
                       ),
-                      const Spacer(),
-                      FilledButton(
-                        onPressed: () => _save(bundle),
-                        child: Text(l.tourDraftConfirm),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FButton(
+                          onPress: () => _save(bundle),
+                          child: Text(l.tourDraftConfirm),
+                        ),
                       ),
                     ],
                   ),

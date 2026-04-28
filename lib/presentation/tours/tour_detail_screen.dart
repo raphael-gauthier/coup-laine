@@ -1,7 +1,9 @@
 // lib/presentation/tours/tour_detail_screen.dart
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show AlertDialog, FilledButton, TextButton, showDialog;
+import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -25,24 +27,24 @@ class TourDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final async = ref.watch(_tourByIdProvider(tourId));
-    return Scaffold(
-      appBar: AppBar(
+
+    return FScaffold(
+      header: FHeader.nested(
         title: Text(async.value == null
             ? '...'
-            : DateFormat('EEE dd/MM/yyyy', 'fr')
+            : DateFormat('EEE d MMM yyyy', 'fr')
                 .format(async.value!.tour.plannedDate)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: async.value == null
+        suffixes: [
+          FButton.icon(
+            onPress: async.value == null
                 ? null
-                : () => _share(async.value!, context),
-            tooltip: l.tourDetailShare,
+                : () => _share(async.value!, context, l),
+            child: const Icon(FIcons.share2),
           ),
         ],
       ),
-      body: async.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+      child: async.when(
+        loading: () => const Center(child: FCircularProgress()),
         error: (e, _) => Center(child: Text('$e')),
         data: (bundle) {
           if (bundle == null) return const SizedBox.shrink();
@@ -52,14 +54,12 @@ class TourDetailScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _share(TourWithStops bundle, BuildContext context) async {
-    final dateLine =
-        DateFormat('dd/MM/yyyy').format(bundle.tour.plannedDate);
+  Future<void> _share(TourWithStops bundle, BuildContext context, AppLocalizations l) async {
+    final dateLine = DateFormat('dd/MM/yyyy').format(bundle.tour.plannedDate);
     final lines = <String>[
       'Tournée du $dateLine',
       ...bundle.stops.map(
-        (s) =>
-            '- ${s.clientNameSnapshot} : ${formatEuros(s.feeShareCents)}',
+        (s) => '- ${s.clientNameSnapshot} : ${formatEuros(s.feeShareCents)}',
       ),
       'Total : ${formatEuros(bundle.tour.totalTravelFeeCents)}',
     ];
@@ -75,71 +75,125 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
     final completed = bundle.tour.status == TourStatus.completed;
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Card(
-          child: ListTile(
-            leading: Icon(
-              completed ? Icons.check_circle : Icons.alt_route,
-              color: completed ? Colors.green : null,
-            ),
-            title: Text(completed
-                ? l.toursStatusCompleted
-                : l.toursStatusPlanned),
-            subtitle: Text(
-              '${(bundle.tour.totalDistanceMeters / 1000).toStringAsFixed(1)} km · '
-              '${formatDuration(bundle.tour.totalDriveSeconds ~/ 60)} de trajet · '
-              'Départ ${formatHm(bundle.tour.startTimeMinutes)}',
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (_estimatedTourEnd(bundle) > 20 * 60)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Chip(
-              label: Text('Journée longue'),
-              backgroundColor: Color(0xFFFFE0B2),
-            ),
-          ),
-        Text(l.tourDetailScheduleTitle,
-            style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        for (var i = 0; i < bundle.stops.length; i++)
-          ListTile(
-            leading: CircleAvatar(child: Text('${i + 1}')),
-            title: Text(bundle.stops[i].clientId == null
-                ? '${bundle.stops[i].clientNameSnapshot} ${l.tourDetailDeleted}'
-                : bundle.stops[i].clientNameSnapshot),
-            subtitle: Text(
-              '${formatHm(bundle.stops[i].estimatedArrivalMinutes)} → '
-              '${formatHm(bundle.stops[i].estimatedDepartureMinutes)} · '
-              '${bundle.stops[i].sheepCountSnapshot} moutons',
-            ),
-            trailing: Text(formatEuros(bundle.stops[i].feeShareCents)),
-          ),
-        const SizedBox(height: 16),
-        Text(l.tourDetailFeeTitle,
-            style: Theme.of(context).textTheme.titleMedium),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              'Total : ${formatEuros(bundle.tour.totalTravelFeeCents)}',
-              style: Theme.of(context).textTheme.titleLarge,
+    final km = (bundle.tour.totalDistanceMeters / 1000).toStringAsFixed(1);
+    final driveMin = bundle.tour.totalDriveSeconds ~/ 60;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Hero card
+          FCard.raw(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Status badge
+                  FBadge(
+                    variant: completed
+                        ? FBadgeVariant.secondary
+                        : FBadgeVariant.primary,
+                    child: Text(completed
+                        ? l.toursStatusCompleted
+                        : l.toursStatusPlanned),
+                  ),
+                  const SizedBox(height: 12),
+                  // Total fee
+                  Text(
+                    formatEuros(bundle.tour.totalTravelFeeCents),
+                    style: theme.typography.xl4.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colors.foreground,
+                    ),
+                  ),
+                  Text(
+                    l.tourDetailFeeTotalCaption,
+                    style: theme.typography.sm.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Sub-line
+                  Text(
+                    '$km km · ${formatDuration(driveMin)} de trajet · Départ ${formatHm(bundle.tour.startTimeMinutes)}',
+                    style: theme.typography.sm.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: 24),
-        if (!completed)
-          FilledButton.icon(
-            icon: const Icon(Icons.check),
-            label: Text(l.tourDetailComplete),
-            onPressed: () => _confirmComplete(context, ref),
+          const SizedBox(height: 12),
+
+          // Long-day badge
+          if (_estimatedTourEnd(bundle) > 20 * 60) ...[
+            FBadge(
+              variant: FBadgeVariant.secondary,
+              child: Text(l.tourDetailLongDay),
+            ),
+            const SizedBox(height: 12),
+          ],
+
+          // Schedule card
+          FCard(
+            title: Text(l.tourDetailScheduleTitle),
+            child: Column(
+              children: [
+                for (var i = 0; i < bundle.stops.length; i++)
+                  FTile(
+                    prefix: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: theme.colors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${i + 1}',
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.primaryForeground,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    title: Text(bundle.stops[i].clientId == null
+                        ? '${bundle.stops[i].clientNameSnapshot} ${l.tourDetailDeleted}'
+                        : bundle.stops[i].clientNameSnapshot),
+                    subtitle: Text(
+                      '${formatHm(bundle.stops[i].estimatedArrivalMinutes)} → '
+                      '${formatHm(bundle.stops[i].estimatedDepartureMinutes)} · '
+                      '${bundle.stops[i].sheepCountSnapshot} moutons',
+                      style: theme.typography.sm.copyWith(
+                        color: theme.colors.mutedForeground,
+                      ),
+                    ),
+                    suffix: Text(
+                      formatEuros(bundle.stops[i].feeShareCents),
+                      style: theme.typography.sm.copyWith(
+                        color: theme.colors.mutedForeground,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
-      ],
+          const SizedBox(height: 24),
+
+          // Mark-as-completed CTA
+          if (!completed)
+            FButton(
+              prefix: const Icon(FIcons.check),
+              onPress: () => _confirmComplete(context, ref),
+              child: Text(l.tourDetailComplete),
+            ),
+        ],
+      ),
     );
   }
 
