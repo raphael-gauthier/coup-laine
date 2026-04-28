@@ -8,7 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' hide Path;
 
 import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
@@ -262,8 +262,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                     c.coordinates.lat,
                                     c.coordinates.lon,
                                   ),
-                                  width: 32,
-                                  height: 40,
+                                  width: 40,
+                                  height: 48,
                                   alignment: Alignment.bottomCenter,
                                   child: GestureDetector(
                                     onTap: () {
@@ -274,10 +274,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                         ref.read(mapSelectedClientIdProvider.notifier).state = c.id;
                                       }
                                     },
-                                    child: Icon(
-                                      FIcons.mapPin,
+                                    child: _StatusPin(
                                       color: _resolveColor(c, settings),
-                                      size: 32,
+                                      sheepCount: c.sheepCount,
                                     ),
                                   ),
                                 ),
@@ -445,6 +444,80 @@ class _MapIconButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class _StatusPin extends StatelessWidget {
+  final Color color;
+  final int sheepCount;
+
+  const _StatusPin({required this.color, required this.sheepCount});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 40,
+      height: 48,
+      child: CustomPaint(
+        painter: _PinPainter(color: color),
+        child: Align(
+          alignment: const Alignment(0, -0.25),
+          child: Text(
+            '$sheepCount',
+            style: const TextStyle(
+              color: Color(0xFFFFFFFF),
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              height: 1,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PinPainter extends CustomPainter {
+  final Color color;
+
+  _PinPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const cx = 20.0;
+    const discRadius = 18.0;
+    const discCenter = Offset(cx, discRadius);
+    final tip = Offset(cx, size.height);
+
+    final circle = Path()
+      ..addOval(Rect.fromCircle(center: discCenter, radius: discRadius));
+    final tail = Path()
+      ..moveTo(cx - 8, discRadius + 8)
+      ..lineTo(tip.dx, tip.dy)
+      ..lineTo(cx + 8, discRadius + 8)
+      ..close();
+    final pin = Path.combine(PathOperation.union, circle, tail);
+
+    canvas.drawShadow(pin, const Color(0x66000000), 2, false);
+
+    canvas.drawPath(
+      pin,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.fill,
+    );
+
+    canvas.drawPath(
+      pin,
+      Paint()
+        ..color = const Color(0xFFFFFFFF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PinPainter old) => old.color != color;
 }
 
 class _LayerToggleRow extends StatelessWidget {
