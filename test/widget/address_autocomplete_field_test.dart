@@ -4,6 +4,7 @@ import 'package:coupe_laine/state/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:forui/forui.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
@@ -20,6 +21,10 @@ void main() {
           httpClientProvider.overrideWithValue(mockHttp),
         ],
         child: MaterialApp(
+          builder: (context, child) => FTheme(
+            data: FThemes.blue.light.touch,
+            child: child ?? const SizedBox.shrink(),
+          ),
           home: Scaffold(
             body: AddressAutocompleteField(
               onPicked: (r) => picked = r,
@@ -31,8 +36,8 @@ void main() {
     await tester.enterText(find.byType(TextField), '1 rue test');
     await tester.pump(const Duration(milliseconds: 350));
     await tester.pumpAndSettle();
-    expect(find.byType(ListTile), findsOneWidget);
-    await tester.tap(find.byType(ListTile));
+    expect(find.byType(FTile), findsOneWidget);
+    await tester.tap(find.byType(FTile));
     await tester.pumpAndSettle();
     expect(picked, isNotNull);
     expect(picked!.postcode, '22000');

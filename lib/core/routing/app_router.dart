@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../presentation/clients/client_detail_screen.dart';
@@ -105,30 +106,27 @@ class _ShellScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return Scaffold(
-      body: shell,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: shell.currentIndex,
-        onDestinationSelected: (i) =>
-            shell.goBranch(i, initialLocation: i == shell.currentIndex),
-        destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.people_outline),
-            selectedIcon: const Icon(Icons.people),
-            label: l.tabClients,
+    return FScaffold(
+      childPad: false,
+      footer: FBottomNavigationBar(
+        index: shell.currentIndex,
+        onChange: (i) => shell.goBranch(i, initialLocation: i == shell.currentIndex),
+        children: [
+          FBottomNavigationBarItem(
+            icon: const Icon(FIcons.users),
+            label: Text(l.tabClients),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.alt_route_outlined),
-            selectedIcon: const Icon(Icons.alt_route),
-            label: l.tabTours,
+          FBottomNavigationBarItem(
+            icon: const Icon(FIcons.route),
+            label: Text(l.tabTours),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.settings_outlined),
-            selectedIcon: const Icon(Icons.settings),
-            label: l.tabSettings,
+          FBottomNavigationBarItem(
+            icon: const Icon(FIcons.settings),
+            label: Text(l.tabSettings),
           ),
         ],
       ),
+      child: shell,
     );
   }
 }

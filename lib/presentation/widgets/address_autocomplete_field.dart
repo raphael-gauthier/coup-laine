@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 
 import '../../infra/services/ban_geocoding_service.dart';
 import '../../state/providers.dart';
@@ -87,35 +88,37 @@ class _AddressAutocompleteFieldState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextField(
-          controller: _controller,
-          decoration: InputDecoration(
-            labelText: widget.labelText,
-            suffixIcon: _loading
-                ? const Padding(
+        FTextField(
+          control: FTextFieldControl.managed(
+            controller: _controller,
+            onChange: (v) => _onChanged(v.text),
+          ),
+          label: Text(widget.labelText),
+          error: _error != null ? Text(_error!) : null,
+          suffixBuilder: _loading
+              ? (_, __, ___) => const Padding(
                     padding: EdgeInsets.all(12),
                     child: SizedBox(
                       width: 16,
                       height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: FCircularProgress(size: FCircularProgressSizeVariant.sm),
                     ),
                   )
-                : null,
-            errorText: _error,
-          ),
-          onChanged: _onChanged,
+              : null,
         ),
         if (_results.isNotEmpty)
-          Card(
-            margin: const EdgeInsets.only(top: 4),
-            child: Column(
-              children: _results
-                  .map((r) => ListTile(
-                        title: Text(r.label),
-                        subtitle: Text('${r.postcode} ${r.city}'),
-                        onTap: () => _pick(r),
-                      ))
-                  .toList(),
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: FCard.raw(
+              child: Column(
+                children: _results
+                    .map((r) => FTile(
+                          title: Text(r.label),
+                          subtitle: Text('${r.postcode} ${r.city}'),
+                          onPress: () => _pick(r),
+                        ))
+                    .toList(),
+              ),
             ),
           ),
       ],
