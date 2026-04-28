@@ -8,8 +8,14 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
 import '../../state/providers.dart';
+import '../widgets/app_badge.dart';
+import '../widgets/app_empty_state.dart';
+import '../widgets/app_list_tile.dart';
+import '../widgets/app_primary_button.dart';
+import '../widgets/app_section_card.dart';
 
 enum _Filter { all, waiting }
 
@@ -56,7 +62,7 @@ class ClientsListScreen extends ConsumerWidget {
                   slivers: [
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -64,7 +70,6 @@ class ClientsListScreen extends ConsumerWidget {
                             Text(
                               l.clientsListTitle,
                               style: theme.typography.xl3.copyWith(
-                                fontWeight: FontWeight.bold,
                                 color: theme.colors.foreground,
                               ),
                             ),
@@ -90,22 +95,19 @@ class ClientsListScreen extends ConsumerWidget {
                             const SizedBox(height: 16),
                             // Recompute banner
                             if (pending > 0) ...[
-                              FCard(
+                              AppSectionCard(
+                                icon: FIcons.triangleAlert,
+                                iconBackground: theme.colors.destructive,
+                                title: 'Distances',
                                 child: Row(
                                   children: [
-                                    Icon(
-                                      FIcons.triangleAlert,
-                                      color: theme.colors.destructive,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
                                         '$pending client(s) sans distances calculées',
                                         style: theme.typography.sm,
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: AppSpacing.sm),
                                     FButton(
                                       variant: FButtonVariant.outline,
                                       size: FButtonSizeVariant.sm,
@@ -121,7 +123,7 @@ class ClientsListScreen extends ConsumerWidget {
                                           );
                                         }
                                       },
-                                      child: Text(l.clientsRetryRecompute.split(' ').first),
+                                      child: const Text('Recalculer'),
                                     ),
                                   ],
                                 ),
@@ -135,44 +137,24 @@ class ClientsListScreen extends ConsumerWidget {
                     // Client list or empty state
                     if (list.isEmpty)
                       SliverFillRemaining(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  FIcons.users,
-                                  size: 56,
-                                  color: theme.colors.mutedForeground,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  l.emptyClientsTitle,
-                                  style: theme.typography.xl.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.colors.foreground,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  l.emptyClientsBody,
-                                  textAlign: TextAlign.center,
-                                  style: theme.typography.sm.copyWith(
-                                    color: theme.colors.mutedForeground,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        hasScrollBody: false,
+                        child: AppEmptyState(
+                          illustrationAsset: 'assets/illustrations/empty-clients.svg',
+                          title: l.emptyClientsTitle,
+                          body: l.emptyClientsBody,
+                          action: AppPrimaryButton(
+                            label: l.clientsAddNew,
+                            prefixIcon: FIcons.userPlus,
+                            onPress: () => context.push('/clients/new'),
                           ),
                         ),
                       )
                     else
                       SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
                         sliver: SliverList.separated(
                           itemCount: list.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 0),
+                          separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
                           itemBuilder: (_, i) => _ClientTile(client: list[i]),
                         ),
                       ),
@@ -222,27 +204,20 @@ class _ClientTile extends StatelessWidget {
             DateFormat('dd/MM/yyyy').format(client.lastShearingDate!),
           );
 
-    final badges = <Widget>[
-      if (client.isWaiting)
-        Padding(
-          padding: const EdgeInsets.only(left: 4),
-          child: FBadge(child: Text(l.clientsBadgeWaiting)),
-        ),
-      if (isOverdue)
-        Padding(
-          padding: const EdgeInsets.only(left: 4),
-          child: FBadge(variant: FBadgeVariant.destructive, child: Text(l.clientsBadgeOverdue)),
-        ),
-      if (client.needsDistanceRecompute)
-        Padding(
-          padding: const EdgeInsets.only(left: 4),
-          child: FBadge(variant: FBadgeVariant.secondary, child: Text(l.clientsBadgeRecompute.split(' ').first)),
-        ),
-    ];
+    final badges = <Widget>[];
+    if (client.isWaiting) badges.add(AppBadge.waiting(context));
+    if (isOverdue) badges.add(AppBadge.overdue(context));
+    if (client.needsDistanceRecompute) badges.add(AppBadge.recompute(context));
 
-    return FTile(
-      prefix: FAvatar.raw(
-        size: 36,
+    return AppListTile(
+      prefix: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: theme.colors.primary,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
         child: Text(
           _initials(client.name),
           style: theme.typography.sm.copyWith(
@@ -251,17 +226,11 @@ class _ClientTile extends StatelessWidget {
           ),
         ),
       ),
-      title: Text(
-        client.name,
-        style: theme.typography.md.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        '${client.city} · $lastShearing',
-        style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
-      ),
+      title: client.name,
+      subtitle: '${client.city} · $lastShearing',
       suffix: badges.isNotEmpty
-          ? Wrap(spacing: 0, runSpacing: 4, children: badges)
-          : const Icon(FIcons.chevronRight),
+          ? Wrap(spacing: 4, runSpacing: 4, children: badges)
+          : Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),
       onPress: () => context.push('/clients/${client.id}'),
     );
   }
