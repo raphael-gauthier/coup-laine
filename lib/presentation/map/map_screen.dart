@@ -113,6 +113,75 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     FocusManager.instance.primaryFocus?.unfocus();
   }
 
+  Future<void> _openLayersPanel(BuildContext context, Settings settings) async {
+    await showFDialog<void>(
+      context: context,
+      builder: (ctx, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        title: const Text('Afficher les marqueurs'),
+        body: SizedBox(
+          width: 280,
+          child: Consumer(
+            builder: (context, ref, _) {
+              final visible = ref.watch(mapVisibleStatusesProvider);
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final entry in const [
+                    (ClientStatus.defaultStatus, 'Par défaut'),
+                    (ClientStatus.waiting, 'En attente'),
+                    (ClientStatus.overdue, 'En retard'),
+                    (ClientStatus.recompute, 'À recalculer'),
+                  ])
+                    _LayerToggleRow(
+                      status: entry.$1,
+                      label: entry.$2,
+                      settings: settings,
+                      isOn: visible.contains(entry.$1),
+                      onChanged: (on) {
+                        final next = {...visible};
+                        if (on) {
+                          next.add(entry.$1);
+                        } else {
+                          next.remove(entry.$1);
+                        }
+                        ref
+                            .read(mapVisibleStatusesProvider.notifier)
+                            .state = next;
+                      },
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+        actions: [
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(ctx).pop(),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _recenterOnVisible(List<Client> visibleClients, Settings settings) {
+    final points = <LatLng>[
+      LatLng(settings.baseCoordinates.lat, settings.baseCoordinates.lon),
+      for (final c in visibleClients) LatLng(c.coordinates.lat, c.coordinates.lon),
+    ];
+    if (points.length < 2) return;
+    final bounds = LatLngBounds.fromPoints(points);
+    _mapController.fitCamera(
+      CameraFit.bounds(
+        bounds: bounds,
+        padding: const EdgeInsets.all(40),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final clientsAsync = ref.watch(clientsAsyncProvider);
@@ -133,6 +202,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   return const Center(child: Text('Settings introuvables'));
                 }
                 _maybeFitToBounds(clients, settings);
+                final visibleStatuses = ref.watch(mapVisibleStatusesProvider);
+                final visibleClients = clients
+                    .where((c) => visibleStatuses.contains(c.status))
+                    .toList();
                 return SafeArea(
                   child: Stack(
                     children: [
@@ -171,7 +244,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 ),
                               ),
                               // Client pins
-                              for (final c in clients)
+                              for (final c in visibleClients)
                                 Marker(
                                   point: LatLng(
                                     c.coordinates.lat,
@@ -194,11 +267,32 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         top: AppSpacing.md,
                         left: AppSpacing.md,
                         right: AppSpacing.md,
-                        child: _SearchOverlay(
-                          controller: _searchCtrl,
-                          onChanged: _onSearchChanged,
-                          clients: clients,
-                          onPicked: _flyTo,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: _SearchOverlay(
+                                controller: _searchCtrl,
+                                onChanged: _onSearchChanged,
+                                clients: clients,
+                                onPicked: _flyTo,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Column(
+                              children: [
+                                _MapIconButton(
+                                  icon: FIcons.layers,
+                                  onPress: () => _openLayersPanel(context, settings),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                _MapIconButton(
+                                  icon: FIcons.locate,
+                                  onPress: () => _recenterOnVisible(visibleClients, settings),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -280,6 +374,84 @@ class _SearchOverlay extends ConsumerWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+class _MapIconButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onPress;
+
+  const _MapIconButton({required this.icon, required this.onPress});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return GestureDetector(
+      onTap: onPress,
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: theme.colors.card,
+          shape: BoxShape.circle,
+          border: Border.all(color: theme.colors.border),
+        ),
+        alignment: Alignment.center,
+        child: Icon(icon, color: theme.colors.foreground, size: 20),
+      ),
+    );
+  }
+}
+
+class _LayerToggleRow extends StatelessWidget {
+  final ClientStatus status;
+  final String label;
+  final Settings settings;
+  final bool isOn;
+  final ValueChanged<bool> onChanged;
+
+  const _LayerToggleRow({
+    required this.status,
+    required this.label,
+    required this.settings,
+    required this.isOn,
+    required this.onChanged,
+  });
+
+  Color _hex(String h) {
+    final cleaned = h.replaceAll('#', '');
+    return Color(int.parse(cleaned, radix: 16) | 0xFF000000);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    final color = switch (status) {
+      ClientStatus.defaultStatus => _hex(settings.markerDefaultColor),
+      ClientStatus.waiting => _hex(settings.markerWaitingColor),
+      ClientStatus.overdue => _hex(settings.markerOverdueColor),
+      ClientStatus.recompute => _hex(settings.markerRecomputeColor),
+    };
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(label, style: theme.typography.md),
+          ),
+          FSwitch(value: isOn, onChange: onChanged),
+        ],
+      ),
     );
   }
 }
