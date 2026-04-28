@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../core/config/env.dart';
 import '../core/routing/app_router.dart';
+import '../data/distance_matrix_sync.dart';
 import '../data/repositories/client_repository.dart';
 import '../data/repositories/distance_matrix_repository.dart';
 import '../data/repositories/settings_repository.dart';
@@ -49,6 +50,15 @@ final orsRoutingServiceProvider = Provider<OrsRoutingService>((ref) {
   return OrsRoutingService(
     apiKey: Env.orsApiKey,
     httpClient: ref.watch(httpClientProvider),
+  );
+});
+
+final distanceMatrixSyncProvider = Provider<DistanceMatrixSync>((ref) {
+  return DistanceMatrixSync(
+    clients: ref.watch(clientRepositoryProvider),
+    matrix: ref.watch(distanceMatrixRepositoryProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+    ors: ref.watch(orsRoutingServiceProvider),
   );
 });
 
