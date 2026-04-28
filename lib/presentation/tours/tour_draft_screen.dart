@@ -132,20 +132,24 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                 child: AppSectionCard(
                   icon: FIcons.calendarClock,
                   title: l.tourDraftWhenTitle,
-                  child: Column(
+                  child: Row(
                     children: [
-                      AppListTile(
-                        prefix: const Icon(FIcons.calendar),
-                        title: l.tourDraftDate,
-                        subtitle: DateFormat('EEE d MMM yyyy', 'fr').format(_date),
-                        onPress: _pickDate,
+                      Expanded(
+                        child: AppListTile(
+                          prefix: const Icon(FIcons.calendar),
+                          title: l.tourDraftDate,
+                          subtitle: DateFormat('d MMM yyyy', 'fr').format(_date),
+                          onPress: _pickDate,
+                        ),
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      AppListTile(
-                        prefix: const Icon(FIcons.clock),
-                        title: l.tourDraftStart,
-                        subtitle: formatHm(_startMinutes),
-                        onPress: _pickTime,
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: AppListTile(
+                          prefix: const Icon(FIcons.clock),
+                          title: l.tourDraftStart,
+                          subtitle: formatHm(_startMinutes),
+                          onPress: _pickTime,
+                        ),
                       ),
                     ],
                   ),
@@ -187,7 +191,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       final fee = formatEuros(bundle.result.feeShareCents[i]);
                       return Padding(
                         key: ValueKey(c.id),
-                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: AppListTile(
                           prefix: Container(
                             width: 28,
