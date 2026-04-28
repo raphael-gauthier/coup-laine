@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:coupe_laine/infra/services/ban_geocoding_service.dart';
+import 'package:coup_laine/infra/services/ban_geocoding_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

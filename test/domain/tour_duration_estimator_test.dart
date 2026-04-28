@@ -1,4 +1,4 @@
-import 'package:coupe_laine/domain/use_cases/tour_duration_estimator.dart';
+import 'package:coup_laine/domain/use_cases/tour_duration_estimator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

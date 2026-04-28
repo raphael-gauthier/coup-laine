@@ -1,8 +1,8 @@
-import 'package:coupe_laine/domain/models/client.dart';
-import 'package:coupe_laine/domain/models/coordinates.dart';
-import 'package:coupe_laine/domain/models/distance_matrix_entry.dart';
-import 'package:coupe_laine/domain/models/settings.dart';
-import 'package:coupe_laine/domain/use_cases/build_tour_draft.dart';
+import 'package:coup_laine/domain/models/client.dart';
+import 'package:coup_laine/domain/models/coordinates.dart';
+import 'package:coup_laine/domain/models/distance_matrix_entry.dart';
+import 'package:coup_laine/domain/models/settings.dart';
+import 'package:coup_laine/domain/use_cases/build_tour_draft.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Client _c(int id, String name, int sheep) => Client(

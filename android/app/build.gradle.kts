@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "fr.coupelaine.coupe_laine"
+    namespace = "fr.raphaelgauthier.couplaine"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "fr.coupelaine.coupe_laine"
+        applicationId = "fr.raphaelgauthier.couplaine"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

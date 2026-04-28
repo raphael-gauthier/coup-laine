@@ -1,5 +1,5 @@
-import 'package:coupe_laine/domain/use_cases/bracket_counter.dart';
-import 'package:coupe_laine/domain/use_cases/cost_split_calculator.dart';
+import 'package:coup_laine/domain/use_cases/bracket_counter.dart';
+import 'package:coup_laine/domain/use_cases/cost_split_calculator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

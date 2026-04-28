@@ -49,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
   static QueryExecutor _openConnection() {
     return LazyDatabase(() async {
       final dir = await getApplicationDocumentsDirectory();
-      final file = File(p.join(dir.path, 'coupe_laine.sqlite'));
+      final file = File(p.join(dir.path, 'coup_laine.sqlite'));
       return NativeDatabase.createInBackground(file);
     });
   }

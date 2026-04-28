@@ -1,6 +1,6 @@
-import 'package:coupe_laine/data/repositories/distance_matrix_repository.dart';
-import 'package:coupe_laine/domain/models/distance_matrix_entry.dart';
-import 'package:coupe_laine/infra/db/app_database.dart';
+import 'package:coup_laine/data/repositories/distance_matrix_repository.dart';
+import 'package:coup_laine/domain/models/distance_matrix_entry.dart';
+import 'package:coup_laine/infra/db/app_database.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 

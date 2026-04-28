@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:coupe_laine/l10n/app_localizations.dart';
+import 'package:coup_laine/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('App localisation loads French strings', (tester) async {

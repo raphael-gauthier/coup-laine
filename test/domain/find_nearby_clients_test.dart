@@ -1,7 +1,7 @@
-import 'package:coupe_laine/domain/models/client.dart';
-import 'package:coupe_laine/domain/models/coordinates.dart';
-import 'package:coupe_laine/domain/models/distance_matrix_entry.dart';
-import 'package:coupe_laine/domain/use_cases/find_nearby_clients.dart';
+import 'package:coup_laine/domain/models/client.dart';
+import 'package:coup_laine/domain/models/coordinates.dart';
+import 'package:coup_laine/domain/models/distance_matrix_entry.dart';
+import 'package:coup_laine/domain/use_cases/find_nearby_clients.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Client _c(int id, String name, {bool waiting = true}) => Client(

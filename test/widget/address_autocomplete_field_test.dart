@@ -1,6 +1,6 @@
-import 'package:coupe_laine/infra/services/ban_geocoding_service.dart';
-import 'package:coupe_laine/presentation/widgets/address_autocomplete_field.dart';
-import 'package:coupe_laine/state/providers.dart';
+import 'package:coup_laine/infra/services/ban_geocoding_service.dart';
+import 'package:coup_laine/presentation/widgets/address_autocomplete_field.dart';
+import 'package:coup_laine/state/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

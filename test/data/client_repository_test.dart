@@ -1,7 +1,7 @@
-import 'package:coupe_laine/data/repositories/client_repository.dart';
-import 'package:coupe_laine/domain/models/client.dart';
-import 'package:coupe_laine/domain/models/coordinates.dart';
-import 'package:coupe_laine/infra/db/app_database.dart';
+import 'package:coup_laine/data/repositories/client_repository.dart';
+import 'package:coup_laine/domain/models/client.dart';
+import 'package:coup_laine/domain/models/coordinates.dart';
+import 'package:coup_laine/infra/db/app_database.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 

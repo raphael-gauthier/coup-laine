@@ -1,4 +1,4 @@
-package fr.coupelaine.coupe_laine
+package fr.raphaelgauthier.couplaine
 
 import io.flutter.embedding.android.FlutterActivity
 

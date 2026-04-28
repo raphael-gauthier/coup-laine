@@ -1,6 +1,6 @@
 // lib/presentation/clients/client_detail_screen.dart
 import 'package:flutter/widgets.dart';
-import 'package:coupe_laine/l10n/app_localizations.dart';
+import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';

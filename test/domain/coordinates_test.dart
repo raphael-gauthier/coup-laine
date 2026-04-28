@@ -1,4 +1,4 @@
-import 'package:coupe_laine/domain/models/coordinates.dart';
+import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

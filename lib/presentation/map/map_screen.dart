@@ -236,7 +236,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           TileLayer(
                             urlTemplate:
                                 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'fr.coupelaine',
+                            userAgentPackageName: 'fr.raphaelgauthier.couplaine',
                           ),
                           MarkerLayer(
                             markers: [

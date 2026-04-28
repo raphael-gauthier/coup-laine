@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:coupe_laine/domain/models/coordinates.dart';
-import 'package:coupe_laine/infra/services/ors_routing_service.dart';
+import 'package:coup_laine/domain/models/coordinates.dart';
+import 'package:coup_laine/infra/services/ors_routing_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';

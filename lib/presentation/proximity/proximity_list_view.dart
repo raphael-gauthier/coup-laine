@@ -1,6 +1,6 @@
 // lib/presentation/proximity/proximity_list_view.dart
 import 'package:flutter/widgets.dart';
-import 'package:coupe_laine/l10n/app_localizations.dart';
+import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 

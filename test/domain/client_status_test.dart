@@ -1,6 +1,6 @@
-import 'package:coupe_laine/domain/models/client.dart';
-import 'package:coupe_laine/domain/models/coordinates.dart';
-import 'package:coupe_laine/domain/use_cases/client_status.dart';
+import 'package:coup_laine/domain/models/client.dart';
+import 'package:coup_laine/domain/models/coordinates.dart';
+import 'package:coup_laine/domain/use_cases/client_status.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Client _client({

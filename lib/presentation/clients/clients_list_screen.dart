@@ -1,7 +1,7 @@
 // lib/presentation/clients/clients_list_screen.dart
 import 'package:flutter/material.dart' show ButtonSegment, FloatingActionButton, Material, MaterialType, RefreshIndicator, SegmentedButton;
 import 'package:flutter/widgets.dart';
-import 'package:coupe_laine/l10n/app_localizations.dart';
+import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:forui/forui.dart';
