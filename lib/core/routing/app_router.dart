@@ -9,18 +9,10 @@ import '../../presentation/clients/client_form_screen.dart';
 import '../../presentation/clients/clients_list_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/settings/settings_screen.dart';
+import '../../presentation/tours/tour_detail_screen.dart';
 import '../../presentation/tours/tour_draft_screen.dart';
+import '../../presentation/tours/tours_list_screen.dart';
 import '../../state/providers.dart';
-
-class _Placeholder extends StatelessWidget {
-  final String label;
-  const _Placeholder(this.label);
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(label)),
-        body: Center(child: Text(label)),
-      );
-}
 
 class AppRouter {
   AppRouter._();
@@ -82,7 +74,15 @@ class AppRouter {
             StatefulShellBranch(routes: [
               GoRoute(
                 path: '/tours',
-                builder: (_, __) => const _Placeholder('Tournées'),
+                builder: (_, __) => const ToursListScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (_, state) => TourDetailScreen(
+                      tourId: int.parse(state.pathParameters['id']!),
+                    ),
+                  ),
+                ],
               ),
             ]),
             StatefulShellBranch(routes: [

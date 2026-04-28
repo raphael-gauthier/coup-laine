@@ -68,5 +68,18 @@
   "@tourDraftSummaryTotal": {"placeholders": {"km": {"type": "String"}, "drive": {"type": "String"}, "shear": {"type": "String"}, "end": {"type": "String"}}},
   "tourDraftFeeSplitTitle": "Fee split",
   "tourDraftFeeShareFmt": "{name} — {amount}",
-  "@tourDraftFeeShareFmt": {"placeholders": {"name": {"type": "String"}, "amount": {"type": "String"}}}
+  "@tourDraftFeeShareFmt": {"placeholders": {"name": {"type": "String"}, "amount": {"type": "String"}}},
+  "toursListTitle": "Tours",
+  "toursStatusPlanned": "Planned",
+  "toursStatusCompleted": "Completed",
+  "toursListItemFmt": "{date} · {n} client(s) · {km} km",
+  "@toursListItemFmt": {"placeholders": {"date": {"type": "String"}, "n": {"type": "int"}, "km": {"type": "String"}}},
+  "tourDetailComplete": "Mark as completed",
+  "tourDetailCompleteConfirmTitle": "Confirm",
+  "tourDetailCompleteConfirmBody": "This will update the last shearing date for {n} client(s) and remove them from the waiting list.",
+  "@tourDetailCompleteConfirmBody": {"placeholders": {"n": {"type": "int"}}},
+  "tourDetailShare": "Share",
+  "tourDetailScheduleTitle": "Schedule",
+  "tourDetailFeeTitle": "Fee split",
+  "tourDetailDeleted": "(client deleted)"
 }

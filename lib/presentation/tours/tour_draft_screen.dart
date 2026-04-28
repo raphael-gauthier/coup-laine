@@ -82,7 +82,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         feeShareCents: bundle.result.feeShareCents[i],
       ));
     }
-    await ref.read(tourRepositoryProvider).plan(
+    final tourId = await ref.read(tourRepositoryProvider).plan(
           TourDraft(
             plannedDate: _date,
             startTimeMinutes: _startMinutes,
@@ -94,8 +94,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         );
     if (!mounted) return;
     ref.read(tourSelectionProvider.notifier).clear();
-    // Phase 9 will add a tour detail screen; for now navigate to the tours list.
-    context.go('/tours');
+    context.go('/tours/$tourId');
   }
 
   @override

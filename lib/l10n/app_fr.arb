@@ -68,5 +68,18 @@
   "@tourDraftSummaryTotal": {"placeholders": {"km": {"type": "String"}, "drive": {"type": "String"}, "shear": {"type": "String"}, "end": {"type": "String"}}},
   "tourDraftFeeSplitTitle": "Partage des frais",
   "tourDraftFeeShareFmt": "{name} — {amount}",
-  "@tourDraftFeeShareFmt": {"placeholders": {"name": {"type": "String"}, "amount": {"type": "String"}}}
+  "@tourDraftFeeShareFmt": {"placeholders": {"name": {"type": "String"}, "amount": {"type": "String"}}},
+  "toursListTitle": "Tournées",
+  "toursStatusPlanned": "Planifiée",
+  "toursStatusCompleted": "Réalisée",
+  "toursListItemFmt": "{date} · {n} client(s) · {km} km",
+  "@toursListItemFmt": {"placeholders": {"date": {"type": "String"}, "n": {"type": "int"}, "km": {"type": "String"}}},
+  "tourDetailComplete": "Marquer comme réalisée",
+  "tourDetailCompleteConfirmTitle": "Confirmer",
+  "tourDetailCompleteConfirmBody": "Cette action met à jour la dernière tonte de {n} client(s) et les retire des clients en attente.",
+  "@tourDetailCompleteConfirmBody": {"placeholders": {"n": {"type": "int"}}},
+  "tourDetailShare": "Partager",
+  "tourDetailScheduleTitle": "Planning",
+  "tourDetailFeeTitle": "Partage des frais",
+  "tourDetailDeleted": "(client supprimé)"
 }
