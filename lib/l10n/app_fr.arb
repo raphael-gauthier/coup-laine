@@ -72,6 +72,7 @@
   "proximityTabList": "Liste",
   "proximityTabMap": "Carte",
   "proximityNoneInRadius": "Aucun client en attente dans ce rayon.",
+  "proximityNoneInRadiusBody": "Essayez d'agrandir le rayon ou de marquer d'autres clients comme en attente.",
   "proximitySelectedCount": "{n} sélectionné(s)",
   "@proximitySelectedCount": {"placeholders": {"n": {"type": "int"}}},
   "proximityPlanTour": "Composer la tournée",

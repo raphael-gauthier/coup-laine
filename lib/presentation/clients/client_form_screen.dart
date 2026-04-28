@@ -1,5 +1,4 @@
 // lib/presentation/clients/client_form_screen.dart
-import 'package:flutter/material.dart' show ScaffoldMessenger, SnackBar;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
@@ -108,9 +107,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     final l = AppLocalizations.of(context)!;
     if (!_validate()) return;
     if (_coords == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.clientFormErrorNoCoords)),
-      );
+      showFToast(context: context, title: Text(l.clientFormErrorNoCoords));
       return;
     }
     setState(() => _saving = true);
@@ -158,9 +155,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       await sync.recomputeForClient(id);
     } on OrsException {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l.clientFormErrorRecompute)),
-        );
+        showFToast(context: context, title: Text(l.clientFormErrorRecompute));
       }
     }
 

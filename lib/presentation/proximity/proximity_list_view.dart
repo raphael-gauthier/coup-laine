@@ -22,22 +22,35 @@ class ProximityListView extends ConsumerWidget {
       data: (results) {
         if (results.isEmpty) {
           return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  FIcons.compass,
-                  size: 40,
-                  color: theme.colors.mutedForeground,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  l.proximityNoneInRadius,
-                  style: theme.typography.sm
-                      .copyWith(color: theme.colors.mutedForeground),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    FIcons.compass,
+                    size: 56,
+                    color: theme.colors.mutedForeground,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l.proximityNoneInRadius,
+                    style: theme.typography.xl.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colors.foreground,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l.proximityNoneInRadiusBody,
+                    style: theme.typography.sm.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
           );
         }

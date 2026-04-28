@@ -1,5 +1,4 @@
 // lib/presentation/tours/tour_detail_screen.dart
-import 'package:flutter/material.dart' show AlertDialog, FilledButton, TextButton, showDialog;
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -209,18 +208,21 @@ class _Body extends ConsumerWidget {
 
   Future<void> _confirmComplete(BuildContext context, WidgetRef ref) async {
     final l = AppLocalizations.of(context)!;
-    final ok = await showDialog<bool>(
+    final ok = await showFDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
         title: Text(l.tourDetailCompleteConfirmTitle),
-        content: Text(l.tourDetailCompleteConfirmBody(bundle.stops.length)),
+        body: Text(l.tourDetailCompleteConfirmBody(bundle.stops.length)),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(context).pop(false),
             child: const Text('Annuler'),
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+          FButton(
+            onPress: () => Navigator.of(context).pop(true),
             child: Text(l.tourDetailComplete),
           ),
         ],

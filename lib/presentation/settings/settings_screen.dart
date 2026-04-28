@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart' show AlertDialog, FilledButton, TextButton, showDialog;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
@@ -93,20 +92,23 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
     ref.invalidate(_settingsAsyncProvider);
     if (!mounted) return;
     if (didBaseChange) {
-      final ok = await showDialog<bool>(
+      final ok = await showFDialog<bool>(
         context: context,
-        builder: (_) => AlertDialog(
-          content: const Text(
+        builder: (context, style, animation) => FDialog(
+          style: style,
+          animation: animation,
+          body: const Text(
             "L'adresse de base a changé. Recalculer toutes les distances "
             'depuis la nouvelle base ?',
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+            FButton(
+              variant: FButtonVariant.outline,
+              onPress: () => Navigator.of(context).pop(false),
               child: const Text('Plus tard'),
             ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
+            FButton(
+              onPress: () => Navigator.of(context).pop(true),
               child: const Text('Recalculer'),
             ),
           ],
@@ -273,18 +275,21 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                     final body =
                         await File(pick.files.single.path!).readAsString();
                     if (!mounted) return;
-                    final ok = await showDialog<bool>(
+                    final ok = await showFDialog<bool>(
                       context: context, // ignore: use_build_context_synchronously
-                      builder: (_) => AlertDialog(
-                        content: const Text(
+                      builder: (context, style, animation) => FDialog(
+                        style: style,
+                        animation: animation,
+                        body: const Text(
                             'Cette action remplace toutes les données actuelles. Continuer ?'),
                         actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(false),
+                          FButton(
+                            variant: FButtonVariant.outline,
+                            onPress: () => Navigator.of(context).pop(false),
                             child: const Text('Annuler'),
                           ),
-                          FilledButton(
-                            onPressed: () => Navigator.of(context).pop(true),
+                          FButton(
+                            onPress: () => Navigator.of(context).pop(true),
                             child: const Text('Importer'),
                           ),
                         ],

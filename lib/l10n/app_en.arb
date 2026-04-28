@@ -72,6 +72,7 @@
   "proximityTabList": "List",
   "proximityTabMap": "Map",
   "proximityNoneInRadius": "No waiting clients within this radius.",
+  "proximityNoneInRadiusBody": "Try increasing the radius or mark more clients as waiting.",
   "proximitySelectedCount": "{n} selected",
   "@proximitySelectedCount": {"placeholders": {"n": {"type": "int"}}},
   "proximityPlanTour": "Plan tour",

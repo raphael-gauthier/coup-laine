@@ -1,5 +1,4 @@
 // lib/presentation/clients/client_detail_screen.dart
-import 'package:flutter/material.dart' show AlertDialog, FilledButton, TextButton, showDialog;
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,17 +48,21 @@ class ClientDetailScreen extends ConsumerWidget {
 
   Future<void> _confirmDelete(
       BuildContext context, WidgetRef ref, AppLocalizations l) async {
-    final ok = await showDialog<bool>(
+    final ok = await showFDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        content: Text(l.clientDetailDeleteConfirm),
+      builder: (context, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        body: Text(l.clientDetailDeleteConfirm),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(context).pop(false),
             child: const Text('Annuler'),
           ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
+          FButton(
+            variant: FButtonVariant.destructive,
+            onPress: () => Navigator.of(context).pop(true),
             child: Text(l.clientDetailDelete),
           ),
         ],

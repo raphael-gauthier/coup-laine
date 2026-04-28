@@ -1,5 +1,5 @@
 // lib/presentation/clients/clients_list_screen.dart
-import 'package:flutter/material.dart' show FloatingActionButton, RefreshIndicator, ScaffoldMessenger, SegmentedButton, ButtonSegment, SnackBar;
+import 'package:flutter/material.dart' show FloatingActionButton, RefreshIndicator, SegmentedButton, ButtonSegment;
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -113,8 +113,9 @@ class ClientsListScreen extends ConsumerWidget {
                                         ref.invalidate(clientsPendingProvider);
                                         ref.invalidate(clientsAsyncProvider);
                                         if (context.mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(content: Text('$fixed client(s) recalculés')),
+                                          showFToast(
+                                            context: context,
+                                            title: Text('$fixed client(s) recalculés'),
                                           );
                                         }
                                       },
