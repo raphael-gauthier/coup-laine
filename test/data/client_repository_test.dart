@@ -84,4 +84,15 @@ void main() {
     expect(read!.needsDistanceRecompute, isTrue);
     expect(read.coordinates.lat, 48.05);
   });
+
+  test('markerColorHex round-trip + setMarkerColor', () async {
+    final id = await repo.insert(_newClient());
+    expect((await repo.findById(id))!.markerColorHex, isNull);
+
+    await repo.setMarkerColor(id, '#ABCDEF');
+    expect((await repo.findById(id))!.markerColorHex, '#ABCDEF');
+
+    await repo.setMarkerColor(id, null);
+    expect((await repo.findById(id))!.markerColorHex, isNull);
+  });
 }

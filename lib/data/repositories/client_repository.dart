@@ -26,6 +26,7 @@ class ClientRepository {
             lastShearingDate: Value(
               c.lastShearingDate?.millisecondsSinceEpoch,
             ),
+            markerColorHex: Value(c.markerColorHex),
             needsDistanceRecompute:
                 const Value(true), // new clients always need matrix sync
             createdAt: now,
@@ -133,6 +134,11 @@ class ClientRepository {
     await (_db.delete(_db.clientsTable)..where((t) => t.id.equals(id))).go();
   }
 
+  Future<void> setMarkerColor(int id, String? hex) async {
+    await (_db.update(_db.clientsTable)..where((t) => t.id.equals(id)))
+        .write(ClientsTableCompanion(markerColorHex: Value(hex)));
+  }
+
   Client _toDomain(ClientRow row) => Client(
         id: row.id,
         name: row.name,
@@ -144,6 +150,7 @@ class ClientRepository {
         sheepCount: row.sheepCount,
         minutesPerSheepOverride: row.minutesPerSheepOverride,
         notes: row.notes,
+        markerColorHex: row.markerColorHex,
         isWaiting: row.isWaiting,
         lastShearingDate: row.lastShearingDate == null
             ? null
