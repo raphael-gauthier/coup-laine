@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 
 import '../core/config/env.dart';
+import '../core/routing/app_router.dart';
 import '../data/repositories/client_repository.dart';
 import '../data/repositories/distance_matrix_repository.dart';
 import '../data/repositories/settings_repository.dart';
@@ -49,3 +51,5 @@ final orsRoutingServiceProvider = Provider<OrsRoutingService>((ref) {
     httpClient: ref.watch(httpClientProvider),
   );
 });
+
+final goRouterProvider = Provider<GoRouter>((ref) => AppRouter.forRef(ref));

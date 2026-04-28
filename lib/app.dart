@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
-import 'core/routing/app_router.dart';
+import 'state/providers.dart';
 
-class CoupeLaineApp extends StatelessWidget {
+class CoupeLaineApp extends ConsumerWidget {
   const CoupeLaineApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(goRouterProvider);
     return MaterialApp.router(
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
       localizationsDelegates: const [
@@ -28,7 +30,7 @@ class CoupeLaineApp extends StatelessWidget {
           child: child ?? const SizedBox.shrink(),
         ),
       ),
-      routerConfig: AppRouter.config,
+      routerConfig: router,
     );
   }
 }

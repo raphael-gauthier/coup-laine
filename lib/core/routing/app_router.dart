@@ -1,7 +1,10 @@
-// lib/core/routing/app_router.dart
 import 'package:flutter/material.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../presentation/onboarding/onboarding_screen.dart';
+import '../../state/providers.dart';
 
 class _Placeholder extends StatelessWidget {
   final String label;
@@ -16,34 +19,45 @@ class _Placeholder extends StatelessWidget {
 class AppRouter {
   AppRouter._();
 
-  static final config = GoRouter(
-    initialLocation: '/clients',
-    routes: [
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, shell) => _ShellScaffold(shell: shell),
-        branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/clients',
-              builder: (_, __) => const _Placeholder('Clients'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/tours',
-              builder: (_, __) => const _Placeholder('Tournées'),
-            ),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-              path: '/settings',
-              builder: (_, __) => const _Placeholder('Paramètres'),
-            ),
-          ]),
-        ],
-      ),
-    ],
-  );
+  static GoRouter forRef(Ref ref) {
+    return GoRouter(
+      initialLocation: '/clients',
+      redirect: (context, state) async {
+        if (state.matchedLocation == '/onboarding') return null;
+        final s = await ref.read(settingsRepositoryProvider).read();
+        return s == null ? '/onboarding' : null;
+      },
+      routes: [
+        GoRoute(
+          path: '/onboarding',
+          builder: (_, __) => const OnboardingScreen(),
+        ),
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, shell) => _ShellScaffold(shell: shell),
+          branches: [
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: '/clients',
+                builder: (_, __) => const _Placeholder('Clients'),
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: '/tours',
+                builder: (_, __) => const _Placeholder('Tournées'),
+              ),
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                path: '/settings',
+                builder: (_, __) => const _Placeholder('Paramètres'),
+              ),
+            ]),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class _ShellScaffold extends StatelessWidget {
