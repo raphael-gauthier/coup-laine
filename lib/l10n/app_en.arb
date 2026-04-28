@@ -81,5 +81,10 @@
   "tourDetailShare": "Share",
   "tourDetailScheduleTitle": "Schedule",
   "tourDetailFeeTitle": "Fee split",
-  "tourDetailDeleted": "(client deleted)"
+  "tourDetailDeleted": "(client deleted)",
+  "onboardingHeroSubtitle": "Your shearing tour companion",
+  "onboardingWelcomeTitle": "Welcome",
+  "onboardingWelcomeBody": "To get started, enter the address you leave from each morning. All distances will be calculated from this point.",
+  "onboardingAddressTitle": "Starting address",
+  "onboardingCta": "Get started"
 }

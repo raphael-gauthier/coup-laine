@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../domain/models/settings.dart';
@@ -38,32 +40,90 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Bienvenue')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
+
+    return FScaffold(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              "Pour commencer, indiquez l'adresse d'où vous partez chaque matin. "
-              'Toutes les distances seront calculées depuis ce point.',
+            // Hero block
+            Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.colors.primary,
+                  ),
+                  child: Icon(
+                    FIcons.scissors,
+                    size: 56,
+                    color: theme.colors.primaryForeground,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Coupe-Laine',
+                  textAlign: TextAlign.center,
+                  style: theme.typography.xl4.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colors.foreground,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l.onboardingHeroSubtitle,
+                  textAlign: TextAlign.center,
+                  style: theme.typography.lg.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+              ],
             ),
+
+            const SizedBox(height: 32),
+
+            // Welcome card
+            FCard(
+              title: Text(l.onboardingWelcomeTitle),
+              child: Text(
+                l.onboardingWelcomeBody,
+                style: theme.typography.sm.copyWith(
+                  color: theme.colors.mutedForeground,
+                ),
+              ),
+            ),
+
             const SizedBox(height: 16),
-            AddressAutocompleteField(
-              onPicked: (r) => setState(() => _picked = r),
+
+            // Address card
+            FCard(
+              title: Text(l.onboardingAddressTitle),
+              child: AddressAutocompleteField(
+                onPicked: (r) => setState(() => _picked = r),
+              ),
             ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _picked == null || _saving ? null : _confirm,
+
+            const SizedBox(height: 32),
+
+            // CTA
+            FButton(
+              onPress: _picked == null || _saving ? null : _confirm,
               child: _saving
                   ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      width: 20,
+                      height: 20,
+                      child: FCircularProgress(
+                        size: FCircularProgressSizeVariant.sm,
+                      ),
                     )
-                  : const Text("Enregistrer l'adresse"),
+                  : Text(l.onboardingCta),
             ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),

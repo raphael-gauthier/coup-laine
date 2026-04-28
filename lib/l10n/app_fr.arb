@@ -81,5 +81,10 @@
   "tourDetailShare": "Partager",
   "tourDetailScheduleTitle": "Planning",
   "tourDetailFeeTitle": "Partage des frais",
-  "tourDetailDeleted": "(client supprimé)"
+  "tourDetailDeleted": "(client supprimé)",
+  "onboardingHeroSubtitle": "Votre compagnon de tournée",
+  "onboardingWelcomeTitle": "Bienvenue",
+  "onboardingWelcomeBody": "Pour commencer, indiquez l'adresse d'où vous partez chaque matin. Toutes les distances seront calculées depuis ce point.",
+  "onboardingAddressTitle": "Adresse de départ",
+  "onboardingCta": "Commencer"
 }
