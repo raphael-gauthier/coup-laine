@@ -1,13 +1,17 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design_tokens.dart';
 import '../../domain/models/settings.dart';
 import '../../infra/services/ban_geocoding_service.dart';
 import '../../state/providers.dart';
 import '../widgets/address_autocomplete_field.dart';
+import '../widgets/app_primary_button.dart';
+import '../widgets/app_section_card.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -44,86 +48,66 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final theme = context.theme;
 
     return FScaffold(
+      resizeToAvoidBottomInset: true,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        padding: AppSizes.screenPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Hero block
-            Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: theme.colors.primary,
-                  ),
-                  child: Icon(
-                    FIcons.scissors,
-                    size: 56,
-                    color: theme.colors.primaryForeground,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Coupe-Laine',
-                  textAlign: TextAlign.center,
-                  style: theme.typography.xl4.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colors.foreground,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  l.onboardingHeroSubtitle,
-                  textAlign: TextAlign.center,
-                  style: theme.typography.lg.copyWith(
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 32),
-
-            // Welcome card
-            FCard(
-              title: Text(l.onboardingWelcomeTitle),
-              child: Text(
-                l.onboardingWelcomeBody,
-                style: theme.typography.sm.copyWith(
-                  color: theme.colors.mutedForeground,
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+              child: Center(
+                child: SvgPicture.asset(
+                  'assets/illustrations/welcome.svg',
+                  height: 180,
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
-
-            const SizedBox(height: 16),
-
-            // Address card
-            FCard(
-              title: Text(l.onboardingAddressTitle),
+            Text(
+              l.appTitle,
+              textAlign: TextAlign.center,
+              style: theme.typography.xl4.copyWith(
+                color: theme.colors.foreground,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l.onboardingHeroSubtitle,
+              textAlign: TextAlign.center,
+              style: theme.typography.lg.copyWith(
+                color: theme.colors.mutedForeground,
+                fontStyle: FontStyle.italic,
+                fontFamily: 'Fraunces',
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            AppSectionCard(
+              icon: FIcons.sparkles,
+              title: l.onboardingWelcomeTitle,
+              child: Text(
+                l.onboardingWelcomeBody,
+                style: theme.typography.md.copyWith(
+                  color: theme.colors.foreground,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            AppSectionCard(
+              icon: FIcons.mapPin,
+              title: l.onboardingAddressTitle,
               child: AddressAutocompleteField(
                 onPicked: (r) => setState(() => _picked = r),
               ),
             ),
-
-            const SizedBox(height: 32),
-
-            // CTA
-            FButton(
-              onPress: _picked == null || _saving ? null : _confirm,
-              child: _saving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: FCircularProgress(
-                        size: FCircularProgressSizeVariant.sm,
-                      ),
-                    )
-                  : Text(l.onboardingCta),
+            const SizedBox(height: AppSpacing.xl),
+            AppPrimaryButton(
+              label: l.onboardingCta,
+              prefixIcon: FIcons.arrowRight,
+              onPress: _picked == null ? null : _confirm,
+              loading: _saving,
             ),
-
-            const SizedBox(height: 24),
           ],
         ),
       ),
