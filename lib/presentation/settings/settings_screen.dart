@@ -6,7 +6,8 @@ import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus, XFile;
+import 'package:cross_file/cross_file.dart' show XFile;
+import 'package:share_plus/share_plus.dart' show Share;
 
 import '../../domain/models/settings.dart';
 import '../../state/providers.dart';
@@ -148,14 +149,14 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
             final file = File(p.join(dir.path,
                 'coupe-laine-${DateTime.now().millisecondsSinceEpoch}.json'));
             await file.writeAsString(body);
-            await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+            await Share.shareXFiles([XFile(file.path)]);
           },
         ),
         ListTile(
           leading: const Icon(Icons.download),
           title: Text(l.settingsImportData),
           onTap: () async {
-            final pick = await FilePicker.platform.pickFiles(type: FileType.any);
+            final pick = await FilePicker.pickFiles(type: FileType.any);
             if (pick == null) return;
             final body = await File(pick.files.single.path!).readAsString();
             if (!mounted) return;

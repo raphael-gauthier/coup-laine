@@ -61,11 +61,7 @@ class TourDetailScreen extends ConsumerWidget {
       ),
       'Total : ${formatEuros(bundle.tour.totalTravelFeeCents)}',
     ];
-    // share_plus 13.x requires SharePlus.instance.share(ShareParams(...))
-    await SharePlus.instance.share(ShareParams(
-      text: lines.join('\n'),
-      subject: 'Tournée du $dateLine',
-    ));
+    await Share.share(lines.join('\n'), subject: 'Tournée du $dateLine');
   }
 }
 
