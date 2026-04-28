@@ -10,6 +10,10 @@ class Settings {
   final int travelFeeEurosPerBracket;
   final int bracketKm;
   final ThemeModePreference themeMode;
+  final String markerDefaultColor;
+  final String markerWaitingColor;
+  final String markerOverdueColor;
+  final String markerRecomputeColor;
 
   const Settings({
     required this.baseCoordinates,
@@ -19,6 +23,10 @@ class Settings {
     this.travelFeeEurosPerBracket = 8,
     this.bracketKm = 10,
     this.themeMode = ThemeModePreference.system,
+    this.markerDefaultColor = '#4A6B52',
+    this.markerWaitingColor = '#C77B5C',
+    this.markerOverdueColor = '#B33A3A',
+    this.markerRecomputeColor = '#A89F92',
   });
 
   Settings copyWith({
@@ -29,6 +37,10 @@ class Settings {
     int? travelFeeEurosPerBracket,
     int? bracketKm,
     ThemeModePreference? themeMode,
+    String? markerDefaultColor,
+    String? markerWaitingColor,
+    String? markerOverdueColor,
+    String? markerRecomputeColor,
   }) => Settings(
     baseCoordinates: baseCoordinates ?? this.baseCoordinates,
     baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -37,5 +49,9 @@ class Settings {
     travelFeeEurosPerBracket: travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
     bracketKm: bracketKm ?? this.bracketKm,
     themeMode: themeMode ?? this.themeMode,
+    markerDefaultColor: markerDefaultColor ?? this.markerDefaultColor,
+    markerWaitingColor: markerWaitingColor ?? this.markerWaitingColor,
+    markerOverdueColor: markerOverdueColor ?? this.markerOverdueColor,
+    markerRecomputeColor: markerRecomputeColor ?? this.markerRecomputeColor,
   );
 }

@@ -12,6 +12,7 @@ class Client {
   final int sheepCount;
   final int? minutesPerSheepOverride;
   final String? notes;
+  final String? markerColorHex;
   final bool isWaiting;
   final DateTime? lastShearingDate;
   final bool needsDistanceRecompute;
@@ -27,6 +28,7 @@ class Client {
     this.phone,
     this.minutesPerSheepOverride,
     this.notes,
+    this.markerColorHex,
     this.isWaiting = false,
     this.lastShearingDate,
     this.needsDistanceRecompute = false,
