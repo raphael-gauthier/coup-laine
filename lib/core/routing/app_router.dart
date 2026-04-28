@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../presentation/clients/client_detail_screen.dart';
+import '../../presentation/proximity/proximity_screen.dart';
 import '../../presentation/clients/client_form_screen.dart';
 import '../../presentation/clients/clients_list_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
@@ -38,8 +39,8 @@ class AppRouter {
         ),
         GoRoute(
           path: '/proximity/:pivotId',
-          builder: (_, state) => _Placeholder(
-            'Proximité ${state.pathParameters['pivotId']}',
+          builder: (_, state) => ProximityScreen(
+            pivotId: int.parse(state.pathParameters['pivotId']!),
           ),
         ),
         StatefulShellRoute.indexedStack(

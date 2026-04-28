@@ -45,5 +45,16 @@
   "clientDetailEdit": "Edit",
   "clientDetailDelete": "Delete",
   "clientDetailDeleteConfirm": "Delete this client?",
-  "clientDetailFindNearby": "Find nearby clients"
+  "clientDetailFindNearby": "Find nearby clients",
+  "proximityTitle": "Nearby clients",
+  "proximityRadiusLabel": "Radius: {km} km",
+  "@proximityRadiusLabel": {"placeholders": {"km": {"type": "int"}}},
+  "proximityTabList": "List",
+  "proximityTabMap": "Map",
+  "proximityNoneInRadius": "No waiting clients within this radius.",
+  "proximitySelectedCount": "{n} selected",
+  "@proximitySelectedCount": {"placeholders": {"n": {"type": "int"}}},
+  "proximityPlanTour": "Plan tour",
+  "proximityDistanceFmt": "{km} km · {min} min",
+  "@proximityDistanceFmt": {"placeholders": {"km": {"type": "String"}, "min": {"type": "int"}}}
 }
