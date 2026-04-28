@@ -1,7 +1,8 @@
 // lib/presentation/proximity/proximity_map_view.dart
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:forui/forui.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../state/proximity_controller.dart';
@@ -12,13 +13,13 @@ class ProximityMapView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = context.theme;
     final pivot = ref.watch(pivotClientProvider(pivotId)).value;
     final results = ref.watch(proximityResultsProvider).value ?? const [];
     if (pivot == null) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: FCircularProgress());
     }
-    final pivotLatLng =
-        LatLng(pivot.coordinates.lat, pivot.coordinates.lon);
+    final pivotLatLng = LatLng(pivot.coordinates.lat, pivot.coordinates.lon);
     final selection = ref.watch(tourSelectionProvider);
 
     return FlutterMap(
@@ -35,13 +36,18 @@ class ProximityMapView extends ConsumerWidget {
           markers: [
             Marker(
               point: pivotLatLng,
-              width: 36,
-              height: 36,
-              child: const Icon(Icons.star, color: Colors.deepOrange, size: 36),
+              width: 40,
+              height: 40,
+              child: Icon(
+                FIcons.star,
+                color: theme.colors.primary,
+                size: 40,
+              ),
             ),
             for (final r in results)
               Marker(
-                point: LatLng(r.client.coordinates.lat, r.client.coordinates.lon),
+                point: LatLng(
+                    r.client.coordinates.lat, r.client.coordinates.lon),
                 width: 28,
                 height: 28,
                 child: GestureDetector(
@@ -49,12 +55,10 @@ class ProximityMapView extends ConsumerWidget {
                       .read(tourSelectionProvider.notifier)
                       .toggle(r.client.id),
                   child: Icon(
-                    selection.contains(r.client.id)
-                        ? Icons.check_circle
-                        : Icons.location_on,
+                    FIcons.mapPin,
                     color: selection.contains(r.client.id)
-                        ? Colors.green
-                        : Colors.blue,
+                        ? theme.colors.primary
+                        : theme.colors.mutedForeground,
                     size: 28,
                   ),
                 ),

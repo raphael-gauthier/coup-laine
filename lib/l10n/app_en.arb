@@ -66,6 +66,7 @@
   "clientDetailDeleteConfirm": "Delete this client?",
   "clientDetailFindNearby": "Find nearby clients",
   "proximityTitle": "Nearby clients",
+  "proximityRadiusTitle": "Radius",
   "proximityRadiusLabel": "Radius: {km} km",
   "@proximityRadiusLabel": {"placeholders": {"km": {"type": "int"}}},
   "proximityTabList": "List",
