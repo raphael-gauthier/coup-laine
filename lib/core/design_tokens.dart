@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 /// Spacing scale in logical pixels (multiples of 4).
 abstract final class AppSpacing {
   AppSpacing._();
+  static const double hairline = 2.0;
   static const double xxs = 4;
   static const double xs = 8;
   static const double sm = 12;
@@ -58,4 +59,7 @@ abstract final class AppSizes {
 
   /// AppListTile internal padding.
   static const EdgeInsets listTilePadding = EdgeInsets.all(16);
+
+  /// Clearance for scrollable lists so the last item clears the bottom nav bar.
+  static const double bottomScrollPadding = 80.0;
 }

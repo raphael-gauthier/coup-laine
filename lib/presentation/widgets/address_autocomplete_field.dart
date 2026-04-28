@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
+import '../../core/design_tokens.dart';
 import '../../infra/services/ban_geocoding_service.dart';
 import '../../state/providers.dart';
 
@@ -112,7 +113,7 @@ class _AddressAutocompleteFieldState
           error: _error != null ? Text(_error!) : null,
           suffixBuilder: _loading
               ? (_, __, ___) => const Padding(
-                    padding: EdgeInsets.all(12),
+                    padding: EdgeInsets.all(AppSpacing.sm),
                     child: SizedBox(
                       width: 16,
                       height: 16,
@@ -123,7 +124,7 @@ class _AddressAutocompleteFieldState
         ),
         if (_results.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: AppSpacing.xxs),
             child: FCard.raw(
               child: Column(
                 children: _results

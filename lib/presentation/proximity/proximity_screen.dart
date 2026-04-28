@@ -60,7 +60,7 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
                 top: BorderSide(color: theme.colors.border),
               ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             child: Row(
               children: [
                 Text(l.proximitySelectedCount(selection.length)),
@@ -87,7 +87,7 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
           if (pivot != null)
             Padding(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xxs),
               child: Text(
                 pivot.city,
                 style: theme.typography.sm
@@ -129,7 +129,7 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
           // Tabs (list / map) — FTabs with expands:true fills remaining space
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(top: 8),
+              padding: const EdgeInsets.only(top: AppSpacing.xs),
               child: FTabs(
                 expands: true,
                 children: [

@@ -65,7 +65,7 @@ class ToursListScreen extends ConsumerWidget {
                             color: theme.colors.foreground,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: AppSpacing.xxs),
                         // Stats row
                         Text(
                           l.toursStatsFmt(all.length, planned.length),
@@ -73,7 +73,7 @@ class ToursListScreen extends ConsumerWidget {
                             color: theme.colors.mutedForeground,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.md),
                         // Filter
                         SegmentedButton<_Filter>(
                           segments: [
@@ -85,7 +85,7 @@ class ToursListScreen extends ConsumerWidget {
                           onSelectionChanged: (s) =>
                               ref.read(_filterProvider.notifier).state = s.first,
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.md),
                       ],
                     ),
                   ),
@@ -101,7 +101,7 @@ class ToursListScreen extends ConsumerWidget {
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, AppSizes.bottomScrollPadding),
                     sliver: SliverList.separated(
                       itemCount: list.length,
                       separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),

@@ -73,7 +73,7 @@ class ClientsListScreen extends ConsumerWidget {
                                 color: theme.colors.foreground,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: AppSpacing.xxs),
                             // Stats row
                             Text(
                               '${l.clientsCountFmt(all.length)} · ${l.clientsWaitingCountFmt(waiting.length)}',
@@ -81,7 +81,7 @@ class ClientsListScreen extends ConsumerWidget {
                                 color: theme.colors.mutedForeground,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.md),
                             // Filter row
                             SegmentedButton<_Filter>(
                               segments: [
@@ -92,7 +92,7 @@ class ClientsListScreen extends ConsumerWidget {
                               onSelectionChanged: (s) =>
                                   ref.read(_filterProvider.notifier).state = s.first,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.md),
                             // Recompute banner
                             if (pending > 0) ...[
                               AppSectionCard(
@@ -128,7 +128,7 @@ class ClientsListScreen extends ConsumerWidget {
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: AppSpacing.xs),
                             ],
                           ],
                         ),
@@ -151,7 +151,7 @@ class ClientsListScreen extends ConsumerWidget {
                       )
                     else
                       SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, AppSizes.bottomScrollPadding),
                         sliver: SliverList.separated(
                           itemCount: list.length,
                           separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),

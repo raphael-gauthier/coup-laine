@@ -401,7 +401,7 @@ class _SearchOverlay extends ConsumerWidget {
           ),
         ),
         if (results.isNotEmpty) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xxs),
           FCard.raw(
             child: Column(
               children: [

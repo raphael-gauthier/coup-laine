@@ -219,7 +219,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                     color: theme.colors.mutedForeground,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
                 AddressAutocompleteField(
                   labelText: l.settingsBaseAddressEdit,
                   onPicked: (r) => setState(() {
@@ -254,7 +254,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
                 FTextField(
                   control: FTextFieldControl.managed(
                     controller: _minPerSheepCtrl,
@@ -269,7 +269,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.sm),
                 FTextField(
                   control: FTextFieldControl.managed(
                     controller: _tariffCtrl,

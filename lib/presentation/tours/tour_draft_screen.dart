@@ -158,7 +158,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
               // "Étapes" heading
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, AppSpacing.md, AppSpacing.md, 4),
+                    AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxs),
                 child: Text(
                   l.tourDraftStepsTitle,
                   style: theme.typography.lg.copyWith(
