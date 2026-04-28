@@ -10,11 +10,15 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
+import '../../core/design_tokens.dart';
 import '../../domain/models/settings.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 import '../tours/tours_list_screen.dart' show toursAsyncProvider;
 import '../widgets/address_autocomplete_field.dart';
+import '../widgets/app_list_tile.dart';
+import '../widgets/app_primary_button.dart';
+import '../widgets/app_section_card.dart';
 
 final _settingsAsyncProvider = FutureProvider<Settings?>((ref) {
   return ref.watch(settingsRepositoryProvider).read();
@@ -127,7 +131,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
     final theme = context.theme;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      padding: AppSizes.screenPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -139,11 +143,12 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
               color: theme.colors.foreground,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
 
           // --- Apparence ---
-          FCard(
-            title: Text(l.settingsAppearanceTitle),
+          AppSectionCard(
+            icon: FIcons.palette,
+            title: l.settingsAppearanceTitle,
             child: Column(
               children: [
                 _ThemeOption(
@@ -151,11 +156,13 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                   icon: FIcons.monitor,
                   label: l.settingsThemeSystem,
                 ),
+                const SizedBox(height: AppSpacing.sm),
                 _ThemeOption(
                   mode: ThemeModePreference.light,
                   icon: FIcons.sun,
                   label: l.settingsThemeLight,
                 ),
+                const SizedBox(height: AppSpacing.sm),
                 _ThemeOption(
                   mode: ThemeModePreference.dark,
                   icon: FIcons.moon,
@@ -164,11 +171,12 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
 
           // --- Adresse de base ---
-          FCard(
-            title: Text(l.settingsBaseAddressTitle),
+          AppSectionCard(
+            icon: FIcons.house,
+            title: l.settingsBaseAddressTitle,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -191,11 +199,12 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
 
           // --- Valeurs par défaut ---
-          FCard(
-            title: Text(l.settingsDefaultsTitle),
+          AppSectionCard(
+            icon: FIcons.slidersHorizontal,
+            title: l.settingsDefaultsTitle,
             child: Column(
               children: [
                 FTextField(
@@ -245,16 +254,18 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
 
           // --- Données ---
-          FCard(
-            title: Text(l.settingsDataTitle),
+          AppSectionCard(
+            icon: FIcons.database,
+            title: l.settingsDataTitle,
             child: Column(
               children: [
-                FTile(
+                AppListTile(
                   prefix: const Icon(FIcons.upload),
-                  title: Text(l.settingsExportData),
+                  title: l.settingsExportData,
+                  suffix: const Icon(FIcons.chevronRight),
                   onPress: () async {
                     final svc = ref.read(jsonExportServiceProvider);
                     final body = await svc.exportToJsonString();
@@ -267,9 +278,11 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                     );
                   },
                 ),
-                FTile(
+                const SizedBox(height: AppSpacing.sm),
+                AppListTile(
                   prefix: const Icon(FIcons.download),
-                  title: Text(l.settingsImportData),
+                  title: l.settingsImportData,
+                  suffix: const Icon(FIcons.chevronRight),
                   onPress: () async {
                     final picked = await openFile(
                       acceptedTypeGroups: [
@@ -316,14 +329,13 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
 
           // --- Save bar ---
-          if (_isDirty)
-            FButton(
-              onPress: _save,
-              child: Text(l.settingsSave),
-            ),
+          AppPrimaryButton(
+            label: l.settingsSave,
+            onPress: _isDirty ? _save : null,
+          ),
         ],
       ),
     );
@@ -350,11 +362,14 @@ class _ThemeOption extends ConsumerWidget {
     final settingsAsync = ref.watch(_settingsAsyncProvider);
     final currentMode = settingsAsync.value?.themeMode ?? ThemeModePreference.system;
     final isActive = currentMode == mode;
+    final theme = context.theme;
 
-    return FTile(
+    return AppListTile(
       prefix: Icon(icon),
-      title: Text(label),
-      suffix: isActive ? const Icon(FIcons.check) : null,
+      title: label,
+      suffix: isActive
+          ? Icon(FIcons.check, color: theme.colors.primary)
+          : null,
       onPress: isActive
           ? null
           : () async {
