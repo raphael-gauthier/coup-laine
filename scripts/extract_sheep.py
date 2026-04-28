@@ -23,6 +23,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
+from scipy import ndimage
 
 # Paths (resolved relative to the repo root, assuming the script is run from
 # the repo root).
@@ -35,7 +36,7 @@ ANDROID_RES = ROOT / "android" / "app" / "src" / "main" / "res"
 # Logo source is 1640x856 — sheep occupies roughly the left 42%.
 CROP_LEFT = 0.005
 CROP_TOP = 0.02
-CROP_RIGHT = 0.36
+CROP_RIGHT = 0.45
 CROP_BOTTOM = 0.99
 
 # Soft alpha threshold based on luminance.
@@ -80,6 +81,55 @@ def remove_background(img: Image.Image) -> Image.Image:
     arr[fully_transparent, 1] = 0
     arr[fully_transparent, 2] = 0
     return Image.fromarray(arr, mode="RGBA")
+
+
+def keep_largest_blob(img: Image.Image, min_size_ratio: float = 0.05) -> Image.Image:
+    """Keep only the largest connected ink blob (the sheep). Drop the rest.
+
+    The sheep is rendered as many disconnected ink strokes (curls of wool,
+    legs etc.) so we first DILATE the alpha mask to merge nearby strokes
+    into one big blob, run connected-component labelling on that, then
+    keep all pixels in the original alpha that fall inside the largest
+    component's bounding region.
+
+    [min_size_ratio] is a safety net: any blob smaller than this fraction
+    of the largest blob is dropped. Defaults to 5%.
+    """
+    arr = np.array(img)
+    alpha = arr[..., 3]
+    binary = alpha > 16
+
+    # Dilate to merge close-but-disconnected sheep strokes into one blob.
+    # Iterations of 6 (≈12 px reach) is enough to bridge gaps between
+    # wool curls without bridging across to the text fragments which
+    # sit ~30+ px away.
+    merged = ndimage.binary_dilation(binary, iterations=6)
+
+    # Label connected components on the merged mask.
+    labels, num = ndimage.label(merged)
+    if num == 0:
+        return img
+
+    # Compute the size of each component (label 0 is background, skip it).
+    sizes = ndimage.sum(merged, labels, range(num + 1))
+    largest_label = int(np.argmax(sizes[1:])) + 1
+    largest_size = sizes[largest_label]
+    threshold = largest_size * min_size_ratio
+
+    # Build a keep-mask: only the largest component (and any smaller ones
+    # above the threshold, in case the sheep splits into a few blobs).
+    keep_mask = np.zeros_like(merged, dtype=bool)
+    for lbl in range(1, num + 1):
+        if sizes[lbl] >= threshold:
+            keep_mask |= labels == lbl
+
+    # Erase alpha outside the keep mask.
+    out = arr.copy()
+    out[..., 3] = np.where(keep_mask, alpha, 0)
+    out[~keep_mask, 0] = 0
+    out[~keep_mask, 1] = 0
+    out[~keep_mask, 2] = 0
+    return Image.fromarray(out, mode="RGBA")
 
 
 def trim_to_content(img: Image.Image, alpha_threshold: int = 8) -> Image.Image:
@@ -158,7 +208,8 @@ def main() -> None:
     print(f"  cropped: {sheep_crop.size[0]}x{sheep_crop.size[1]}")
 
     transparent = remove_background(sheep_crop)
-    trimmed = trim_to_content(transparent)
+    cleaned = keep_largest_blob(transparent)
+    trimmed = trim_to_content(cleaned)
     print(f"  trimmed: {trimmed.size[0]}x{trimmed.size[1]}")
 
     MASTER_OUT.parent.mkdir(parents=True, exist_ok=True)
