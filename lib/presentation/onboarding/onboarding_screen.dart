@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -57,9 +56,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               child: Center(
-                child: SvgPicture.asset(
-                  'assets/illustrations/welcome.svg',
-                  height: 180,
+                child: Image.asset(
+                  'assets/illustrations/sheep-mascot.png',
+                  height: 220,
                   fit: BoxFit.contain,
                 ),
               ),
