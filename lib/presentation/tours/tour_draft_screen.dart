@@ -1,5 +1,5 @@
 // lib/presentation/tours/tour_draft_screen.dart
-import 'package:flutter/material.dart' show ReorderableListView, TimeOfDay, showDatePicker, showTimePicker;
+import 'package:flutter/material.dart' show Material, MaterialType, ReorderableListView, TimeOfDay, showDatePicker, showTimePicker;
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -155,7 +155,9 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
               ),
               // Reorderable list
               Expanded(
-                child: ReorderableListView.builder(
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: ReorderableListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: bundle.orderedClients.length,
                   onReorder: (oldIndex, newIndex) {
@@ -202,6 +204,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       ),
                     );
                   },
+                ),
                 ),
               ),
               // Summary footer

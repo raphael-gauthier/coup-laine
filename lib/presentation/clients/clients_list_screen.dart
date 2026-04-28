@@ -1,5 +1,5 @@
 // lib/presentation/clients/clients_list_screen.dart
-import 'package:flutter/material.dart' show FloatingActionButton, RefreshIndicator, SegmentedButton, ButtonSegment;
+import 'package:flutter/material.dart' show ButtonSegment, FloatingActionButton, Material, MaterialType, RefreshIndicator, SegmentedButton;
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,10 +35,12 @@ class ClientsListScreen extends ConsumerWidget {
     final async = ref.watch(clientsAsyncProvider);
 
     return FScaffold(
-      child: async.when(
-        loading: () => const Center(child: FCircularProgress()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (all) {
+      child: Material(
+        type: MaterialType.transparency,
+        child: async.when(
+          loading: () => const Center(child: FCircularProgress()),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (all) {
           final waiting = all.where((c) => c.isWaiting).toList();
           final list = filter == _Filter.waiting ? waiting : all;
           final pending = ref.watch(clientsPendingProvider).value ?? 0;
@@ -189,6 +191,7 @@ class ClientsListScreen extends ConsumerWidget {
             ],
           );
         },
+        ),
       ),
     );
   }

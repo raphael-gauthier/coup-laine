@@ -1,5 +1,5 @@
 // lib/presentation/tours/tours_list_screen.dart
-import 'package:flutter/material.dart' show RefreshIndicator, SegmentedButton, ButtonSegment;
+import 'package:flutter/material.dart' show ButtonSegment, Material, MaterialType, RefreshIndicator, SegmentedButton;
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,7 +30,9 @@ class ToursListScreen extends ConsumerWidget {
     final async = ref.watch(toursAsyncProvider);
 
     return FScaffold(
-      child: async.when(
+      child: Material(
+        type: MaterialType.transparency,
+        child: async.when(
         loading: () => const Center(child: FCircularProgress()),
         error: (e, _) => Center(child: Text('$e')),
         data: (all) {
@@ -132,6 +134,7 @@ class ToursListScreen extends ConsumerWidget {
             ),
           );
         },
+        ),
       ),
     );
   }

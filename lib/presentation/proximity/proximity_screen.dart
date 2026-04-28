@@ -1,5 +1,5 @@
 // lib/presentation/proximity/proximity_screen.dart
-import 'package:flutter/material.dart' show Slider;
+import 'package:flutter/material.dart' show Material, MaterialType, Slider;
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -103,13 +103,16 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
                     style: theme.typography.xl2
                         .copyWith(fontWeight: FontWeight.bold),
                   ),
-                  Slider(
-                    min: 5,
-                    max: 30,
-                    divisions: 5,
-                    value: _radiusKm.toDouble(),
-                    label: '$_radiusKm km',
-                    onChanged: (v) => _setRadius(v.round()),
+                  Material(
+                    type: MaterialType.transparency,
+                    child: Slider(
+                      min: 5,
+                      max: 30,
+                      divisions: 5,
+                      value: _radiusKm.toDouble(),
+                      label: '$_radiusKm km',
+                      onChanged: (v) => _setRadius(v.round()),
+                    ),
                   ),
                 ],
               ),
