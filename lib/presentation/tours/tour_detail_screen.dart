@@ -98,6 +98,14 @@ class _Body extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 16),
+        if (_estimatedTourEnd(bundle) > 20 * 60)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: Chip(
+              label: Text('Journée longue'),
+              backgroundColor: Color(0xFFFFE0B2),
+            ),
+          ),
         Text(l.tourDetailScheduleTitle,
             style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
@@ -135,6 +143,16 @@ class _Body extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  int _estimatedTourEnd(TourWithStops bundle) {
+    return bundle.tour.startTimeMinutes +
+        (bundle.tour.totalDriveSeconds ~/ 60) +
+        bundle.stops.fold<int>(
+            0,
+            (sum, s) =>
+                sum +
+                s.sheepCountSnapshot * s.minutesPerSheepSnapshot);
   }
 
   Future<void> _confirmComplete(BuildContext context, WidgetRef ref) async {

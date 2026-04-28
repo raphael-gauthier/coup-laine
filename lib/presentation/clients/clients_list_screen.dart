@@ -149,6 +149,13 @@ class _ClientTile extends StatelessWidget {
       trailing: Wrap(
         spacing: 4,
         children: [
+          if (client.lastShearingDate != null &&
+              DateTime.now().difference(client.lastShearingDate!).inDays > 395)
+            const Chip(
+              label: Text('En retard'),
+              visualDensity: VisualDensity.compact,
+              backgroundColor: Color(0xFFFFCDD2),
+            ),
           if (client.isWaiting)
             const Chip(
                 label: Text('En attente'),
