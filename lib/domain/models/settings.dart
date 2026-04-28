@@ -1,0 +1,19 @@
+import 'coordinates.dart';
+
+class Settings {
+  final Coordinates baseCoordinates;
+  final String baseAddressLabel;
+  final int defaultRadiusKm;
+  final int defaultMinutesPerSheep;
+  final int travelFeeEurosPerBracket;
+  final int bracketKm;
+
+  const Settings({
+    required this.baseCoordinates,
+    required this.baseAddressLabel,
+    this.defaultRadiusKm = 15,
+    this.defaultMinutesPerSheep = 20,
+    this.travelFeeEurosPerBracket = 8,
+    this.bracketKm = 10,
+  });
+}
