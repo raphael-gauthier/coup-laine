@@ -43,6 +43,7 @@ flutter:
   generate: true
   assets:
     - .env
+    - assets/illustrations/
   fonts:
     - family: Fraunces
       fonts:
