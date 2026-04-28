@@ -17,6 +17,11 @@ final _clientsAsyncProvider = FutureProvider<List<Client>>((ref) {
   return ref.watch(clientRepositoryProvider).listAll();
 });
 
+final _pendingProvider = FutureProvider<int>((ref) async {
+  final clients = ref.watch(clientRepositoryProvider);
+  return (await clients.listNeedingRecompute()).length;
+});
+
 class ClientsListScreen extends ConsumerWidget {
   const ClientsListScreen({super.key});
 
@@ -60,30 +65,65 @@ class ClientsListScreen extends ConsumerWidget {
           final list = filter == _Filter.waiting
               ? all.where((c) => c.isWaiting).toList()
               : all;
-          if (list.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(l.emptyClientsTitle,
-                        style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 8),
-                    Text(l.emptyClientsBody,
-                        textAlign: TextAlign.center),
+          final pending = ref.watch(_pendingProvider).value ?? 0;
+          return Column(
+            children: [
+              if (pending > 0)
+                MaterialBanner(
+                  content: Text('$pending client(s) sans distances calculées'),
+                  leading: const Icon(Icons.warning_amber),
+                  actions: [
+                    TextButton(
+                      onPressed: () async {
+                        final sync = ref.read(distanceMatrixSyncProvider);
+                        final fixed = await sync.retryAllPending();
+                        ref.invalidate(_pendingProvider);
+                        ref.invalidate(_clientsAsyncProvider);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('$fixed client(s) recalculés'),
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text('Recalculer'),
+                    ),
                   ],
                 ),
+              Expanded(
+                child: list.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(l.emptyClientsTitle,
+                                  style:
+                                      Theme.of(context).textTheme.titleLarge),
+                              const SizedBox(height: 8),
+                              Text(l.emptyClientsBody,
+                                  textAlign: TextAlign.center),
+                            ],
+                          ),
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () async {
+                          ref.invalidate(_clientsAsyncProvider);
+                          ref.invalidate(_pendingProvider);
+                        },
+                        child: ListView.separated(
+                          itemCount: list.length,
+                          separatorBuilder: (_, __) =>
+                              const Divider(height: 1),
+                          itemBuilder: (_, i) =>
+                              _ClientTile(client: list[i]),
+                        ),
+                      ),
               ),
-            );
-          }
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(_clientsAsyncProvider),
-            child: ListView.separated(
-              itemCount: list.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (_, i) => _ClientTile(client: list[i]),
-            ),
+            ],
           );
         },
       ),
