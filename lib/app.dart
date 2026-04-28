@@ -20,6 +20,7 @@ class CoupeLaineApp extends ConsumerWidget {
     final darkFTheme = appDarkTheme;
 
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
       localizationsDelegates: const [
         AppLocalizations.delegate,
