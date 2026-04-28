@@ -6,9 +6,14 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
+import '../widgets/app_badge.dart';
+import '../widgets/app_hero_card.dart';
+import '../widgets/app_primary_button.dart';
+import '../widgets/app_section_card.dart';
 import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
 final _clientByIdProvider = FutureProvider.family<Client?, int>((ref, id) {
@@ -94,75 +99,39 @@ class _Body extends ConsumerWidget {
             DateFormat('dd/MM/yyyy').format(client.lastShearingDate!),
           );
 
+    final subtitle = client.minutesPerSheepOverride != null
+        ? '$lastShearingText · ${client.minutesPerSheepOverride} min/mouton'
+        : lastShearingText;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: AppSizes.screenPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Hero card: sheep count
-          FCard.raw(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        '${client.sheepCount}',
-                        style: theme.typography.xl4.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colors.foreground,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l.clientDetailSheepCountFmt(client.sheepCount)
-                            .replaceFirst('${client.sheepCount} ', ''),
-                        style: theme.typography.lg.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    lastShearingText,
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.mutedForeground,
-                    ),
-                  ),
-                  if (client.minutesPerSheepOverride != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      '${client.minutesPerSheepOverride} min/mouton',
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+          AppHeroCard(
+            badge: client.isWaiting ? AppBadge.waiting(context) : null,
+            bigNumber: '${client.sheepCount}',
+            label: 'moutons',
+            subtitle: subtitle,
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
 
           // Recompute banner
           if (client.needsDistanceRecompute) ...[
-            FCard(
+            AppSectionCard(
+              icon: FIcons.triangleAlert,
+              iconBackground: theme.colors.destructive,
+              title: 'Distances',
               child: Row(
                 children: [
-                  Icon(FIcons.triangleAlert, color: theme.colors.destructive, size: 20),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       l.clientDetailRecomputeBanner,
                       style: theme.typography.sm,
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: AppSpacing.sm),
                   FButton(
                     variant: FButtonVariant.outline,
                     size: FButtonSizeVariant.sm,
@@ -184,54 +153,64 @@ class _Body extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
           ],
 
           // Address card
-          FCard(
-            title: Text(l.clientDetailSectionAddress),
-            child: FTile(
-              prefix: const Icon(FIcons.mapPin),
-              title: Text(client.addressLabel),
-              subtitle: Text('${client.postcode} ${client.city}'),
+          AppSectionCard(
+            icon: FIcons.mapPin,
+            title: l.clientDetailSectionAddress,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  client.addressLabel,
+                  style: theme.typography.md,
+                ),
+                Text(
+                  '${client.postcode} ${client.city}',
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
 
           // Contact card (only if phone set)
           if (client.phone != null) ...[
-            FCard(
-              title: Text(l.clientDetailSectionContact),
-              child: FTile(
-                prefix: const Icon(FIcons.phone),
-                title: Text(client.phone!),
+            AppSectionCard(
+              icon: FIcons.phone,
+              title: l.clientDetailSectionContact,
+              child: Text(
+                client.phone!,
+                style: theme.typography.md,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
           ],
 
           // Notes card (only if notes set)
           if (client.notes != null) ...[
-            FCard(
-              title: Text(l.clientDetailSectionNotes),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Text(
-                  client.notes!,
-                  style: theme.typography.md.copyWith(
-                    color: theme.colors.foreground,
-                  ),
+            AppSectionCard(
+              icon: FIcons.notebookPen,
+              title: l.clientDetailSectionNotes,
+              child: Text(
+                client.notes!,
+                style: theme.typography.md.copyWith(
+                  color: theme.colors.foreground,
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
           ],
 
           // Status section
-          FCard(
-            title: Text(l.clientDetailSectionStatus),
+          AppSectionCard(
+            icon: FIcons.bellRing,
+            title: l.clientDetailSectionStatus,
             child: FTile(
-              prefix: const Icon(FIcons.clock),
               title: Text(l.clientDetailWaitingToggle),
               suffix: FSwitch(
                 value: client.isWaiting,
@@ -245,17 +224,17 @@ class _Body extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
 
           // CTA: find nearby clients
-          FButton(
+          AppPrimaryButton(
+            label: l.clientDetailFindNearby,
+            prefixIcon: FIcons.compass,
             onPress: (client.isWaiting && !client.needsDistanceRecompute)
                 ? () => context.push('/proximity/${client.id}')
                 : null,
-            prefix: const Icon(FIcons.compass),
-            child: Text(l.clientDetailFindNearby),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
         ],
       ),
     );
