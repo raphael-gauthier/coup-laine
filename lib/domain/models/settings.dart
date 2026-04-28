@@ -20,4 +20,22 @@ class Settings {
     this.bracketKm = 10,
     this.themeMode = ThemeModePreference.system,
   });
+
+  Settings copyWith({
+    Coordinates? baseCoordinates,
+    String? baseAddressLabel,
+    int? defaultRadiusKm,
+    int? defaultMinutesPerSheep,
+    int? travelFeeEurosPerBracket,
+    int? bracketKm,
+    ThemeModePreference? themeMode,
+  }) => Settings(
+    baseCoordinates: baseCoordinates ?? this.baseCoordinates,
+    baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
+    defaultRadiusKm: defaultRadiusKm ?? this.defaultRadiusKm,
+    defaultMinutesPerSheep: defaultMinutesPerSheep ?? this.defaultMinutesPerSheep,
+    travelFeeEurosPerBracket: travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
+    bracketKm: bracketKm ?? this.bracketKm,
+    themeMode: themeMode ?? this.themeMode,
+  );
 }

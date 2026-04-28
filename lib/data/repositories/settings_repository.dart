@@ -40,6 +40,12 @@ class SettingsRepository {
         );
   }
 
+  Future<void> setThemeMode(ThemeModePreference mode) async {
+    final current = await read();
+    if (current == null) return;
+    await save(current.copyWith(themeMode: mode));
+  }
+
   ThemeModePreference _parseMode(String? raw) {
     return switch (raw) {
       'light' => ThemeModePreference.light,
