@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
+import 'core/theme/app_themes.dart';
 import 'state/providers.dart';
 
 class CoupeLaineApp extends ConsumerWidget {
@@ -15,8 +16,8 @@ class CoupeLaineApp extends ConsumerWidget {
     final modeAsync = ref.watch(themeModeProvider);
     final mode = modeAsync.value ?? ThemeMode.system;
 
-    final lightFTheme = FThemes.blue.light.touch;
-    final darkFTheme = FThemes.blue.dark.touch;
+    final lightFTheme = appLightTheme;
+    final darkFTheme = appDarkTheme;
 
     return MaterialApp.router(
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
