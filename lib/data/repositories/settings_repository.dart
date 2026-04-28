@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/models/coordinates.dart';
 import '../../domain/models/settings.dart';
+import '../../domain/use_cases/client_status.dart';
 import '../../infra/db/app_database.dart';
 
 class SettingsRepository {
@@ -21,6 +22,10 @@ class SettingsRepository {
       travelFeeEurosPerBracket: row.travelFeeEurosPerBracket,
       bracketKm: row.bracketKm,
       themeMode: _parseMode(row.themeMode),
+      markerDefaultColor: row.markerDefaultColor,
+      markerWaitingColor: row.markerWaitingColor,
+      markerOverdueColor: row.markerOverdueColor,
+      markerRecomputeColor: row.markerRecomputeColor,
     );
   }
 
@@ -36,8 +41,28 @@ class SettingsRepository {
             travelFeeEurosPerBracket: Value(settings.travelFeeEurosPerBracket),
             bracketKm: Value(settings.bracketKm),
             themeMode: Value(_serializeMode(settings.themeMode)),
+            markerDefaultColor: Value(settings.markerDefaultColor),
+            markerWaitingColor: Value(settings.markerWaitingColor),
+            markerOverdueColor: Value(settings.markerOverdueColor),
+            markerRecomputeColor: Value(settings.markerRecomputeColor),
           ),
         );
+  }
+
+  Future<void> updateMarkerColor(ClientStatus status, String hex) async {
+    final companion = switch (status) {
+      ClientStatus.defaultStatus =>
+        SettingsTableCompanion(markerDefaultColor: Value(hex)),
+      ClientStatus.waiting =>
+        SettingsTableCompanion(markerWaitingColor: Value(hex)),
+      ClientStatus.overdue =>
+        SettingsTableCompanion(markerOverdueColor: Value(hex)),
+      ClientStatus.recompute =>
+        SettingsTableCompanion(markerRecomputeColor: Value(hex)),
+    };
+    await (_db.update(_db.settingsTable)
+          ..where((t) => t.id.equals(1)))
+        .write(companion);
   }
 
   Future<void> setThemeMode(ThemeModePreference mode) async {
