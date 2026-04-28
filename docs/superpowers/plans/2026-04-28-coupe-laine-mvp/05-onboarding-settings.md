@@ -443,7 +443,7 @@ Mirror in `app_en.arb`. Run `flutter gen-l10n`.
 ```dart
 // lib/presentation/settings/settings_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/models/settings.dart';

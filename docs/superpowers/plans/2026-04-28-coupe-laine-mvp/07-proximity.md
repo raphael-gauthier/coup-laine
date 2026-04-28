@@ -236,7 +236,7 @@ Mirror EN, regenerate.
 ```dart
 // lib/presentation/proximity/proximity_list_view.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../state/proximity_controller.dart';
@@ -289,7 +289,7 @@ class ProximityListView extends ConsumerWidget {
 ```dart
 // lib/presentation/proximity/proximity_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 

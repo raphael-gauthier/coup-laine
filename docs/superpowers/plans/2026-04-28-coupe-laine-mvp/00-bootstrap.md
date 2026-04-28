@@ -304,7 +304,7 @@ Future<void> main() async {
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:coupe_laine/l10n/app_localizations.dart';
 
 import 'core/config/env.dart';
 
@@ -381,7 +381,7 @@ git commit -m "feat: bootstrap app with FR locale and env-loaded ORS key"
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:coupe_laine/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('App localisation loads French strings', (tester) async {
