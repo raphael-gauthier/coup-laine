@@ -24,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -32,6 +32,13 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: (m, from, to) async {
       if (from < 2) {
         await m.addColumn(settingsTable, settingsTable.themeMode);
+      }
+      if (from < 3) {
+        await m.addColumn(settingsTable, settingsTable.markerDefaultColor);
+        await m.addColumn(settingsTable, settingsTable.markerWaitingColor);
+        await m.addColumn(settingsTable, settingsTable.markerOverdueColor);
+        await m.addColumn(settingsTable, settingsTable.markerRecomputeColor);
+        await m.addColumn(clientsTable, clientsTable.markerColorHex);
       }
     },
     beforeOpen: (details) async {

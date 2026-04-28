@@ -16,6 +16,14 @@ class SettingsTable extends Table {
       integer().withDefault(const Constant(8))();
   IntColumn get bracketKm => integer().withDefault(const Constant(10))();
   TextColumn get themeMode => text().withDefault(const Constant('system'))();
+  TextColumn get markerDefaultColor =>
+      text().withDefault(const Constant('#4A6B52'))();
+  TextColumn get markerWaitingColor =>
+      text().withDefault(const Constant('#C77B5C'))();
+  TextColumn get markerOverdueColor =>
+      text().withDefault(const Constant('#B33A3A'))();
+  TextColumn get markerRecomputeColor =>
+      text().withDefault(const Constant('#A89F92'))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -37,6 +45,7 @@ class ClientsTable extends Table {
   IntColumn get sheepCount => integer().withDefault(const Constant(0))();
   IntColumn get minutesPerSheepOverride => integer().nullable()();
   TextColumn get notes => text().nullable()();
+  TextColumn get markerColorHex => text().nullable()();
   BoolColumn get isWaiting => boolean().withDefault(const Constant(false))();
   IntColumn get lastShearingDate => integer().nullable()();
   BoolColumn get needsDistanceRecompute =>

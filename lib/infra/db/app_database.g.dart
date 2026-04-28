@@ -74,6 +74,38 @@ class $SettingsTableTable extends SettingsTable
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('system'));
+  static const VerificationMeta _markerDefaultColorMeta =
+      const VerificationMeta('markerDefaultColor');
+  @override
+  late final GeneratedColumn<String> markerDefaultColor =
+      GeneratedColumn<String>('marker_default_color', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('#4A6B52'));
+  static const VerificationMeta _markerWaitingColorMeta =
+      const VerificationMeta('markerWaitingColor');
+  @override
+  late final GeneratedColumn<String> markerWaitingColor =
+      GeneratedColumn<String>('marker_waiting_color', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('#C77B5C'));
+  static const VerificationMeta _markerOverdueColorMeta =
+      const VerificationMeta('markerOverdueColor');
+  @override
+  late final GeneratedColumn<String> markerOverdueColor =
+      GeneratedColumn<String>('marker_overdue_color', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('#B33A3A'));
+  static const VerificationMeta _markerRecomputeColorMeta =
+      const VerificationMeta('markerRecomputeColor');
+  @override
+  late final GeneratedColumn<String> markerRecomputeColor =
+      GeneratedColumn<String>('marker_recompute_color', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('#A89F92'));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -84,7 +116,11 @@ class $SettingsTableTable extends SettingsTable
         defaultMinutesPerSheep,
         travelFeeEurosPerBracket,
         bracketKm,
-        themeMode
+        themeMode,
+        markerDefaultColor,
+        markerWaitingColor,
+        markerOverdueColor,
+        markerRecomputeColor
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -146,6 +182,30 @@ class $SettingsTableTable extends SettingsTable
       context.handle(_themeModeMeta,
           themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta));
     }
+    if (data.containsKey('marker_default_color')) {
+      context.handle(
+          _markerDefaultColorMeta,
+          markerDefaultColor.isAcceptableOrUnknown(
+              data['marker_default_color']!, _markerDefaultColorMeta));
+    }
+    if (data.containsKey('marker_waiting_color')) {
+      context.handle(
+          _markerWaitingColorMeta,
+          markerWaitingColor.isAcceptableOrUnknown(
+              data['marker_waiting_color']!, _markerWaitingColorMeta));
+    }
+    if (data.containsKey('marker_overdue_color')) {
+      context.handle(
+          _markerOverdueColorMeta,
+          markerOverdueColor.isAcceptableOrUnknown(
+              data['marker_overdue_color']!, _markerOverdueColorMeta));
+    }
+    if (data.containsKey('marker_recompute_color')) {
+      context.handle(
+          _markerRecomputeColorMeta,
+          markerRecomputeColor.isAcceptableOrUnknown(
+              data['marker_recompute_color']!, _markerRecomputeColorMeta));
+    }
     return context;
   }
 
@@ -175,6 +235,15 @@ class $SettingsTableTable extends SettingsTable
           .read(DriftSqlType.int, data['${effectivePrefix}bracket_km'])!,
       themeMode: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}theme_mode'])!,
+      markerDefaultColor: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}marker_default_color'])!,
+      markerWaitingColor: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}marker_waiting_color'])!,
+      markerOverdueColor: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}marker_overdue_color'])!,
+      markerRecomputeColor: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}marker_recompute_color'])!,
     );
   }
 
@@ -194,6 +263,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   final int travelFeeEurosPerBracket;
   final int bracketKm;
   final String themeMode;
+  final String markerDefaultColor;
+  final String markerWaitingColor;
+  final String markerOverdueColor;
+  final String markerRecomputeColor;
   const SettingsRow(
       {required this.id,
       required this.baseAddressLabel,
@@ -203,7 +276,11 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       required this.defaultMinutesPerSheep,
       required this.travelFeeEurosPerBracket,
       required this.bracketKm,
-      required this.themeMode});
+      required this.themeMode,
+      required this.markerDefaultColor,
+      required this.markerWaitingColor,
+      required this.markerOverdueColor,
+      required this.markerRecomputeColor});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -217,6 +294,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
         Variable<int>(travelFeeEurosPerBracket);
     map['bracket_km'] = Variable<int>(bracketKm);
     map['theme_mode'] = Variable<String>(themeMode);
+    map['marker_default_color'] = Variable<String>(markerDefaultColor);
+    map['marker_waiting_color'] = Variable<String>(markerWaitingColor);
+    map['marker_overdue_color'] = Variable<String>(markerOverdueColor);
+    map['marker_recompute_color'] = Variable<String>(markerRecomputeColor);
     return map;
   }
 
@@ -231,6 +312,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       travelFeeEurosPerBracket: Value(travelFeeEurosPerBracket),
       bracketKm: Value(bracketKm),
       themeMode: Value(themeMode),
+      markerDefaultColor: Value(markerDefaultColor),
+      markerWaitingColor: Value(markerWaitingColor),
+      markerOverdueColor: Value(markerOverdueColor),
+      markerRecomputeColor: Value(markerRecomputeColor),
     );
   }
 
@@ -249,6 +334,14 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           serializer.fromJson<int>(json['travelFeeEurosPerBracket']),
       bracketKm: serializer.fromJson<int>(json['bracketKm']),
       themeMode: serializer.fromJson<String>(json['themeMode']),
+      markerDefaultColor:
+          serializer.fromJson<String>(json['markerDefaultColor']),
+      markerWaitingColor:
+          serializer.fromJson<String>(json['markerWaitingColor']),
+      markerOverdueColor:
+          serializer.fromJson<String>(json['markerOverdueColor']),
+      markerRecomputeColor:
+          serializer.fromJson<String>(json['markerRecomputeColor']),
     );
   }
   @override
@@ -265,6 +358,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           serializer.toJson<int>(travelFeeEurosPerBracket),
       'bracketKm': serializer.toJson<int>(bracketKm),
       'themeMode': serializer.toJson<String>(themeMode),
+      'markerDefaultColor': serializer.toJson<String>(markerDefaultColor),
+      'markerWaitingColor': serializer.toJson<String>(markerWaitingColor),
+      'markerOverdueColor': serializer.toJson<String>(markerOverdueColor),
+      'markerRecomputeColor': serializer.toJson<String>(markerRecomputeColor),
     };
   }
 
@@ -277,7 +374,11 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           int? defaultMinutesPerSheep,
           int? travelFeeEurosPerBracket,
           int? bracketKm,
-          String? themeMode}) =>
+          String? themeMode,
+          String? markerDefaultColor,
+          String? markerWaitingColor,
+          String? markerOverdueColor,
+          String? markerRecomputeColor}) =>
       SettingsRow(
         id: id ?? this.id,
         baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -290,6 +391,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
             travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
         bracketKm: bracketKm ?? this.bracketKm,
         themeMode: themeMode ?? this.themeMode,
+        markerDefaultColor: markerDefaultColor ?? this.markerDefaultColor,
+        markerWaitingColor: markerWaitingColor ?? this.markerWaitingColor,
+        markerOverdueColor: markerOverdueColor ?? this.markerOverdueColor,
+        markerRecomputeColor: markerRecomputeColor ?? this.markerRecomputeColor,
       );
   SettingsRow copyWithCompanion(SettingsTableCompanion data) {
     return SettingsRow(
@@ -310,6 +415,18 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           : this.travelFeeEurosPerBracket,
       bracketKm: data.bracketKm.present ? data.bracketKm.value : this.bracketKm,
       themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
+      markerDefaultColor: data.markerDefaultColor.present
+          ? data.markerDefaultColor.value
+          : this.markerDefaultColor,
+      markerWaitingColor: data.markerWaitingColor.present
+          ? data.markerWaitingColor.value
+          : this.markerWaitingColor,
+      markerOverdueColor: data.markerOverdueColor.present
+          ? data.markerOverdueColor.value
+          : this.markerOverdueColor,
+      markerRecomputeColor: data.markerRecomputeColor.present
+          ? data.markerRecomputeColor.value
+          : this.markerRecomputeColor,
     );
   }
 
@@ -324,7 +441,11 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('defaultMinutesPerSheep: $defaultMinutesPerSheep, ')
           ..write('travelFeeEurosPerBracket: $travelFeeEurosPerBracket, ')
           ..write('bracketKm: $bracketKm, ')
-          ..write('themeMode: $themeMode')
+          ..write('themeMode: $themeMode, ')
+          ..write('markerDefaultColor: $markerDefaultColor, ')
+          ..write('markerWaitingColor: $markerWaitingColor, ')
+          ..write('markerOverdueColor: $markerOverdueColor, ')
+          ..write('markerRecomputeColor: $markerRecomputeColor')
           ..write(')'))
         .toString();
   }
@@ -339,7 +460,11 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       defaultMinutesPerSheep,
       travelFeeEurosPerBracket,
       bracketKm,
-      themeMode);
+      themeMode,
+      markerDefaultColor,
+      markerWaitingColor,
+      markerOverdueColor,
+      markerRecomputeColor);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -352,7 +477,11 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.defaultMinutesPerSheep == this.defaultMinutesPerSheep &&
           other.travelFeeEurosPerBracket == this.travelFeeEurosPerBracket &&
           other.bracketKm == this.bracketKm &&
-          other.themeMode == this.themeMode);
+          other.themeMode == this.themeMode &&
+          other.markerDefaultColor == this.markerDefaultColor &&
+          other.markerWaitingColor == this.markerWaitingColor &&
+          other.markerOverdueColor == this.markerOverdueColor &&
+          other.markerRecomputeColor == this.markerRecomputeColor);
 }
 
 class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
@@ -365,6 +494,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
   final Value<int> travelFeeEurosPerBracket;
   final Value<int> bracketKm;
   final Value<String> themeMode;
+  final Value<String> markerDefaultColor;
+  final Value<String> markerWaitingColor;
+  final Value<String> markerOverdueColor;
+  final Value<String> markerRecomputeColor;
   const SettingsTableCompanion({
     this.id = const Value.absent(),
     this.baseAddressLabel = const Value.absent(),
@@ -375,6 +508,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.travelFeeEurosPerBracket = const Value.absent(),
     this.bracketKm = const Value.absent(),
     this.themeMode = const Value.absent(),
+    this.markerDefaultColor = const Value.absent(),
+    this.markerWaitingColor = const Value.absent(),
+    this.markerOverdueColor = const Value.absent(),
+    this.markerRecomputeColor = const Value.absent(),
   });
   SettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -386,6 +523,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.travelFeeEurosPerBracket = const Value.absent(),
     this.bracketKm = const Value.absent(),
     this.themeMode = const Value.absent(),
+    this.markerDefaultColor = const Value.absent(),
+    this.markerWaitingColor = const Value.absent(),
+    this.markerOverdueColor = const Value.absent(),
+    this.markerRecomputeColor = const Value.absent(),
   })  : baseAddressLabel = Value(baseAddressLabel),
         baseLat = Value(baseLat),
         baseLon = Value(baseLon);
@@ -399,6 +540,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     Expression<int>? travelFeeEurosPerBracket,
     Expression<int>? bracketKm,
     Expression<String>? themeMode,
+    Expression<String>? markerDefaultColor,
+    Expression<String>? markerWaitingColor,
+    Expression<String>? markerOverdueColor,
+    Expression<String>? markerRecomputeColor,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -412,6 +557,14 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
         'travel_fee_euros_per_bracket': travelFeeEurosPerBracket,
       if (bracketKm != null) 'bracket_km': bracketKm,
       if (themeMode != null) 'theme_mode': themeMode,
+      if (markerDefaultColor != null)
+        'marker_default_color': markerDefaultColor,
+      if (markerWaitingColor != null)
+        'marker_waiting_color': markerWaitingColor,
+      if (markerOverdueColor != null)
+        'marker_overdue_color': markerOverdueColor,
+      if (markerRecomputeColor != null)
+        'marker_recompute_color': markerRecomputeColor,
     });
   }
 
@@ -424,7 +577,11 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       Value<int>? defaultMinutesPerSheep,
       Value<int>? travelFeeEurosPerBracket,
       Value<int>? bracketKm,
-      Value<String>? themeMode}) {
+      Value<String>? themeMode,
+      Value<String>? markerDefaultColor,
+      Value<String>? markerWaitingColor,
+      Value<String>? markerOverdueColor,
+      Value<String>? markerRecomputeColor}) {
     return SettingsTableCompanion(
       id: id ?? this.id,
       baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -437,6 +594,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
           travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
       bracketKm: bracketKm ?? this.bracketKm,
       themeMode: themeMode ?? this.themeMode,
+      markerDefaultColor: markerDefaultColor ?? this.markerDefaultColor,
+      markerWaitingColor: markerWaitingColor ?? this.markerWaitingColor,
+      markerOverdueColor: markerOverdueColor ?? this.markerOverdueColor,
+      markerRecomputeColor: markerRecomputeColor ?? this.markerRecomputeColor,
     );
   }
 
@@ -472,6 +633,19 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     if (themeMode.present) {
       map['theme_mode'] = Variable<String>(themeMode.value);
     }
+    if (markerDefaultColor.present) {
+      map['marker_default_color'] = Variable<String>(markerDefaultColor.value);
+    }
+    if (markerWaitingColor.present) {
+      map['marker_waiting_color'] = Variable<String>(markerWaitingColor.value);
+    }
+    if (markerOverdueColor.present) {
+      map['marker_overdue_color'] = Variable<String>(markerOverdueColor.value);
+    }
+    if (markerRecomputeColor.present) {
+      map['marker_recompute_color'] =
+          Variable<String>(markerRecomputeColor.value);
+    }
     return map;
   }
 
@@ -486,7 +660,11 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
           ..write('defaultMinutesPerSheep: $defaultMinutesPerSheep, ')
           ..write('travelFeeEurosPerBracket: $travelFeeEurosPerBracket, ')
           ..write('bracketKm: $bracketKm, ')
-          ..write('themeMode: $themeMode')
+          ..write('themeMode: $themeMode, ')
+          ..write('markerDefaultColor: $markerDefaultColor, ')
+          ..write('markerWaitingColor: $markerWaitingColor, ')
+          ..write('markerOverdueColor: $markerOverdueColor, ')
+          ..write('markerRecomputeColor: $markerRecomputeColor')
           ..write(')'))
         .toString();
   }
@@ -563,6 +741,12 @@ class $ClientsTableTable extends ClientsTable
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
       'notes', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _markerColorHexMeta =
+      const VerificationMeta('markerColorHex');
+  @override
+  late final GeneratedColumn<String> markerColorHex = GeneratedColumn<String>(
+      'marker_color_hex', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _isWaitingMeta =
       const VerificationMeta('isWaiting');
   @override
@@ -614,6 +798,7 @@ class $ClientsTableTable extends ClientsTable
         sheepCount,
         minutesPerSheepOverride,
         notes,
+        markerColorHex,
         isWaiting,
         lastShearingDate,
         needsDistanceRecompute,
@@ -692,6 +877,12 @@ class $ClientsTableTable extends ClientsTable
       context.handle(
           _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
     }
+    if (data.containsKey('marker_color_hex')) {
+      context.handle(
+          _markerColorHexMeta,
+          markerColorHex.isAcceptableOrUnknown(
+              data['marker_color_hex']!, _markerColorHexMeta));
+    }
     if (data.containsKey('is_waiting')) {
       context.handle(_isWaitingMeta,
           isWaiting.isAcceptableOrUnknown(data['is_waiting']!, _isWaitingMeta));
@@ -752,6 +943,8 @@ class $ClientsTableTable extends ClientsTable
           data['${effectivePrefix}minutes_per_sheep_override']),
       notes: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+      markerColorHex: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}marker_color_hex']),
       isWaiting: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_waiting'])!,
       lastShearingDate: attachedDatabase.typeMapping
@@ -784,6 +977,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
   final int sheepCount;
   final int? minutesPerSheepOverride;
   final String? notes;
+  final String? markerColorHex;
   final bool isWaiting;
   final int? lastShearingDate;
   final bool needsDistanceRecompute;
@@ -801,6 +995,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       required this.sheepCount,
       this.minutesPerSheepOverride,
       this.notes,
+      this.markerColorHex,
       required this.isWaiting,
       this.lastShearingDate,
       required this.needsDistanceRecompute,
@@ -826,6 +1021,9 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || markerColorHex != null) {
+      map['marker_color_hex'] = Variable<String>(markerColorHex);
     }
     map['is_waiting'] = Variable<bool>(isWaiting);
     if (!nullToAbsent || lastShearingDate != null) {
@@ -854,6 +1052,9 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           : Value(minutesPerSheepOverride),
       notes:
           notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      markerColorHex: markerColorHex == null && nullToAbsent
+          ? const Value.absent()
+          : Value(markerColorHex),
       isWaiting: Value(isWaiting),
       lastShearingDate: lastShearingDate == null && nullToAbsent
           ? const Value.absent()
@@ -880,6 +1081,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       minutesPerSheepOverride:
           serializer.fromJson<int?>(json['minutesPerSheepOverride']),
       notes: serializer.fromJson<String?>(json['notes']),
+      markerColorHex: serializer.fromJson<String?>(json['markerColorHex']),
       isWaiting: serializer.fromJson<bool>(json['isWaiting']),
       lastShearingDate: serializer.fromJson<int?>(json['lastShearingDate']),
       needsDistanceRecompute:
@@ -904,6 +1106,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       'minutesPerSheepOverride':
           serializer.toJson<int?>(minutesPerSheepOverride),
       'notes': serializer.toJson<String?>(notes),
+      'markerColorHex': serializer.toJson<String?>(markerColorHex),
       'isWaiting': serializer.toJson<bool>(isWaiting),
       'lastShearingDate': serializer.toJson<int?>(lastShearingDate),
       'needsDistanceRecompute': serializer.toJson<bool>(needsDistanceRecompute),
@@ -924,6 +1127,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           int? sheepCount,
           Value<int?> minutesPerSheepOverride = const Value.absent(),
           Value<String?> notes = const Value.absent(),
+          Value<String?> markerColorHex = const Value.absent(),
           bool? isWaiting,
           Value<int?> lastShearingDate = const Value.absent(),
           bool? needsDistanceRecompute,
@@ -943,6 +1147,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
             ? minutesPerSheepOverride.value
             : this.minutesPerSheepOverride,
         notes: notes.present ? notes.value : this.notes,
+        markerColorHex:
+            markerColorHex.present ? markerColorHex.value : this.markerColorHex,
         isWaiting: isWaiting ?? this.isWaiting,
         lastShearingDate: lastShearingDate.present
             ? lastShearingDate.value
@@ -970,6 +1176,9 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           ? data.minutesPerSheepOverride.value
           : this.minutesPerSheepOverride,
       notes: data.notes.present ? data.notes.value : this.notes,
+      markerColorHex: data.markerColorHex.present
+          ? data.markerColorHex.value
+          : this.markerColorHex,
       isWaiting: data.isWaiting.present ? data.isWaiting.value : this.isWaiting,
       lastShearingDate: data.lastShearingDate.present
           ? data.lastShearingDate.value
@@ -996,6 +1205,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           ..write('sheepCount: $sheepCount, ')
           ..write('minutesPerSheepOverride: $minutesPerSheepOverride, ')
           ..write('notes: $notes, ')
+          ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
           ..write('lastShearingDate: $lastShearingDate, ')
           ..write('needsDistanceRecompute: $needsDistanceRecompute, ')
@@ -1018,6 +1228,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       sheepCount,
       minutesPerSheepOverride,
       notes,
+      markerColorHex,
       isWaiting,
       lastShearingDate,
       needsDistanceRecompute,
@@ -1038,6 +1249,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           other.sheepCount == this.sheepCount &&
           other.minutesPerSheepOverride == this.minutesPerSheepOverride &&
           other.notes == this.notes &&
+          other.markerColorHex == this.markerColorHex &&
           other.isWaiting == this.isWaiting &&
           other.lastShearingDate == this.lastShearingDate &&
           other.needsDistanceRecompute == this.needsDistanceRecompute &&
@@ -1057,6 +1269,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   final Value<int> sheepCount;
   final Value<int?> minutesPerSheepOverride;
   final Value<String?> notes;
+  final Value<String?> markerColorHex;
   final Value<bool> isWaiting;
   final Value<int?> lastShearingDate;
   final Value<bool> needsDistanceRecompute;
@@ -1074,6 +1287,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     this.sheepCount = const Value.absent(),
     this.minutesPerSheepOverride = const Value.absent(),
     this.notes = const Value.absent(),
+    this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
     this.lastShearingDate = const Value.absent(),
     this.needsDistanceRecompute = const Value.absent(),
@@ -1092,6 +1306,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     this.sheepCount = const Value.absent(),
     this.minutesPerSheepOverride = const Value.absent(),
     this.notes = const Value.absent(),
+    this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
     this.lastShearingDate = const Value.absent(),
     this.needsDistanceRecompute = const Value.absent(),
@@ -1117,6 +1332,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     Expression<int>? sheepCount,
     Expression<int>? minutesPerSheepOverride,
     Expression<String>? notes,
+    Expression<String>? markerColorHex,
     Expression<bool>? isWaiting,
     Expression<int>? lastShearingDate,
     Expression<bool>? needsDistanceRecompute,
@@ -1136,6 +1352,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       if (minutesPerSheepOverride != null)
         'minutes_per_sheep_override': minutesPerSheepOverride,
       if (notes != null) 'notes': notes,
+      if (markerColorHex != null) 'marker_color_hex': markerColorHex,
       if (isWaiting != null) 'is_waiting': isWaiting,
       if (lastShearingDate != null) 'last_shearing_date': lastShearingDate,
       if (needsDistanceRecompute != null)
@@ -1157,6 +1374,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       Value<int>? sheepCount,
       Value<int?>? minutesPerSheepOverride,
       Value<String?>? notes,
+      Value<String?>? markerColorHex,
       Value<bool>? isWaiting,
       Value<int?>? lastShearingDate,
       Value<bool>? needsDistanceRecompute,
@@ -1175,6 +1393,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       minutesPerSheepOverride:
           minutesPerSheepOverride ?? this.minutesPerSheepOverride,
       notes: notes ?? this.notes,
+      markerColorHex: markerColorHex ?? this.markerColorHex,
       isWaiting: isWaiting ?? this.isWaiting,
       lastShearingDate: lastShearingDate ?? this.lastShearingDate,
       needsDistanceRecompute:
@@ -1221,6 +1440,9 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (markerColorHex.present) {
+      map['marker_color_hex'] = Variable<String>(markerColorHex.value);
+    }
     if (isWaiting.present) {
       map['is_waiting'] = Variable<bool>(isWaiting.value);
     }
@@ -1254,6 +1476,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
           ..write('sheepCount: $sheepCount, ')
           ..write('minutesPerSheepOverride: $minutesPerSheepOverride, ')
           ..write('notes: $notes, ')
+          ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
           ..write('lastShearingDate: $lastShearingDate, ')
           ..write('needsDistanceRecompute: $needsDistanceRecompute, ')
@@ -2733,6 +2956,10 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   Value<int> travelFeeEurosPerBracket,
   Value<int> bracketKm,
   Value<String> themeMode,
+  Value<String> markerDefaultColor,
+  Value<String> markerWaitingColor,
+  Value<String> markerOverdueColor,
+  Value<String> markerRecomputeColor,
 });
 typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
     Function({
@@ -2745,6 +2972,10 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<int> travelFeeEurosPerBracket,
   Value<int> bracketKm,
   Value<String> themeMode,
+  Value<String> markerDefaultColor,
+  Value<String> markerWaitingColor,
+  Value<String> markerOverdueColor,
+  Value<String> markerRecomputeColor,
 });
 
 class $$SettingsTableTableFilterComposer
@@ -2786,6 +3017,22 @@ class $$SettingsTableTableFilterComposer
 
   ColumnFilters<String> get themeMode => $composableBuilder(
       column: $table.themeMode, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get markerDefaultColor => $composableBuilder(
+      column: $table.markerDefaultColor,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get markerWaitingColor => $composableBuilder(
+      column: $table.markerWaitingColor,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get markerOverdueColor => $composableBuilder(
+      column: $table.markerOverdueColor,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get markerRecomputeColor => $composableBuilder(
+      column: $table.markerRecomputeColor,
+      builder: (column) => ColumnFilters(column));
 }
 
 class $$SettingsTableTableOrderingComposer
@@ -2827,6 +3074,22 @@ class $$SettingsTableTableOrderingComposer
 
   ColumnOrderings<String> get themeMode => $composableBuilder(
       column: $table.themeMode, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get markerDefaultColor => $composableBuilder(
+      column: $table.markerDefaultColor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get markerWaitingColor => $composableBuilder(
+      column: $table.markerWaitingColor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get markerOverdueColor => $composableBuilder(
+      column: $table.markerOverdueColor,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get markerRecomputeColor => $composableBuilder(
+      column: $table.markerRecomputeColor,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$SettingsTableTableAnnotationComposer
@@ -2864,6 +3127,18 @@ class $$SettingsTableTableAnnotationComposer
 
   GeneratedColumn<String> get themeMode =>
       $composableBuilder(column: $table.themeMode, builder: (column) => column);
+
+  GeneratedColumn<String> get markerDefaultColor => $composableBuilder(
+      column: $table.markerDefaultColor, builder: (column) => column);
+
+  GeneratedColumn<String> get markerWaitingColor => $composableBuilder(
+      column: $table.markerWaitingColor, builder: (column) => column);
+
+  GeneratedColumn<String> get markerOverdueColor => $composableBuilder(
+      column: $table.markerOverdueColor, builder: (column) => column);
+
+  GeneratedColumn<String> get markerRecomputeColor => $composableBuilder(
+      column: $table.markerRecomputeColor, builder: (column) => column);
 }
 
 class $$SettingsTableTableTableManager extends RootTableManager<
@@ -2901,6 +3176,10 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<int> travelFeeEurosPerBracket = const Value.absent(),
             Value<int> bracketKm = const Value.absent(),
             Value<String> themeMode = const Value.absent(),
+            Value<String> markerDefaultColor = const Value.absent(),
+            Value<String> markerWaitingColor = const Value.absent(),
+            Value<String> markerOverdueColor = const Value.absent(),
+            Value<String> markerRecomputeColor = const Value.absent(),
           }) =>
               SettingsTableCompanion(
             id: id,
@@ -2912,6 +3191,10 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             travelFeeEurosPerBracket: travelFeeEurosPerBracket,
             bracketKm: bracketKm,
             themeMode: themeMode,
+            markerDefaultColor: markerDefaultColor,
+            markerWaitingColor: markerWaitingColor,
+            markerOverdueColor: markerOverdueColor,
+            markerRecomputeColor: markerRecomputeColor,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2923,6 +3206,10 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<int> travelFeeEurosPerBracket = const Value.absent(),
             Value<int> bracketKm = const Value.absent(),
             Value<String> themeMode = const Value.absent(),
+            Value<String> markerDefaultColor = const Value.absent(),
+            Value<String> markerWaitingColor = const Value.absent(),
+            Value<String> markerOverdueColor = const Value.absent(),
+            Value<String> markerRecomputeColor = const Value.absent(),
           }) =>
               SettingsTableCompanion.insert(
             id: id,
@@ -2934,6 +3221,10 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             travelFeeEurosPerBracket: travelFeeEurosPerBracket,
             bracketKm: bracketKm,
             themeMode: themeMode,
+            markerDefaultColor: markerDefaultColor,
+            markerWaitingColor: markerWaitingColor,
+            markerOverdueColor: markerOverdueColor,
+            markerRecomputeColor: markerRecomputeColor,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -2970,6 +3261,7 @@ typedef $$ClientsTableTableCreateCompanionBuilder = ClientsTableCompanion
   Value<int> sheepCount,
   Value<int?> minutesPerSheepOverride,
   Value<String?> notes,
+  Value<String?> markerColorHex,
   Value<bool> isWaiting,
   Value<int?> lastShearingDate,
   Value<bool> needsDistanceRecompute,
@@ -2989,6 +3281,7 @@ typedef $$ClientsTableTableUpdateCompanionBuilder = ClientsTableCompanion
   Value<int> sheepCount,
   Value<int?> minutesPerSheepOverride,
   Value<String?> notes,
+  Value<String?> markerColorHex,
   Value<bool> isWaiting,
   Value<int?> lastShearingDate,
   Value<bool> needsDistanceRecompute,
@@ -3058,6 +3351,10 @@ class $$ClientsTableTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get markerColorHex => $composableBuilder(
+      column: $table.markerColorHex,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isWaiting => $composableBuilder(
       column: $table.isWaiting, builder: (column) => ColumnFilters(column));
@@ -3142,6 +3439,10 @@ class $$ClientsTableTableOrderingComposer
   ColumnOrderings<String> get notes => $composableBuilder(
       column: $table.notes, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get markerColorHex => $composableBuilder(
+      column: $table.markerColorHex,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get isWaiting => $composableBuilder(
       column: $table.isWaiting, builder: (column) => ColumnOrderings(column));
 
@@ -3201,6 +3502,9 @@ class $$ClientsTableTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get markerColorHex => $composableBuilder(
+      column: $table.markerColorHex, builder: (column) => column);
 
   GeneratedColumn<bool> get isWaiting =>
       $composableBuilder(column: $table.isWaiting, builder: (column) => column);
@@ -3273,6 +3577,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             Value<int> sheepCount = const Value.absent(),
             Value<int?> minutesPerSheepOverride = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
             Value<int?> lastShearingDate = const Value.absent(),
             Value<bool> needsDistanceRecompute = const Value.absent(),
@@ -3291,6 +3596,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             sheepCount: sheepCount,
             minutesPerSheepOverride: minutesPerSheepOverride,
             notes: notes,
+            markerColorHex: markerColorHex,
             isWaiting: isWaiting,
             lastShearingDate: lastShearingDate,
             needsDistanceRecompute: needsDistanceRecompute,
@@ -3309,6 +3615,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             Value<int> sheepCount = const Value.absent(),
             Value<int?> minutesPerSheepOverride = const Value.absent(),
             Value<String?> notes = const Value.absent(),
+            Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
             Value<int?> lastShearingDate = const Value.absent(),
             Value<bool> needsDistanceRecompute = const Value.absent(),
@@ -3327,6 +3634,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             sheepCount: sheepCount,
             minutesPerSheepOverride: minutesPerSheepOverride,
             notes: notes,
+            markerColorHex: markerColorHex,
             isWaiting: isWaiting,
             lastShearingDate: lastShearingDate,
             needsDistanceRecompute: needsDistanceRecompute,
