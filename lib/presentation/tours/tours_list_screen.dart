@@ -54,7 +54,7 @@ class ToursListScreen extends ConsumerWidget {
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                    padding: AppSizes.rootScreenPadding.copyWith(bottom: 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

@@ -131,7 +131,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
     final theme = context.theme;
 
     return SingleChildScrollView(
-      padding: AppSizes.screenPadding,
+      padding: AppSizes.rootScreenPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

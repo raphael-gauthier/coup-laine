@@ -39,8 +39,15 @@ abstract final class AppSizes {
   static const double sectionIconCircle = 32;
   static const double heroIconCircle = 72;
 
-  /// Standard outer screen padding.
+  /// Standard outer screen padding (used inside FScaffold child for sub-pages
+  /// that already have an `FHeader.nested` above).
   static const EdgeInsets screenPadding = EdgeInsets.fromLTRB(20, 24, 20, 40);
+
+  /// Padding for root screens that don't have an FHeader (the bottom-nav
+  /// destinations: Clients, Tournées, Paramètres). The page title is the
+  /// first thing rendered, so it needs more breathing room from the status
+  /// bar.
+  static const EdgeInsets rootScreenPadding = EdgeInsets.fromLTRB(20, 40, 20, 40);
 
   /// Hero card padding (more generous vertically).
   static const EdgeInsets heroCardPadding =
