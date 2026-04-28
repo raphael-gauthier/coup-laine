@@ -9,6 +9,7 @@ import '../../presentation/clients/client_form_screen.dart';
 import '../../presentation/clients/clients_list_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/settings/settings_screen.dart';
+import '../../presentation/tours/tour_draft_screen.dart';
 import '../../state/providers.dart';
 
 class _Placeholder extends StatelessWidget {
@@ -41,6 +42,12 @@ class AppRouter {
           path: '/proximity/:pivotId',
           builder: (_, state) => ProximityScreen(
             pivotId: int.parse(state.pathParameters['pivotId']!),
+          ),
+        ),
+        GoRoute(
+          path: '/tours/draft',
+          builder: (_, state) => TourDraftScreen(
+            pivotId: int.parse(state.uri.queryParameters['pivot']!),
           ),
         ),
         StatefulShellRoute.indexedStack(

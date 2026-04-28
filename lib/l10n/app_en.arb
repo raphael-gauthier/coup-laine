@@ -56,5 +56,17 @@
   "@proximitySelectedCount": {"placeholders": {"n": {"type": "int"}}},
   "proximityPlanTour": "Plan tour",
   "proximityDistanceFmt": "{km} km · {min} min",
-  "@proximityDistanceFmt": {"placeholders": {"km": {"type": "String"}, "min": {"type": "int"}}}
+  "@proximityDistanceFmt": {"placeholders": {"km": {"type": "String"}, "min": {"type": "int"}}},
+  "tourDraftTitle": "Plan tour",
+  "tourDraftDate": "Date",
+  "tourDraftStart": "Departure",
+  "tourDraftOptimise": "Optimise order",
+  "tourDraftConfirm": "Save tour",
+  "tourDraftStopArrivalFmt": "{time} → {dep}",
+  "@tourDraftStopArrivalFmt": {"placeholders": {"time": {"type": "String"}, "dep": {"type": "String"}}},
+  "tourDraftSummaryTotal": "Drive: {km} km · {drive} · Shearing: {shear} · End: {end}",
+  "@tourDraftSummaryTotal": {"placeholders": {"km": {"type": "String"}, "drive": {"type": "String"}, "shear": {"type": "String"}, "end": {"type": "String"}}},
+  "tourDraftFeeSplitTitle": "Fee split",
+  "tourDraftFeeShareFmt": "{name} — {amount}",
+  "@tourDraftFeeShareFmt": {"placeholders": {"name": {"type": "String"}, "amount": {"type": "String"}}}
 }

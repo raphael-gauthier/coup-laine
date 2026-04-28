@@ -56,5 +56,17 @@
   "@proximitySelectedCount": {"placeholders": {"n": {"type": "int"}}},
   "proximityPlanTour": "Composer la tournée",
   "proximityDistanceFmt": "{km} km · {min} min",
-  "@proximityDistanceFmt": {"placeholders": {"km": {"type": "String"}, "min": {"type": "int"}}}
+  "@proximityDistanceFmt": {"placeholders": {"km": {"type": "String"}, "min": {"type": "int"}}},
+  "tourDraftTitle": "Composer la tournée",
+  "tourDraftDate": "Date",
+  "tourDraftStart": "Départ",
+  "tourDraftOptimise": "Optimiser l'ordre",
+  "tourDraftConfirm": "Enregistrer la tournée",
+  "tourDraftStopArrivalFmt": "{time} → {dep}",
+  "@tourDraftStopArrivalFmt": {"placeholders": {"time": {"type": "String"}, "dep": {"type": "String"}}},
+  "tourDraftSummaryTotal": "Trajet : {km} km · {drive} · Tonte : {shear} · Fin : {end}",
+  "@tourDraftSummaryTotal": {"placeholders": {"km": {"type": "String"}, "drive": {"type": "String"}, "shear": {"type": "String"}, "end": {"type": "String"}}},
+  "tourDraftFeeSplitTitle": "Partage des frais",
+  "tourDraftFeeShareFmt": "{name} — {amount}",
+  "@tourDraftFeeShareFmt": {"placeholders": {"name": {"type": "String"}, "amount": {"type": "String"}}}
 }
