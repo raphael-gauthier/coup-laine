@@ -187,7 +187,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       final fee = formatEuros(bundle.result.feeShareCents[i]);
                       return Padding(
                         key: ValueKey(c.id),
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
                         child: AppListTile(
                           prefix: Container(
                             width: 28,
