@@ -6,7 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design_tokens.dart';
 import '../../state/proximity_controller.dart';
+import '../widgets/app_primary_button.dart';
+import '../widgets/app_section_card.dart';
 import 'proximity_list_view.dart';
 import 'proximity_map_view.dart';
 
@@ -62,10 +65,11 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
               children: [
                 Text(l.proximitySelectedCount(selection.length)),
                 const Spacer(),
-                FButton(
+                AppPrimaryButton(
+                  label: l.proximityPlanTour,
+                  prefixIcon: FIcons.route,
                   onPress: () =>
                       context.push('/tours/draft?pivot=${widget.pivotId}'),
-                  child: Text(l.proximityPlanTour),
                 ),
               ],
             ),
@@ -92,17 +96,21 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
             ),
           // Radius card
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-            child: FCard(
-              title: Text(l.proximityRadiusTitle),
+            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
+            child: AppSectionCard(
+              icon: FIcons.compass,
+              title: l.proximityRadiusTitle,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     '$_radiusKm km',
-                    style: theme.typography.xl2
-                        .copyWith(fontWeight: FontWeight.bold),
+                    style: theme.typography.xl2.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.colors.foreground,
+                    ),
                   ),
+                  const SizedBox(height: AppSpacing.xs),
                   Material(
                     type: MaterialType.transparency,
                     child: Slider(

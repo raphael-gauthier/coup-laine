@@ -4,7 +4,10 @@ import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
+import '../../core/design_tokens.dart';
 import '../../state/proximity_controller.dart';
+import '../widgets/app_empty_state.dart';
+import '../widgets/app_list_tile.dart';
 
 class ProximityListView extends ConsumerWidget {
   const ProximityListView({super.key});
@@ -22,65 +25,41 @@ class ProximityListView extends ConsumerWidget {
       data: (results) {
         if (results.isEmpty) {
           return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    FIcons.compass,
-                    size: 56,
-                    color: theme.colors.mutedForeground,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l.proximityNoneInRadius,
-                    style: theme.typography.xl.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colors.foreground,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l.proximityNoneInRadiusBody,
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.mutedForeground,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+            child: AppEmptyState(
+              illustrationAsset: 'assets/illustrations/empty-clients.svg',
+              title: l.proximityNoneInRadius,
+              body: l.proximityNoneInRadiusBody,
             ),
           );
         }
         return ListView.separated(
+          padding: const EdgeInsets.all(AppSpacing.md),
           itemCount: results.length,
-          separatorBuilder: (_, __) => const FDivider(),
+          separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
           itemBuilder: (_, i) {
             final r = results[i];
             final selected = selection.contains(r.client.id);
-            return FTile(
-              prefix: Icon(
-                FIcons.mapPin,
-                color: theme.colors.mutedForeground,
-              ),
-              title: Text(
-                r.client.name,
-                style: theme.typography.sm
-                    .copyWith(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Text(
-                '${r.client.city} · ${l.proximityDistanceFmt(
-                  (r.distanceMeters / 1000).toStringAsFixed(1),
-                  (r.durationSeconds / 60).round(),
-                )} · ${r.client.sheepCount} moutons',
-              ),
-              suffix: Icon(
-                selected ? FIcons.check : FIcons.circle,
-                color: selected
-                    ? theme.colors.primary
-                    : theme.colors.mutedForeground,
+            return AppListTile(
+              prefix: Icon(FIcons.mapPin, color: theme.colors.mutedForeground),
+              title: r.client.name,
+              subtitle: '${r.client.city} · ${l.proximityDistanceFmt(
+                (r.distanceMeters / 1000).toStringAsFixed(1),
+                (r.durationSeconds / 60).round(),
+              )} · ${r.client.sheepCount} moutons',
+              suffix: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: selected ? theme.colors.primary : null,
+                  border: selected
+                      ? null
+                      : Border.all(color: theme.colors.border, width: 2),
+                ),
+                child: selected
+                    ? Icon(FIcons.check,
+                        color: theme.colors.primaryForeground, size: 16)
+                    : null,
               ),
               onPress: () =>
                   ref.read(tourSelectionProvider.notifier).toggle(r.client.id),
