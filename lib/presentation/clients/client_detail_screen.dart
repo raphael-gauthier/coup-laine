@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
@@ -19,6 +20,28 @@ import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvi
 final _clientByIdProvider = FutureProvider.family<Client?, int>((ref, id) {
   return ref.watch(clientRepositoryProvider).findById(id);
 });
+
+Future<void> _callPhone(BuildContext context, String phone) async {
+  final cleaned = phone.replaceAll(RegExp(r'\s'), '');
+  final uri = Uri(scheme: 'tel', path: cleaned);
+  if (!await launchUrl(uri) && context.mounted) {
+    showFToast(
+      context: context,
+      title: const Text("Impossible de lancer l'appel"),
+    );
+  }
+}
+
+Future<void> _sendSms(BuildContext context, String phone) async {
+  final cleaned = phone.replaceAll(RegExp(r'\s'), '');
+  final uri = Uri(scheme: 'sms', path: cleaned);
+  if (!await launchUrl(uri) && context.mounted) {
+    showFToast(
+      context: context,
+      title: const Text("Impossible de lancer l'app SMS"),
+    );
+  }
+}
 
 class ClientDetailScreen extends ConsumerWidget {
   final int clientId;
@@ -183,9 +206,33 @@ class _Body extends ConsumerWidget {
             AppSectionCard(
               icon: FIcons.phone,
               title: l.clientDetailSectionContact,
-              child: Text(
-                client.phone!,
-                style: theme.typography.md,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(client.phone!, style: theme.typography.md),
+                  const SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FButton(
+                          variant: FButtonVariant.outline,
+                          prefix: const Icon(FIcons.phone),
+                          onPress: () => _callPhone(context, client.phone!),
+                          child: const Text('Appeler'),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: FButton(
+                          variant: FButtonVariant.outline,
+                          prefix: const Icon(FIcons.messageCircle),
+                          onPress: () => _sendSms(context, client.phone!),
+                          child: const Text('SMS'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: AppSpacing.md),
