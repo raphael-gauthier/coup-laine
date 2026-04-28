@@ -1,0 +1,98 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart';
+
+import '../../data/repositories/client_repository.dart';
+import '../../data/repositories/distance_matrix_repository.dart';
+import '../../data/repositories/settings_repository.dart';
+import '../../data/repositories/tour_repository.dart';
+import '../db/app_database.dart';
+
+class JsonImportException implements Exception {
+  final String message;
+  JsonImportException(this.message);
+  @override
+  String toString() => 'JsonImportException: $message';
+}
+
+class JsonExportService {
+  static const int schemaVersion = 1;
+
+  final AppDatabase database;
+  final SettingsRepository settings;
+  final ClientRepository clients;
+  final DistanceMatrixRepository matrix;
+  final TourRepository tours;
+
+  JsonExportService({
+    required this.database,
+    required this.settings,
+    required this.clients,
+    required this.matrix,
+    required this.tours,
+  });
+
+  Future<String> exportToJsonString() async {
+    final s = await database.select(database.settingsTable).getSingleOrNull();
+    final cs = await database.select(database.clientsTable).get();
+    final dm = await database.select(database.distanceMatrixTable).get();
+    final ts = await database.select(database.toursTable).get();
+    final stops = await database.select(database.tourStopsTable).get();
+    return jsonEncode({
+      'schema': schemaVersion,
+      'settings': s?.toJson(),
+      'clients': cs.map((r) => r.toJson()).toList(),
+      'distanceMatrix': dm.map((r) => r.toJson()).toList(),
+      'tours': ts.map((r) => r.toJson()).toList(),
+      'tourStops': stops.map((r) => r.toJson()).toList(),
+    });
+  }
+
+  Future<void> importFromJsonString(String body) async {
+    final json = jsonDecode(body) as Map<String, dynamic>;
+    final schema = json['schema'];
+    if (schema != schemaVersion) {
+      throw JsonImportException('Unsupported schema $schema');
+    }
+    await database.transaction(() async {
+      // wipe
+      await database.delete(database.tourStopsTable).go();
+      await database.delete(database.toursTable).go();
+      await database.delete(database.distanceMatrixTable).go();
+      await database.delete(database.clientsTable).go();
+      await database.delete(database.settingsTable).go();
+
+      final s = json['settings'] as Map<String, dynamic>?;
+      if (s != null) {
+        await database.into(database.settingsTable).insert(
+              SettingsRow.fromJson(s),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
+      for (final c in (json['clients'] as List)) {
+        await database.into(database.clientsTable).insert(
+              ClientRow.fromJson(c as Map<String, dynamic>),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
+      for (final d in (json['distanceMatrix'] as List)) {
+        await database.into(database.distanceMatrixTable).insert(
+              DistanceMatrixRow.fromJson(d as Map<String, dynamic>),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
+      for (final t in (json['tours'] as List)) {
+        await database.into(database.toursTable).insert(
+              TourRow.fromJson(t as Map<String, dynamic>),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
+      for (final st in (json['tourStops'] as List)) {
+        await database.into(database.tourStopsTable).insert(
+              TourStopRow.fromJson(st as Map<String, dynamic>),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
+    });
+  }
+}

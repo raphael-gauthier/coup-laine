@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../core/config/env.dart';
 import '../core/routing/app_router.dart';
+import '../data/consistency_check.dart';
 import '../data/distance_matrix_sync.dart';
 import '../data/repositories/client_repository.dart';
 import '../data/repositories/distance_matrix_repository.dart';
@@ -11,6 +12,7 @@ import '../data/repositories/settings_repository.dart';
 import '../data/repositories/tour_repository.dart';
 import '../infra/db/app_database.dart';
 import '../infra/services/ban_geocoding_service.dart';
+import '../infra/services/json_export_service.dart';
 import '../infra/services/ors_routing_service.dart';
 
 final appDatabaseProvider = Provider<AppDatabase>((ref) {
@@ -59,6 +61,23 @@ final distanceMatrixSyncProvider = Provider<DistanceMatrixSync>((ref) {
     matrix: ref.watch(distanceMatrixRepositoryProvider),
     settings: ref.watch(settingsRepositoryProvider),
     ors: ref.watch(orsRoutingServiceProvider),
+  );
+});
+
+final consistencyCheckProvider = Provider<ConsistencyCheck>((ref) {
+  return ConsistencyCheck(
+    db: ref.watch(appDatabaseProvider),
+    clients: ref.watch(clientRepositoryProvider),
+  );
+});
+
+final jsonExportServiceProvider = Provider<JsonExportService>((ref) {
+  return JsonExportService(
+    database: ref.watch(appDatabaseProvider),
+    settings: ref.watch(settingsRepositoryProvider),
+    clients: ref.watch(clientRepositoryProvider),
+    matrix: ref.watch(distanceMatrixRepositoryProvider),
+    tours: ref.watch(tourRepositoryProvider),
   );
 });
 

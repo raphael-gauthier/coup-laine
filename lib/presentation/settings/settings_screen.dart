@@ -1,6 +1,12 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus, XFile;
 
 import '../../domain/models/settings.dart';
 import '../../state/providers.dart';
@@ -49,8 +55,36 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
   }
 
   Future<void> _save() async {
+    final didBaseChange =
+        _draft.baseAddressLabel != widget.initial.baseAddressLabel ||
+            _draft.baseCoordinates != widget.initial.baseCoordinates;
     await ref.read(settingsRepositoryProvider).save(_draft);
     ref.invalidate(_settingsAsyncProvider);
+    if (!mounted) return;
+    if (didBaseChange) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: const Text(
+            "L'adresse de base a changé. Recalculer toutes les distances "
+            'depuis la nouvelle base ?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Plus tard'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Recalculer'),
+            ),
+          ],
+        ),
+      );
+      if (ok == true) {
+        await ref.read(distanceMatrixSyncProvider).recomputeAllForBase();
+      }
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context)
         .showSnackBar(const SnackBar(content: Text('Enregistré')));
@@ -107,12 +141,46 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
         ListTile(
           leading: const Icon(Icons.upload_file),
           title: Text(l.settingsExportData),
-          enabled: false, // wired in Phase 10
+          onTap: () async {
+            final svc = ref.read(jsonExportServiceProvider);
+            final body = await svc.exportToJsonString();
+            final dir = await getTemporaryDirectory();
+            final file = File(p.join(dir.path,
+                'coupe-laine-${DateTime.now().millisecondsSinceEpoch}.json'));
+            await file.writeAsString(body);
+            await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+          },
         ),
         ListTile(
           leading: const Icon(Icons.download),
           title: Text(l.settingsImportData),
-          enabled: false, // wired in Phase 10
+          onTap: () async {
+            final pick = await FilePicker.platform.pickFiles(type: FileType.any);
+            if (pick == null) return;
+            final body = await File(pick.files.single.path!).readAsString();
+            if (!mounted) return;
+            final ok = await showDialog<bool>(
+              context: context, // ignore: use_build_context_synchronously
+              builder: (_) => AlertDialog(
+                content: const Text(
+                    'Cette action remplace toutes les données actuelles. Continuer ?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('Annuler'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text('Importer'),
+                  ),
+                ],
+              ),
+            );
+            if (ok == true) {
+              await ref.read(jsonExportServiceProvider).importFromJsonString(body);
+              ref.invalidate(_settingsAsyncProvider);
+            }
+          },
         ),
       ],
     );
