@@ -342,7 +342,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                     final body = await svc.exportToJsonString();
                     final dir = await getTemporaryDirectory();
                     final file = File(p.join(dir.path,
-                        'coupe-laine-${DateTime.now().millisecondsSinceEpoch}.json'));
+                        'coup-laine-${DateTime.now().millisecondsSinceEpoch}.json'));
                     await file.writeAsString(body);
                     await SharePlus.instance.share(
                       ShareParams(files: [XFile(file.path)]),
