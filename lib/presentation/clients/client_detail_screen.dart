@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../domain/models/client.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
+import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
 final _clientByIdProvider =
     FutureProvider.family<Client?, int>((ref, id) {
@@ -68,6 +69,8 @@ class ClientDetailScreen extends ConsumerWidget {
           .read(distanceMatrixRepositoryProvider)
           .deleteForClient(clientId);
       ref.invalidate(_clientByIdProvider(clientId));
+      ref.invalidate(clientsAsyncProvider);
+      ref.invalidate(clientsPendingProvider);
       if (context.mounted) context.pop();
     }
   }
@@ -94,6 +97,8 @@ class _Body extends ConsumerWidget {
                 try {
                   await sync.recomputeForClient(client.id);
                   ref.invalidate(_clientByIdProvider(client.id));
+                  ref.invalidate(clientsAsyncProvider);
+                  ref.invalidate(clientsPendingProvider);
                 } on OrsException catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -134,6 +139,7 @@ class _Body extends ConsumerWidget {
                 .read(clientRepositoryProvider)
                 .setWaiting(id: client.id, isWaiting: v);
             ref.invalidate(_clientByIdProvider(client.id));
+            ref.invalidate(clientsAsyncProvider);
           },
         ),
         const SizedBox(height: 16),

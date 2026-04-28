@@ -13,11 +13,11 @@ enum _Filter { all, waiting }
 
 final _filterProvider = StateProvider<_Filter>((_) => _Filter.all);
 
-final _clientsAsyncProvider = FutureProvider<List<Client>>((ref) {
+final clientsAsyncProvider = FutureProvider<List<Client>>((ref) {
   return ref.watch(clientRepositoryProvider).listAll();
 });
 
-final _pendingProvider = FutureProvider<int>((ref) async {
+final clientsPendingProvider = FutureProvider<int>((ref) async {
   final clients = ref.watch(clientRepositoryProvider);
   return (await clients.listNeedingRecompute()).length;
 });
@@ -29,7 +29,7 @@ class ClientsListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final filter = ref.watch(_filterProvider);
-    final async = ref.watch(_clientsAsyncProvider);
+    final async = ref.watch(clientsAsyncProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,7 +65,7 @@ class ClientsListScreen extends ConsumerWidget {
           final list = filter == _Filter.waiting
               ? all.where((c) => c.isWaiting).toList()
               : all;
-          final pending = ref.watch(_pendingProvider).value ?? 0;
+          final pending = ref.watch(clientsPendingProvider).value ?? 0;
           return Column(
             children: [
               if (pending > 0)
@@ -77,8 +77,8 @@ class ClientsListScreen extends ConsumerWidget {
                       onPressed: () async {
                         final sync = ref.read(distanceMatrixSyncProvider);
                         final fixed = await sync.retryAllPending();
-                        ref.invalidate(_pendingProvider);
-                        ref.invalidate(_clientsAsyncProvider);
+                        ref.invalidate(clientsPendingProvider);
+                        ref.invalidate(clientsAsyncProvider);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -111,8 +111,8 @@ class ClientsListScreen extends ConsumerWidget {
                       )
                     : RefreshIndicator(
                         onRefresh: () async {
-                          ref.invalidate(_clientsAsyncProvider);
-                          ref.invalidate(_pendingProvider);
+                          ref.invalidate(clientsAsyncProvider);
+                          ref.invalidate(clientsPendingProvider);
                         },
                         child: ListView.separated(
                           itemCount: list.length,

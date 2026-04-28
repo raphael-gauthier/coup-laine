@@ -9,6 +9,7 @@ import '../../domain/models/coordinates.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
 import '../widgets/address_autocomplete_field.dart';
+import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
 class ClientFormScreen extends ConsumerStatefulWidget {
   final int? clientId;
@@ -130,6 +131,8 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     }
 
     if (!mounted) return;
+    ref.invalidate(clientsAsyncProvider);
+    ref.invalidate(clientsPendingProvider);
     setState(() => _saving = false);
     context.pop();
   }

@@ -11,6 +11,8 @@ import 'package:share_plus/share_plus.dart' show Share;
 
 import '../../domain/models/settings.dart';
 import '../../state/providers.dart';
+import '../clients/clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
+import '../tours/tours_list_screen.dart' show toursAsyncProvider;
 import '../widgets/address_autocomplete_field.dart';
 
 final _settingsAsyncProvider = FutureProvider<Settings?>((ref) {
@@ -180,6 +182,9 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
             if (ok == true) {
               await ref.read(jsonExportServiceProvider).importFromJsonString(body);
               ref.invalidate(_settingsAsyncProvider);
+              ref.invalidate(clientsAsyncProvider);
+              ref.invalidate(clientsPendingProvider);
+              ref.invalidate(toursAsyncProvider);
             }
           },
         ),

@@ -10,6 +10,7 @@ import '../../data/repositories/tour_repository.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
+import 'tours_list_screen.dart' show toursAsyncProvider;
 
 class TourDraftScreen extends ConsumerStatefulWidget {
   final int pivotId;
@@ -94,6 +95,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         );
     if (!mounted) return;
     ref.read(tourSelectionProvider.notifier).clear();
+    ref.invalidate(toursAsyncProvider);
     context.go('/tours/$tourId');
   }
 

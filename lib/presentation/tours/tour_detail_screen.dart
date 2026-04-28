@@ -9,6 +9,8 @@ import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/tour.dart';
 import '../../state/providers.dart';
+import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
+import 'tours_list_screen.dart' show toursAsyncProvider;
 
 final _tourByIdProvider =
     FutureProvider.autoDispose.family<TourWithStops?, int>((ref, id) {
@@ -173,6 +175,8 @@ class _Body extends ConsumerWidget {
     if (ok == true) {
       await ref.read(tourRepositoryProvider).markCompleted(tourId);
       ref.invalidate(_tourByIdProvider(tourId));
+      ref.invalidate(toursAsyncProvider);
+      ref.invalidate(clientsAsyncProvider);
     }
   }
 }

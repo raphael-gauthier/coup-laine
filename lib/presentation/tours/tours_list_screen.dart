@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import '../../domain/models/tour.dart';
 import '../../state/providers.dart';
 
-final _toursAsyncProvider = FutureProvider<List<Tour>>((ref) {
+final toursAsyncProvider = FutureProvider<List<Tour>>((ref) {
   return ref.watch(tourRepositoryProvider).listAll();
 });
 
@@ -18,7 +18,7 @@ class ToursListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
-    final async = ref.watch(_toursAsyncProvider);
+    final async = ref.watch(toursAsyncProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l.toursListTitle)),
       body: async.when(
@@ -42,7 +42,7 @@ class ToursListScreen extends ConsumerWidget {
             );
           }
           return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(_toursAsyncProvider),
+            onRefresh: () async => ref.invalidate(toursAsyncProvider),
             child: ListView.separated(
               itemCount: tours.length,
               separatorBuilder: (_, __) => const Divider(height: 1),
