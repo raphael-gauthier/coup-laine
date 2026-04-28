@@ -4,7 +4,7 @@ import 'package:coupe_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
 import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
@@ -62,7 +62,9 @@ class TourDetailScreen extends ConsumerWidget {
       ),
       'Total : ${formatEuros(bundle.tour.totalTravelFeeCents)}',
     ];
-    await Share.share(lines.join('\n'), subject: 'Tournée du $dateLine');
+    await SharePlus.instance.share(
+      ShareParams(text: lines.join('\n'), subject: 'Tournée du $dateLine'),
+    );
   }
 }
 

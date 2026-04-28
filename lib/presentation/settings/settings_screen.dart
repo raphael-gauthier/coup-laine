@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:coupe_laine/l10n/app_localizations.dart';
@@ -8,8 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
-import 'package:cross_file/cross_file.dart' show XFile;
-import 'package:share_plus/share_plus.dart' show Share;
+import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
 import '../../domain/models/settings.dart';
 import '../../state/providers.dart';
@@ -263,17 +262,25 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                     final file = File(p.join(dir.path,
                         'coupe-laine-${DateTime.now().millisecondsSinceEpoch}.json'));
                     await file.writeAsString(body);
-                    await Share.shareXFiles([XFile(file.path)]);
+                    await SharePlus.instance.share(
+                      ShareParams(files: [XFile(file.path)]),
+                    );
                   },
                 ),
                 FTile(
                   prefix: const Icon(FIcons.download),
                   title: Text(l.settingsImportData),
                   onPress: () async {
-                    final pick = await FilePicker.pickFiles(type: FileType.any);
-                    if (pick == null) return;
-                    final body =
-                        await File(pick.files.single.path!).readAsString();
+                    final picked = await openFile(
+                      acceptedTypeGroups: [
+                        const XTypeGroup(
+                          label: 'JSON',
+                          extensions: ['json'],
+                        ),
+                      ],
+                    );
+                    if (picked == null) return;
+                    final body = await picked.readAsString();
                     if (!mounted) return;
                     final ok = await showFDialog<bool>(
                       context: context, // ignore: use_build_context_synchronously
