@@ -8,8 +8,12 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/design_tokens.dart';
 import '../../domain/models/tour.dart';
 import '../../state/providers.dart';
+import '../widgets/app_badge.dart';
+import '../widgets/app_empty_state.dart';
+import '../widgets/app_list_tile.dart';
 
 enum _Filter { all, planned, completed }
 
@@ -50,7 +54,7 @@ class ToursListScreen extends ConsumerWidget {
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -58,7 +62,6 @@ class ToursListScreen extends ConsumerWidget {
                         Text(
                           l.toursListTitle,
                           style: theme.typography.xl3.copyWith(
-                            fontWeight: FontWeight.bold,
                             color: theme.colors.foreground,
                           ),
                         ),
@@ -89,44 +92,19 @@ class ToursListScreen extends ConsumerWidget {
                 ),
                 if (list.isEmpty)
                   SliverFillRemaining(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              FIcons.route,
-                              size: 56,
-                              color: theme.colors.mutedForeground,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              l.emptyToursTitle,
-                              style: theme.typography.xl.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: theme.colors.foreground,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              l.emptyToursBody,
-                              textAlign: TextAlign.center,
-                              style: theme.typography.sm.copyWith(
-                                color: theme.colors.mutedForeground,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                    hasScrollBody: false,
+                    child: AppEmptyState(
+                      illustrationAsset: 'assets/illustrations/empty-tours.svg',
+                      title: l.emptyToursTitle,
+                      body: l.emptyToursBody,
                     ),
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 80),
                     sliver: SliverList.separated(
                       itemCount: list.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 0),
+                      separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
                       itemBuilder: (_, i) => _TourTile(tour: list[i]),
                     ),
                   ),
@@ -146,7 +124,6 @@ class _TourTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
     final theme = context.theme;
     final isCompleted = tour.status == TourStatus.completed;
 
@@ -154,23 +131,21 @@ class _TourTile extends StatelessWidget {
     final km = (tour.totalDistanceMeters / 1000).toStringAsFixed(1);
     final driveMin = tour.totalDriveSeconds ~/ 60;
 
-    return FTile(
-      prefix: Icon(
-        isCompleted ? FIcons.calendarCheck : FIcons.calendar,
-        color: isCompleted ? theme.colors.primary : theme.colors.mutedForeground,
+    final prefixBg = isCompleted ? theme.colors.primary : theme.colors.secondary;
+    final prefixIcon = isCompleted ? FIcons.calendarCheck : FIcons.calendar;
+    final prefixFg = isCompleted ? theme.colors.primaryForeground : theme.colors.secondaryForeground;
+
+    return AppListTile(
+      prefix: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(color: prefixBg, shape: BoxShape.circle),
+        alignment: Alignment.center,
+        child: Icon(prefixIcon, color: prefixFg, size: 18),
       ),
-      title: Text(
-        dateLabel,
-        style: theme.typography.md.copyWith(fontWeight: FontWeight.w600),
-      ),
-      subtitle: Text(
-        '$km km · $driveMin min',
-        style: theme.typography.sm.copyWith(color: theme.colors.mutedForeground),
-      ),
-      suffix: FBadge(
-        variant: isCompleted ? FBadgeVariant.secondary : FBadgeVariant.primary,
-        child: Text(isCompleted ? l.toursStatusCompleted : l.toursStatusPlanned),
-      ),
+      title: dateLabel,
+      subtitle: '$km km · $driveMin min',
+      suffix: isCompleted ? AppBadge.completed(context) : AppBadge.planned(context),
       onPress: () => context.push('/tours/${tour.id}'),
     );
   }
