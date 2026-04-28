@@ -12,6 +12,12 @@ class CoupeLaineApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(goRouterProvider);
+    final modeAsync = ref.watch(themeModeProvider);
+    final mode = modeAsync.value ?? ThemeMode.system;
+
+    final lightFTheme = FThemes.blue.light.touch;
+    final darkFTheme = FThemes.blue.dark.touch;
+
     return MaterialApp.router(
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
       localizationsDelegates: const [
@@ -23,13 +29,17 @@ class CoupeLaineApp extends ConsumerWidget {
       ],
       supportedLocales: const [Locale('fr'), Locale('en')],
       locale: const Locale('fr'),
-      theme: FThemes.neutral.light.touch.toApproximateMaterialTheme(),
-      builder: (context, child) => FTheme(
-        data: FThemes.neutral.light.touch,
-        child: FToaster(
-          child: child ?? const SizedBox.shrink(),
-        ),
-      ),
+      theme: lightFTheme.toApproximateMaterialTheme(),
+      darkTheme: darkFTheme.toApproximateMaterialTheme(),
+      themeMode: mode,
+      builder: (context, child) {
+        final brightness = Theme.of(context).brightness;
+        final fTheme = brightness == Brightness.dark ? darkFTheme : lightFTheme;
+        return FTheme(
+          data: fTheme,
+          child: FToaster(child: child ?? const SizedBox.shrink()),
+        );
+      },
       routerConfig: router,
     );
   }

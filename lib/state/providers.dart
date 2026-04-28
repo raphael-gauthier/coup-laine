@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
@@ -10,6 +11,7 @@ import '../data/repositories/client_repository.dart';
 import '../data/repositories/distance_matrix_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/tour_repository.dart';
+import '../domain/models/settings.dart';
 import '../infra/db/app_database.dart';
 import '../infra/services/ban_geocoding_service.dart';
 import '../infra/services/json_export_service.dart';
@@ -82,3 +84,13 @@ final jsonExportServiceProvider = Provider<JsonExportService>((ref) {
 });
 
 final goRouterProvider = Provider<GoRouter>((ref) => AppRouter.forRef(ref));
+
+final themeModeProvider = FutureProvider<ThemeMode>((ref) async {
+  final s = await ref.watch(settingsRepositoryProvider).read();
+  if (s == null) return ThemeMode.system;
+  return switch (s.themeMode) {
+    ThemeModePreference.light => ThemeMode.light,
+    ThemeModePreference.dark => ThemeMode.dark,
+    ThemeModePreference.system => ThemeMode.system,
+  };
+});

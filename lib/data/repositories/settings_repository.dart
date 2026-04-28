@@ -20,6 +20,7 @@ class SettingsRepository {
       defaultMinutesPerSheep: row.defaultMinutesPerSheep,
       travelFeeEurosPerBracket: row.travelFeeEurosPerBracket,
       bracketKm: row.bracketKm,
+      themeMode: _parseMode(row.themeMode),
     );
   }
 
@@ -34,7 +35,18 @@ class SettingsRepository {
             defaultMinutesPerSheep: Value(settings.defaultMinutesPerSheep),
             travelFeeEurosPerBracket: Value(settings.travelFeeEurosPerBracket),
             bracketKm: Value(settings.bracketKm),
+            themeMode: Value(_serializeMode(settings.themeMode)),
           ),
         );
   }
+
+  ThemeModePreference _parseMode(String? raw) {
+    return switch (raw) {
+      'light' => ThemeModePreference.light,
+      'dark' => ThemeModePreference.dark,
+      _ => ThemeModePreference.system,
+    };
+  }
+
+  String _serializeMode(ThemeModePreference m) => m.name;
 }

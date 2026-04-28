@@ -15,6 +15,7 @@ class SettingsTable extends Table {
   IntColumn get travelFeeEurosPerBracket =>
       integer().withDefault(const Constant(8))();
   IntColumn get bracketKm => integer().withDefault(const Constant(10))();
+  TextColumn get themeMode => text().withDefault(const Constant('system'))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

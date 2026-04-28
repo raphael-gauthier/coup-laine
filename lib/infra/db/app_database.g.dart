@@ -66,6 +66,14 @@ class $SettingsTableTable extends SettingsTable
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(10));
+  static const VerificationMeta _themeModeMeta =
+      const VerificationMeta('themeMode');
+  @override
+  late final GeneratedColumn<String> themeMode = GeneratedColumn<String>(
+      'theme_mode', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('system'));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -75,7 +83,8 @@ class $SettingsTableTable extends SettingsTable
         defaultRadiusKm,
         defaultMinutesPerSheep,
         travelFeeEurosPerBracket,
-        bracketKm
+        bracketKm,
+        themeMode
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -133,6 +142,10 @@ class $SettingsTableTable extends SettingsTable
       context.handle(_bracketKmMeta,
           bracketKm.isAcceptableOrUnknown(data['bracket_km']!, _bracketKmMeta));
     }
+    if (data.containsKey('theme_mode')) {
+      context.handle(_themeModeMeta,
+          themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta));
+    }
     return context;
   }
 
@@ -160,6 +173,8 @@ class $SettingsTableTable extends SettingsTable
           data['${effectivePrefix}travel_fee_euros_per_bracket'])!,
       bracketKm: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}bracket_km'])!,
+      themeMode: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}theme_mode'])!,
     );
   }
 
@@ -178,6 +193,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   final int defaultMinutesPerSheep;
   final int travelFeeEurosPerBracket;
   final int bracketKm;
+  final String themeMode;
   const SettingsRow(
       {required this.id,
       required this.baseAddressLabel,
@@ -186,7 +202,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       required this.defaultRadiusKm,
       required this.defaultMinutesPerSheep,
       required this.travelFeeEurosPerBracket,
-      required this.bracketKm});
+      required this.bracketKm,
+      required this.themeMode});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -199,6 +216,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['travel_fee_euros_per_bracket'] =
         Variable<int>(travelFeeEurosPerBracket);
     map['bracket_km'] = Variable<int>(bracketKm);
+    map['theme_mode'] = Variable<String>(themeMode);
     return map;
   }
 
@@ -212,6 +230,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       defaultMinutesPerSheep: Value(defaultMinutesPerSheep),
       travelFeeEurosPerBracket: Value(travelFeeEurosPerBracket),
       bracketKm: Value(bracketKm),
+      themeMode: Value(themeMode),
     );
   }
 
@@ -229,6 +248,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       travelFeeEurosPerBracket:
           serializer.fromJson<int>(json['travelFeeEurosPerBracket']),
       bracketKm: serializer.fromJson<int>(json['bracketKm']),
+      themeMode: serializer.fromJson<String>(json['themeMode']),
     );
   }
   @override
@@ -244,6 +264,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'travelFeeEurosPerBracket':
           serializer.toJson<int>(travelFeeEurosPerBracket),
       'bracketKm': serializer.toJson<int>(bracketKm),
+      'themeMode': serializer.toJson<String>(themeMode),
     };
   }
 
@@ -255,7 +276,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           int? defaultRadiusKm,
           int? defaultMinutesPerSheep,
           int? travelFeeEurosPerBracket,
-          int? bracketKm}) =>
+          int? bracketKm,
+          String? themeMode}) =>
       SettingsRow(
         id: id ?? this.id,
         baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -267,6 +289,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
         travelFeeEurosPerBracket:
             travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
         bracketKm: bracketKm ?? this.bracketKm,
+        themeMode: themeMode ?? this.themeMode,
       );
   SettingsRow copyWithCompanion(SettingsTableCompanion data) {
     return SettingsRow(
@@ -286,6 +309,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ? data.travelFeeEurosPerBracket.value
           : this.travelFeeEurosPerBracket,
       bracketKm: data.bracketKm.present ? data.bracketKm.value : this.bracketKm,
+      themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
     );
   }
 
@@ -299,7 +323,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('defaultRadiusKm: $defaultRadiusKm, ')
           ..write('defaultMinutesPerSheep: $defaultMinutesPerSheep, ')
           ..write('travelFeeEurosPerBracket: $travelFeeEurosPerBracket, ')
-          ..write('bracketKm: $bracketKm')
+          ..write('bracketKm: $bracketKm, ')
+          ..write('themeMode: $themeMode')
           ..write(')'))
         .toString();
   }
@@ -313,7 +338,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       defaultRadiusKm,
       defaultMinutesPerSheep,
       travelFeeEurosPerBracket,
-      bracketKm);
+      bracketKm,
+      themeMode);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -325,7 +351,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.defaultRadiusKm == this.defaultRadiusKm &&
           other.defaultMinutesPerSheep == this.defaultMinutesPerSheep &&
           other.travelFeeEurosPerBracket == this.travelFeeEurosPerBracket &&
-          other.bracketKm == this.bracketKm);
+          other.bracketKm == this.bracketKm &&
+          other.themeMode == this.themeMode);
 }
 
 class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
@@ -337,6 +364,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
   final Value<int> defaultMinutesPerSheep;
   final Value<int> travelFeeEurosPerBracket;
   final Value<int> bracketKm;
+  final Value<String> themeMode;
   const SettingsTableCompanion({
     this.id = const Value.absent(),
     this.baseAddressLabel = const Value.absent(),
@@ -346,6 +374,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.defaultMinutesPerSheep = const Value.absent(),
     this.travelFeeEurosPerBracket = const Value.absent(),
     this.bracketKm = const Value.absent(),
+    this.themeMode = const Value.absent(),
   });
   SettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -356,6 +385,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.defaultMinutesPerSheep = const Value.absent(),
     this.travelFeeEurosPerBracket = const Value.absent(),
     this.bracketKm = const Value.absent(),
+    this.themeMode = const Value.absent(),
   })  : baseAddressLabel = Value(baseAddressLabel),
         baseLat = Value(baseLat),
         baseLon = Value(baseLon);
@@ -368,6 +398,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     Expression<int>? defaultMinutesPerSheep,
     Expression<int>? travelFeeEurosPerBracket,
     Expression<int>? bracketKm,
+    Expression<String>? themeMode,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -380,6 +411,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       if (travelFeeEurosPerBracket != null)
         'travel_fee_euros_per_bracket': travelFeeEurosPerBracket,
       if (bracketKm != null) 'bracket_km': bracketKm,
+      if (themeMode != null) 'theme_mode': themeMode,
     });
   }
 
@@ -391,7 +423,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       Value<int>? defaultRadiusKm,
       Value<int>? defaultMinutesPerSheep,
       Value<int>? travelFeeEurosPerBracket,
-      Value<int>? bracketKm}) {
+      Value<int>? bracketKm,
+      Value<String>? themeMode}) {
     return SettingsTableCompanion(
       id: id ?? this.id,
       baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -403,6 +436,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       travelFeeEurosPerBracket:
           travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
       bracketKm: bracketKm ?? this.bracketKm,
+      themeMode: themeMode ?? this.themeMode,
     );
   }
 
@@ -435,6 +469,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     if (bracketKm.present) {
       map['bracket_km'] = Variable<int>(bracketKm.value);
     }
+    if (themeMode.present) {
+      map['theme_mode'] = Variable<String>(themeMode.value);
+    }
     return map;
   }
 
@@ -448,7 +485,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
           ..write('defaultRadiusKm: $defaultRadiusKm, ')
           ..write('defaultMinutesPerSheep: $defaultMinutesPerSheep, ')
           ..write('travelFeeEurosPerBracket: $travelFeeEurosPerBracket, ')
-          ..write('bracketKm: $bracketKm')
+          ..write('bracketKm: $bracketKm, ')
+          ..write('themeMode: $themeMode')
           ..write(')'))
         .toString();
   }
@@ -2694,6 +2732,7 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   Value<int> defaultMinutesPerSheep,
   Value<int> travelFeeEurosPerBracket,
   Value<int> bracketKm,
+  Value<String> themeMode,
 });
 typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
     Function({
@@ -2705,6 +2744,7 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<int> defaultMinutesPerSheep,
   Value<int> travelFeeEurosPerBracket,
   Value<int> bracketKm,
+  Value<String> themeMode,
 });
 
 class $$SettingsTableTableFilterComposer
@@ -2743,6 +2783,9 @@ class $$SettingsTableTableFilterComposer
 
   ColumnFilters<int> get bracketKm => $composableBuilder(
       column: $table.bracketKm, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get themeMode => $composableBuilder(
+      column: $table.themeMode, builder: (column) => ColumnFilters(column));
 }
 
 class $$SettingsTableTableOrderingComposer
@@ -2781,6 +2824,9 @@ class $$SettingsTableTableOrderingComposer
 
   ColumnOrderings<int> get bracketKm => $composableBuilder(
       column: $table.bracketKm, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get themeMode => $composableBuilder(
+      column: $table.themeMode, builder: (column) => ColumnOrderings(column));
 }
 
 class $$SettingsTableTableAnnotationComposer
@@ -2815,6 +2861,9 @@ class $$SettingsTableTableAnnotationComposer
 
   GeneratedColumn<int> get bracketKm =>
       $composableBuilder(column: $table.bracketKm, builder: (column) => column);
+
+  GeneratedColumn<String> get themeMode =>
+      $composableBuilder(column: $table.themeMode, builder: (column) => column);
 }
 
 class $$SettingsTableTableTableManager extends RootTableManager<
@@ -2851,6 +2900,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<int> defaultMinutesPerSheep = const Value.absent(),
             Value<int> travelFeeEurosPerBracket = const Value.absent(),
             Value<int> bracketKm = const Value.absent(),
+            Value<String> themeMode = const Value.absent(),
           }) =>
               SettingsTableCompanion(
             id: id,
@@ -2861,6 +2911,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             defaultMinutesPerSheep: defaultMinutesPerSheep,
             travelFeeEurosPerBracket: travelFeeEurosPerBracket,
             bracketKm: bracketKm,
+            themeMode: themeMode,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -2871,6 +2922,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<int> defaultMinutesPerSheep = const Value.absent(),
             Value<int> travelFeeEurosPerBracket = const Value.absent(),
             Value<int> bracketKm = const Value.absent(),
+            Value<String> themeMode = const Value.absent(),
           }) =>
               SettingsTableCompanion.insert(
             id: id,
@@ -2881,6 +2933,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             defaultMinutesPerSheep: defaultMinutesPerSheep,
             travelFeeEurosPerBracket: travelFeeEurosPerBracket,
             bracketKm: bracketKm,
+            themeMode: themeMode,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

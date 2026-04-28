@@ -49,4 +49,16 @@ void main() {
     expect(read!.baseAddressLabel, 'New');
     expect(read.defaultRadiusKm, 20);
   });
+
+  test('themeMode round-trips non-default values', () async {
+    for (final mode in ThemeModePreference.values) {
+      await repo.save(Settings(
+        baseCoordinates: const Coordinates(lat: 48.0, lon: -3.0),
+        baseAddressLabel: 'Test',
+        themeMode: mode,
+      ));
+      final read = await repo.read();
+      expect(read!.themeMode, mode, reason: 'expected $mode to round-trip');
+    }
+  });
 }
