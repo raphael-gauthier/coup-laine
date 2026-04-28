@@ -12,8 +12,10 @@ import '../../domain/models/coordinates.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
 import '../widgets/address_autocomplete_field.dart';
+import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
+import '../widgets/color_swatch_picker.dart';
 import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
 class ClientFormScreen extends ConsumerStatefulWidget {
@@ -37,6 +39,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   String? _postcode;
   String? _city;
   Coordinates? _coords;
+  String? _markerColorHex; // null = automatic
   bool _saving = false;
   bool _loading = false;
 
@@ -74,6 +77,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     _postcode = c.postcode;
     _city = c.city;
     _coords = c.coordinates;
+    _markerColorHex = c.markerColorHex;
     if (mounted) setState(() => _loading = false);
   }
 
@@ -153,6 +157,8 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       ));
     }
+
+    await repo.setMarkerColor(id, _markerColorHex);
 
     try {
       await sync.recomputeForClient(id);
@@ -275,6 +281,17 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Section: Couleur sur la carte
+            AppSectionCard(
+              icon: FIcons.palette,
+              title: 'Couleur sur la carte',
+              child: _MarkerColorEditor(
+                currentHex: _markerColorHex,
+                onChanged: (hex) => setState(() => _markerColorHex = hex),
+              ),
+            ),
             const SizedBox(height: AppSpacing.lg),
 
             // Save button
@@ -287,6 +304,66 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MarkerColorEditor extends StatelessWidget {
+  final String? currentHex;
+  final ValueChanged<String?> onChanged;
+  const _MarkerColorEditor({required this.currentHex, required this.onChanged});
+
+  Color _hex(String h) {
+    final cleaned = h.replaceAll('#', '');
+    return Color(int.parse(cleaned, radix: 16) | 0xFF000000);
+  }
+
+  String _toHex(Color c) {
+    final hex =
+        (c.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase();
+    return '#$hex';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    final isAuto = currentHex == null;
+    return Column(
+      children: [
+        AppListTile(
+          prefix: Icon(
+            isAuto ? FIcons.circleCheck : FIcons.circle,
+            color: isAuto
+                ? theme.colors.primary
+                : theme.colors.mutedForeground,
+          ),
+          title: 'Automatique (selon statut)',
+          subtitle:
+              'Suit la couleur de la palette selon le statut du client.',
+          onPress: () => onChanged(null),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        AppListTile(
+          prefix: Icon(
+            !isAuto ? FIcons.circleCheck : FIcons.circle,
+            color: !isAuto
+                ? theme.colors.primary
+                : theme.colors.mutedForeground,
+          ),
+          title: 'Personnalisée',
+          subtitle: !isAuto ? currentHex! : null,
+          onPress: () {
+            if (isAuto) onChanged(_toHex(kColorSwatchPalette.first));
+          },
+        ),
+        if (!isAuto) ...[
+          const SizedBox(height: AppSpacing.md),
+          ColorSwatchGrid(
+            current: _hex(currentHex!),
+            onPicked: (c) => onChanged(_toHex(c)),
+          ),
+        ],
+      ],
     );
   }
 }
