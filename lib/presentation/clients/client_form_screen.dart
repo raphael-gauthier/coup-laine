@@ -33,7 +33,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _phoneCtrl = TextEditingController();
   final _sheepCtrl = TextEditingController(text: '0');
   final _minOverrideCtrl = TextEditingController();
-  final _notesCtrl = TextEditingController();
 
   String? _addressLabel;
   String? _postcode;
@@ -60,7 +59,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     _phoneCtrl.dispose();
     _sheepCtrl.dispose();
     _minOverrideCtrl.dispose();
-    _notesCtrl.dispose();
     super.dispose();
   }
 
@@ -72,7 +70,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     _phoneCtrl.text = c.phone ?? '';
     _sheepCtrl.text = c.sheepCount.toString();
     _minOverrideCtrl.text = c.minutesPerSheepOverride?.toString() ?? '';
-    _notesCtrl.text = c.notes ?? '';
     _addressLabel = c.addressLabel;
     _postcode = c.postcode;
     _city = c.city;
@@ -132,7 +129,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         minutesPerSheepOverride: _minOverrideCtrl.text.trim().isEmpty
             ? null
             : int.parse(_minOverrideCtrl.text),
-        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       );
       await repo.updateAddress(
         id: id,
@@ -154,7 +150,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         minutesPerSheepOverride: _minOverrideCtrl.text.trim().isEmpty
             ? null
             : int.parse(_minOverrideCtrl.text),
-        notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       ));
     }
 
@@ -274,12 +269,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     error: _minOverrideError != null ? Text(_minOverrideError!) : null,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  FTextField(
-                    control: FTextFieldControl.managed(controller: _notesCtrl),
-                    label: Text(l.clientFormNotes),
-                    maxLines: 3,
                   ),
                 ],
               ),

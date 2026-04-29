@@ -11,7 +11,6 @@ class Client {
   final Coordinates coordinates;
   final int sheepCount;
   final int? minutesPerSheepOverride;
-  final String? notes;
   final String? markerColorHex;
   final bool isWaiting;
   final bool isBanned;
@@ -28,7 +27,6 @@ class Client {
     this.sheepCount = 0,
     this.phone,
     this.minutesPerSheepOverride,
-    this.notes,
     this.markerColorHex,
     this.isWaiting = false,
     this.isBanned = false,

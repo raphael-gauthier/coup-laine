@@ -862,11 +862,6 @@ class $ClientsTableTable extends ClientsTable
   late final GeneratedColumn<int> minutesPerSheepOverride =
       GeneratedColumn<int>('minutes_per_sheep_override', aliasedName, true,
           type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
-  @override
-  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
-      'notes', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _markerColorHexMeta =
       const VerificationMeta('markerColorHex');
   @override
@@ -933,7 +928,6 @@ class $ClientsTableTable extends ClientsTable
         lon,
         sheepCount,
         minutesPerSheepOverride,
-        notes,
         markerColorHex,
         isWaiting,
         lastShearingDate,
@@ -1010,10 +1004,6 @@ class $ClientsTableTable extends ClientsTable
               data['minutes_per_sheep_override']!,
               _minutesPerSheepOverrideMeta));
     }
-    if (data.containsKey('notes')) {
-      context.handle(
-          _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
-    }
     if (data.containsKey('marker_color_hex')) {
       context.handle(
           _markerColorHexMeta,
@@ -1082,8 +1072,6 @@ class $ClientsTableTable extends ClientsTable
       minutesPerSheepOverride: attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}minutes_per_sheep_override']),
-      notes: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}notes']),
       markerColorHex: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}marker_color_hex']),
       isWaiting: attachedDatabase.typeMapping
@@ -1119,7 +1107,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
   final double lon;
   final int sheepCount;
   final int? minutesPerSheepOverride;
-  final String? notes;
   final String? markerColorHex;
   final bool isWaiting;
   final int? lastShearingDate;
@@ -1138,7 +1125,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       required this.lon,
       required this.sheepCount,
       this.minutesPerSheepOverride,
-      this.notes,
       this.markerColorHex,
       required this.isWaiting,
       this.lastShearingDate,
@@ -1163,9 +1149,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     if (!nullToAbsent || minutesPerSheepOverride != null) {
       map['minutes_per_sheep_override'] =
           Variable<int>(minutesPerSheepOverride);
-    }
-    if (!nullToAbsent || notes != null) {
-      map['notes'] = Variable<String>(notes);
     }
     if (!nullToAbsent || markerColorHex != null) {
       map['marker_color_hex'] = Variable<String>(markerColorHex);
@@ -1196,8 +1179,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       minutesPerSheepOverride: minutesPerSheepOverride == null && nullToAbsent
           ? const Value.absent()
           : Value(minutesPerSheepOverride),
-      notes:
-          notes == null && nullToAbsent ? const Value.absent() : Value(notes),
       markerColorHex: markerColorHex == null && nullToAbsent
           ? const Value.absent()
           : Value(markerColorHex),
@@ -1227,7 +1208,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       sheepCount: serializer.fromJson<int>(json['sheepCount']),
       minutesPerSheepOverride:
           serializer.fromJson<int?>(json['minutesPerSheepOverride']),
-      notes: serializer.fromJson<String?>(json['notes']),
       markerColorHex: serializer.fromJson<String?>(json['markerColorHex']),
       isWaiting: serializer.fromJson<bool>(json['isWaiting']),
       lastShearingDate: serializer.fromJson<int?>(json['lastShearingDate']),
@@ -1253,7 +1233,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       'sheepCount': serializer.toJson<int>(sheepCount),
       'minutesPerSheepOverride':
           serializer.toJson<int?>(minutesPerSheepOverride),
-      'notes': serializer.toJson<String?>(notes),
       'markerColorHex': serializer.toJson<String?>(markerColorHex),
       'isWaiting': serializer.toJson<bool>(isWaiting),
       'lastShearingDate': serializer.toJson<int?>(lastShearingDate),
@@ -1275,7 +1254,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           double? lon,
           int? sheepCount,
           Value<int?> minutesPerSheepOverride = const Value.absent(),
-          Value<String?> notes = const Value.absent(),
           Value<String?> markerColorHex = const Value.absent(),
           bool? isWaiting,
           Value<int?> lastShearingDate = const Value.absent(),
@@ -1296,7 +1274,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
         minutesPerSheepOverride: minutesPerSheepOverride.present
             ? minutesPerSheepOverride.value
             : this.minutesPerSheepOverride,
-        notes: notes.present ? notes.value : this.notes,
         markerColorHex:
             markerColorHex.present ? markerColorHex.value : this.markerColorHex,
         isWaiting: isWaiting ?? this.isWaiting,
@@ -1326,7 +1303,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       minutesPerSheepOverride: data.minutesPerSheepOverride.present
           ? data.minutesPerSheepOverride.value
           : this.minutesPerSheepOverride,
-      notes: data.notes.present ? data.notes.value : this.notes,
       markerColorHex: data.markerColorHex.present
           ? data.markerColorHex.value
           : this.markerColorHex,
@@ -1356,7 +1332,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           ..write('lon: $lon, ')
           ..write('sheepCount: $sheepCount, ')
           ..write('minutesPerSheepOverride: $minutesPerSheepOverride, ')
-          ..write('notes: $notes, ')
           ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
           ..write('lastShearingDate: $lastShearingDate, ')
@@ -1380,7 +1355,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       lon,
       sheepCount,
       minutesPerSheepOverride,
-      notes,
       markerColorHex,
       isWaiting,
       lastShearingDate,
@@ -1402,7 +1376,6 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           other.lon == this.lon &&
           other.sheepCount == this.sheepCount &&
           other.minutesPerSheepOverride == this.minutesPerSheepOverride &&
-          other.notes == this.notes &&
           other.markerColorHex == this.markerColorHex &&
           other.isWaiting == this.isWaiting &&
           other.lastShearingDate == this.lastShearingDate &&
@@ -1423,7 +1396,6 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   final Value<double> lon;
   final Value<int> sheepCount;
   final Value<int?> minutesPerSheepOverride;
-  final Value<String?> notes;
   final Value<String?> markerColorHex;
   final Value<bool> isWaiting;
   final Value<int?> lastShearingDate;
@@ -1442,7 +1414,6 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     this.lon = const Value.absent(),
     this.sheepCount = const Value.absent(),
     this.minutesPerSheepOverride = const Value.absent(),
-    this.notes = const Value.absent(),
     this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
     this.lastShearingDate = const Value.absent(),
@@ -1462,7 +1433,6 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     required double lon,
     this.sheepCount = const Value.absent(),
     this.minutesPerSheepOverride = const Value.absent(),
-    this.notes = const Value.absent(),
     this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
     this.lastShearingDate = const Value.absent(),
@@ -1489,7 +1459,6 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     Expression<double>? lon,
     Expression<int>? sheepCount,
     Expression<int>? minutesPerSheepOverride,
-    Expression<String>? notes,
     Expression<String>? markerColorHex,
     Expression<bool>? isWaiting,
     Expression<int>? lastShearingDate,
@@ -1510,7 +1479,6 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       if (sheepCount != null) 'sheep_count': sheepCount,
       if (minutesPerSheepOverride != null)
         'minutes_per_sheep_override': minutesPerSheepOverride,
-      if (notes != null) 'notes': notes,
       if (markerColorHex != null) 'marker_color_hex': markerColorHex,
       if (isWaiting != null) 'is_waiting': isWaiting,
       if (lastShearingDate != null) 'last_shearing_date': lastShearingDate,
@@ -1533,7 +1501,6 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       Value<double>? lon,
       Value<int>? sheepCount,
       Value<int?>? minutesPerSheepOverride,
-      Value<String?>? notes,
       Value<String?>? markerColorHex,
       Value<bool>? isWaiting,
       Value<int?>? lastShearingDate,
@@ -1553,7 +1520,6 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       sheepCount: sheepCount ?? this.sheepCount,
       minutesPerSheepOverride:
           minutesPerSheepOverride ?? this.minutesPerSheepOverride,
-      notes: notes ?? this.notes,
       markerColorHex: markerColorHex ?? this.markerColorHex,
       isWaiting: isWaiting ?? this.isWaiting,
       lastShearingDate: lastShearingDate ?? this.lastShearingDate,
@@ -1599,9 +1565,6 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       map['minutes_per_sheep_override'] =
           Variable<int>(minutesPerSheepOverride.value);
     }
-    if (notes.present) {
-      map['notes'] = Variable<String>(notes.value);
-    }
     if (markerColorHex.present) {
       map['marker_color_hex'] = Variable<String>(markerColorHex.value);
     }
@@ -1640,7 +1603,6 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
           ..write('lon: $lon, ')
           ..write('sheepCount: $sheepCount, ')
           ..write('minutesPerSheepOverride: $minutesPerSheepOverride, ')
-          ..write('notes: $notes, ')
           ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
           ..write('lastShearingDate: $lastShearingDate, ')
@@ -3477,7 +3439,6 @@ typedef $$ClientsTableTableCreateCompanionBuilder = ClientsTableCompanion
   required double lon,
   Value<int> sheepCount,
   Value<int?> minutesPerSheepOverride,
-  Value<String?> notes,
   Value<String?> markerColorHex,
   Value<bool> isWaiting,
   Value<int?> lastShearingDate,
@@ -3498,7 +3459,6 @@ typedef $$ClientsTableTableUpdateCompanionBuilder = ClientsTableCompanion
   Value<double> lon,
   Value<int> sheepCount,
   Value<int?> minutesPerSheepOverride,
-  Value<String?> notes,
   Value<String?> markerColorHex,
   Value<bool> isWaiting,
   Value<int?> lastShearingDate,
@@ -3567,9 +3527,6 @@ class $$ClientsTableTableFilterComposer
   ColumnFilters<int> get minutesPerSheepOverride => $composableBuilder(
       column: $table.minutesPerSheepOverride,
       builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get notes => $composableBuilder(
-      column: $table.notes, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get markerColorHex => $composableBuilder(
       column: $table.markerColorHex,
@@ -3658,9 +3615,6 @@ class $$ClientsTableTableOrderingComposer
       column: $table.minutesPerSheepOverride,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get notes => $composableBuilder(
-      column: $table.notes, builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<String> get markerColorHex => $composableBuilder(
       column: $table.markerColorHex,
       builder: (column) => ColumnOrderings(column));
@@ -3724,9 +3678,6 @@ class $$ClientsTableTableAnnotationComposer
 
   GeneratedColumn<int> get minutesPerSheepOverride => $composableBuilder(
       column: $table.minutesPerSheepOverride, builder: (column) => column);
-
-  GeneratedColumn<String> get notes =>
-      $composableBuilder(column: $table.notes, builder: (column) => column);
 
   GeneratedColumn<String> get markerColorHex => $composableBuilder(
       column: $table.markerColorHex, builder: (column) => column);
@@ -3804,7 +3755,6 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             Value<double> lon = const Value.absent(),
             Value<int> sheepCount = const Value.absent(),
             Value<int?> minutesPerSheepOverride = const Value.absent(),
-            Value<String?> notes = const Value.absent(),
             Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
             Value<int?> lastShearingDate = const Value.absent(),
@@ -3824,7 +3774,6 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             lon: lon,
             sheepCount: sheepCount,
             minutesPerSheepOverride: minutesPerSheepOverride,
-            notes: notes,
             markerColorHex: markerColorHex,
             isWaiting: isWaiting,
             lastShearingDate: lastShearingDate,
@@ -3844,7 +3793,6 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             required double lon,
             Value<int> sheepCount = const Value.absent(),
             Value<int?> minutesPerSheepOverride = const Value.absent(),
-            Value<String?> notes = const Value.absent(),
             Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
             Value<int?> lastShearingDate = const Value.absent(),
@@ -3864,7 +3812,6 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             lon: lon,
             sheepCount: sheepCount,
             minutesPerSheepOverride: minutesPerSheepOverride,
-            notes: notes,
             markerColorHex: markerColorHex,
             isWaiting: isWaiting,
             lastShearingDate: lastShearingDate,

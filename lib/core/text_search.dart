@@ -26,7 +26,7 @@ String normalize(String s) {
 
 /// Returns true if [normalizedQuery] (already passed through [normalize])
 /// matches any of the client's searchable fields: name, phone, city,
-/// postcode, full address, notes.
+/// postcode, full address.
 ///
 /// An empty query always matches.
 bool matchesClient(Client c, String normalizedQuery) {
@@ -37,7 +37,6 @@ bool matchesClient(Client c, String normalizedQuery) {
     c.city,
     c.postcode,
     c.addressLabel,
-    c.notes ?? '',
   ];
   for (final f in fields) {
     if (normalize(f).contains(normalizedQuery)) return true;

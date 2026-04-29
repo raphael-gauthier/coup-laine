@@ -22,7 +22,6 @@ class ClientRepository {
             lon: c.coordinates.lon,
             sheepCount: Value(c.sheepCount),
             minutesPerSheepOverride: Value(c.minutesPerSheepOverride),
-            notes: Value(c.notes),
             isWaiting: Value(c.isWaiting),
             isBanned: Value(c.isBanned),
             lastShearingDate: Value(
@@ -120,7 +119,6 @@ class ClientRepository {
     String? phone,
     required int sheepCount,
     int? minutesPerSheepOverride,
-    String? notes,
   }) async {
     await (_db.update(_db.clientsTable)..where((t) => t.id.equals(id))).write(
       ClientsTableCompanion(
@@ -128,7 +126,6 @@ class ClientRepository {
         phone: Value(phone),
         sheepCount: Value(sheepCount),
         minutesPerSheepOverride: Value(minutesPerSheepOverride),
-        notes: Value(notes),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
@@ -255,7 +252,6 @@ class ClientRepository {
         coordinates: Coordinates(lat: row.lat, lon: row.lon),
         sheepCount: row.sheepCount,
         minutesPerSheepOverride: row.minutesPerSheepOverride,
-        notes: row.notes,
         markerColorHex: row.markerColorHex,
         isWaiting: row.isWaiting,
         isBanned: row.isBanned,

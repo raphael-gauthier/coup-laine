@@ -49,7 +49,6 @@ class ClientsTable extends Table {
   RealColumn get lon => real()();
   IntColumn get sheepCount => integer().withDefault(const Constant(0))();
   IntColumn get minutesPerSheepOverride => integer().nullable()();
-  TextColumn get notes => text().nullable()();
   TextColumn get markerColorHex => text().nullable()();
   BoolColumn get isWaiting => boolean().withDefault(const Constant(false))();
   IntColumn get lastShearingDate => integer().nullable()();

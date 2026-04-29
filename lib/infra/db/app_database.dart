@@ -24,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -72,6 +72,11 @@ class AppDatabase extends _$AppDatabase {
           'UPDATE settings SET season_started_at = ? WHERE id = 1',
           [DateTime.now().millisecondsSinceEpoch],
         );
+      }
+      if (from < 5) {
+        // Drop the per-client notes column. Notes have been removed from the
+        // domain — any text saved here is intentionally lost.
+        await customStatement('ALTER TABLE clients DROP COLUMN notes');
       }
     },
     beforeOpen: (details) async {

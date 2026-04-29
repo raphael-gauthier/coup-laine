@@ -231,21 +231,6 @@ class _Body extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
           ],
 
-          // Notes card (only if notes set)
-          if (client.notes != null) ...[
-            AppSectionCard(
-              icon: FIcons.notebookPen,
-              title: l.clientDetailSectionNotes,
-              child: Text(
-                client.notes!,
-                style: theme.typography.md.copyWith(
-                  color: theme.colors.foreground,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-          ],
-
           // Status section
           Builder(builder: (context) {
             final waitingToggleDisabled = status == ClientStatus.banned ||
