@@ -45,6 +45,9 @@ class AppDatabase extends _$AppDatabase {
         await customStatement(
           "ALTER TABLE settings ADD COLUMN marker_recompute_color TEXT NOT NULL DEFAULT '#A89F92'",
         );
+        // (using double quotes here so single quotes inside the SQL hex literal
+        // don't need escaping; the v4 block below uses single quotes since
+        // it has no embedded literals.)
         await m.addColumn(clientsTable, clientsTable.markerColorHex);
       }
       if (from < 4) {
