@@ -1,5 +1,5 @@
 // lib/presentation/tours/tours_list_screen.dart
-import 'package:flutter/material.dart' show ButtonSegment, Material, MaterialType, RefreshIndicator, SegmentedButton;
+import 'package:flutter/material.dart' show Material, MaterialType, RefreshIndicator;
 import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,9 +14,9 @@ import '../../state/providers.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_empty_state.dart';
 
-enum _Filter { all, planned, completed }
-
-final _filterProvider = StateProvider<_Filter>((_) => _Filter.all);
+final _visibleTourStatusesProvider = StateProvider<Set<TourStatus>>(
+  (_) => TourStatus.values.toSet(),
+);
 
 final toursAsyncProvider = FutureProvider<List<Tour>>((ref) {
   return ref.watch(tourRepositoryProvider).listAll();
@@ -29,7 +29,7 @@ class ToursListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final filter = ref.watch(_filterProvider);
+    final visible = ref.watch(_visibleTourStatusesProvider);
     final async = ref.watch(toursAsyncProvider);
 
     return FScaffold(
@@ -43,12 +43,7 @@ class ToursListScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text('$e')),
         data: (all) {
           final planned = all.where((t) => t.status == TourStatus.planned).toList();
-          final completed = all.where((t) => t.status == TourStatus.completed).toList();
-          final list = switch (filter) {
-            _Filter.planned => planned,
-            _Filter.completed => completed,
-            _Filter.all => all,
-          };
+          final list = all.where((t) => visible.contains(t.status)).toList();
 
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(toursAsyncProvider),
@@ -60,39 +55,53 @@ class ToursListScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Page heading
-                        Text(
-                          l.toursListTitle,
-                          style: theme.typography.xl3.copyWith(
-                            color: theme.colors.foreground,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        // Stats row
-                        Text(
-                          l.toursStatsFmt(all.length, planned.length),
-                          style: theme.typography.sm.copyWith(
-                            color: theme.colors.mutedForeground,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        // Filter
-                        SegmentedButton<_Filter>(
-                          segments: [
-                            ButtonSegment(value: _Filter.all, label: Text(l.toursFilterAll)),
-                            ButtonSegment(value: _Filter.planned, label: Text(l.toursFilterPlanned)),
-                            ButtonSegment(value: _Filter.completed, label: Text(l.toursFilterCompleted)),
+                        // Heading row: title + filter button on the right
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l.toursListTitle,
+                                    style: theme.typography.xl3.copyWith(
+                                      color: theme.colors.foreground,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xxs),
+                                  Text(
+                                    l.toursStatsFmt(all.length, planned.length),
+                                    style: theme.typography.sm.copyWith(
+                                      color: theme.colors.mutedForeground,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            const _TourStatusFilterButton(),
                           ],
-                          selected: {filter},
-                          onSelectionChanged: (s) =>
-                              ref.read(_filterProvider.notifier).state = s.first,
                         ),
                         const SizedBox(height: AppSpacing.md),
                       ],
                     ),
                   ),
                 ),
-                if (list.isEmpty)
+                if (visible.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        child: Text(
+                          'Aucun statut sélectionné',
+                          style: theme.typography.sm,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  )
+                else if (list.isEmpty)
                   SliverFillRemaining(
                     hasScrollBody: false,
                     child: AppEmptyState(
@@ -116,6 +125,152 @@ class ToursListScreen extends ConsumerWidget {
         },
         ),
         ),
+      ),
+    );
+  }
+}
+
+/// Square icon button placed next to the page title that opens a dialog
+/// of tour-status checkboxes. A small dot in the corner signals when the
+/// filter is non-default (i.e. at least one status hidden).
+class _TourStatusFilterButton extends ConsumerWidget {
+  const _TourStatusFilterButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = context.theme;
+    final visible = ref.watch(_visibleTourStatusesProvider);
+    final hasActiveFilter = visible.length != TourStatus.values.length;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _openFilterDialog(context, ref),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: theme.colors.card,
+          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+          border: Border.all(color: theme.colors.border),
+        ),
+        alignment: Alignment.center,
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            Icon(FIcons.listFilter, color: theme.colors.foreground, size: 20),
+            if (hasActiveFilter)
+              Positioned(
+                right: -1,
+                top: -1,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: theme.colors.primary,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: theme.colors.card, width: 1),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openFilterDialog(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context)!;
+    await showFDialog<void>(
+      context: context,
+      builder: (ctx, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        title: Text(l.clientsFilterByStatus),
+        body: SizedBox(
+          width: 280,
+          child: Consumer(
+            builder: (context, ref, _) {
+              final visible = ref.watch(_visibleTourStatusesProvider);
+              final theme = context.theme;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final s in TourStatus.values)
+                    _TourStatusToggleRow(
+                      status: s,
+                      label: _statusLabel(l, s),
+                      color: s == TourStatus.completed
+                          ? theme.colors.primary
+                          : theme.colors.secondary,
+                      isOn: visible.contains(s),
+                      onChanged: (on) {
+                        final next = {...visible};
+                        if (on) {
+                          next.add(s);
+                        } else {
+                          next.remove(s);
+                        }
+                        ref
+                            .read(_visibleTourStatusesProvider.notifier)
+                            .state = next;
+                      },
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+        actions: [
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(ctx).pop(),
+            child: Text(l.mapLayersDialogClose),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _statusLabel(AppLocalizations l, TourStatus s) => switch (s) {
+      TourStatus.planned => l.toursStatusPlanned,
+      TourStatus.completed => l.toursStatusCompleted,
+    };
+
+/// Single row inside the tour status filter dialog. Mirrors the clients
+/// list filter dialog: 16 px colored dot, label, trailing FSwitch.
+class _TourStatusToggleRow extends StatelessWidget {
+  final TourStatus status;
+  final String label;
+  final Color color;
+  final bool isOn;
+  final ValueChanged<bool> onChanged;
+
+  const _TourStatusToggleRow({
+    required this.status,
+    required this.label,
+    required this.color,
+    required this.isOn,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(child: Text(label, style: theme.typography.md)),
+          FSwitch(value: isOn, onChange: onChanged),
+        ],
       ),
     );
   }
