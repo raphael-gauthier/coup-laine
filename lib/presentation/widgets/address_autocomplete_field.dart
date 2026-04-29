@@ -1,15 +1,23 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 
-import '../../core/design_tokens.dart';
 import '../../infra/services/ban_geocoding_service.dart';
 import '../../state/providers.dart';
 
 typedef GeocodingPickedCallback = void Function(GeocodingResult result);
 
+/// Address picker built on top of [FAutocomplete] (forui's combo
+/// text-field + popover suggestion list).
+///
+/// `FAutocomplete` reasons in `String`s, but the geocoding service returns
+/// rich `GeocodingResult` objects (label + coordinates + postcode + city).
+/// We bridge the two by caching the latest filter results in
+/// [_resultsByLabel] so that, when the controller's text matches a known
+/// label (= the user picked an item), we can recover the full record and
+/// hand it back via [onPicked].
 class AddressAutocompleteField extends ConsumerStatefulWidget {
   final String? initialLabel;
   final GeocodingPickedCallback onPicked;
@@ -29,115 +37,54 @@ class AddressAutocompleteField extends ConsumerStatefulWidget {
 
 class _AddressAutocompleteFieldState
     extends ConsumerState<AddressAutocompleteField> {
-  late final TextEditingController _controller;
-  Timer? _debounce;
-  List<GeocodingResult> _results = const [];
-  bool _loading = false;
-  String? _error;
+  final Map<String, GeocodingResult> _resultsByLabel = {};
 
-  /// Set to the label of the suggestion the user just picked. The next
-  /// onChange callback (fired by the controller when we write `r.label`
-  /// into it) will see the same value and skip the search — preventing
-  /// the dropdown from re-appearing immediately after a pick.
-  String? _justPickedLabel;
+  /// Last label we've already reported via onPicked, so we don't
+  /// repeatedly fire for the same value (the controller can notify
+  /// several times after a pick — text + selection changes).
+  String? _lastReportedLabel;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialLabel);
-  }
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onChanged(String value) {
-    // After a pick, the TextEditingController may fire its listeners
-    // multiple times (text change + selection change). Keep ignoring
-    // until the user actually types something different from the
-    // picked label.
-    if (value == _justPickedLabel) return;
-    _justPickedLabel = null;
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () => _search(value));
-  }
-
-  Future<void> _search(String q) async {
-    final svc = ref.read(banGeocodingServiceProvider);
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final r = await svc.search(q);
-      if (!mounted) return;
-      setState(() {
-        _results = r;
-        _loading = false;
-      });
-    } on GeocodingException catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _error = e.message;
-        _loading = false;
-        _results = const [];
-      });
+  Future<Iterable<String>> _filter(String query) async {
+    if (query.trim().isEmpty) {
+      _resultsByLabel.clear();
+      return const [];
     }
+    final svc = ref.read(banGeocodingServiceProvider);
+    final results = await svc.search(query);
+    _resultsByLabel
+      ..clear()
+      ..addEntries(results.map((r) => MapEntry(r.label, r)));
+    return results.map((r) => r.label);
   }
 
-  void _pick(GeocodingResult r) {
-    _debounce?.cancel();
-    _justPickedLabel = r.label;
-    _controller.text = r.label;
-    FocusManager.instance.primaryFocus?.unfocus();
-    setState(() {
-      _results = const [];
-    });
-    widget.onPicked(r);
+  void _handleChange(TextEditingValue value) {
+    final picked = _resultsByLabel[value.text];
+    if (picked != null && value.text != _lastReportedLabel) {
+      _lastReportedLabel = value.text;
+      widget.onPicked(picked);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        FTextField(
-          control: FTextFieldControl.managed(
-            controller: _controller,
-            onChange: (v) => _onChanged(v.text),
-          ),
-          label: Text(widget.labelText),
-          error: _error != null ? Text(_error!) : null,
-          suffixBuilder: _loading
-              ? (_, __, ___) => const Padding(
-                    padding: EdgeInsets.all(AppSpacing.sm),
-                    child: SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: FCircularProgress(size: FCircularProgressSizeVariant.sm),
-                    ),
-                  )
-              : null,
-        ),
-        if (_results.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.xxs),
-            child: FCard.raw(
-              child: Column(
-                children: _results
-                    .map((r) => FTile(
-                          title: Text(r.label),
-                          subtitle: Text('${r.postcode} ${r.city}'),
-                          onPress: () => _pick(r),
-                        ))
-                    .toList(),
-              ),
-            ),
+    return FAutocomplete.builder(
+      label: Text(widget.labelText),
+      filter: _filter,
+      contentBuilder: (ctx, query, values) => [
+        for (final value in values)
+          FAutocompleteItem(
+            value: value,
+            title: Text(value),
+            subtitle: () {
+              final r = _resultsByLabel[value];
+              return r == null ? null : Text('${r.postcode} ${r.city}');
+            }(),
           ),
       ],
+      control: FAutocompleteControl.managed(
+        initial: TextEditingValue(text: widget.initialLabel ?? ''),
+        onChange: _handleChange,
+      ),
     );
   }
 }
