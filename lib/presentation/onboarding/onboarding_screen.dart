@@ -56,11 +56,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
               child: Center(
                 child: Image.asset(
                   'assets/illustrations/sheep-mascot.png',
-                  height: 220,
+                  height: 160,
                   fit: BoxFit.contain,
                 ),
               ),
@@ -83,7 +83,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.md),
             AppSectionCard(
               icon: FIcons.sparkles,
               title: l.onboardingWelcomeTitle,
@@ -102,7 +102,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPicked: (r) => setState(() => _picked = r),
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.md),
             AppPrimaryButton(
               label: l.onboardingCta,
               prefixIcon: FIcons.arrowRight,
