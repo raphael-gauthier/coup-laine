@@ -132,5 +132,7 @@
   "settingsSeasonResetConfirmTitle": "Réinitialiser la saison ?",
   "settingsSeasonResetConfirmBody": "Tous les clients en attente, RDV calé ou Passé repasseront en gris. Les bannis et sans-moutons sont conservés. Continuer ?",
   "settingsSeasonStartedFmt": "Saison en cours depuis le {date}",
-  "@settingsSeasonStartedFmt": {"placeholders": {"date": {"type": "String"}}}
+  "@settingsSeasonStartedFmt": {"placeholders": {"date": {"type": "String"}}},
+  "mapLayersDialogTitle": "Afficher les marqueurs",
+  "mapLayersDialogClose": "Fermer"
 }

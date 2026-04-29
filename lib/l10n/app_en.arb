@@ -132,5 +132,7 @@
   "settingsSeasonResetConfirmTitle": "Reset the season?",
   "settingsSeasonResetConfirmBody": "All waiting, scheduled or done clients will fall back to gray. Banned and no-sheep are preserved. Continue?",
   "settingsSeasonStartedFmt": "Season ongoing since {date}",
-  "@settingsSeasonStartedFmt": {"placeholders": {"date": {"type": "String"}}}
+  "@settingsSeasonStartedFmt": {"placeholders": {"date": {"type": "String"}}},
+  "mapLayersDialogTitle": "Show markers",
+  "mapLayersDialogClose": "Close"
 }

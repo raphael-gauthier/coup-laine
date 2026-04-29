@@ -14,6 +14,7 @@ import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/settings.dart';
 import '../../domain/use_cases/client_status.dart';
+import '../../l10n/app_localizations.dart';
 import '../../state/map_controller.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
@@ -119,12 +120,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _openLayersPanel(BuildContext context, Settings settings) async {
+    final l = AppLocalizations.of(context)!;
     await showFDialog<void>(
       context: context,
       builder: (ctx, style, animation) => FDialog(
         style: style,
         animation: animation,
-        title: const Text('Afficher les marqueurs'),
+        title: Text(l.mapLayersDialogTitle),
         body: SizedBox(
           width: 280,
           child: Consumer(
@@ -133,13 +135,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  for (final entry in const [
-                    (ClientStatus.defaultStatus, 'Par défaut'),
-                    (ClientStatus.waiting, 'En attente'),
-                    (ClientStatus.scheduled, 'Planifié'),
-                    (ClientStatus.done, 'Terminé'),
-                    (ClientStatus.noSheep, 'Sans mouton'),
-                    (ClientStatus.banned, 'Banni'),
+                  for (final entry in [
+                    (ClientStatus.defaultStatus, l.settingsMarkerDefault),
+                    (ClientStatus.waiting, l.settingsMarkerWaiting),
+                    (ClientStatus.scheduled, l.settingsMarkerScheduled),
+                    (ClientStatus.done, l.settingsMarkerDone),
+                    (ClientStatus.noSheep, l.settingsMarkerNoSheep),
+                    (ClientStatus.banned, l.settingsMarkerBanned),
                   ])
                     _LayerToggleRow(
                       status: entry.$1,
@@ -167,7 +169,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           FButton(
             variant: FButtonVariant.outline,
             onPress: () => Navigator.of(ctx).pop(),
-            child: const Text('Fermer'),
+            child: Text(l.mapLayersDialogClose),
           ),
         ],
       ),
