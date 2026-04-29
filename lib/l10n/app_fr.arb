@@ -39,6 +39,7 @@
   "clientsListSheepCountFmt": "{n, plural, =1{1 mouton} other{{n} moutons}}",
   "@clientsListSheepCountFmt": {"placeholders": {"n": {"type": "int"}}},
   "clientsSearchHint": "Rechercher un client…",
+  "clientsFilterByStatus": "Filtrer par statut",
   "clientFormSectionIdentity": "Identité",
   "clientFormSectionAddress": "Adresse",
   "clientFormSectionShearing": "Tonte",

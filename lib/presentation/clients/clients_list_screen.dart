@@ -100,15 +100,8 @@ class ClientsListScreen extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: AppSpacing.md),
-                            // Status filter chips
-                            _StatusChipsRow(
-                              visible: visible,
-                              onToggle: (s) {
-                                final next = {...visible};
-                                if (!next.add(s)) next.remove(s);
-                                ref.read(_visibleStatusesProvider.notifier).state = next;
-                              },
-                            ),
+                            // Status filter (multi-select dropdown)
+                            const _StatusFilterField(),
                             const SizedBox(height: AppSpacing.md),
                             // Search field
                             const _SearchField(),
@@ -314,94 +307,61 @@ class _ClientTile extends ConsumerWidget {
   }
 }
 
-class _StatusChipsRow extends StatelessWidget {
-  final Set<ClientStatus> visible;
-  final ValueChanged<ClientStatus> onToggle;
-  const _StatusChipsRow({required this.visible, required this.onToggle});
+String _statusLabel(AppLocalizations l, ClientStatus s) => switch (s) {
+      ClientStatus.defaultStatus => l.clientStatusDefault,
+      ClientStatus.waiting => l.clientStatusWaiting,
+      ClientStatus.scheduled => l.clientStatusScheduled,
+      ClientStatus.done => l.clientStatusDone,
+      ClientStatus.noSheep => l.clientStatusNoSheep,
+      ClientStatus.banned => l.clientStatusBanned,
+    };
 
-  String _label(AppLocalizations l, ClientStatus s) => switch (s) {
-        ClientStatus.defaultStatus => l.clientStatusDefault,
-        ClientStatus.waiting => l.clientStatusWaiting,
-        ClientStatus.scheduled => l.clientStatusScheduled,
-        ClientStatus.done => l.clientStatusDone,
-        ClientStatus.noSheep => l.clientStatusNoSheep,
-        ClientStatus.banned => l.clientStatusBanned,
-      };
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    return Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
-      children: [
-        for (final s in ClientStatus.values)
-          _StatusChip(
-            status: s,
-            label: _label(l, s),
-            selected: visible.contains(s),
-            onTap: () => onToggle(s),
-          ),
-      ],
-    );
-  }
-}
-
-class _StatusChip extends ConsumerWidget {
-  final ClientStatus status;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _StatusChip({
-    required this.status,
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
+class _StatusFilterField extends ConsumerWidget {
+  const _StatusFilterField();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = context.theme;
+    final l = AppLocalizations.of(context)!;
+    final visible = ref.watch(_visibleStatusesProvider);
     final settingsAsync = ref.watch(_settingsForChipProvider);
-    final hex = settingsAsync.value == null
-        ? '#9CA3AF'
-        : _hexForStatus(settingsAsync.value!, status);
-    final color = _hexToColor(hex);
 
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xxs + 2,
-        ),
-        decoration: BoxDecoration(
-          color: selected ? color.withAlpha(0x33) : theme.colors.muted,
-          borderRadius: BorderRadius.circular(AppBorderRadius.pill),
-          border: Border.all(
-            color: selected ? color : theme.colors.border,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-            const SizedBox(width: AppSpacing.xxs),
-            Text(
-              label,
-              style: theme.typography.xs.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
+    Color colorOf(ClientStatus s) {
+      final settings = settingsAsync.value;
+      if (settings == null) return _hexToColor('#9CA3AF');
+      return _hexToColor(_hexForStatus(settings, s));
+    }
+
+    return FMultiSelect<ClientStatus>.rich(
+      format: (s) => Text(_statusLabel(l, s)),
+      hint: Text(l.clientsFilterByStatus),
+      keepHint: false,
+      clearable: true,
+      control: FMultiValueControl.lifted(
+        value: visible,
+        onChange: (next) =>
+            ref.read(_visibleStatusesProvider.notifier).state = next,
       ),
+      children: [
+        for (final s in ClientStatus.values)
+          FSelectItem<ClientStatus>(
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: colorOf(s),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(_statusLabel(l, s)),
+              ],
+            ),
+            value: s,
+          ),
+      ],
     );
   }
 }

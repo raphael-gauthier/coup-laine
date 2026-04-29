@@ -39,6 +39,7 @@
   "clientsListSheepCountFmt": "{n, plural, =1{1 sheep} other{{n} sheep}}",
   "@clientsListSheepCountFmt": {"placeholders": {"n": {"type": "int"}}},
   "clientsSearchHint": "Search a client…",
+  "clientsFilterByStatus": "Filter by status",
   "clientFormSectionIdentity": "Identity",
   "clientFormSectionAddress": "Address",
   "clientFormSectionShearing": "Shearing",
