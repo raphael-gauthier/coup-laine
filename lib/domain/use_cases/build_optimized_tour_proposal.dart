@@ -49,14 +49,14 @@ class BuildOptimizedTourProposal {
     if (seedIds.isEmpty) return OptimizedProposal.empty();
 
     var current = List<int>.from(seedIds);
-    var draft = _buildDraft(
+    final initialDraft = _buildDraft(
       candidateIds: current,
       candidates: eligible,
       matrix: matrix,
       settings: settings,
       startTimeMinutes: startTimeMinutes,
     );
-    var duration = draft.endTimeMinutes - startTimeMinutes;
+    var duration = initialDraft.endTimeMinutes - startTimeMinutes;
 
     // Compute barycentre of the seed for distance tie-breaking.
     final bary = _barycentre([for (final id in seedIds) byId[id]!.coordinates]);
@@ -80,7 +80,6 @@ class BuildOptimizedTourProposal {
         final nextDuration = nextDraft.endTimeMinutes - startTimeMinutes;
         if (nextDuration > targetMinutes + toleranceMinutes) break;
         current = nextDraft.orderedClientIds;
-        draft = nextDraft;
         duration = nextDuration;
       }
     } else if (duration > targetMinutes + toleranceMinutes) {
@@ -106,7 +105,6 @@ class BuildOptimizedTourProposal {
           startTimeMinutes: startTimeMinutes,
         );
         current = nextDraft.orderedClientIds;
-        draft = nextDraft;
         duration = nextDraft.endTimeMinutes - startTimeMinutes;
       }
     }
