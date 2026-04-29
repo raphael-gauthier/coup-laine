@@ -29,7 +29,6 @@
   "clientsFilterAll": "Tous",
   "clientsFilterWaiting": "En attente",
   "clientsBadgeWaiting": "En attente",
-  "clientsBadgeOverdue": "En retard",
   "clientsBadgeRecompute": "Distances à recalculer",
   "clientsRetryRecompute": "Recalculer les distances manquantes",
   "clientsCountFmt": "{n} client(s)",

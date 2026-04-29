@@ -1,5 +1,5 @@
 // lib/presentation/clients/clients_list_screen.dart
-import 'package:flutter/material.dart' show ButtonSegment, FloatingActionButton, Material, MaterialType, RefreshIndicator, SegmentedButton;
+import 'package:flutter/material.dart' show FloatingActionButton, Material, MaterialType, RefreshIndicator;
 import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
+import '../../domain/models/settings.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../state/providers.dart';
 import '../widgets/app_badge.dart';
@@ -17,9 +18,9 @@ import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 
-enum _Filter { all, waiting }
-
-final _filterProvider = StateProvider<_Filter>((_) => _Filter.all);
+final _visibleStatusesProvider = StateProvider<Set<ClientStatus>>(
+  (_) => ClientStatus.values.toSet(),
+);
 final _searchQueryProvider = StateProvider<String>((_) => '');
 
 final clientsAsyncProvider =
@@ -77,7 +78,7 @@ class ClientsListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final filter = ref.watch(_filterProvider);
+    final visible = ref.watch(_visibleStatusesProvider);
     final query = ref.watch(_searchQueryProvider);
     final async = ref.watch(clientsAsyncProvider);
 
@@ -89,7 +90,7 @@ class ClientsListScreen extends ConsumerWidget {
           error: (e, _) => Center(child: Text('$e')),
           data: (all) {
           final waiting = all.where((r) => r.$2 == ClientStatus.waiting).toList();
-          final base = filter == _Filter.waiting ? waiting : all;
+          final base = all.where((r) => visible.contains(r.$2)).toList();
           final normalizedQuery = _normalize(query.trim());
           final list = [...base.where((r) => _matchesQuery(r.$1, normalizedQuery))]
             ..sort((a, b) {
@@ -130,15 +131,14 @@ class ClientsListScreen extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: AppSpacing.md),
-                            // Filter row
-                            SegmentedButton<_Filter>(
-                              segments: [
-                                ButtonSegment(value: _Filter.all, label: Text(l.clientsFilterAll)),
-                                ButtonSegment(value: _Filter.waiting, label: Text(l.clientsFilterWaiting)),
-                              ],
-                              selected: {filter},
-                              onSelectionChanged: (s) =>
-                                  ref.read(_filterProvider.notifier).state = s.first,
+                            // Status filter chips
+                            _StatusChipsRow(
+                              visible: visible,
+                              onToggle: (s) {
+                                final next = {...visible};
+                                if (!next.add(s)) next.remove(s);
+                                ref.read(_visibleStatusesProvider.notifier).state = next;
+                              },
                             ),
                             const SizedBox(height: AppSpacing.md),
                             // Search field
@@ -186,7 +186,21 @@ class ClientsListScreen extends ConsumerWidget {
                       ),
                     ),
                     // Client list or empty state
-                    if (list.isEmpty)
+                    if (visible.isEmpty)
+                      SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(AppSpacing.lg),
+                            child: Text(
+                              'Aucun statut sélectionné',
+                              style: theme.typography.sm,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                      )
+                    else if (list.isEmpty)
                       SliverFillRemaining(
                         hasScrollBody: false,
                         child: AppEmptyState(
@@ -206,7 +220,10 @@ class ClientsListScreen extends ConsumerWidget {
                         sliver: SliverList.separated(
                           itemCount: list.length,
                           separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-                          itemBuilder: (_, i) => _ClientTile(client: list[i].$1),
+                          itemBuilder: (_, i) => _ClientTile(
+                            client: list[i].$1,
+                            status: list[i].$2,
+                          ),
                         ),
                       ),
                   ],
@@ -265,9 +282,10 @@ class _SearchFieldState extends ConsumerState<_SearchField> {
   }
 }
 
-class _ClientTile extends StatelessWidget {
+class _ClientTile extends ConsumerWidget {
   final Client client;
-  const _ClientTile({required this.client});
+  final ClientStatus status;
+  const _ClientTile({required this.client, required this.status});
 
   String _initials(String name) {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -278,37 +296,160 @@ class _ClientTile extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-
-    final badges = <Widget>[];
-    if (client.isWaiting) badges.add(AppBadge.waiting(context));
-    if (client.needsDistanceRecompute) badges.add(AppBadge.recompute(context));
+    final settingsAsync = ref.watch(_settingsForChipProvider);
+    final hex = settingsAsync.value == null
+        ? '#9CA3AF'
+        : _hexForStatus(settingsAsync.value!, status);
+    final dotColor = _hexToColor(hex);
 
     return AppListTile(
-      prefix: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: theme.colors.primary,
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          _initials(client.name),
-          style: theme.typography.sm.copyWith(
-            color: theme.colors.primaryForeground,
-            fontWeight: FontWeight.w600,
+      prefix: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
           ),
-        ),
+          const SizedBox(width: 6),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: theme.colors.primary,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              _initials(client.name),
+              style: theme.typography.sm.copyWith(
+                color: theme.colors.primaryForeground,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
       title: client.name,
-      subtitle: '${client.city} · ${l.clientsListSheepCountFmt(client.sheepCount)}',
-      suffix: badges.isNotEmpty
-          ? Wrap(spacing: 4, runSpacing: 4, children: badges)
+      subtitle:
+          '${client.city} · ${l.clientsListSheepCountFmt(client.sheepCount)}',
+      suffix: client.needsDistanceRecompute
+          ? AppBadge.recompute(context)
           : Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),
       onPress: () => context.push('/clients/${client.id}'),
     );
   }
 }
+
+class _StatusChipsRow extends StatelessWidget {
+  final Set<ClientStatus> visible;
+  final ValueChanged<ClientStatus> onToggle;
+  const _StatusChipsRow({required this.visible, required this.onToggle});
+
+  String _label(AppLocalizations l, ClientStatus s) => switch (s) {
+        ClientStatus.defaultStatus => l.clientStatusDefault,
+        ClientStatus.waiting => l.clientStatusWaiting,
+        ClientStatus.scheduled => l.clientStatusScheduled,
+        ClientStatus.done => l.clientStatusDone,
+        ClientStatus.noSheep => l.clientStatusNoSheep,
+        ClientStatus.banned => l.clientStatusBanned,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Wrap(
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      children: [
+        for (final s in ClientStatus.values)
+          _StatusChip(
+            status: s,
+            label: _label(l, s),
+            selected: visible.contains(s),
+            onTap: () => onToggle(s),
+          ),
+      ],
+    );
+  }
+}
+
+class _StatusChip extends ConsumerWidget {
+  final ClientStatus status;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _StatusChip({
+    required this.status,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = context.theme;
+    final settingsAsync = ref.watch(_settingsForChipProvider);
+    final hex = settingsAsync.value == null
+        ? '#9CA3AF'
+        : _hexForStatus(settingsAsync.value!, status);
+    final color = _hexToColor(hex);
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xxs + 2,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? color.withAlpha(0x33) : theme.colors.muted,
+          borderRadius: BorderRadius.circular(AppBorderRadius.pill),
+          border: Border.all(
+            color: selected ? color : theme.colors.border,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: AppSpacing.xxs),
+            Text(
+              label,
+              style: theme.typography.xs.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _hexForStatus(Settings s, ClientStatus status) => switch (status) {
+      ClientStatus.defaultStatus => s.markerDefaultColor,
+      ClientStatus.waiting => s.markerWaitingColor,
+      ClientStatus.scheduled => s.markerScheduledColor,
+      ClientStatus.done => s.markerDoneColor,
+      ClientStatus.noSheep => s.markerNoSheepColor,
+      ClientStatus.banned => s.markerBannedColor,
+    };
+
+Color _hexToColor(String hex) {
+  final cleaned = hex.replaceAll('#', '');
+  return Color(int.parse(cleaned, radix: 16) | 0xFF000000);
+}
+
+final _settingsForChipProvider = FutureProvider<Settings?>(
+  (ref) => ref.watch(settingsRepositoryProvider).read(),
+);
