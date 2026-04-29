@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
+import '../../domain/use_cases/client_status.dart';
 import '../../infra/db/app_database.dart';
 
 class ClientRepository {
@@ -145,6 +146,89 @@ class ClientRepository {
     await (_db.update(_db.clientsTable)..where((t) => t.id.equals(id))).write(
       const ClientsTableCompanion(
         needsDistanceRecompute: Value(true),
+      ),
+    );
+  }
+
+  Future<List<(Client, ClientStatus)>> listAllWithStatus(
+    DateTime seasonStartedAt,
+  ) async {
+    final clientRows = await (_db.select(_db.clientsTable)
+          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+        .get();
+
+    final seasonEpochDays = seasonStartedAt.millisecondsSinceEpoch ~/ 86400000;
+    final stopRows = await (_db.select(_db.tourStopsTable).join([
+      innerJoin(
+        _db.toursTable,
+        _db.toursTable.id.equalsExp(_db.tourStopsTable.tourId),
+      ),
+    ])
+          ..where(
+            _db.tourStopsTable.clientId.isNotNull() &
+                _db.toursTable.plannedDate.isBiggerOrEqualValue(seasonEpochDays),
+          ))
+        .get();
+
+    final hasPlanned = <int>{};
+    final hasCompleted = <int>{};
+    for (final r in stopRows) {
+      final stop = r.readTable(_db.tourStopsTable);
+      final tour = r.readTable(_db.toursTable);
+      final cid = stop.clientId;
+      if (cid == null) continue;
+      if (tour.status == 'completed') {
+        hasCompleted.add(cid);
+      } else if (tour.status == 'planned') {
+        hasPlanned.add(cid);
+      }
+    }
+
+    return [
+      for (final row in clientRows)
+        (
+          _toDomain(row),
+          deriveStatus(
+            _toDomain(row),
+            hasCompletedTourThisSeason: hasCompleted.contains(row.id),
+            hasPlannedTourThisSeason: hasPlanned.contains(row.id),
+          ),
+        ),
+    ];
+  }
+
+  Future<(Client, ClientStatus)?> findByIdWithStatus(
+    int id,
+    DateTime seasonStartedAt,
+  ) async {
+    final c = await findById(id);
+    if (c == null) return null;
+    final seasonEpochDays = seasonStartedAt.millisecondsSinceEpoch ~/ 86400000;
+    final stopRows = await (_db.select(_db.tourStopsTable).join([
+      innerJoin(
+        _db.toursTable,
+        _db.toursTable.id.equalsExp(_db.tourStopsTable.tourId),
+      ),
+    ])
+          ..where(
+            _db.tourStopsTable.clientId.equals(id) &
+                _db.toursTable.plannedDate.isBiggerOrEqualValue(seasonEpochDays),
+          ))
+        .get();
+
+    var hasPlanned = false;
+    var hasCompleted = false;
+    for (final r in stopRows) {
+      final tour = r.readTable(_db.toursTable);
+      if (tour.status == 'completed') hasCompleted = true;
+      if (tour.status == 'planned') hasPlanned = true;
+    }
+    return (
+      c,
+      deriveStatus(
+        c,
+        hasCompletedTourThisSeason: hasCompleted,
+        hasPlannedTourThisSeason: hasPlanned,
       ),
     );
   }

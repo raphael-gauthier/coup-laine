@@ -1,7 +1,11 @@
 import 'package:coup_laine/data/repositories/client_repository.dart';
+import 'package:coup_laine/data/repositories/tour_repository.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
+import 'package:coup_laine/domain/models/tour.dart';
+import 'package:coup_laine/domain/use_cases/client_status.dart';
 import 'package:coup_laine/infra/db/app_database.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -113,5 +117,110 @@ void main() {
     expect((await repo.findById(a))!.isWaiting, isFalse);
     expect((await repo.findById(b))!.isWaiting, isFalse);
     expect((await repo.findById(c))!.isWaiting, isFalse);
+  });
+
+  test('listAllWithStatus derives status from flags + season tours', () async {
+    final tours = TourRepository(db);
+
+    // C1: default
+    final c1 = await repo.insert(_newClient(name: 'C1'));
+    // C2: waiting flag
+    final c2 = await repo.insert(_newClient(name: 'C2', isWaiting: true));
+    // C3: banned flag
+    final c3 = await repo.insert(_newClient(name: 'C3', isWaiting: true));
+    await repo.setBanned(c3, true);
+    // C4: sheepCount = 0 (override _newClient default of 12)
+    final c4 = await db.into(db.clientsTable).insert(
+      ClientsTableCompanion.insert(
+        name: 'C4',
+        addressLabel: 'a',
+        postcode: '0',
+        city: 'X',
+        lat: 48,
+        lon: -4,
+        sheepCount: const Value(0),
+        createdAt: 0,
+        updatedAt: 0,
+      ),
+    );
+    // C5: in a planned tour this season (planned date AFTER season start)
+    final c5 = await repo.insert(_newClient(name: 'C5'));
+    final season = DateTime(2026, 4, 1);
+    await tours.plan(TourDraft(
+      plannedDate: DateTime(2026, 5, 12),
+      startTimeMinutes: 480,
+      totalDistanceMeters: 0,
+      totalDriveSeconds: 0,
+      totalTravelFeeCents: 0,
+      stops: [
+        TourStopDraft(
+          clientId: c5,
+          clientNameSnapshot: 'C5',
+          orderIndex: 0,
+          estimatedArrivalMinutes: 480,
+          estimatedDepartureMinutes: 580,
+          sheepCountSnapshot: 5,
+          minutesPerSheepSnapshot: 20,
+          feeShareCents: 0,
+        ),
+      ],
+    ));
+    // C6: in a completed tour this season
+    final c6 = await repo.insert(_newClient(name: 'C6'));
+    final tourId = await tours.plan(TourDraft(
+      plannedDate: DateTime(2026, 5, 14),
+      startTimeMinutes: 480,
+      totalDistanceMeters: 0,
+      totalDriveSeconds: 0,
+      totalTravelFeeCents: 0,
+      stops: [
+        TourStopDraft(
+          clientId: c6,
+          clientNameSnapshot: 'C6',
+          orderIndex: 0,
+          estimatedArrivalMinutes: 480,
+          estimatedDepartureMinutes: 580,
+          sheepCountSnapshot: 5,
+          minutesPerSheepSnapshot: 20,
+          feeShareCents: 0,
+        ),
+      ],
+    ));
+    await tours.markCompleted(tourId);
+    // C7: tour BEFORE season start → must NOT make C7 done/scheduled
+    final c7 = await repo.insert(_newClient(name: 'C7'));
+    await tours.plan(TourDraft(
+      plannedDate: DateTime(2026, 1, 15), // before season start (2026-04-01)
+      startTimeMinutes: 480,
+      totalDistanceMeters: 0,
+      totalDriveSeconds: 0,
+      totalTravelFeeCents: 0,
+      stops: [
+        TourStopDraft(
+          clientId: c7,
+          clientNameSnapshot: 'C7',
+          orderIndex: 0,
+          estimatedArrivalMinutes: 480,
+          estimatedDepartureMinutes: 580,
+          sheepCountSnapshot: 5,
+          minutesPerSheepSnapshot: 20,
+          feeShareCents: 0,
+        ),
+      ],
+    ));
+
+    final all = await repo.listAllWithStatus(season);
+    final byName = {for (final r in all) r.$1.name: r.$2};
+
+    expect(byName['C1'], ClientStatus.defaultStatus);
+    expect(byName['C2'], ClientStatus.waiting);
+    expect(byName['C3'], ClientStatus.banned);
+    expect(byName['C4'], ClientStatus.noSheep);
+    expect(byName['C5'], ClientStatus.scheduled);
+    expect(byName['C6'], ClientStatus.done);
+    expect(byName['C7'], ClientStatus.defaultStatus);
+
+    // silence unused-variable warnings
+    expect([c1, c2, c4], isNotEmpty);
   });
 }
