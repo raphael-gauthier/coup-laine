@@ -70,6 +70,10 @@ class _AddressAutocompleteFieldState
     return FAutocomplete.builder(
       label: Text(widget.labelText),
       filter: _filter,
+      // Anchor the suggestions popover ABOVE the field so the on-screen
+      // keyboard never covers the results.
+      fieldAnchor: AlignmentDirectional.topStart,
+      contentAnchor: AlignmentDirectional.bottomStart,
       contentBuilder: (ctx, query, values) => [
         for (final value in values)
           FAutocompleteItem(
