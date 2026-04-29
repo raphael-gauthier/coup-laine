@@ -5,6 +5,7 @@ class SettingsTable extends Table {
   @override
   String get tableName => 'settings';
 
+  // ignore: recursive_getters
   IntColumn get id => integer().check(id.equals(1))();
   TextColumn get baseAddressLabel => text()();
   RealColumn get baseLat => real()();

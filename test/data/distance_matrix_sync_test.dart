@@ -48,7 +48,7 @@ void main() {
     await db.close();
   });
 
-  Future<int> _addClient(double lat, double lon, {String name = 'C'}) {
+  Future<int> addClient(double lat, double lon, {String name = 'C'}) {
     return clients.insert(Client(
       id: 0,
       name: name,
@@ -61,7 +61,7 @@ void main() {
 
   test('after insert: outbound + inbound rows present, flag cleared',
       () async {
-    final aId = await _addClient(48.4, -2.8, name: 'A');
+    final aId = await addClient(48.4, -2.8, name: 'A');
     when(() => ors.matrix(
           locations: any(named: 'locations'),
           sources: any(named: 'sources'),
@@ -90,7 +90,7 @@ void main() {
   });
 
   test('on ORS failure: flag stays set, throws', () async {
-    final aId = await _addClient(48.4, -2.8);
+    final aId = await addClient(48.4, -2.8);
     when(() => ors.matrix(
           locations: any(named: 'locations'),
           sources: any(named: 'sources'),

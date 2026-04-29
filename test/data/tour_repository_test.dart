@@ -22,7 +22,7 @@ void main() {
     await db.close();
   });
 
-  Future<int> _addClient(String name, {bool waiting = true}) {
+  Future<int> addClient(String name, {bool waiting = true}) {
     return clients.insert(Client(
       id: 0,
       name: name,
@@ -37,8 +37,8 @@ void main() {
   }
 
   test('plan + read round-trip', () async {
-    final c1 = await _addClient('A');
-    final c2 = await _addClient('B');
+    final c1 = await addClient('A');
+    final c2 = await addClient('B');
     final draft = TourDraft(
       plannedDate: DateTime(2026, 5, 12),
       startTimeMinutes: 8 * 60,
@@ -83,7 +83,7 @@ void main() {
   test(
       'markCompleted persists actuals + note and auto-syncs the client counts',
       () async {
-    final c1 = await _addClient('A', waiting: true);
+    final c1 = await addClient('A', waiting: true);
     final tourId = await tours.plan(TourDraft(
       plannedDate: DateTime(2026, 5, 12),
       startTimeMinutes: 8 * 60,
@@ -126,7 +126,7 @@ void main() {
   });
 
   test('soft FK preserves stop after client delete', () async {
-    final c1 = await _addClient('A');
+    final c1 = await addClient('A');
     final tourId = await tours.plan(TourDraft(
       plannedDate: DateTime(2026, 5, 12),
       startTimeMinutes: 8 * 60,
