@@ -17,13 +17,18 @@ class SettingsTable extends Table {
   IntColumn get bracketKm => integer().withDefault(const Constant(10))();
   TextColumn get themeMode => text().withDefault(const Constant('system'))();
   TextColumn get markerDefaultColor =>
-      text().withDefault(const Constant('#4A6B52'))();
+      text().withDefault(const Constant('#9CA3AF'))();
   TextColumn get markerWaitingColor =>
-      text().withDefault(const Constant('#C77B5C'))();
-  TextColumn get markerOverdueColor =>
-      text().withDefault(const Constant('#B33A3A'))();
-  TextColumn get markerRecomputeColor =>
-      text().withDefault(const Constant('#A89F92'))();
+      text().withDefault(const Constant('#EAB308'))();
+  TextColumn get markerScheduledColor =>
+      text().withDefault(const Constant('#65A30D'))();
+  TextColumn get markerDoneColor =>
+      text().withDefault(const Constant('#166534'))();
+  TextColumn get markerNoSheepColor =>
+      text().withDefault(const Constant('#1F2937'))();
+  TextColumn get markerBannedColor =>
+      text().withDefault(const Constant('#B91C1C'))();
+  IntColumn get seasonStartedAt => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -50,6 +55,7 @@ class ClientsTable extends Table {
   IntColumn get lastShearingDate => integer().nullable()();
   BoolColumn get needsDistanceRecompute =>
       boolean().withDefault(const Constant(false))();
+  BoolColumn get isBanned => boolean().withDefault(const Constant(false))();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
 }
