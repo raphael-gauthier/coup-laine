@@ -193,11 +193,16 @@ class ClientsListScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              // FAB (Material; styled cleanly enough)
+              // FAB — Material widget; the colors don't propagate from the
+              // forui theme (Material 3 reads primaryContainer, which our
+              // FTheme→Material conversion doesn't set), so we set them
+              // explicitly to the secondary accent.
               Positioned(
                 bottom: 16,
                 right: 16,
                 child: FloatingActionButton(
+                  backgroundColor: theme.colors.secondary,
+                  foregroundColor: theme.colors.secondaryForeground,
                   onPressed: () => context.push('/clients/new'),
                   child: const Icon(FIcons.userPlus),
                 ),
