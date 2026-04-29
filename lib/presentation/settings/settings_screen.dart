@@ -47,12 +47,16 @@ class SettingsScreen extends ConsumerWidget {
     final async = ref.watch(_settingsAsyncProvider);
     return FScaffold(
       resizeToAvoidBottomInset: true,
-      child: async.when(
-        loading: () => const Center(child: FCircularProgress()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (s) => s == null
-            ? const SizedBox.shrink()
-            : _SettingsForm(initial: s),
+      child: SafeArea(
+        top: true,
+        bottom: false,
+        child: async.when(
+          loading: () => const Center(child: FCircularProgress()),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (s) => s == null
+              ? const SizedBox.shrink()
+              : _SettingsForm(initial: s),
+        ),
       ),
     );
   }

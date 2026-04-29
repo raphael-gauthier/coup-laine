@@ -36,26 +36,28 @@ class ClientDetailScreen extends ConsumerWidget {
     final async = ref.watch(_clientByIdProvider(clientId));
     final l = AppLocalizations.of(context)!;
 
-    return FScaffold(
-      header: FHeader.nested(
-        title: Text(async.value?.$1.name ?? '...'),
-        suffixes: [
-          FButton.icon(
-            child: const Icon(FIcons.pencil),
-            onPress: () => context.push('/clients/$clientId/edit'),
-          ),
-          FButton.icon(
-            child: const Icon(FIcons.trash),
-            onPress: () => _confirmDelete(context, ref, l),
-          ),
-        ],
-      ),
-      child: async.when(
-        loading: () => const Center(child: FCircularProgress()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (record) => record == null
-            ? const SizedBox.shrink()
-            : _Body(client: record.$1, status: record.$2),
+    return SafeArea(
+      child: FScaffold(
+        header: FHeader.nested(
+          title: Text(async.value?.$1.name ?? '...'),
+          suffixes: [
+            FButton.icon(
+              child: const Icon(FIcons.pencil),
+              onPress: () => context.push('/clients/$clientId/edit'),
+            ),
+            FButton.icon(
+              child: const Icon(FIcons.trash),
+              onPress: () => _confirmDelete(context, ref, l),
+            ),
+          ],
+        ),
+        child: async.when(
+          loading: () => const Center(child: FCircularProgress()),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (record) => record == null
+              ? const SizedBox.shrink()
+              : _Body(client: record.$1, status: record.$2),
+        ),
       ),
     );
   }

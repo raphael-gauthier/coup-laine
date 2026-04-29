@@ -75,12 +75,13 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
             ),
           );
 
-    return FScaffold(
-      header: FHeader.nested(
-        title: Text(pivot?.name ?? l.proximityTitle),
-      ),
-      footer: footer,
-      child: Column(
+    return SafeArea(
+      child: FScaffold(
+        header: FHeader.nested(
+          title: Text(pivot?.name ?? l.proximityTitle),
+        ),
+        footer: footer,
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Pivot info row
@@ -146,6 +147,7 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

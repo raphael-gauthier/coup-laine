@@ -180,17 +180,20 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     final l = AppLocalizations.of(context)!;
 
     if (_loading) {
-      return FScaffold(
-        header: FHeader.nested(
-          title: Text(widget.isEdit ? l.clientFormTitleEdit : l.clientFormTitleNew),
+      return SafeArea(
+        child: FScaffold(
+          header: FHeader.nested(
+            title: Text(widget.isEdit ? l.clientFormTitleEdit : l.clientFormTitleNew),
+          ),
+          child: const Center(child: FCircularProgress()),
         ),
-        child: const Center(child: FCircularProgress()),
       );
     }
 
-    return FScaffold(
-      resizeToAvoidBottomInset: true,
-      header: FHeader.nested(
+    return SafeArea(
+      child: FScaffold(
+        resizeToAvoidBottomInset: true,
+        header: FHeader.nested(
         title: Text(widget.isEdit ? l.clientFormTitleEdit : l.clientFormTitleNew),
       ),
       child: SingleChildScrollView(
@@ -303,6 +306,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
             const SizedBox(height: AppSpacing.md),
           ],
         ),
+      ),
       ),
     );
   }

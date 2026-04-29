@@ -112,10 +112,11 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     final theme = context.theme;
     final async = ref.watch(tourDraftProvider);
 
-    return FScaffold(
-      resizeToAvoidBottomInset: true,
-      header: FHeader.nested(title: Text(l.tourDraftTitle)),
-      child: async.when(
+    return SafeArea(
+      child: FScaffold(
+        resizeToAvoidBottomInset: true,
+        header: FHeader.nested(title: Text(l.tourDraftTitle)),
+        child: async.when(
         loading: () => const Center(child: FCircularProgress()),
         error: (e, _) => Center(child: Text('$e')),
         data: (bundle) {
@@ -259,6 +260,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
             ],
           );
         },
+      ),
       ),
     );
   }

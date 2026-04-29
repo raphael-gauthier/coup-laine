@@ -33,28 +33,30 @@ class TourDetailScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context)!;
     final async = ref.watch(_tourByIdProvider(tourId));
 
-    return FScaffold(
-      header: FHeader.nested(
-        title: Text(async.value == null
-            ? '...'
-            : DateFormat('EEE d MMM yyyy', 'fr')
-                .format(async.value!.tour.plannedDate)),
-        suffixes: [
-          FButton.icon(
-            onPress: async.value == null
-                ? null
-                : () => _share(async.value!, context, l),
-            child: const Icon(FIcons.share2),
-          ),
-        ],
-      ),
-      child: async.when(
-        loading: () => const Center(child: FCircularProgress()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (bundle) {
-          if (bundle == null) return const SizedBox.shrink();
-          return _Body(bundle: bundle, tourId: tourId);
-        },
+    return SafeArea(
+      child: FScaffold(
+        header: FHeader.nested(
+          title: Text(async.value == null
+              ? '...'
+              : DateFormat('EEE d MMM yyyy', 'fr')
+                  .format(async.value!.tour.plannedDate)),
+          suffixes: [
+            FButton.icon(
+              onPress: async.value == null
+                  ? null
+                  : () => _share(async.value!, context, l),
+              child: const Icon(FIcons.share2),
+            ),
+          ],
+        ),
+        child: async.when(
+          loading: () => const Center(child: FCircularProgress()),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (bundle) {
+            if (bundle == null) return const SizedBox.shrink();
+            return _Body(bundle: bundle, tourId: tourId);
+          },
+        ),
       ),
     );
   }

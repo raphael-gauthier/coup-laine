@@ -47,9 +47,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
 
-    return FScaffold(
-      resizeToAvoidBottomInset: true,
-      child: SingleChildScrollView(
+    return SafeArea(
+      child: FScaffold(
+        resizeToAvoidBottomInset: true,
+        child: SingleChildScrollView(
         padding: AppSizes.screenPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -110,6 +111,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

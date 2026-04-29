@@ -34,9 +34,12 @@ class ToursListScreen extends ConsumerWidget {
     final async = ref.watch(toursAsyncProvider);
 
     return FScaffold(
-      child: Material(
-        type: MaterialType.transparency,
-        child: async.when(
+      child: SafeArea(
+        top: true,
+        bottom: false,
+        child: Material(
+          type: MaterialType.transparency,
+          child: async.when(
         loading: () => const Center(child: FCircularProgress()),
         error: (e, _) => Center(child: Text('$e')),
         data: (all) {
@@ -112,6 +115,7 @@ class ToursListScreen extends ConsumerWidget {
             ),
           );
         },
+        ),
         ),
       ),
     );

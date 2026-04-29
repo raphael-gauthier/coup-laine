@@ -115,6 +115,7 @@ class _ShellScaffold extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return FScaffold(
       childPad: false,
+      resizeToAvoidBottomInset: true,
       footer: FBottomNavigationBar(
         index: shell.currentIndex,
         onChange: (i) => shell.goBranch(i, initialLocation: i == shell.currentIndex),
