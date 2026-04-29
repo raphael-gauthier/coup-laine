@@ -42,9 +42,12 @@ class AppRouter {
         ),
         GoRoute(
           path: '/tours/draft',
-          builder: (_, state) => TourDraftScreen(
-            pivotId: int.parse(state.uri.queryParameters['pivot']!),
-          ),
+          builder: (_, state) {
+            final raw = state.uri.queryParameters['pivot'];
+            return TourDraftScreen(
+              pivotId: raw == null ? null : int.parse(raw),
+            );
+          },
         ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, shell) => _ShellScaffold(shell: shell),

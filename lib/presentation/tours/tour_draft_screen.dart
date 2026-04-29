@@ -19,8 +19,8 @@ import '../widgets/app_section_card.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
 
 class TourDraftScreen extends ConsumerStatefulWidget {
-  final int pivotId;
-  const TourDraftScreen({super.key, required this.pivotId});
+  final int? pivotId;
+  const TourDraftScreen({super.key, this.pivotId});
 
   @override
   ConsumerState<TourDraftScreen> createState() => _TourDraftScreenState();
