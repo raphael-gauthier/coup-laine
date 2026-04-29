@@ -15,6 +15,7 @@ import '../../presentation/map/map_screen.dart';
 import '../../presentation/tours/tour_completion_screen.dart';
 import '../../presentation/tours/tour_detail_screen.dart';
 import '../../presentation/tours/tour_draft_screen.dart';
+import '../../presentation/tours/tour_manual_picker_screen.dart';
 import '../../presentation/tours/tours_list_screen.dart';
 import '../../state/providers.dart';
 
@@ -48,6 +49,10 @@ class AppRouter {
               pivotId: raw == null ? null : int.parse(raw),
             );
           },
+        ),
+        GoRoute(
+          path: '/tours/new/manual',
+          builder: (_, __) => const TourManualPickerScreen(),
         ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, shell) => _ShellScaffold(shell: shell),
