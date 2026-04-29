@@ -11,7 +11,9 @@ import '../data/repositories/client_repository.dart';
 import '../data/repositories/distance_matrix_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/tour_repository.dart';
+import '../domain/models/client.dart';
 import '../domain/models/settings.dart';
+import '../domain/use_cases/client_status.dart';
 import '../infra/db/app_database.dart';
 import '../infra/services/ban_geocoding_service.dart';
 import '../infra/services/json_export_service.dart';
@@ -93,4 +95,22 @@ final themeModeProvider = FutureProvider<ThemeMode>((ref) async {
     ThemeModePreference.dark => ThemeMode.dark,
     ThemeModePreference.system => ThemeMode.system,
   };
+});
+
+final waitingPickerCandidatesProvider = FutureProvider.autoDispose<
+    ({List<Client> eligible, int excludedCount})>((ref) async {
+  final clients = ref.watch(clientRepositoryProvider);
+  final settings = await ref.watch(settingsRepositoryProvider).read();
+  final seasonStart = settings?.seasonStartedAt ??
+      DateTime.fromMillisecondsSinceEpoch(0);
+  final withStatus = await clients.listAllWithStatus(seasonStart);
+  final waiting = [
+    for (final r in withStatus)
+      if (r.$2 == ClientStatus.waiting) r.$1,
+  ];
+  final eligible = waiting.where((c) => !c.needsDistanceRecompute).toList();
+  return (
+    eligible: eligible,
+    excludedCount: waiting.length - eligible.length,
+  );
 });
