@@ -120,5 +120,17 @@
   "onboardingWelcomeTitle": "Welcome",
   "onboardingWelcomeBody": "To get started, enter the address you leave from each morning. All distances will be calculated from this point.",
   "onboardingAddressTitle": "Starting address",
-  "onboardingCta": "Get started"
+  "onboardingCta": "Get started",
+  "settingsMarkerDefault": "Default",
+  "settingsMarkerWaiting": "Waiting",
+  "settingsMarkerScheduled": "Scheduled",
+  "settingsMarkerDone": "Done",
+  "settingsMarkerNoSheep": "No sheep",
+  "settingsMarkerBanned": "Banned",
+  "settingsSeasonTitle": "Season",
+  "settingsSeasonResetButton": "Reset season",
+  "settingsSeasonResetConfirmTitle": "Reset the season?",
+  "settingsSeasonResetConfirmBody": "All waiting, scheduled or done clients will fall back to gray. Banned and no-sheep are preserved. Continue?",
+  "settingsSeasonStartedFmt": "Season ongoing since {date}",
+  "@settingsSeasonStartedFmt": {"placeholders": {"date": {"type": "String"}}}
 }

@@ -120,5 +120,17 @@
   "onboardingWelcomeTitle": "Bienvenue",
   "onboardingWelcomeBody": "Pour commencer, indiquez l'adresse d'où vous partez chaque matin. Toutes les distances seront calculées depuis ce point.",
   "onboardingAddressTitle": "Adresse de départ",
-  "onboardingCta": "Commencer"
+  "onboardingCta": "Commencer",
+  "settingsMarkerDefault": "Par défaut",
+  "settingsMarkerWaiting": "En attente",
+  "settingsMarkerScheduled": "RDV calé",
+  "settingsMarkerDone": "Passé",
+  "settingsMarkerNoSheep": "Sans moutons",
+  "settingsMarkerBanned": "Banni",
+  "settingsSeasonTitle": "Saison",
+  "settingsSeasonResetButton": "Réinitialiser la saison",
+  "settingsSeasonResetConfirmTitle": "Réinitialiser la saison ?",
+  "settingsSeasonResetConfirmBody": "Tous les clients en attente, RDV calé ou Passé repasseront en gris. Les bannis et sans-moutons sont conservés. Continuer ?",
+  "settingsSeasonStartedFmt": "Saison en cours depuis le {date}",
+  "@settingsSeasonStartedFmt": {"placeholders": {"date": {"type": "String"}}}
 }

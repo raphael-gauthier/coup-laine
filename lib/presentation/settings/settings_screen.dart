@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
@@ -300,45 +301,108 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
             child: Column(
               children: [
                 _MarkerColorRow(
-                  label: 'Par défaut',
+                  label: l.settingsMarkerDefault,
                   currentHex: _draft.markerDefaultColor,
                   defaultHex: '#9CA3AF',
                   onPicked: (hex) => _persistMarkerColor(ClientStatus.defaultStatus, hex),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(
-                  label: 'En attente',
+                  label: l.settingsMarkerWaiting,
                   currentHex: _draft.markerWaitingColor,
                   defaultHex: '#EAB308',
                   onPicked: (hex) => _persistMarkerColor(ClientStatus.waiting, hex),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(
-                  label: 'Planifié',
+                  label: l.settingsMarkerScheduled,
                   currentHex: _draft.markerScheduledColor,
                   defaultHex: '#65A30D',
                   onPicked: (hex) => _persistMarkerColor(ClientStatus.scheduled, hex),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(
-                  label: 'Terminé',
+                  label: l.settingsMarkerDone,
                   currentHex: _draft.markerDoneColor,
                   defaultHex: '#166534',
                   onPicked: (hex) => _persistMarkerColor(ClientStatus.done, hex),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(
-                  label: 'Sans mouton',
+                  label: l.settingsMarkerNoSheep,
                   currentHex: _draft.markerNoSheepColor,
                   defaultHex: '#1F2937',
                   onPicked: (hex) => _persistMarkerColor(ClientStatus.noSheep, hex),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(
-                  label: 'Banni',
+                  label: l.settingsMarkerBanned,
                   currentHex: _draft.markerBannedColor,
                   defaultHex: '#B91C1C',
                   onPicked: (hex) => _persistMarkerColor(ClientStatus.banned, hex),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // --- Saison ---
+          AppSectionCard(
+            icon: FIcons.calendar,
+            title: l.settingsSeasonTitle,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l.settingsSeasonStartedFmt(
+                    DateFormat('dd/MM/yyyy').format(_draft.seasonStartedAt),
+                  ),
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                FButton(
+                  variant: FButtonVariant.destructive,
+                  prefix: const Icon(FIcons.rotateCcw),
+                  onPress: () async {
+                    final ok = await showFDialog<bool>(
+                      context: context,
+                      builder: (ctx, style, animation) => FDialog(
+                        style: style,
+                        animation: animation,
+                        title: Text(l.settingsSeasonResetConfirmTitle),
+                        body: Text(l.settingsSeasonResetConfirmBody),
+                        actions: [
+                          FButton(
+                            variant: FButtonVariant.outline,
+                            onPress: () => Navigator.of(ctx).pop(false),
+                            child: const Text('Annuler'),
+                          ),
+                          FButton(
+                            variant: FButtonVariant.destructive,
+                            onPress: () => Navigator.of(ctx).pop(true),
+                            child: Text(l.settingsSeasonResetButton),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (ok != true) return;
+                    final now = DateTime.now();
+                    await ref.read(settingsRepositoryProvider).bumpSeasonStartedAt(now);
+                    await ref.read(clientRepositoryProvider).resetAllWaiting();
+                    ref.invalidate(_settingsAsyncProvider);
+                    ref.invalidate(clientsAsyncProvider);
+                    if (!mounted) return;
+                    setState(() {
+                      _draft = _draft.copyWith(seasonStartedAt: now);
+                    });
+                    showFToast(
+                      context: context, // ignore: use_build_context_synchronously
+                      title: Text(l.settingsSeasonResetButton),
+                    );
+                  },
+                  child: Text(l.settingsSeasonResetButton),
                 ),
               ],
             ),
