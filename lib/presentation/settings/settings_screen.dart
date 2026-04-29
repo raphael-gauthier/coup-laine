@@ -77,9 +77,10 @@ class _SettingsForm extends ConsumerStatefulWidget {
 class _SettingsFormState extends ConsumerState<_SettingsForm> {
   late Settings _draft;
 
-  // Controllers for the three numeric fields — kept alive for the widget lifetime.
+  // Controllers for the four numeric fields — kept alive for the widget lifetime.
   late final TextEditingController _radiusCtrl;
-  late final TextEditingController _minPerSheepCtrl;
+  late final TextEditingController _minPerSmallCtrl;
+  late final TextEditingController _minPerLargeCtrl;
   late final TextEditingController _tariffCtrl;
 
   @override
@@ -87,14 +88,18 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
     super.initState();
     _draft = widget.initial;
     _radiusCtrl = TextEditingController(text: _draft.defaultRadiusKm.toString());
-    _minPerSheepCtrl = TextEditingController(text: _draft.defaultMinutesPerSheep.toString());
+    _minPerSmallCtrl =
+        TextEditingController(text: _draft.defaultMinutesPerSmall.toString());
+    _minPerLargeCtrl =
+        TextEditingController(text: _draft.defaultMinutesPerLarge.toString());
     _tariffCtrl = TextEditingController(text: _draft.travelFeeEurosPerBracket.toString());
   }
 
   @override
   void dispose() {
     _radiusCtrl.dispose();
-    _minPerSheepCtrl.dispose();
+    _minPerSmallCtrl.dispose();
+    _minPerLargeCtrl.dispose();
     _tariffCtrl.dispose();
     super.dispose();
   }
@@ -103,7 +108,8 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
       _draft.baseAddressLabel != widget.initial.baseAddressLabel ||
       _draft.baseCoordinates != widget.initial.baseCoordinates ||
       _draft.defaultRadiusKm != widget.initial.defaultRadiusKm ||
-      _draft.defaultMinutesPerSheep != widget.initial.defaultMinutesPerSheep ||
+      _draft.defaultMinutesPerSmall != widget.initial.defaultMinutesPerSmall ||
+      _draft.defaultMinutesPerLarge != widget.initial.defaultMinutesPerLarge ||
       _draft.travelFeeEurosPerBracket != widget.initial.travelFeeEurosPerBracket;
 
   Future<void> _persistMarkerColor(ClientStatus status, String hex) async {
@@ -266,15 +272,32 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 const SizedBox(height: AppSpacing.sm),
                 FTextField(
                   control: FTextFieldControl.managed(
-                    controller: _minPerSheepCtrl,
+                    controller: _minPerSmallCtrl,
                     onChange: (v) {
                       final n = int.tryParse(v.text);
                       if (n != null && n > 0) {
-                        setState(() => _draft = _draft.copyWith(defaultMinutesPerSheep: n));
+                        setState(() => _draft =
+                            _draft.copyWith(defaultMinutesPerSmall: n));
                       }
                     },
                   ),
-                  label: Text(l.settingsMinPerSheepLabel),
+                  label: Text(l.settingsMinPerSmallLabel),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                FTextField(
+                  control: FTextFieldControl.managed(
+                    controller: _minPerLargeCtrl,
+                    onChange: (v) {
+                      final n = int.tryParse(v.text);
+                      if (n != null && n > 0) {
+                        setState(() => _draft =
+                            _draft.copyWith(defaultMinutesPerLarge: n));
+                      }
+                    },
+                  ),
+                  label: Text(l.settingsMinPerLargeLabel),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 ),
