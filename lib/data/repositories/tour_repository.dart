@@ -10,8 +10,10 @@ class TourStopDraft {
   final int orderIndex;
   final int estimatedArrivalMinutes;
   final int estimatedDepartureMinutes;
-  final int sheepCountSnapshot;
-  final int minutesPerSheepSnapshot;
+  final int plannedSmall;
+  final int plannedLarge;
+  final int minutesPerSmallSnapshot;
+  final int minutesPerLargeSnapshot;
   final int feeShareCents;
 
   const TourStopDraft({
@@ -19,8 +21,10 @@ class TourStopDraft {
     required this.orderIndex,
     required this.estimatedArrivalMinutes,
     required this.estimatedDepartureMinutes,
-    required this.sheepCountSnapshot,
-    required this.minutesPerSheepSnapshot,
+    required this.plannedSmall,
+    required this.plannedLarge,
+    required this.minutesPerSmallSnapshot,
+    required this.minutesPerLargeSnapshot,
     required this.feeShareCents,
     this.clientId,
   });
@@ -80,8 +84,10 @@ class TourRepository {
                 orderIndex: s.orderIndex,
                 estimatedArrivalMinutes: s.estimatedArrivalMinutes,
                 estimatedDepartureMinutes: s.estimatedDepartureMinutes,
-                sheepCountSnapshot: s.sheepCountSnapshot,
-                minutesPerSheepSnapshot: s.minutesPerSheepSnapshot,
+                plannedSmall: Value(s.plannedSmall),
+                plannedLarge: Value(s.plannedLarge),
+                minutesPerSmallSnapshot: Value(s.minutesPerSmallSnapshot),
+                minutesPerLargeSnapshot: Value(s.minutesPerLargeSnapshot),
                 feeShareCents: s.feeShareCents,
               ),
             );
@@ -175,8 +181,10 @@ class TourRepository {
         orderIndex: row.orderIndex,
         estimatedArrivalMinutes: row.estimatedArrivalMinutes,
         estimatedDepartureMinutes: row.estimatedDepartureMinutes,
-        sheepCountSnapshot: row.sheepCountSnapshot,
-        minutesPerSheepSnapshot: row.minutesPerSheepSnapshot,
+        plannedSmall: row.plannedSmall,
+        plannedLarge: row.plannedLarge,
+        minutesPerSmallSnapshot: row.minutesPerSmallSnapshot,
+        minutesPerLargeSnapshot: row.minutesPerLargeSnapshot,
         feeShareCents: row.feeShareCents,
       );
 }

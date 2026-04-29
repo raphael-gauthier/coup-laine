@@ -12,15 +12,18 @@ Client _newClient({
   String name = 'Le Gall',
   bool isWaiting = false,
   bool needsDistanceRecompute = false,
+  int sheepCountSmall = 12,
+  int sheepCountLarge = 0,
 }) {
   return Client(
-    id: 0, // ignored on insert
+    id: 0,
     name: name,
     addressLabel: '1 rue, 29000 Quimper',
     postcode: '29000',
     city: 'Quimper',
     coordinates: const Coordinates(lat: 48.0, lon: -4.1),
-    sheepCount: 12,
+    sheepCountSmall: sheepCountSmall,
+    sheepCountLarge: sheepCountLarge,
     isWaiting: isWaiting,
     needsDistanceRecompute: needsDistanceRecompute,
   );
@@ -137,7 +140,8 @@ void main() {
         city: 'X',
         lat: 48,
         lon: -4,
-        sheepCount: const Value(0),
+        sheepCountSmall: const Value(0),
+        sheepCountLarge: const Value(0),
         createdAt: 0,
         updatedAt: 0,
       ),
@@ -158,8 +162,10 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          sheepCountSnapshot: 5,
-          minutesPerSheepSnapshot: 20,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
           feeShareCents: 0,
         ),
       ],
@@ -179,8 +185,10 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          sheepCountSnapshot: 5,
-          minutesPerSheepSnapshot: 20,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
           feeShareCents: 0,
         ),
       ],
@@ -201,8 +209,10 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          sheepCountSnapshot: 5,
-          minutesPerSheepSnapshot: 20,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
           feeShareCents: 0,
         ),
       ],
@@ -218,5 +228,22 @@ void main() {
     expect(byName['C5'], ClientStatus.scheduled);
     expect(byName['C6'], ClientStatus.done);
     expect(byName['C7'], ClientStatus.defaultStatus);
+  });
+
+  test('applyInterventionActuals updates breed counts and lastShearingDate',
+      () async {
+    final id = await repo.insert(
+      _newClient(sheepCountSmall: 8, sheepCountLarge: 0),
+    );
+    await repo.applyInterventionActuals(
+      id,
+      small: 6,
+      large: 3,
+      tourDate: DateTime(2026, 5, 12),
+    );
+    final c = (await repo.findById(id))!;
+    expect(c.sheepCountSmall, 6);
+    expect(c.sheepCountLarge, 3);
+    expect(c.lastShearingDate, DateTime(2026, 5, 12));
   });
 }

@@ -20,8 +20,8 @@ class ClientRepository {
             city: c.city,
             lat: c.coordinates.lat,
             lon: c.coordinates.lon,
-            sheepCount: Value(c.sheepCount),
-            minutesPerSheepOverride: Value(c.minutesPerSheepOverride),
+            sheepCountSmall: Value(c.sheepCountSmall),
+            sheepCountLarge: Value(c.sheepCountLarge),
             isWaiting: Value(c.isWaiting),
             isBanned: Value(c.isBanned),
             lastShearingDate: Value(
@@ -117,15 +117,15 @@ class ClientRepository {
     required int id,
     required String name,
     String? phone,
-    required int sheepCount,
-    int? minutesPerSheepOverride,
+    required int sheepCountSmall,
+    required int sheepCountLarge,
   }) async {
     await (_db.update(_db.clientsTable)..where((t) => t.id.equals(id))).write(
       ClientsTableCompanion(
         name: Value(name),
         phone: Value(phone),
-        sheepCount: Value(sheepCount),
-        minutesPerSheepOverride: Value(minutesPerSheepOverride),
+        sheepCountSmall: Value(sheepCountSmall),
+        sheepCountLarge: Value(sheepCountLarge),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
@@ -233,6 +233,28 @@ class ClientRepository {
     );
   }
 
+  /// Persists the actual sheep counts captured during a tour completion onto
+  /// the client's stored counts, and bumps `lastShearingDate` to the tour's
+  /// planned date. Does not mutate `isWaiting` (status now derives from
+  /// completed tour membership).
+  Future<void> applyInterventionActuals(
+    int clientId, {
+    required int small,
+    required int large,
+    required DateTime tourDate,
+  }) async {
+    await (_db.update(_db.clientsTable)
+          ..where((t) => t.id.equals(clientId)))
+        .write(
+      ClientsTableCompanion(
+        sheepCountSmall: Value(small),
+        sheepCountLarge: Value(large),
+        lastShearingDate: Value(tourDate.millisecondsSinceEpoch),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
   Future<void> delete(int id) async {
     await (_db.delete(_db.clientsTable)..where((t) => t.id.equals(id))).go();
   }
@@ -250,8 +272,8 @@ class ClientRepository {
         postcode: row.postcode,
         city: row.city,
         coordinates: Coordinates(lat: row.lat, lon: row.lon),
-        sheepCount: row.sheepCount,
-        minutesPerSheepOverride: row.minutesPerSheepOverride,
+        sheepCountSmall: row.sheepCountSmall,
+        sheepCountLarge: row.sheepCountLarge,
         markerColorHex: row.markerColorHex,
         isWaiting: row.isWaiting,
         isBanned: row.isBanned,
