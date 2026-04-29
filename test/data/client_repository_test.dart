@@ -193,7 +193,13 @@ void main() {
         ),
       ],
     ));
-    await tours.markCompleted(tourId);
+    await tours.markCompleted(tourId, {
+      (await tours.findById(tourId))!.stops.first.id: (
+        actualSmall: 5,
+        actualLarge: 0,
+        note: null,
+      ),
+    });
     // C7: tour BEFORE season start → must NOT make C7 done/scheduled
     final c7 = await repo.insert(_newClient(name: 'C7'));
     await tours.plan(TourDraft(
@@ -247,20 +253,6 @@ void main() {
     expect(c.lastShearingDate, DateTime(2026, 5, 12));
   });
 
-  // TODO: Task 6 — uncomment body and remove placeholder once markCompleted
-  // gains the actuals-map signature: markCompleted(int, Map<int, ({...})>).
-  test(
-    'listInterventionsForClient returns completed stops only, sorted desc, '
-    'with hasBilan reflecting actual_* presence',
-    () async {
-      // placeholder — real body below, commented out until Task 6
-      expect(true, isTrue);
-    },
-    skip: 'Enabled by Task 6 (markCompleted with actuals map signature)',
-  );
-
-  /*
-  // TASK 6: uncomment the body below and replace the placeholder test above.
   test(
     'listInterventionsForClient returns completed stops only, sorted desc, '
     'with hasBilan reflecting actual_* presence',
@@ -363,7 +355,5 @@ void main() {
       expect(history[1].large, 0);
       expect(history[1].hasBilan, isTrue);
     },
-    skip: 'Enabled by Task 6 (markCompleted with actuals map signature)',
   );
-  */
 }

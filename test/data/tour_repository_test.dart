@@ -30,7 +30,8 @@ void main() {
       postcode: '29000',
       city: 'Quimper',
       coordinates: const Coordinates(lat: 48, lon: -4),
-      sheepCount: 5,
+      sheepCountSmall: 5,
+      sheepCountLarge: 0,
       isWaiting: waiting,
     ));
   }
@@ -51,8 +52,10 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 8 * 60 + 20,
           estimatedDepartureMinutes: 8 * 60 + 80,
-          sheepCountSnapshot: 5,
-          minutesPerSheepSnapshot: 20,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
           feeShareCents: 2000,
         ),
         TourStopDraft(
@@ -61,8 +64,10 @@ void main() {
           orderIndex: 1,
           estimatedArrivalMinutes: 9 * 60 + 30,
           estimatedDepartureMinutes: 10 * 60 + 30,
-          sheepCountSnapshot: 5,
-          minutesPerSheepSnapshot: 20,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
           feeShareCents: 2000,
         ),
       ],
@@ -75,7 +80,8 @@ void main() {
     expect(read.stops.map((s) => s.clientNameSnapshot), ['A', 'B']);
   });
 
-  test('markCompleted writes lastShearingDate but does not touch isWaiting',
+  test(
+      'markCompleted persists actuals + note and auto-syncs the client counts',
       () async {
     final c1 = await _addClient('A', waiting: true);
     final tourId = await tours.plan(TourDraft(
@@ -91,19 +97,32 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          sheepCountSnapshot: 5,
-          minutesPerSheepSnapshot: 20,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
           feeShareCents: 0,
         ),
       ],
     ));
-    await tours.markCompleted(tourId);
+    final stopId = (await tours.findById(tourId))!.stops.first.id;
+    await tours.markCompleted(tourId, {
+      stopId: (actualSmall: 4, actualLarge: 1, note: 'OK'),
+    });
+
     final read = await tours.findById(tourId);
     expect(read!.tour.status, TourStatus.completed);
+    expect(read.stops.first.actualSmall, 4);
+    expect(read.stops.first.actualLarge, 1);
+    expect(read.stops.first.interventionNote, 'OK');
+
     final c = await clients.findById(c1);
-    // isWaiting is left untouched — derived status (now `done`) replaces it.
+    // The client was waiting before completion and stays waiting — only
+    // the breed counts and lastShearingDate change.
     expect(c!.isWaiting, isTrue);
-    expect(c.lastShearingDate, isNotNull);
+    expect(c.sheepCountSmall, 4);
+    expect(c.sheepCountLarge, 1);
+    expect(c.lastShearingDate, DateTime(2026, 5, 12));
   });
 
   test('soft FK preserves stop after client delete', () async {
@@ -121,8 +140,10 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          sheepCountSnapshot: 5,
-          minutesPerSheepSnapshot: 20,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
           feeShareCents: 0,
         ),
       ],

@@ -118,31 +118,64 @@ class TourRepository {
     return rows.map(_tourFromRow).toList();
   }
 
-  Future<void> markCompleted(int id) async {
+  /// Mark a tour as completed. The caller passes a map keyed by `stop.id`
+  /// containing the actual sheep counts and an optional note. For each stop
+  /// with a non-null `clientId`, the corresponding client's stored counts
+  /// are replaced with the actuals (auto-sync) and `lastShearingDate` is
+  /// bumped to the tour's planned date.
+  Future<void> markCompleted(
+    int id,
+    Map<int, ({int actualSmall, int actualLarge, String? note})> actuals,
+  ) async {
     await _db.transaction(() async {
       final tour = await (_db.select(_db.toursTable)
             ..where((t) => t.id.equals(id)))
           .getSingle();
       final now = DateTime.now().millisecondsSinceEpoch;
+      final tourDateUtc =
+          DateTime.fromMillisecondsSinceEpoch(tour.plannedDate * 86400000, isUtc: true);
+      final tourDate = DateTime(tourDateUtc.year, tourDateUtc.month, tourDateUtc.day);
+
+      // 1. Status flip.
       await (_db.update(_db.toursTable)..where((t) => t.id.equals(id))).write(
         ToursTableCompanion(
           status: const Value('completed'),
           completedAt: Value(now),
         ),
       );
+
+      // 2. For each stop: persist the actuals + note (if provided), then
+      //    sync the linked client's counts.
       final stopRows = await (_db.select(_db.tourStopsTable)
-            ..where((s) =>
-                s.tourId.equals(id) & s.clientId.isNotNull()))
+            ..where((s) => s.tourId.equals(id)))
           .get();
+
       for (final s in stopRows) {
-        await (_db.update(_db.clientsTable)
-              ..where((c) => c.id.equals(s.clientId!)))
+        final entry = actuals[s.id];
+        if (entry == null) continue;
+        await (_db.update(_db.tourStopsTable)
+              ..where((t) => t.id.equals(s.id)))
             .write(
-          ClientsTableCompanion(
-            lastShearingDate: Value(tour.plannedDate * 86400000),
-            updatedAt: Value(now),
+          TourStopsTableCompanion(
+            actualSmall: Value(entry.actualSmall),
+            actualLarge: Value(entry.actualLarge),
+            interventionNote: Value(entry.note),
           ),
         );
+
+        final cid = s.clientId;
+        if (cid != null) {
+          await (_db.update(_db.clientsTable)
+                ..where((c) => c.id.equals(cid)))
+              .write(
+            ClientsTableCompanion(
+              sheepCountSmall: Value(entry.actualSmall),
+              sheepCountLarge: Value(entry.actualLarge),
+              lastShearingDate: Value(tourDate.millisecondsSinceEpoch),
+              updatedAt: Value(now),
+            ),
+          );
+        }
       }
     });
   }
@@ -186,5 +219,8 @@ class TourRepository {
         minutesPerSmallSnapshot: row.minutesPerSmallSnapshot,
         minutesPerLargeSnapshot: row.minutesPerLargeSnapshot,
         feeShareCents: row.feeShareCents,
+        actualSmall: row.actualSmall,
+        actualLarge: row.actualLarge,
+        interventionNote: row.interventionNote,
       );
 }

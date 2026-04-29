@@ -263,9 +263,13 @@ class ClientRepository {
           return Intervention(
             tourId: tour.id,
             stopId: stop.id,
-            date: DateTime.fromMillisecondsSinceEpoch(
-              tour.plannedDate * 86400000,
-            ),
+            date: () {
+              final utc = DateTime.fromMillisecondsSinceEpoch(
+                tour.plannedDate * 86400000,
+                isUtc: true,
+              );
+              return DateTime(utc.year, utc.month, utc.day);
+            }(),
             small: stop.actualSmall ?? stop.plannedSmall,
             large: stop.actualLarge ?? stop.plannedLarge,
             note: stop.interventionNote,
