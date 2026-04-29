@@ -14,6 +14,15 @@ class TourDurationResult {
   });
 }
 
+/// Per-stop input for the estimator. Time spent shearing at the stop is
+/// `small * minutesSmall + large * minutesLarge`.
+typedef TourStopEstimateInput = ({
+  int small,
+  int large,
+  int minutesSmall,
+  int minutesLarge,
+});
+
 class TourDurationEstimator {
   const TourDurationEstimator();
 
@@ -21,16 +30,13 @@ class TourDurationEstimator {
     required int startTimeMinutes,
     required List<int> driveSecondsToStops,
     required int driveSecondsBackToBase,
-    required List<int> sheepCountPerStop,
-    required List<int> minutesPerSheepPerStop,
+    required List<TourStopEstimateInput> stops,
   }) {
     final n = driveSecondsToStops.length;
-    if (sheepCountPerStop.length != n ||
-        minutesPerSheepPerStop.length != n) {
+    if (stops.length != n) {
       throw ArgumentError(
-        'sheepCountPerStop and minutesPerSheepPerStop must have length n '
-        '(got ${sheepCountPerStop.length} and '
-        '${minutesPerSheepPerStop.length}, expected $n)',
+        'stops and driveSecondsToStops must have length n '
+        '(got ${stops.length} and $n)',
       );
     }
 
@@ -46,7 +52,9 @@ class TourDurationEstimator {
       totalDrive += driveSecondsToStops[i];
       arrivals.add(clock);
 
-      final shearMin = sheepCountPerStop[i] * minutesPerSheepPerStop[i];
+      final stop = stops[i];
+      final shearMin = stop.small * stop.minutesSmall +
+          stop.large * stop.minutesLarge;
       clock += shearMin;
       totalShear += shearMin;
       departures.add(clock);
