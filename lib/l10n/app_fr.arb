@@ -152,5 +152,8 @@
   "@clientDetailHistoryItemFmt": {"placeholders": {"date": {"type": "String"}, "small": {"type": "int"}, "large": {"type": "int"}}},
   "clientDetailHistoryNoBilan": " (planifié, pas de bilan)",
   "clientDetailHistoryViewAll": "Voir l'historique complet",
-  "clientHistoryTitle": "Historique"
+  "clientHistoryTitle": "Historique",
+  "tourCompletionTitle": "Bilan d'intervention",
+  "tourCompletionConfirm": "Confirmer la tournée",
+  "tourCompletionNoteHint": "Note (optionnelle)"
 }

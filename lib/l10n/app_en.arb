@@ -152,5 +152,8 @@
   "@clientDetailHistoryItemFmt": {"placeholders": {"date": {"type": "String"}, "small": {"type": "int"}, "large": {"type": "int"}}},
   "clientDetailHistoryNoBilan": " (planned, no recap)",
   "clientDetailHistoryViewAll": "See full history",
-  "clientHistoryTitle": "History"
+  "clientHistoryTitle": "History",
+  "tourCompletionTitle": "Intervention summary",
+  "tourCompletionConfirm": "Confirm tour",
+  "tourCompletionNoteHint": "Note (optional)"
 }

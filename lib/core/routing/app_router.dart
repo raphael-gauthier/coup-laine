@@ -12,6 +12,7 @@ import '../../presentation/clients/clients_list_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/settings/settings_screen.dart';
 import '../../presentation/map/map_screen.dart';
+import '../../presentation/tours/tour_completion_screen.dart';
 import '../../presentation/tours/tour_detail_screen.dart';
 import '../../presentation/tours/tour_draft_screen.dart';
 import '../../presentation/tours/tours_list_screen.dart';
@@ -90,6 +91,14 @@ class AppRouter {
                     builder: (_, state) => TourDetailScreen(
                       tourId: int.parse(state.pathParameters['id']!),
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'complete',
+                        builder: (_, state) => TourCompletionScreen(
+                          tourId: int.parse(state.pathParameters['id']!),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
