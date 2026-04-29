@@ -109,7 +109,7 @@
   "tourDetailLongDay": "Long day",
   "tourDetailComplete": "Mark as completed",
   "tourDetailCompleteConfirmTitle": "Confirm",
-  "tourDetailCompleteConfirmBody": "This will update the last shearing date for {n} client(s) and remove them from the waiting list.",
+  "tourDetailCompleteConfirmBody": "This will record the last shearing date for {n} client(s) and shift them to the “Done” status.",
   "@tourDetailCompleteConfirmBody": {"placeholders": {"n": {"type": "int"}}},
   "tourDetailShare": "Share",
   "tourDetailScheduleTitle": "Schedule",

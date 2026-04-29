@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/legacy.dart';
 
 import '../domain/use_cases/client_status.dart';
 
-/// Statuses currently visible on the map. Default: all four.
+/// Statuses currently visible on the map. Default: all six.
 final mapVisibleStatusesProvider = StateProvider<Set<ClientStatus>>(
   (_) => ClientStatus.values.toSet(),
 );
