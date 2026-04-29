@@ -14,7 +14,6 @@ import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
 import '../widgets/app_hero_card.dart';
-import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
@@ -138,19 +137,19 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: AppListTile(
+                        child: FTile(
                           prefix: const Icon(FIcons.calendar),
-                          title: l.tourDraftDate,
-                          subtitle: DateFormat('d MMM yyyy', 'fr').format(_date),
+                          title: Text(l.tourDraftDate),
+                          subtitle: Text(DateFormat('d MMM yyyy', 'fr').format(_date)),
                           onPress: _pickDate,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: AppListTile(
+                        child: FTile(
                           prefix: const Icon(FIcons.clock),
-                          title: l.tourDraftStart,
-                          subtitle: formatHm(_startMinutes),
+                          title: Text(l.tourDraftStart),
+                          subtitle: Text(formatHm(_startMinutes)),
                           onPress: _pickTime,
                         ),
                       ),
@@ -195,7 +194,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       return Padding(
                         key: ValueKey(c.id),
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: AppListTile(
+                        child: FTile(
                           prefix: Container(
                             width: 28,
                             height: 28,
@@ -212,9 +211,11 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                               ),
                             ),
                           ),
-                          title: c.name,
-                          subtitle:
-                              '${l.tourDraftStopArrivalFmt(formatHm(arr), formatHm(dep))} · $fee',
+                          title: Text(c.name),
+                          subtitle: Text(
+                            l.tourDraftStopArrivalFmt(formatHm(arr), formatHm(dep)),
+                          ),
+                          details: Text(fee),
                           suffix: const Icon(FIcons.gripVertical),
                         ),
                       );

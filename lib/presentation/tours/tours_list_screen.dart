@@ -13,7 +13,6 @@ import '../../domain/models/tour.dart';
 import '../../state/providers.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_empty_state.dart';
-import '../widgets/app_list_tile.dart';
 
 enum _Filter { all, planned, completed }
 
@@ -139,7 +138,7 @@ class _TourTile extends StatelessWidget {
     final prefixIcon = isCompleted ? FIcons.calendarCheck : FIcons.calendar;
     final prefixFg = isCompleted ? theme.colors.primaryForeground : theme.colors.secondaryForeground;
 
-    return AppListTile(
+    return FTile(
       prefix: Container(
         width: 36,
         height: 36,
@@ -147,8 +146,8 @@ class _TourTile extends StatelessWidget {
         alignment: Alignment.center,
         child: Icon(prefixIcon, color: prefixFg, size: 18),
       ),
-      title: dateLabel,
-      subtitle: '$km km · $driveMin min',
+      title: Text(dateLabel),
+      subtitle: Text('$km km · $driveMin min'),
       suffix: isCompleted ? AppBadge.completed(context) : AppBadge.planned(context),
       onPress: () => context.push('/tours/${tour.id}'),
     );

@@ -57,7 +57,7 @@ abstract final class AppSizes {
   /// Standard FCard padding (used by AppSectionCard).
   static const EdgeInsets cardPadding = EdgeInsets.all(20);
 
-  /// AppListTile internal padding.
+  /// List tile internal padding (used by custom rows in tour_detail and client_history).
   static const EdgeInsets listTilePadding = EdgeInsets.all(16);
 
   /// Clearance for scrollable lists so the last item clears the bottom nav bar.

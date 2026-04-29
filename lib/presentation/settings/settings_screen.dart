@@ -18,7 +18,6 @@ import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 import '../tours/tours_list_screen.dart' show toursAsyncProvider;
 import '../widgets/address_autocomplete_field.dart';
-import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import '../widgets/color_swatch_picker.dart';
@@ -442,9 +441,9 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
             title: l.settingsDataTitle,
             child: Column(
               children: [
-                AppListTile(
+                FTile(
                   prefix: const Icon(FIcons.upload),
-                  title: l.settingsExportData,
+                  title: Text(l.settingsExportData),
                   suffix: const Icon(FIcons.chevronRight),
                   onPress: () async {
                     final svc = ref.read(jsonExportServiceProvider);
@@ -459,9 +458,9 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                   },
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                AppListTile(
+                FTile(
                   prefix: const Icon(FIcons.download),
-                  title: l.settingsImportData,
+                  title: Text(l.settingsImportData),
                   suffix: const Icon(FIcons.chevronRight),
                   onPress: () async {
                     final picked = await openFile(
@@ -542,14 +541,11 @@ class _ThemeOption extends ConsumerWidget {
     final settingsAsync = ref.watch(_settingsAsyncProvider);
     final currentMode = settingsAsync.value?.themeMode ?? ThemeModePreference.system;
     final isActive = currentMode == mode;
-    final theme = context.theme;
 
-    return AppListTile(
+    return FTile(
       prefix: Icon(icon),
-      title: label,
-      suffix: isActive
-          ? Icon(FIcons.check, color: theme.colors.primary)
-          : null,
+      title: Text(label),
+      selected: isActive,
       onPress: isActive
           ? null
           : () async {
@@ -581,7 +577,7 @@ class _MarkerColorRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    return AppListTile(
+    return FTile(
       prefix: Container(
         width: 24,
         height: 24,
@@ -591,8 +587,8 @@ class _MarkerColorRow extends StatelessWidget {
           border: Border.all(color: theme.colors.border),
         ),
       ),
-      title: label,
-      subtitle: currentHex.toUpperCase(),
+      title: Text(label),
+      subtitle: Text(currentHex.toUpperCase()),
       suffix: const Icon(FIcons.chevronRight),
       onPress: () async {
         final picked = await showColorSwatchPicker(

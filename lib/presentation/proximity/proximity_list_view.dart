@@ -7,7 +7,6 @@ import 'package:forui/forui.dart';
 import '../../core/design_tokens.dart';
 import '../../state/proximity_controller.dart';
 import '../widgets/app_empty_state.dart';
-import '../widgets/app_list_tile.dart';
 
 class ProximityListView extends ConsumerWidget {
   const ProximityListView({super.key});
@@ -39,13 +38,16 @@ class ProximityListView extends ConsumerWidget {
           itemBuilder: (_, i) {
             final r = results[i];
             final selected = selection.contains(r.client.id);
-            return AppListTile(
+            return FTile(
               prefix: Icon(FIcons.mapPin, color: theme.colors.mutedForeground),
-              title: r.client.name,
-              subtitle: '${r.client.city} · ${l.proximityDistanceFmt(
-                (r.distanceMeters / 1000).toStringAsFixed(1),
-                (r.durationSeconds / 60).round(),
-              )} · ${r.client.sheepCountTotal} moutons',
+              title: Text(r.client.name),
+              subtitle: Text(
+                '${r.client.city} · ${l.proximityDistanceFmt(
+                  (r.distanceMeters / 1000).toStringAsFixed(1),
+                  (r.durationSeconds / 60).round(),
+                )}',
+              ),
+              details: Text('${r.client.sheepCountTotal} moutons'),
               suffix: Container(
                 width: 24,
                 height: 24,

@@ -12,7 +12,6 @@ import '../../domain/models/coordinates.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
 import '../widgets/address_autocomplete_field.dart';
-import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import '../widgets/color_swatch_picker.dart';
@@ -322,32 +321,21 @@ class _MarkerColorEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.theme;
     final isAuto = currentHex == null;
     return Column(
       children: [
-        AppListTile(
-          prefix: Icon(
-            isAuto ? FIcons.circleCheck : FIcons.circle,
-            color: isAuto
-                ? theme.colors.primary
-                : theme.colors.mutedForeground,
-          ),
-          title: 'Automatique (selon statut)',
-          subtitle:
-              'Suit la couleur de la palette selon le statut du client.',
+        FTile(
+          selected: isAuto,
+          title: const Text('Automatique (selon statut)'),
+          subtitle: const Text(
+              'Suit la couleur de la palette selon le statut du client.'),
           onPress: () => onChanged(null),
         ),
         const SizedBox(height: AppSpacing.sm),
-        AppListTile(
-          prefix: Icon(
-            !isAuto ? FIcons.circleCheck : FIcons.circle,
-            color: !isAuto
-                ? theme.colors.primary
-                : theme.colors.mutedForeground,
-          ),
-          title: 'Personnalisée',
-          subtitle: !isAuto ? currentHex! : null,
+        FTile(
+          selected: !isAuto,
+          title: const Text('Personnalisée'),
+          subtitle: !isAuto ? Text(currentHex!) : null,
           onPress: () {
             if (isAuto) onChanged(_toHex(kColorSwatchPalette.first));
           },
