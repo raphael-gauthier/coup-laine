@@ -232,6 +232,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           initialZoom: 11,
                           minZoom: 6,
                           maxZoom: 17,
+                          interactionOptions: const InteractionOptions(
+                            flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                          ),
                           onTap: (_, __) {
                             if (ref.read(mapSelectedClientIdProvider) != null) {
                               ref.read(mapSelectedClientIdProvider.notifier).state = null;
