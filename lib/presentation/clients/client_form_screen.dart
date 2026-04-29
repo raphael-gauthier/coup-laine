@@ -31,8 +31,8 @@ class ClientFormScreen extends ConsumerStatefulWidget {
 class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _sheepCtrl = TextEditingController(text: '0');
-  final _minOverrideCtrl = TextEditingController();
+  final _sheepSmallCtrl = TextEditingController(text: '0');
+  final _sheepLargeCtrl = TextEditingController(text: '0');
 
   String? _addressLabel;
   String? _postcode;
@@ -44,8 +44,8 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
 
   // Manual validation errors
   String? _nameError;
-  String? _sheepError;
-  String? _minOverrideError;
+  String? _sheepSmallError;
+  String? _sheepLargeError;
 
   @override
   void initState() {
@@ -57,8 +57,8 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
-    _sheepCtrl.dispose();
-    _minOverrideCtrl.dispose();
+    _sheepSmallCtrl.dispose();
+    _sheepLargeCtrl.dispose();
     super.dispose();
   }
 
@@ -68,8 +68,8 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     if (c == null) return;
     _nameCtrl.text = c.name;
     _phoneCtrl.text = c.phone ?? '';
-    _sheepCtrl.text = c.sheepCount.toString();
-    _minOverrideCtrl.text = c.minutesPerSheepOverride?.toString() ?? '';
+    _sheepSmallCtrl.text = c.sheepCountSmall.toString();
+    _sheepLargeCtrl.text = c.sheepCountLarge.toString();
     _addressLabel = c.addressLabel;
     _postcode = c.postcode;
     _city = c.city;
@@ -80,31 +80,30 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
 
   bool _validate() {
     String? nameError;
-    String? sheepError;
-    String? minOverrideError;
+    String? sheepSmallError;
+    String? sheepLargeError;
 
     if (_nameCtrl.text.trim().isEmpty) {
       nameError = 'Requis';
     }
-    final sheepN = int.tryParse(_sheepCtrl.text);
-    if (sheepN == null || sheepN < 0) {
-      sheepError = 'Nombre invalide';
+    final small = int.tryParse(_sheepSmallCtrl.text);
+    if (small == null || small < 0) {
+      sheepSmallError = 'Nombre invalide';
     }
-    final minText = _minOverrideCtrl.text.trim();
-    if (minText.isNotEmpty) {
-      final n = int.tryParse(minText);
-      if (n == null || n <= 0) {
-        minOverrideError = 'Nombre invalide';
-      }
+    final large = int.tryParse(_sheepLargeCtrl.text);
+    if (large == null || large < 0) {
+      sheepLargeError = 'Nombre invalide';
     }
 
     setState(() {
       _nameError = nameError;
-      _sheepError = sheepError;
-      _minOverrideError = minOverrideError;
+      _sheepSmallError = sheepSmallError;
+      _sheepLargeError = sheepLargeError;
     });
 
-    return nameError == null && sheepError == null && minOverrideError == null;
+    return nameError == null &&
+        sheepSmallError == null &&
+        sheepLargeError == null;
   }
 
   Future<void> _submit() async {
@@ -125,10 +124,8 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         id: id,
         name: _nameCtrl.text.trim(),
         phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
-        sheepCount: int.parse(_sheepCtrl.text),
-        minutesPerSheepOverride: _minOverrideCtrl.text.trim().isEmpty
-            ? null
-            : int.parse(_minOverrideCtrl.text),
+        sheepCountSmall: int.parse(_sheepSmallCtrl.text),
+        sheepCountLarge: int.parse(_sheepLargeCtrl.text),
       );
       await repo.updateAddress(
         id: id,
@@ -146,10 +143,8 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         postcode: _postcode!,
         city: _city!,
         coordinates: _coords!,
-        sheepCount: int.parse(_sheepCtrl.text),
-        minutesPerSheepOverride: _minOverrideCtrl.text.trim().isEmpty
-            ? null
-            : int.parse(_minOverrideCtrl.text),
+        sheepCountSmall: int.parse(_sheepSmallCtrl.text),
+        sheepCountLarge: int.parse(_sheepLargeCtrl.text),
       ));
     }
 
@@ -247,28 +242,36 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                 children: [
                   FTextField(
                     control: FTextFieldControl.managed(
-                      controller: _sheepCtrl,
+                      controller: _sheepSmallCtrl,
                       onChange: (_) {
-                        if (_sheepError != null) setState(() => _sheepError = null);
+                        if (_sheepSmallError != null) {
+                          setState(() => _sheepSmallError = null);
+                        }
                       },
                     ),
-                    label: Text(l.clientFormSheepCount),
+                    label: Text(l.clientFormSheepCountSmall),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    error: _sheepError != null ? Text(_sheepError!) : null,
+                    error: _sheepSmallError != null
+                        ? Text(_sheepSmallError!)
+                        : null,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   FTextField(
                     control: FTextFieldControl.managed(
-                      controller: _minOverrideCtrl,
+                      controller: _sheepLargeCtrl,
                       onChange: (_) {
-                        if (_minOverrideError != null) setState(() => _minOverrideError = null);
+                        if (_sheepLargeError != null) {
+                          setState(() => _sheepLargeError = null);
+                        }
                       },
                     ),
-                    label: Text(l.clientFormMinPerSheepHint),
+                    label: Text(l.clientFormSheepCountLarge),
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    error: _minOverrideError != null ? Text(_minOverrideError!) : null,
+                    error: _sheepLargeError != null
+                        ? Text(_sheepLargeError!)
+                        : null,
                   ),
                 ],
               ),
