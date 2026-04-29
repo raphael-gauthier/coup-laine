@@ -12,8 +12,11 @@ import '../data/repositories/distance_matrix_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/tour_repository.dart';
 import '../domain/models/client.dart';
+import '../domain/models/distance_matrix_entry.dart';
 import '../domain/models/settings.dart';
+import '../domain/use_cases/build_optimized_tour_proposal.dart';
 import '../domain/use_cases/client_status.dart';
+import '../domain/use_cases/find_communes_with_waiting.dart';
 import '../infra/db/app_database.dart';
 import '../infra/services/ban_geocoding_service.dart';
 import '../infra/services/json_export_service.dart';
@@ -112,5 +115,82 @@ final waitingPickerCandidatesProvider = FutureProvider.autoDispose<
   return (
     eligible: eligible,
     excludedCount: waiting.length - eligible.length,
+  );
+});
+
+final waitingCommunesProvider =
+    FutureProvider.autoDispose<List<({String name, int count})>>(
+        (ref) async {
+  final clients = ref.watch(clientRepositoryProvider);
+  final settings = await ref.watch(settingsRepositoryProvider).read();
+  final seasonStart = settings?.seasonStartedAt ??
+      DateTime.fromMillisecondsSinceEpoch(0);
+  final withStatus = await clients.listAllWithStatus(seasonStart);
+  final clientList = [for (final r in withStatus) r.$1];
+  final statusByClientId = {
+    for (final r in withStatus) r.$1.id: r.$2,
+  };
+  return const FindCommunesWithWaiting().call(
+    clients: clientList,
+    statusByClientId: statusByClientId,
+  );
+});
+
+class OptimizedRequest {
+  final String communeName;
+  final int targetMinutes;
+  const OptimizedRequest({
+    required this.communeName,
+    required this.targetMinutes,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      other is OptimizedRequest &&
+      other.communeName == communeName &&
+      other.targetMinutes == targetMinutes;
+
+  @override
+  int get hashCode => Object.hash(communeName, targetMinutes);
+}
+
+final optimizedProposalProvider = FutureProvider.autoDispose
+    .family<OptimizedProposal, OptimizedRequest>((ref, req) async {
+  final clientsRepo = ref.watch(clientRepositoryProvider);
+  final matrixRepo = ref.watch(distanceMatrixRepositoryProvider);
+  final settings = await ref.watch(settingsRepositoryProvider).read();
+  if (settings == null) return OptimizedProposal.empty();
+  final seasonStart = settings.seasonStartedAt;
+  final withStatus = await clientsRepo.listAllWithStatus(seasonStart);
+  final waiting = [
+    for (final r in withStatus)
+      if (r.$2 == ClientStatus.waiting) r.$1,
+  ];
+  // Pull the full pairwise matrix between base and every waiting client
+  // (eligibility filtered inside the use case).
+  final ids = [0, ...waiting.map((c) => c.id)];
+  final entries = <DistanceMatrixEntry>[];
+  for (final from in ids) {
+    for (final to in ids) {
+      if (from == to) continue;
+      final m = await matrixRepo.distanceMeters(from: from, to: to);
+      final s = await matrixRepo.durationSeconds(from: from, to: to);
+      if (m == null || s == null) continue;
+      entries.add(DistanceMatrixEntry(
+        fromId: from,
+        toId: to,
+        distanceMeters: m,
+        durationSeconds: s,
+        computedAt: DateTime.now(),
+      ));
+    }
+  }
+  return const BuildOptimizedTourProposal().call(
+    communeName: req.communeName,
+    targetMinutes: req.targetMinutes,
+    startTimeMinutes: 8 * 60,
+    waitingClients: waiting,
+    matrix: entries,
+    settings: settings,
   );
 });
