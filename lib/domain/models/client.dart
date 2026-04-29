@@ -1,5 +1,4 @@
 import 'coordinates.dart';
-import 'settings.dart';
 
 class Client {
   final int id;
@@ -9,8 +8,8 @@ class Client {
   final String postcode;
   final String city;
   final Coordinates coordinates;
-  final int sheepCount;
-  final int? minutesPerSheepOverride;
+  final int sheepCountSmall;
+  final int sheepCountLarge;
   final String? markerColorHex;
   final bool isWaiting;
   final bool isBanned;
@@ -24,9 +23,9 @@ class Client {
     required this.postcode,
     required this.city,
     required this.coordinates,
-    this.sheepCount = 0,
+    this.sheepCountSmall = 0,
+    this.sheepCountLarge = 0,
     this.phone,
-    this.minutesPerSheepOverride,
     this.markerColorHex,
     this.isWaiting = false,
     this.isBanned = false,
@@ -34,6 +33,5 @@ class Client {
     this.needsDistanceRecompute = false,
   });
 
-  int minutesPerSheep(Settings settings) =>
-      minutesPerSheepOverride ?? settings.defaultMinutesPerSheep;
+  int get sheepCountTotal => sheepCountSmall + sheepCountLarge;
 }

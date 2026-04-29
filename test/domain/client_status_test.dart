@@ -6,7 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 Client _client({
   bool isWaiting = false,
   bool isBanned = false,
-  int sheepCount = 5,
+  int sheepCountSmall = 5,
+  int sheepCountLarge = 0,
 }) {
   return Client(
     id: 1,
@@ -15,7 +16,8 @@ Client _client({
     postcode: '22000',
     city: 'Saint-Brieuc',
     coordinates: const Coordinates(lat: 48, lon: -3),
-    sheepCount: sheepCount,
+    sheepCountSmall: sheepCountSmall,
+    sheepCountLarge: sheepCountLarge,
     isWaiting: isWaiting,
     isBanned: isBanned,
   );
@@ -56,17 +58,41 @@ void main() {
       );
     });
 
-    test('sheepCount=0 beats tour state', () {
+    test('both counts at 0 → noSheep', () {
       expect(
-        _derive(_client(sheepCount: 0), planned: true, completed: true),
+        _derive(
+          _client(sheepCountSmall: 0, sheepCountLarge: 0),
+          planned: true,
+          completed: true,
+        ),
         ClientStatus.noSheep,
+      );
+    });
+
+    test('only large at 0 (small > 0) → NOT noSheep', () {
+      // The small flock is enough to keep the client active.
+      expect(
+        _derive(_client(sheepCountSmall: 3, sheepCountLarge: 0)),
+        ClientStatus.defaultStatus,
+      );
+    });
+
+    test('only small at 0 (large > 0) → NOT noSheep', () {
+      expect(
+        _derive(_client(sheepCountSmall: 0, sheepCountLarge: 2)),
+        ClientStatus.defaultStatus,
       );
     });
 
     test('banned beats everything', () {
       expect(
         _derive(
-          _client(isBanned: true, sheepCount: 0, isWaiting: true),
+          _client(
+            isBanned: true,
+            sheepCountSmall: 0,
+            sheepCountLarge: 0,
+            isWaiting: true,
+          ),
           planned: true,
           completed: true,
         ),

@@ -6,7 +6,8 @@ class Settings {
   final Coordinates baseCoordinates;
   final String baseAddressLabel;
   final int defaultRadiusKm;
-  final int defaultMinutesPerSheep;
+  final int defaultMinutesPerSmall;
+  final int defaultMinutesPerLarge;
   final int travelFeeEurosPerBracket;
   final int bracketKm;
   final ThemeModePreference themeMode;
@@ -23,7 +24,8 @@ class Settings {
     required this.baseAddressLabel,
     required this.seasonStartedAt,
     this.defaultRadiusKm = 15,
-    this.defaultMinutesPerSheep = 20,
+    this.defaultMinutesPerSmall = 8,
+    this.defaultMinutesPerLarge = 25,
     this.travelFeeEurosPerBracket = 8,
     this.bracketKm = 10,
     this.themeMode = ThemeModePreference.system,
@@ -39,7 +41,8 @@ class Settings {
     Coordinates? baseCoordinates,
     String? baseAddressLabel,
     int? defaultRadiusKm,
-    int? defaultMinutesPerSheep,
+    int? defaultMinutesPerSmall,
+    int? defaultMinutesPerLarge,
     int? travelFeeEurosPerBracket,
     int? bracketKm,
     ThemeModePreference? themeMode,
@@ -50,20 +53,26 @@ class Settings {
     String? markerNoSheepColor,
     String? markerBannedColor,
     DateTime? seasonStartedAt,
-  }) => Settings(
-    baseCoordinates: baseCoordinates ?? this.baseCoordinates,
-    baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
-    defaultRadiusKm: defaultRadiusKm ?? this.defaultRadiusKm,
-    defaultMinutesPerSheep: defaultMinutesPerSheep ?? this.defaultMinutesPerSheep,
-    travelFeeEurosPerBracket: travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
-    bracketKm: bracketKm ?? this.bracketKm,
-    themeMode: themeMode ?? this.themeMode,
-    markerDefaultColor: markerDefaultColor ?? this.markerDefaultColor,
-    markerWaitingColor: markerWaitingColor ?? this.markerWaitingColor,
-    markerScheduledColor: markerScheduledColor ?? this.markerScheduledColor,
-    markerDoneColor: markerDoneColor ?? this.markerDoneColor,
-    markerNoSheepColor: markerNoSheepColor ?? this.markerNoSheepColor,
-    markerBannedColor: markerBannedColor ?? this.markerBannedColor,
-    seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
-  );
+  }) =>
+      Settings(
+        baseCoordinates: baseCoordinates ?? this.baseCoordinates,
+        baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
+        defaultRadiusKm: defaultRadiusKm ?? this.defaultRadiusKm,
+        defaultMinutesPerSmall:
+            defaultMinutesPerSmall ?? this.defaultMinutesPerSmall,
+        defaultMinutesPerLarge:
+            defaultMinutesPerLarge ?? this.defaultMinutesPerLarge,
+        travelFeeEurosPerBracket:
+            travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
+        bracketKm: bracketKm ?? this.bracketKm,
+        themeMode: themeMode ?? this.themeMode,
+        markerDefaultColor: markerDefaultColor ?? this.markerDefaultColor,
+        markerWaitingColor: markerWaitingColor ?? this.markerWaitingColor,
+        markerScheduledColor:
+            markerScheduledColor ?? this.markerScheduledColor,
+        markerDoneColor: markerDoneColor ?? this.markerDoneColor,
+        markerNoSheepColor: markerNoSheepColor ?? this.markerNoSheepColor,
+        markerBannedColor: markerBannedColor ?? this.markerBannedColor,
+        seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
+      );
 }

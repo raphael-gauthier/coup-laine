@@ -27,7 +27,9 @@ ClientStatus deriveStatus(
   required bool hasPlannedTourThisSeason,
 }) {
   if (c.isBanned) return ClientStatus.banned;
-  if (c.sheepCount == 0) return ClientStatus.noSheep;
+  if (c.sheepCountSmall == 0 && c.sheepCountLarge == 0) {
+    return ClientStatus.noSheep;
+  }
   if (hasCompletedTourThisSeason) return ClientStatus.done;
   if (hasPlannedTourThisSeason) return ClientStatus.scheduled;
   if (c.isWaiting) return ClientStatus.waiting;
