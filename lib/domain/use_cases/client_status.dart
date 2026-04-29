@@ -3,7 +3,12 @@ import '../models/client.dart';
 /// Effective status used to color the client on the map and to drive
 /// status-aware UI (badges, filters, list chips).
 ///
-/// Priority (highest first): banned > noSheep > done > scheduled > waiting > defaultStatus.
+/// Values are declared in natural lifecycle / display order
+/// (default → waiting → scheduled → done → noSheep → banned), which is
+/// the order chips and layer toggles render in.
+///
+/// Derivation priority (highest first, see [deriveStatus]):
+///   banned > noSheep > done > scheduled > waiting > defaultStatus.
 enum ClientStatus {
   defaultStatus,
   waiting,
