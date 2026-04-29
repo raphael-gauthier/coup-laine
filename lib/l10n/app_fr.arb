@@ -145,5 +145,12 @@
   "clientDetailUnban": "Lever le bannissement",
   "clientDetailResetToDefault": "Remettre par défaut",
   "clientDetailResetDisabledFmt": "Ce client est dans la tournée du {date}. Retire-le de la tournée pour pouvoir le réinitialiser.",
-  "@clientDetailResetDisabledFmt": {"placeholders": {"date": {"type": "String"}}}
+  "@clientDetailResetDisabledFmt": {"placeholders": {"date": {"type": "String"}}},
+  "clientDetailSectionHistory": "Historique des interventions",
+  "clientDetailHistoryEmpty": "Aucune intervention enregistrée.",
+  "clientDetailHistoryItemFmt": "{date} · {small} Ouessants/Landes + {large} Grandes Races",
+  "@clientDetailHistoryItemFmt": {"placeholders": {"date": {"type": "String"}, "small": {"type": "int"}, "large": {"type": "int"}}},
+  "clientDetailHistoryNoBilan": " (planifié, pas de bilan)",
+  "clientDetailHistoryViewAll": "Voir l'historique complet",
+  "clientHistoryTitle": "Historique"
 }

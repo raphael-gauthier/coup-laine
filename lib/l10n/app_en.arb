@@ -145,5 +145,12 @@
   "clientDetailUnban": "Lift ban",
   "clientDetailResetToDefault": "Reset to default",
   "clientDetailResetDisabledFmt": "This client is in the tour of {date}. Remove them from the tour to reset.",
-  "@clientDetailResetDisabledFmt": {"placeholders": {"date": {"type": "String"}}}
+  "@clientDetailResetDisabledFmt": {"placeholders": {"date": {"type": "String"}}},
+  "clientDetailSectionHistory": "Intervention history",
+  "clientDetailHistoryEmpty": "No intervention recorded yet.",
+  "clientDetailHistoryItemFmt": "{date} · {small} Ouessant/Lande + {large} large breeds",
+  "@clientDetailHistoryItemFmt": {"placeholders": {"date": {"type": "String"}, "small": {"type": "int"}, "large": {"type": "int"}}},
+  "clientDetailHistoryNoBilan": " (planned, no recap)",
+  "clientDetailHistoryViewAll": "See full history",
+  "clientHistoryTitle": "History"
 }

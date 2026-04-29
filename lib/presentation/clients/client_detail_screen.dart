@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import '../../core/design_tokens.dart';
 import 'client_actions.dart';
 import '../../domain/models/client.dart';
+import '../../domain/models/intervention.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
@@ -18,6 +19,11 @@ import '../widgets/app_hero_card.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
+
+final _interventionsForClientProvider =
+    FutureProvider.family.autoDispose<List<Intervention>, int>((ref, id) {
+  return ref.watch(clientRepositoryProvider).listInterventionsForClient(id);
+});
 
 final _clientByIdProvider =
     FutureProvider.family<(Client, ClientStatus)?, int>((ref, id) async {
@@ -105,16 +111,6 @@ class _Body extends ConsumerWidget {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
 
-    final lastShearingText = client.lastShearingDate == null
-        ? l.clientsLastShearingNever
-        : l.clientsLastShearingFmt(
-            DateFormat('dd/MM/yyyy').format(client.lastShearingDate!),
-          );
-
-    final subtitle = client.minutesPerSheepOverride != null
-        ? '$lastShearingText · ${client.minutesPerSheepOverride} min/mouton'
-        : lastShearingText;
-
     return SingleChildScrollView(
       padding: AppSizes.screenPadding,
       child: Column(
@@ -127,9 +123,11 @@ class _Body extends ConsumerWidget {
               status: status,
               label: _statusLabel(l, status),
             ),
-            bigNumber: '${client.sheepCount}',
+            bigNumber: '${client.sheepCountTotal}',
             label: 'moutons',
-            subtitle: subtitle,
+            subtitle:
+                '${client.sheepCountSmall} ${l.clientFormSheepCountSmall} · '
+                '${client.sheepCountLarge} ${l.clientFormSheepCountLarge}',
           ),
           const SizedBox(height: AppSpacing.md),
 
@@ -295,6 +293,10 @@ class _Body extends ConsumerWidget {
           }),
           const SizedBox(height: AppSpacing.lg),
 
+          const SizedBox(height: AppSpacing.md),
+          _InterventionsCard(clientId: client.id),
+          const SizedBox(height: AppSpacing.lg),
+
           // CTA: find nearby clients
           AppPrimaryButton(
             label: l.clientDetailFindNearby,
@@ -398,3 +400,107 @@ final _plannedTourForClientProvider =
   final tour = rows.first.readTable(db.toursTable);
   return DateTime.fromMillisecondsSinceEpoch(tour.plannedDate * 86400000);
 });
+
+class _InterventionsCard extends ConsumerWidget {
+  final int clientId;
+  const _InterventionsCard({required this.clientId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
+    final async = ref.watch(_interventionsForClientProvider(clientId));
+
+    return AppSectionCard(
+      icon: FIcons.history,
+      title: l.clientDetailSectionHistory,
+      child: async.when(
+        loading: () => const Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Center(child: FCircularProgress()),
+        ),
+        error: (e, _) => Text('$e'),
+        data: (items) {
+          if (items.isEmpty) {
+            return Text(
+              l.clientDetailHistoryEmpty,
+              style: theme.typography.sm.copyWith(
+                color: theme.colors.mutedForeground,
+              ),
+            );
+          }
+          final visible = items.take(5).toList();
+          final hasMore = items.length > visible.length;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final it in visible) ...[
+                _InterventionRow(item: it),
+                if (it != visible.last) const SizedBox(height: AppSpacing.xs),
+              ],
+              if (hasMore) ...[
+                const SizedBox(height: AppSpacing.sm),
+                FButton(
+                  variant: FButtonVariant.outline,
+                  onPress: () => context.push('/clients/$clientId/history'),
+                  child: Text(l.clientDetailHistoryViewAll),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _InterventionRow extends StatelessWidget {
+  final Intervention item;
+  const _InterventionRow({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
+    final dateStr = DateFormat('dd/MM/yyyy').format(item.date);
+    final main = l.clientDetailHistoryItemFmt(dateStr, item.small, item.large);
+    final note = item.note;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text.rich(
+          TextSpan(
+            children: [
+              TextSpan(
+                text: main,
+                style: theme.typography.sm.copyWith(
+                  color: theme.colors.foreground,
+                ),
+              ),
+              if (!item.hasBilan)
+                TextSpan(
+                  text: l.clientDetailHistoryNoBilan,
+                  style: theme.typography.xs.copyWith(
+                    color: theme.colors.mutedForeground,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+            ],
+          ),
+        ),
+        if (note != null && note.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.hairline),
+          Text(
+            note,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.typography.xs.copyWith(
+              color: theme.colors.mutedForeground,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
