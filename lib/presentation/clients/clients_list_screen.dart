@@ -384,44 +384,26 @@ class _StatusFilterButton extends ConsumerWidget {
               final settingsAsync = ref.watch(_settingsForChipProvider);
               return Column(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   for (final s in ClientStatus.values)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.xxs,
-                      ),
-                      child: FCheckbox(
-                        value: visible.contains(s),
-                        onChange: (on) {
-                          final next = {...visible};
-                          if (on) {
-                            next.add(s);
-                          } else {
-                            next.remove(s);
-                          }
-                          ref.read(_visibleStatusesProvider.notifier).state =
-                              next;
-                        },
-                        label: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: settingsAsync.value == null
-                                    ? _hexToColor('#9CA3AF')
-                                    : _hexToColor(_hexForStatus(
-                                        settingsAsync.value!, s)),
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Text(_statusLabel(l, s)),
-                          ],
-                        ),
-                      ),
+                    _StatusToggleRow(
+                      status: s,
+                      label: _statusLabel(l, s),
+                      color: settingsAsync.value == null
+                          ? _hexToColor('#9CA3AF')
+                          : _hexToColor(
+                              _hexForStatus(settingsAsync.value!, s)),
+                      isOn: visible.contains(s),
+                      onChanged: (on) {
+                        final next = {...visible};
+                        if (on) {
+                          next.add(s);
+                        } else {
+                          next.remove(s);
+                        }
+                        ref.read(_visibleStatusesProvider.notifier).state =
+                            next;
+                      },
                     ),
                 ],
               );
@@ -432,8 +414,47 @@ class _StatusFilterButton extends ConsumerWidget {
           FButton(
             variant: FButtonVariant.outline,
             onPress: () => Navigator.of(ctx).pop(),
-            child: const Text('Fermer'),
+            child: Text(l.mapLayersDialogClose),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Single row inside the status filter dialog. Mirrors the map screen's
+/// `_LayerToggleRow` for visual consistency: 16 px colored dot, label,
+/// trailing `FSwitch`.
+class _StatusToggleRow extends StatelessWidget {
+  final ClientStatus status;
+  final String label;
+  final Color color;
+  final bool isOn;
+  final ValueChanged<bool> onChanged;
+
+  const _StatusToggleRow({
+    required this.status,
+    required this.label,
+    required this.color,
+    required this.isOn,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(child: Text(label, style: theme.typography.md)),
+          FSwitch(value: isOn, onChange: onChanged),
         ],
       ),
     );
