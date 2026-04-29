@@ -146,4 +146,93 @@ void main() {
     expect(result.selectedClientIds.toSet(), {1, 2});
     expect(result.isUnderTarget, isTrue);
   });
+
+  test('contraction: over-target seed sheds the farthest from barycentre', () {
+    // Seed of 4 clients in Quimper, three clustered tightly + one outlier.
+    // Target small enough that the outlier must be removed.
+    final clients = [
+      _c(1, 'Quimper', lat: 48.00, lon: -4.10, small: 5),
+      _c(2, 'Quimper', lat: 48.00, lon: -4.11, small: 5),
+      _c(3, 'Quimper', lat: 48.00, lon: -4.12, small: 5),
+      _c(4, 'Quimper', lat: 48.30, lon: -4.50, small: 5), // outlier
+    ];
+    final matrix = _fullMatrix(
+      [0, 1, 2, 3, 4],
+      (a, b) {
+        // Cluster 1/2/3 close, 4 far from everyone.
+        if (a == 4 || b == 4) return 30000;
+        return 4000;
+      },
+    );
+    final result = const BuildOptimizedTourProposal().call(
+      communeName: 'Quimper',
+      targetMinutes: 120,
+      startTimeMinutes: 8 * 60,
+      waitingClients: clients,
+      matrix: matrix,
+      settings: _settings(),
+    );
+    expect(result.selectedClientIds, isNot(contains(4)));
+    expect(result.selectedClientIds.length, greaterThanOrEqualTo(1));
+  });
+
+  test('contraction never goes below 1 stop even if target is irrealistic', () {
+    final clients = [
+      _c(1, 'Quimper', small: 50),
+      _c(2, 'Quimper', small: 50),
+    ];
+    final matrix = _fullMatrix([0, 1, 2], (a, b) => 30000);
+    final result = const BuildOptimizedTourProposal().call(
+      communeName: 'Quimper',
+      targetMinutes: 30, // way too short
+      startTimeMinutes: 8 * 60,
+      waitingClients: clients,
+      matrix: matrix,
+      settings: _settings(),
+    );
+    expect(result.selectedClientIds.length, 1);
+    expect(result.isOverTarget, isTrue);
+  });
+
+  test('returns empty proposal when commune has no eligible clients', () {
+    final clients = [_c(1, 'Quimper', small: 5)];
+    final matrix = _fullMatrix([0, 1], (a, b) => 5000);
+    final result = const BuildOptimizedTourProposal().call(
+      communeName: 'Brest', // no client there
+      targetMinutes: 8 * 60,
+      startTimeMinutes: 8 * 60,
+      waitingClients: clients,
+      matrix: matrix,
+      settings: _settings(),
+    );
+    expect(result.selectedClientIds, isEmpty);
+  });
+
+  test('skips clients flagged needsDistanceRecompute', () {
+    final clients = [
+      _c(1, 'Quimper'),
+      Client(
+        id: 2,
+        name: 'C2',
+        addressLabel: 'a',
+        postcode: '00000',
+        city: 'Quimper',
+        coordinates: const Coordinates(lat: 48, lon: -3),
+        sheepCountSmall: 5,
+        sheepCountLarge: 0,
+        isWaiting: true,
+        needsDistanceRecompute: true,
+      ),
+    ];
+    final matrix = _fullMatrix([0, 1], (a, b) => 5000);
+    final result = const BuildOptimizedTourProposal().call(
+      communeName: 'Quimper',
+      targetMinutes: 90,
+      startTimeMinutes: 8 * 60,
+      waitingClients: clients,
+      matrix: matrix,
+      settings: _settings(),
+    );
+    expect(result.selectedClientIds, [1]);
+  });
 }
