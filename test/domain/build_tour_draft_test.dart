@@ -27,9 +27,10 @@ DistanceMatrixEntry _e(int from, int to, int dist, int dur) =>
 
 void main() {
   test('builds a draft with optimised order, totals and fee shares', () {
-    const settings = Settings(
-      baseCoordinates: Coordinates(lat: 48.5, lon: -2.7),
+    final settings = Settings(
+      baseCoordinates: const Coordinates(lat: 48.5, lon: -2.7),
       baseAddressLabel: 'base',
+      seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(0),
     );
     final clients = [_c(1, 'A', 5), _c(2, 'B', 3), _c(3, 'C', 8)];
     // Distances chosen so that NN/2-opt visit order is 1,2,3.

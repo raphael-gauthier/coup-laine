@@ -37,9 +37,10 @@ void main() {
       settings: settings,
       ors: ors,
     );
-    await settings.save(const Settings(
-      baseCoordinates: Coordinates(lat: 48.5, lon: -2.7),
+    await settings.save(Settings(
+      baseCoordinates: const Coordinates(lat: 48.5, lon: -2.7),
       baseAddressLabel: 'base',
+      seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(0),
     ));
   });
 

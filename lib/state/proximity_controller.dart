@@ -19,7 +19,14 @@ final proximityResultsProvider =
   if (req == null) return const [];
   final clients = ref.watch(clientRepositoryProvider);
   final matrix = ref.watch(distanceMatrixRepositoryProvider);
-  final candidates = await clients.listAll();
+  final settings = await ref.watch(settingsRepositoryProvider).read();
+  final seasonStart = settings?.seasonStartedAt ??
+      DateTime.fromMillisecondsSinceEpoch(0);
+  final withStatus = await clients.listAllWithStatus(seasonStart);
+  final candidates = [for (final r in withStatus) r.$1];
+  final statusByClientId = {
+    for (final r in withStatus) r.$1.id: r.$2,
+  };
   final entries = await matrix.distancesFromPivot(
     pivotId: req.pivotId,
     maxDistanceMeters: req.radiusKm * 1000,
@@ -29,6 +36,7 @@ final proximityResultsProvider =
     maxRadiusMeters: req.radiusKm * 1000,
     candidates: candidates,
     pivotDistances: entries,
+    statusByClientId: statusByClientId,
   );
 });
 

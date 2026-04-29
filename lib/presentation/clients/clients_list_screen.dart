@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
+import '../../domain/use_cases/client_status.dart';
 import '../../state/providers.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_empty_state.dart';
@@ -21,8 +22,12 @@ enum _Filter { all, waiting }
 final _filterProvider = StateProvider<_Filter>((_) => _Filter.all);
 final _searchQueryProvider = StateProvider<String>((_) => '');
 
-final clientsAsyncProvider = FutureProvider<List<Client>>((ref) {
-  return ref.watch(clientRepositoryProvider).listAll();
+final clientsAsyncProvider =
+    FutureProvider<List<(Client, ClientStatus)>>((ref) async {
+  final settings = await ref.watch(settingsRepositoryProvider).read();
+  final seasonStart = settings?.seasonStartedAt ??
+      DateTime.fromMillisecondsSinceEpoch(0);
+  return ref.watch(clientRepositoryProvider).listAllWithStatus(seasonStart);
 });
 
 final clientsPendingProvider = FutureProvider<int>((ref) async {
@@ -83,14 +88,14 @@ class ClientsListScreen extends ConsumerWidget {
           loading: () => const Center(child: FCircularProgress()),
           error: (e, _) => Center(child: Text('$e')),
           data: (all) {
-          final waiting = all.where((c) => c.isWaiting).toList();
+          final waiting = all.where((r) => r.$2 == ClientStatus.waiting).toList();
           final base = filter == _Filter.waiting ? waiting : all;
           final normalizedQuery = _normalize(query.trim());
-          final list = [...base.where((c) => _matchesQuery(c, normalizedQuery))]
+          final list = [...base.where((r) => _matchesQuery(r.$1, normalizedQuery))]
             ..sort((a, b) {
-              final byCity = _normalize(a.city).compareTo(_normalize(b.city));
+              final byCity = _normalize(a.$1.city).compareTo(_normalize(b.$1.city));
               if (byCity != 0) return byCity;
-              return _normalize(a.name).compareTo(_normalize(b.name));
+              return _normalize(a.$1.name).compareTo(_normalize(b.$1.name));
             });
           final pending = ref.watch(clientsPendingProvider).value ?? 0;
 
@@ -201,7 +206,7 @@ class ClientsListScreen extends ConsumerWidget {
                         sliver: SliverList.separated(
                           itemCount: list.length,
                           separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-                          itemBuilder: (_, i) => _ClientTile(client: list[i]),
+                          itemBuilder: (_, i) => _ClientTile(client: list[i].$1),
                         ),
                       ),
                   ],

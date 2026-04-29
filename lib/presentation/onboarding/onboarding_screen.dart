@@ -32,6 +32,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             Settings(
               baseCoordinates: picked.coordinates,
               baseAddressLabel: picked.label,
+              seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(0),
             ),
           );
       if (!mounted) return;

@@ -112,10 +112,14 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
           _draft.copyWith(markerDefaultColor: hex),
         ClientStatus.waiting =>
           _draft.copyWith(markerWaitingColor: hex),
-        ClientStatus.overdue =>
-          _draft.copyWith(markerOverdueColor: hex),
-        ClientStatus.recompute =>
-          _draft.copyWith(markerRecomputeColor: hex),
+        ClientStatus.scheduled =>
+          _draft.copyWith(markerScheduledColor: hex),
+        ClientStatus.done =>
+          _draft.copyWith(markerDoneColor: hex),
+        ClientStatus.noSheep =>
+          _draft.copyWith(markerNoSheepColor: hex),
+        ClientStatus.banned =>
+          _draft.copyWith(markerBannedColor: hex),
       };
     });
   }
@@ -298,29 +302,43 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 _MarkerColorRow(
                   label: 'Par défaut',
                   currentHex: _draft.markerDefaultColor,
-                  defaultHex: '#4A6B52',
+                  defaultHex: '#9CA3AF',
                   onPicked: (hex) => _persistMarkerColor(ClientStatus.defaultStatus, hex),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(
                   label: 'En attente',
                   currentHex: _draft.markerWaitingColor,
-                  defaultHex: '#C77B5C',
+                  defaultHex: '#EAB308',
                   onPicked: (hex) => _persistMarkerColor(ClientStatus.waiting, hex),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(
-                  label: 'En retard',
-                  currentHex: _draft.markerOverdueColor,
-                  defaultHex: '#B33A3A',
-                  onPicked: (hex) => _persistMarkerColor(ClientStatus.overdue, hex),
+                  label: 'Planifié',
+                  currentHex: _draft.markerScheduledColor,
+                  defaultHex: '#65A30D',
+                  onPicked: (hex) => _persistMarkerColor(ClientStatus.scheduled, hex),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(
-                  label: 'À recalculer',
-                  currentHex: _draft.markerRecomputeColor,
-                  defaultHex: '#A89F92',
-                  onPicked: (hex) => _persistMarkerColor(ClientStatus.recompute, hex),
+                  label: 'Terminé',
+                  currentHex: _draft.markerDoneColor,
+                  defaultHex: '#166534',
+                  onPicked: (hex) => _persistMarkerColor(ClientStatus.done, hex),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _MarkerColorRow(
+                  label: 'Sans mouton',
+                  currentHex: _draft.markerNoSheepColor,
+                  defaultHex: '#1F2937',
+                  onPicked: (hex) => _persistMarkerColor(ClientStatus.noSheep, hex),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _MarkerColorRow(
+                  label: 'Banni',
+                  currentHex: _draft.markerBannedColor,
+                  defaultHex: '#B91C1C',
+                  onPicked: (hex) => _persistMarkerColor(ClientStatus.banned, hex),
                 ),
               ],
             ),

@@ -27,9 +27,10 @@ void main() {
       matrix: DistanceMatrixRepository(db),
       tours: TourRepository(db),
     );
-    await settings.save(const Settings(
-      baseCoordinates: Coordinates(lat: 48.5, lon: -2.7),
+    await settings.save(Settings(
+      baseCoordinates: const Coordinates(lat: 48.5, lon: -2.7),
       baseAddressLabel: 'base',
+      seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(0),
     ));
   });
 

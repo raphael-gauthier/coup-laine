@@ -69,21 +69,23 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     return Color(int.parse(cleaned, radix: 16) | 0xFF000000);
   }
 
-  Color _resolveColor(Client c, Settings s) {
+  Color _resolveColor(Client c, ClientStatus status, Settings s) {
     if (c.markerColorHex != null) return _hexToColor(c.markerColorHex!);
-    return switch (c.status) {
-      ClientStatus.recompute => _hexToColor(s.markerRecomputeColor),
+    return switch (status) {
       ClientStatus.waiting => _hexToColor(s.markerWaitingColor),
-      ClientStatus.overdue => _hexToColor(s.markerOverdueColor),
+      ClientStatus.scheduled => _hexToColor(s.markerScheduledColor),
+      ClientStatus.done => _hexToColor(s.markerDoneColor),
+      ClientStatus.noSheep => _hexToColor(s.markerNoSheepColor),
+      ClientStatus.banned => _hexToColor(s.markerBannedColor),
       ClientStatus.defaultStatus => _hexToColor(s.markerDefaultColor),
     };
   }
 
-  void _maybeFitToBounds(List<Client> clients, Settings settings) {
+  void _maybeFitToBounds(List<(Client, ClientStatus)> clients, Settings settings) {
     if (_initialFitDone) return;
     final points = <LatLng>[
       LatLng(settings.baseCoordinates.lat, settings.baseCoordinates.lon),
-      for (final c in clients) LatLng(c.coordinates.lat, c.coordinates.lon),
+      for (final r in clients) LatLng(r.$1.coordinates.lat, r.$1.coordinates.lon),
     ];
     if (points.length < 2) return;
     final bounds = LatLngBounds.fromPoints(points);
@@ -134,8 +136,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   for (final entry in const [
                     (ClientStatus.defaultStatus, 'Par défaut'),
                     (ClientStatus.waiting, 'En attente'),
-                    (ClientStatus.overdue, 'En retard'),
-                    (ClientStatus.recompute, 'À recalculer'),
+                    (ClientStatus.scheduled, 'Planifié'),
+                    (ClientStatus.done, 'Terminé'),
+                    (ClientStatus.noSheep, 'Sans mouton'),
+                    (ClientStatus.banned, 'Banni'),
                   ])
                     _LayerToggleRow(
                       status: entry.$1,
@@ -170,10 +174,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     );
   }
 
-  void _recenterOnVisible(List<Client> visibleClients, Settings settings) {
+  void _recenterOnVisible(List<(Client, ClientStatus)> visibleClients, Settings settings) {
     final points = <LatLng>[
       LatLng(settings.baseCoordinates.lat, settings.baseCoordinates.lon),
-      for (final c in visibleClients) LatLng(c.coordinates.lat, c.coordinates.lon),
+      for (final r in visibleClients) LatLng(r.$1.coordinates.lat, r.$1.coordinates.lon),
     ];
     if (points.length < 2) return;
     final bounds = LatLngBounds.fromPoints(points);
@@ -207,12 +211,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 _maybeFitToBounds(clients, settings);
                 final visibleStatuses = ref.watch(mapVisibleStatusesProvider);
                 final visibleClients = clients
-                    .where((c) => visibleStatuses.contains(c.status))
+                    .where((r) => visibleStatuses.contains(r.$2))
                     .toList();
                 final selectedId = ref.watch(mapSelectedClientIdProvider);
                 final selectedClient = selectedId == null
                     ? null
-                    : visibleClients.firstWhereOrNull((c) => c.id == selectedId);
+                    : visibleClients.firstWhereOrNull((r) => r.$1.id == selectedId);
                 return SafeArea(
                   child: Stack(
                     children: [
@@ -256,11 +260,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 ),
                               ),
                               // Client pins
-                              for (final c in visibleClients)
+                              for (final r in visibleClients)
                                 Marker(
                                   point: LatLng(
-                                    c.coordinates.lat,
-                                    c.coordinates.lon,
+                                    r.$1.coordinates.lat,
+                                    r.$1.coordinates.lon,
                                   ),
                                   width: 40,
                                   height: 48,
@@ -268,15 +272,15 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                   child: GestureDetector(
                                     onTap: () {
                                       final currentSelected = ref.read(mapSelectedClientIdProvider);
-                                      if (currentSelected == c.id) {
-                                        context.push('/clients/${c.id}');
+                                      if (currentSelected == r.$1.id) {
+                                        context.push('/clients/${r.$1.id}');
                                       } else {
-                                        ref.read(mapSelectedClientIdProvider.notifier).state = c.id;
+                                        ref.read(mapSelectedClientIdProvider.notifier).state = r.$1.id;
                                       }
                                     },
                                     child: _StatusPin(
-                                      color: _resolveColor(c, settings),
-                                      sheepCount: c.sheepCount,
+                                      color: _resolveColor(r.$1, r.$2, settings),
+                                      sheepCount: r.$1.sheepCount,
                                     ),
                                   ),
                                 ),
@@ -287,17 +291,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                               markers: [
                                 Marker(
                                   point: LatLng(
-                                    selectedClient.coordinates.lat,
-                                    selectedClient.coordinates.lon,
+                                    selectedClient.$1.coordinates.lat,
+                                    selectedClient.$1.coordinates.lon,
                                   ),
                                   width: 280,
                                   height: 140,
                                   alignment: const Alignment(0, -1.6),
                                   child: ClientPinPopup(
-                                    client: selectedClient,
+                                    client: selectedClient.$1,
                                     onOpenDetail: () {
                                       ref.read(mapSelectedClientIdProvider.notifier).state = null;
-                                      context.push('/clients/${selectedClient.id}');
+                                      context.push('/clients/${selectedClient.$1.id}');
                                     },
                                   ),
                                 ),
@@ -357,7 +361,7 @@ final _settingsForMapProvider = FutureProvider<Settings?>(
 class _SearchOverlay extends ConsumerWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
-  final List<Client> clients;
+  final List<(Client, ClientStatus)> clients;
   final ValueChanged<Client> onPicked;
 
   const _SearchOverlay({
@@ -376,8 +380,9 @@ class _SearchOverlay extends ConsumerWidget {
         : () {
             final q = _removeAccents(query.toLowerCase());
             return clients
-                .where((c) =>
-                    _removeAccents(c.name.toLowerCase()).contains(q))
+                .where((r) =>
+                    _removeAccents(r.$1.name.toLowerCase()).contains(q))
+                .map((r) => r.$1)
                 .take(5)
                 .toList();
           }();
@@ -546,8 +551,10 @@ class _LayerToggleRow extends StatelessWidget {
     final color = switch (status) {
       ClientStatus.defaultStatus => _hex(settings.markerDefaultColor),
       ClientStatus.waiting => _hex(settings.markerWaitingColor),
-      ClientStatus.overdue => _hex(settings.markerOverdueColor),
-      ClientStatus.recompute => _hex(settings.markerRecomputeColor),
+      ClientStatus.scheduled => _hex(settings.markerScheduledColor),
+      ClientStatus.done => _hex(settings.markerDoneColor),
+      ClientStatus.noSheep => _hex(settings.markerNoSheepColor),
+      ClientStatus.banned => _hex(settings.markerBannedColor),
     };
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
