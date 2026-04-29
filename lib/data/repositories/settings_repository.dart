@@ -24,8 +24,11 @@ class SettingsRepository {
       themeMode: _parseMode(row.themeMode),
       markerDefaultColor: row.markerDefaultColor,
       markerWaitingColor: row.markerWaitingColor,
-      markerOverdueColor: row.markerOverdueColor,
-      markerRecomputeColor: row.markerRecomputeColor,
+      markerScheduledColor: row.markerScheduledColor,
+      markerDoneColor: row.markerDoneColor,
+      markerNoSheepColor: row.markerNoSheepColor,
+      markerBannedColor: row.markerBannedColor,
+      seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(row.seasonStartedAt),
     );
   }
 
@@ -43,8 +46,13 @@ class SettingsRepository {
             themeMode: Value(_serializeMode(settings.themeMode)),
             markerDefaultColor: Value(settings.markerDefaultColor),
             markerWaitingColor: Value(settings.markerWaitingColor),
-            markerOverdueColor: Value(settings.markerOverdueColor),
-            markerRecomputeColor: Value(settings.markerRecomputeColor),
+            markerScheduledColor: Value(settings.markerScheduledColor),
+            markerDoneColor: Value(settings.markerDoneColor),
+            markerNoSheepColor: Value(settings.markerNoSheepColor),
+            markerBannedColor: Value(settings.markerBannedColor),
+            seasonStartedAt: Value(
+              settings.seasonStartedAt.millisecondsSinceEpoch,
+            ),
           ),
         );
   }
@@ -55,14 +63,26 @@ class SettingsRepository {
         SettingsTableCompanion(markerDefaultColor: Value(hex)),
       ClientStatus.waiting =>
         SettingsTableCompanion(markerWaitingColor: Value(hex)),
-      ClientStatus.overdue =>
-        SettingsTableCompanion(markerOverdueColor: Value(hex)),
-      ClientStatus.recompute =>
-        SettingsTableCompanion(markerRecomputeColor: Value(hex)),
+      ClientStatus.scheduled =>
+        SettingsTableCompanion(markerScheduledColor: Value(hex)),
+      ClientStatus.done =>
+        SettingsTableCompanion(markerDoneColor: Value(hex)),
+      ClientStatus.noSheep =>
+        SettingsTableCompanion(markerNoSheepColor: Value(hex)),
+      ClientStatus.banned =>
+        SettingsTableCompanion(markerBannedColor: Value(hex)),
     };
     await (_db.update(_db.settingsTable)
           ..where((t) => t.id.equals(1)))
         .write(companion);
+  }
+
+  Future<void> bumpSeasonStartedAt(DateTime now) async {
+    await (_db.update(_db.settingsTable)..where((t) => t.id.equals(1))).write(
+      SettingsTableCompanion(
+        seasonStartedAt: Value(now.millisecondsSinceEpoch),
+      ),
+    );
   }
 
   Future<void> setThemeMode(ThemeModePreference mode) async {

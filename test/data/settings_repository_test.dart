@@ -24,9 +24,10 @@ void main() {
   });
 
   test('saves and reads settings round-trip', () async {
-    const settings = Settings(
-      baseCoordinates: Coordinates(lat: 48.1, lon: -3.0),
+    final settings = Settings(
+      baseCoordinates: const Coordinates(lat: 48.1, lon: -3.0),
       baseAddressLabel: '1 rue de la Lande, 22000 Saint-Brieuc',
+      seasonStartedAt: DateTime(2026, 1, 1),
     );
     await repo.save(settings);
     final read = await repo.read();
@@ -37,14 +38,16 @@ void main() {
   });
 
   test('overwrites existing settings', () async {
-    await repo.save(const Settings(
-      baseCoordinates: Coordinates(lat: 48.0, lon: -3.0),
+    await repo.save(Settings(
+      baseCoordinates: const Coordinates(lat: 48.0, lon: -3.0),
       baseAddressLabel: 'Old',
+      seasonStartedAt: DateTime(2026, 1, 1),
     ));
-    await repo.save(const Settings(
-      baseCoordinates: Coordinates(lat: 48.5, lon: -2.5),
+    await repo.save(Settings(
+      baseCoordinates: const Coordinates(lat: 48.5, lon: -2.5),
       baseAddressLabel: 'New',
       defaultRadiusKm: 20,
+      seasonStartedAt: DateTime(2026, 1, 1),
     ));
     final read = await repo.read();
     expect(read!.baseAddressLabel, 'New');
@@ -57,6 +60,7 @@ void main() {
         baseCoordinates: const Coordinates(lat: 48.0, lon: -3.0),
         baseAddressLabel: 'Test',
         themeMode: mode,
+        seasonStartedAt: DateTime(2026, 1, 1),
       ));
       final read = await repo.read();
       expect(read!.themeMode, mode, reason: 'expected $mode to round-trip');
@@ -64,21 +68,37 @@ void main() {
   });
 
   test('marker colors round-trip + updateMarkerColor', () async {
-    await repo.save(const Settings(
-      baseCoordinates: Coordinates(lat: 48.0, lon: -3.0),
+    await repo.save(Settings(
+      baseCoordinates: const Coordinates(lat: 48.0, lon: -3.0),
       baseAddressLabel: 'base',
+      seasonStartedAt: DateTime(2026, 4, 1),
     ));
-    // Fresh save uses the model defaults — verify them.
     var read = await repo.read();
-    expect(read!.markerDefaultColor, '#4A6B52');
-    expect(read.markerWaitingColor, '#C77B5C');
-    expect(read.markerOverdueColor, '#B33A3A');
-    expect(read.markerRecomputeColor, '#A89F92');
+    expect(read!.markerDefaultColor, '#9CA3AF');
+    expect(read.markerWaitingColor, '#EAB308');
+    expect(read.markerScheduledColor, '#65A30D');
+    expect(read.markerDoneColor, '#166534');
+    expect(read.markerNoSheepColor, '#1F2937');
+    expect(read.markerBannedColor, '#B91C1C');
 
-    await repo.updateMarkerColor(ClientStatus.waiting, '#FF00FF');
+    await repo.updateMarkerColor(ClientStatus.banned, '#FF00FF');
     read = await repo.read();
-    expect(read!.markerWaitingColor, '#FF00FF');
-    // Other colors unchanged.
-    expect(read.markerDefaultColor, '#4A6B52');
+    expect(read!.markerBannedColor, '#FF00FF');
+    expect(read.markerDefaultColor, '#9CA3AF');
+  });
+
+  test('bumpSeasonStartedAt updates the timestamp', () async {
+    await repo.save(Settings(
+      baseCoordinates: const Coordinates(lat: 48.0, lon: -3.0),
+      baseAddressLabel: 'base',
+      seasonStartedAt: DateTime(2026, 1, 1),
+    ));
+    final now = DateTime(2026, 5, 15, 9, 0);
+    await repo.bumpSeasonStartedAt(now);
+    final read = await repo.read();
+    expect(
+      read!.seasonStartedAt.millisecondsSinceEpoch,
+      now.millisecondsSinceEpoch,
+    );
   });
 }
