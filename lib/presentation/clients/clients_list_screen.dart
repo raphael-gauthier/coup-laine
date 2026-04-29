@@ -305,7 +305,7 @@ class _ClientTile extends ConsumerWidget {
       ),
       title: client.name,
       subtitle:
-          '${client.city} · ${l.clientsListSheepCountFmt(client.sheepCount)}',
+          '${client.city} · ${l.clientsListSheepCountFmt(client.sheepCountTotal)}',
       suffix: client.needsDistanceRecompute
           ? AppBadge.recompute(context)
           : Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),

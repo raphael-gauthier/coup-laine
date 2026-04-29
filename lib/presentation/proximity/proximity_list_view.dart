@@ -45,7 +45,7 @@ class ProximityListView extends ConsumerWidget {
               subtitle: '${r.client.city} · ${l.proximityDistanceFmt(
                 (r.distanceMeters / 1000).toStringAsFixed(1),
                 (r.durationSeconds / 60).round(),
-              )} · ${r.client.sheepCount} moutons',
+              )} · ${r.client.sheepCountTotal} moutons',
               suffix: Container(
                 width: 24,
                 height: 24,

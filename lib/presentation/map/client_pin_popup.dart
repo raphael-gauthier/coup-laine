@@ -62,7 +62,7 @@ class ClientPinPopup extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.hairline),
             Text(
-              '${client.city} · ${client.sheepCount} moutons',
+              '${client.city} · ${client.sheepCountTotal} moutons',
               style: theme.typography.sm.copyWith(
                 color: theme.colors.mutedForeground,
               ),

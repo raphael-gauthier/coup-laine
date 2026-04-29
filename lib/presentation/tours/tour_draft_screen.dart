@@ -85,8 +85,10 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         orderIndex: i,
         estimatedArrivalMinutes: bundle.result.arrivalMinutes[i],
         estimatedDepartureMinutes: bundle.result.departureMinutes[i],
-        sheepCountSnapshot: c.sheepCount,
-        minutesPerSheepSnapshot: bundle.result.minutesPerSheepPerStop[i],
+        plannedSmall: bundle.result.plannedSmallPerStop[i],
+        plannedLarge: bundle.result.plannedLargePerStop[i],
+        minutesPerSmallSnapshot: bundle.result.minutesPerSmallPerStop[i],
+        minutesPerLargeSnapshot: bundle.result.minutesPerLargePerStop[i],
         feeShareCents: bundle.result.feeShareCents[i],
       ));
     }

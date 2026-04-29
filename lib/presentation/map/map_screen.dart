@@ -263,7 +263,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                     },
                                     child: _StatusPin(
                                       color: _resolveColor(r.$1, r.$2, settings),
-                                      sheepCount: r.$1.sheepCount,
+                                      sheepCount: r.$1.sheepCountTotal,
                                     ),
                                   ),
                                 ),
