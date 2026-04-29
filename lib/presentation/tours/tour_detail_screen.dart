@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
@@ -10,14 +11,12 @@ import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/tour.dart';
+import '../../domain/models/tour_stop.dart';
 import '../../state/providers.dart';
-import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
 import '../widgets/app_badge.dart';
 import '../widgets/app_hero_card.dart';
-import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
-import 'tours_list_screen.dart' show toursAsyncProvider;
 
 final _tourByIdProvider =
     FutureProvider.autoDispose.family<TourWithStops?, int>((ref, id) {
@@ -84,7 +83,6 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
-    final theme = context.theme;
     final completed = bundle.tour.status == TourStatus.completed;
     final km = (bundle.tour.totalDistanceMeters / 1000).toStringAsFixed(1);
     final driveMin = bundle.tour.totalDriveSeconds ~/ 60;
@@ -122,37 +120,7 @@ class _Body extends ConsumerWidget {
               children: [
                 for (var i = 0; i < bundle.stops.length; i++) ...[
                   if (i > 0) const SizedBox(height: AppSpacing.sm),
-                  AppListTile(
-                    prefix: Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: theme.colors.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        '${i + 1}',
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.primaryForeground,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    title: bundle.stops[i].clientId == null
-                        ? '${bundle.stops[i].clientNameSnapshot} ${l.tourDetailDeleted}'
-                        : bundle.stops[i].clientNameSnapshot,
-                    subtitle: '${formatHm(bundle.stops[i].estimatedArrivalMinutes)} → '
-                        '${formatHm(bundle.stops[i].estimatedDepartureMinutes)} · '
-                        '${bundle.stops[i].sheepCountSnapshot} moutons',
-                    suffix: Text(
-                      formatEuros(bundle.stops[i].feeShareCents),
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
+                  _ScheduleRow(stop: bundle.stops[i], index: i + 1),
                 ],
               ],
             ),
@@ -164,7 +132,7 @@ class _Body extends ConsumerWidget {
             AppPrimaryButton(
               label: l.tourDetailComplete,
               prefixIcon: FIcons.check,
-              onPress: () => _confirmComplete(context, ref),
+              onPress: () => context.push('/tours/$tourId/complete'),
             ),
           ],
         ],
@@ -179,36 +147,112 @@ class _Body extends ConsumerWidget {
             0,
             (sum, s) =>
                 sum +
-                s.sheepCountSnapshot * s.minutesPerSheepSnapshot);
+                s.plannedSmall * s.minutesPerSmallSnapshot +
+                s.plannedLarge * s.minutesPerLargeSnapshot);
   }
+}
 
-  Future<void> _confirmComplete(BuildContext context, WidgetRef ref) async {
+class _ScheduleRow extends StatelessWidget {
+  final TourStop stop;
+  final int index;
+  const _ScheduleRow({required this.stop, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final ok = await showFDialog<bool>(
-      context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style,
-        animation: animation,
-        title: Text(l.tourDetailCompleteConfirmTitle),
-        body: Text(l.tourDetailCompleteConfirmBody(bundle.stops.length)),
-        actions: [
-          FButton(
-            variant: FButtonVariant.outline,
-            onPress: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
+    final theme = context.theme;
+    final plannedTotal = stop.plannedSmall + stop.plannedLarge;
+    final actualSmall = stop.actualSmall;
+    final actualLarge = stop.actualLarge;
+    final hasActuals = actualSmall != null && actualLarge != null;
+    final actualTotal = hasActuals ? actualSmall + actualLarge : null;
+    final note = stop.interventionNote;
+
+    return Container(
+      padding: AppSizes.listTilePadding,
+      decoration: BoxDecoration(
+        color: theme.colors.card,
+        borderRadius: BorderRadius.circular(AppBorderRadius.md),
+        border: Border.all(color: theme.colors.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: theme.colors.primary,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '$index',
+              style: theme.typography.sm.copyWith(
+                color: theme.colors.primaryForeground,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
-          FButton(
-            onPress: () => Navigator.of(context).pop(true),
-            child: Text(l.tourDetailComplete),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  stop.clientId == null
+                      ? '${stop.clientNameSnapshot} ${l.tourDetailDeleted}'
+                      : stop.clientNameSnapshot,
+                  style: theme.typography.md.copyWith(
+                    color: theme.colors.foreground,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.hairline),
+                Text(
+                  '${formatHm(stop.estimatedArrivalMinutes)} → '
+                  '${formatHm(stop.estimatedDepartureMinutes)} · '
+                  'Planifié : $plannedTotal moutons '
+                  '(${stop.plannedSmall}/${stop.plannedLarge})',
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+                if (hasActuals) ...[
+                  const SizedBox(height: AppSpacing.hairline),
+                  Text(
+                    'Effectif : $actualTotal moutons '
+                    '($actualSmall/$actualLarge)',
+                    style: theme.typography.sm.copyWith(
+                      color: theme.colors.foreground,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                if (note != null && note.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.hairline),
+                  Text(
+                    note,
+                    style: theme.typography.xs.copyWith(
+                      color: theme.colors.mutedForeground,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            formatEuros(stop.feeShareCents),
+            style: theme.typography.sm.copyWith(
+              color: theme.colors.mutedForeground,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
     );
-    if (ok == true) {
-      await ref.read(tourRepositoryProvider).markCompleted(tourId);
-      ref.invalidate(_tourByIdProvider(tourId));
-      ref.invalidate(toursAsyncProvider);
-      ref.invalidate(clientsAsyncProvider);
-    }
   }
 }
