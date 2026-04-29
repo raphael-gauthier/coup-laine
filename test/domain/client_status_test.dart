@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 Client _client({
   bool isWaiting = false,
-  bool needsDistanceRecompute = false,
-  DateTime? lastShearingDate,
+  bool isBanned = false,
+  int sheepCount = 5,
 }) {
   return Client(
     id: 1,
@@ -15,51 +15,63 @@ Client _client({
     postcode: '22000',
     city: 'Saint-Brieuc',
     coordinates: const Coordinates(lat: 48, lon: -3),
+    sheepCount: sheepCount,
     isWaiting: isWaiting,
-    needsDistanceRecompute: needsDistanceRecompute,
-    lastShearingDate: lastShearingDate,
+    isBanned: isBanned,
   );
 }
 
+ClientStatus _derive(
+  Client c, {
+  bool planned = false,
+  bool completed = false,
+}) =>
+    deriveStatus(
+      c,
+      hasPlannedTourThisSeason: planned,
+      hasCompletedTourThisSeason: completed,
+    );
+
 void main() {
-  group('ClientStatus', () {
-    test('default when nothing special', () {
-      expect(_client().status, ClientStatus.defaultStatus);
+  group('deriveStatus priority', () {
+    test('default when no flag and no tour', () {
+      expect(_derive(_client()), ClientStatus.defaultStatus);
     });
 
-    test('recompute beats everything', () {
-      final c = _client(
-        needsDistanceRecompute: true,
-        isWaiting: true,
-        lastShearingDate: DateTime.now().subtract(const Duration(days: 500)),
+    test('waiting flag → waiting', () {
+      expect(_derive(_client(isWaiting: true)), ClientStatus.waiting);
+    });
+
+    test('planned tour beats waiting', () {
+      expect(
+        _derive(_client(isWaiting: true), planned: true),
+        ClientStatus.scheduled,
       );
-      expect(c.status, ClientStatus.recompute);
     });
 
-    test('waiting beats overdue', () {
-      final c = _client(
-        isWaiting: true,
-        lastShearingDate: DateTime.now().subtract(const Duration(days: 500)),
+    test('completed tour beats planned', () {
+      expect(
+        _derive(_client(isWaiting: true), planned: true, completed: true),
+        ClientStatus.done,
       );
-      expect(c.status, ClientStatus.waiting);
     });
 
-    test('overdue when last shearing > 395 days ago and not waiting', () {
-      final c = _client(
-        lastShearingDate: DateTime.now().subtract(const Duration(days: 500)),
+    test('sheepCount=0 beats tour state', () {
+      expect(
+        _derive(_client(sheepCount: 0), planned: true, completed: true),
+        ClientStatus.noSheep,
       );
-      expect(c.status, ClientStatus.overdue);
     });
 
-    test('default when last shearing recent', () {
-      final c = _client(
-        lastShearingDate: DateTime.now().subtract(const Duration(days: 200)),
+    test('banned beats everything', () {
+      expect(
+        _derive(
+          _client(isBanned: true, sheepCount: 0, isWaiting: true),
+          planned: true,
+          completed: true,
+        ),
+        ClientStatus.banned,
       );
-      expect(c.status, ClientStatus.defaultStatus);
-    });
-
-    test('default when last shearing is null and no flags', () {
-      expect(_client().status, ClientStatus.defaultStatus);
     });
   });
 }

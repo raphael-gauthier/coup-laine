@@ -12,21 +12,27 @@ class Settings {
   final ThemeModePreference themeMode;
   final String markerDefaultColor;
   final String markerWaitingColor;
-  final String markerOverdueColor;
-  final String markerRecomputeColor;
+  final String markerScheduledColor;
+  final String markerDoneColor;
+  final String markerNoSheepColor;
+  final String markerBannedColor;
+  final DateTime seasonStartedAt;
 
   const Settings({
     required this.baseCoordinates,
     required this.baseAddressLabel,
+    required this.seasonStartedAt,
     this.defaultRadiusKm = 15,
     this.defaultMinutesPerSheep = 20,
     this.travelFeeEurosPerBracket = 8,
     this.bracketKm = 10,
     this.themeMode = ThemeModePreference.system,
-    this.markerDefaultColor = '#4A6B52',
-    this.markerWaitingColor = '#C77B5C',
-    this.markerOverdueColor = '#B33A3A',
-    this.markerRecomputeColor = '#A89F92',
+    this.markerDefaultColor = '#9CA3AF',
+    this.markerWaitingColor = '#EAB308',
+    this.markerScheduledColor = '#65A30D',
+    this.markerDoneColor = '#166534',
+    this.markerNoSheepColor = '#1F2937',
+    this.markerBannedColor = '#B91C1C',
   });
 
   Settings copyWith({
@@ -39,8 +45,11 @@ class Settings {
     ThemeModePreference? themeMode,
     String? markerDefaultColor,
     String? markerWaitingColor,
-    String? markerOverdueColor,
-    String? markerRecomputeColor,
+    String? markerScheduledColor,
+    String? markerDoneColor,
+    String? markerNoSheepColor,
+    String? markerBannedColor,
+    DateTime? seasonStartedAt,
   }) => Settings(
     baseCoordinates: baseCoordinates ?? this.baseCoordinates,
     baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -51,7 +60,10 @@ class Settings {
     themeMode: themeMode ?? this.themeMode,
     markerDefaultColor: markerDefaultColor ?? this.markerDefaultColor,
     markerWaitingColor: markerWaitingColor ?? this.markerWaitingColor,
-    markerOverdueColor: markerOverdueColor ?? this.markerOverdueColor,
-    markerRecomputeColor: markerRecomputeColor ?? this.markerRecomputeColor,
+    markerScheduledColor: markerScheduledColor ?? this.markerScheduledColor,
+    markerDoneColor: markerDoneColor ?? this.markerDoneColor,
+    markerNoSheepColor: markerNoSheepColor ?? this.markerNoSheepColor,
+    markerBannedColor: markerBannedColor ?? this.markerBannedColor,
+    seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
   );
 }

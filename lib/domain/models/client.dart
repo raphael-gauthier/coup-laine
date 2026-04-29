@@ -14,6 +14,7 @@ class Client {
   final String? notes;
   final String? markerColorHex;
   final bool isWaiting;
+  final bool isBanned;
   final DateTime? lastShearingDate;
   final bool needsDistanceRecompute;
 
@@ -30,6 +31,7 @@ class Client {
     this.notes,
     this.markerColorHex,
     this.isWaiting = false,
+    this.isBanned = false,
     this.lastShearingDate,
     this.needsDistanceRecompute = false,
   });

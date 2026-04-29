@@ -1,22 +1,30 @@
 import '../models/client.dart';
 
-/// A derived status used to color the client on the map and to drive
-/// status-aware UI (badges, filters).
-enum ClientStatus { defaultStatus, waiting, overdue, recompute }
+/// Effective status used to color the client on the map and to drive
+/// status-aware UI (badges, filters, list chips).
+///
+/// Priority (highest first): banned > noSheep > done > scheduled > waiting > defaultStatus.
+enum ClientStatus {
+  defaultStatus,
+  waiting,
+  scheduled,
+  done,
+  noSheep,
+  banned,
+}
 
-/// 13-month rule: a client whose last shearing was more than this many
-/// days ago is "overdue".
-const int kOverdueThresholdDays = 395;
-
-extension ClientStatusX on Client {
-  ClientStatus get status {
-    if (needsDistanceRecompute) return ClientStatus.recompute;
-    if (isWaiting) return ClientStatus.waiting;
-    final last = lastShearingDate;
-    if (last != null &&
-        DateTime.now().difference(last).inDays > kOverdueThresholdDays) {
-      return ClientStatus.overdue;
-    }
-    return ClientStatus.defaultStatus;
-  }
+/// Pure derivation. The two booleans are computed by the repository from
+/// the client's `tour_stop` rows joined to `tours` filtered by the current
+/// season epoch.
+ClientStatus deriveStatus(
+  Client c, {
+  required bool hasCompletedTourThisSeason,
+  required bool hasPlannedTourThisSeason,
+}) {
+  if (c.isBanned) return ClientStatus.banned;
+  if (c.sheepCount == 0) return ClientStatus.noSheep;
+  if (hasCompletedTourThisSeason) return ClientStatus.done;
+  if (hasPlannedTourThisSeason) return ClientStatus.scheduled;
+  if (c.isWaiting) return ClientStatus.waiting;
+  return ClientStatus.defaultStatus;
 }
