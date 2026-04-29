@@ -24,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor e) : super(e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -77,6 +77,56 @@ class AppDatabase extends _$AppDatabase {
         // Drop the per-client notes column. Notes have been removed from the
         // domain — any text saved here is intentionally lost.
         await customStatement('ALTER TABLE clients DROP COLUMN notes');
+      }
+      if (from < 6) {
+        // ── clients : split sheep_count, drop minutes_per_sheep_override ──
+        await m.addColumn(clientsTable, clientsTable.sheepCountSmall);
+        await m.addColumn(clientsTable, clientsTable.sheepCountLarge);
+        await customStatement(
+          'UPDATE clients SET sheep_count_small = sheep_count',
+        );
+        await customStatement('ALTER TABLE clients DROP COLUMN sheep_count');
+        await customStatement(
+          'ALTER TABLE clients DROP COLUMN minutes_per_sheep_override',
+        );
+
+        // ── settings : split minutes-per-sheep ──
+        await m.addColumn(
+            settingsTable, settingsTable.defaultMinutesPerSmall);
+        await m.addColumn(
+            settingsTable, settingsTable.defaultMinutesPerLarge);
+        await customStatement(
+          'UPDATE settings '
+          'SET default_minutes_per_small = default_minutes_per_sheep, '
+          '    default_minutes_per_large = MAX(default_minutes_per_sheep, 25) '
+          'WHERE id = 1',
+        );
+        await customStatement(
+          'ALTER TABLE settings DROP COLUMN default_minutes_per_sheep',
+        );
+
+        // ── tour_stops : breed-aware snapshots + intervention actuals ──
+        await m.addColumn(tourStopsTable, tourStopsTable.plannedSmall);
+        await m.addColumn(tourStopsTable, tourStopsTable.plannedLarge);
+        await m.addColumn(
+            tourStopsTable, tourStopsTable.minutesPerSmallSnapshot);
+        await m.addColumn(
+            tourStopsTable, tourStopsTable.minutesPerLargeSnapshot);
+        await m.addColumn(tourStopsTable, tourStopsTable.actualSmall);
+        await m.addColumn(tourStopsTable, tourStopsTable.actualLarge);
+        await m.addColumn(
+            tourStopsTable, tourStopsTable.interventionNote);
+        await customStatement(
+          'UPDATE tour_stops '
+          'SET planned_small = sheep_count_snapshot, '
+          '    minutes_per_small_snapshot = minutes_per_sheep_snapshot',
+        );
+        await customStatement(
+          'ALTER TABLE tour_stops DROP COLUMN sheep_count_snapshot',
+        );
+        await customStatement(
+          'ALTER TABLE tour_stops DROP COLUMN minutes_per_sheep_snapshot',
+        );
       }
     },
     beforeOpen: (details) async {

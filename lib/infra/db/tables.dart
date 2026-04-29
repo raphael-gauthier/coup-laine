@@ -10,8 +10,10 @@ class SettingsTable extends Table {
   RealColumn get baseLat => real()();
   RealColumn get baseLon => real()();
   IntColumn get defaultRadiusKm => integer().withDefault(const Constant(15))();
-  IntColumn get defaultMinutesPerSheep =>
-      integer().withDefault(const Constant(20))();
+  IntColumn get defaultMinutesPerSmall =>
+      integer().withDefault(const Constant(8))();
+  IntColumn get defaultMinutesPerLarge =>
+      integer().withDefault(const Constant(25))();
   IntColumn get travelFeeEurosPerBracket =>
       integer().withDefault(const Constant(8))();
   IntColumn get bracketKm => integer().withDefault(const Constant(10))();
@@ -47,8 +49,8 @@ class ClientsTable extends Table {
   TextColumn get city => text()();
   RealColumn get lat => real()();
   RealColumn get lon => real()();
-  IntColumn get sheepCount => integer().withDefault(const Constant(0))();
-  IntColumn get minutesPerSheepOverride => integer().nullable()();
+  IntColumn get sheepCountSmall => integer().withDefault(const Constant(0))();
+  IntColumn get sheepCountLarge => integer().withDefault(const Constant(0))();
   TextColumn get markerColorHex => text().nullable()();
   BoolColumn get isWaiting => boolean().withDefault(const Constant(false))();
   IntColumn get lastShearingDate => integer().nullable()();
@@ -107,7 +109,14 @@ class TourStopsTable extends Table {
   IntColumn get orderIndex => integer()();
   IntColumn get estimatedArrivalMinutes => integer()();
   IntColumn get estimatedDepartureMinutes => integer()();
-  IntColumn get sheepCountSnapshot => integer()();
-  IntColumn get minutesPerSheepSnapshot => integer()();
+  IntColumn get plannedSmall => integer().withDefault(const Constant(0))();
+  IntColumn get plannedLarge => integer().withDefault(const Constant(0))();
+  IntColumn get minutesPerSmallSnapshot =>
+      integer().withDefault(const Constant(0))();
+  IntColumn get minutesPerLargeSnapshot =>
+      integer().withDefault(const Constant(0))();
+  IntColumn get actualSmall => integer().nullable()();
+  IntColumn get actualLarge => integer().nullable()();
+  TextColumn get interventionNote => text().nullable()();
   IntColumn get feeShareCents => integer()();
 }

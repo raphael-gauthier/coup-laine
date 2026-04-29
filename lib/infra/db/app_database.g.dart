@@ -42,14 +42,22 @@ class $SettingsTableTable extends SettingsTable
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(15));
-  static const VerificationMeta _defaultMinutesPerSheepMeta =
-      const VerificationMeta('defaultMinutesPerSheep');
+  static const VerificationMeta _defaultMinutesPerSmallMeta =
+      const VerificationMeta('defaultMinutesPerSmall');
   @override
-  late final GeneratedColumn<int> defaultMinutesPerSheep = GeneratedColumn<int>(
-      'default_minutes_per_sheep', aliasedName, false,
+  late final GeneratedColumn<int> defaultMinutesPerSmall = GeneratedColumn<int>(
+      'default_minutes_per_small', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
-      defaultValue: const Constant(20));
+      defaultValue: const Constant(8));
+  static const VerificationMeta _defaultMinutesPerLargeMeta =
+      const VerificationMeta('defaultMinutesPerLarge');
+  @override
+  late final GeneratedColumn<int> defaultMinutesPerLarge = GeneratedColumn<int>(
+      'default_minutes_per_large', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(25));
   static const VerificationMeta _travelFeeEurosPerBracketMeta =
       const VerificationMeta('travelFeeEurosPerBracket');
   @override
@@ -137,7 +145,8 @@ class $SettingsTableTable extends SettingsTable
         baseLat,
         baseLon,
         defaultRadiusKm,
-        defaultMinutesPerSheep,
+        defaultMinutesPerSmall,
+        defaultMinutesPerLarge,
         travelFeeEurosPerBracket,
         bracketKm,
         themeMode,
@@ -188,11 +197,17 @@ class $SettingsTableTable extends SettingsTable
           defaultRadiusKm.isAcceptableOrUnknown(
               data['default_radius_km']!, _defaultRadiusKmMeta));
     }
-    if (data.containsKey('default_minutes_per_sheep')) {
+    if (data.containsKey('default_minutes_per_small')) {
       context.handle(
-          _defaultMinutesPerSheepMeta,
-          defaultMinutesPerSheep.isAcceptableOrUnknown(
-              data['default_minutes_per_sheep']!, _defaultMinutesPerSheepMeta));
+          _defaultMinutesPerSmallMeta,
+          defaultMinutesPerSmall.isAcceptableOrUnknown(
+              data['default_minutes_per_small']!, _defaultMinutesPerSmallMeta));
+    }
+    if (data.containsKey('default_minutes_per_large')) {
+      context.handle(
+          _defaultMinutesPerLargeMeta,
+          defaultMinutesPerLarge.isAcceptableOrUnknown(
+              data['default_minutes_per_large']!, _defaultMinutesPerLargeMeta));
     }
     if (data.containsKey('travel_fee_euros_per_bracket')) {
       context.handle(
@@ -270,9 +285,12 @@ class $SettingsTableTable extends SettingsTable
           .read(DriftSqlType.double, data['${effectivePrefix}base_lon'])!,
       defaultRadiusKm: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}default_radius_km'])!,
-      defaultMinutesPerSheep: attachedDatabase.typeMapping.read(
+      defaultMinutesPerSmall: attachedDatabase.typeMapping.read(
           DriftSqlType.int,
-          data['${effectivePrefix}default_minutes_per_sheep'])!,
+          data['${effectivePrefix}default_minutes_per_small'])!,
+      defaultMinutesPerLarge: attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}default_minutes_per_large'])!,
       travelFeeEurosPerBracket: attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}travel_fee_euros_per_bracket'])!,
@@ -310,7 +328,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   final double baseLat;
   final double baseLon;
   final int defaultRadiusKm;
-  final int defaultMinutesPerSheep;
+  final int defaultMinutesPerSmall;
+  final int defaultMinutesPerLarge;
   final int travelFeeEurosPerBracket;
   final int bracketKm;
   final String themeMode;
@@ -327,7 +346,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       required this.baseLat,
       required this.baseLon,
       required this.defaultRadiusKm,
-      required this.defaultMinutesPerSheep,
+      required this.defaultMinutesPerSmall,
+      required this.defaultMinutesPerLarge,
       required this.travelFeeEurosPerBracket,
       required this.bracketKm,
       required this.themeMode,
@@ -346,7 +366,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['base_lat'] = Variable<double>(baseLat);
     map['base_lon'] = Variable<double>(baseLon);
     map['default_radius_km'] = Variable<int>(defaultRadiusKm);
-    map['default_minutes_per_sheep'] = Variable<int>(defaultMinutesPerSheep);
+    map['default_minutes_per_small'] = Variable<int>(defaultMinutesPerSmall);
+    map['default_minutes_per_large'] = Variable<int>(defaultMinutesPerLarge);
     map['travel_fee_euros_per_bracket'] =
         Variable<int>(travelFeeEurosPerBracket);
     map['bracket_km'] = Variable<int>(bracketKm);
@@ -368,7 +389,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       baseLat: Value(baseLat),
       baseLon: Value(baseLon),
       defaultRadiusKm: Value(defaultRadiusKm),
-      defaultMinutesPerSheep: Value(defaultMinutesPerSheep),
+      defaultMinutesPerSmall: Value(defaultMinutesPerSmall),
+      defaultMinutesPerLarge: Value(defaultMinutesPerLarge),
       travelFeeEurosPerBracket: Value(travelFeeEurosPerBracket),
       bracketKm: Value(bracketKm),
       themeMode: Value(themeMode),
@@ -391,8 +413,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       baseLat: serializer.fromJson<double>(json['baseLat']),
       baseLon: serializer.fromJson<double>(json['baseLon']),
       defaultRadiusKm: serializer.fromJson<int>(json['defaultRadiusKm']),
-      defaultMinutesPerSheep:
-          serializer.fromJson<int>(json['defaultMinutesPerSheep']),
+      defaultMinutesPerSmall:
+          serializer.fromJson<int>(json['defaultMinutesPerSmall']),
+      defaultMinutesPerLarge:
+          serializer.fromJson<int>(json['defaultMinutesPerLarge']),
       travelFeeEurosPerBracket:
           serializer.fromJson<int>(json['travelFeeEurosPerBracket']),
       bracketKm: serializer.fromJson<int>(json['bracketKm']),
@@ -419,7 +443,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'baseLat': serializer.toJson<double>(baseLat),
       'baseLon': serializer.toJson<double>(baseLon),
       'defaultRadiusKm': serializer.toJson<int>(defaultRadiusKm),
-      'defaultMinutesPerSheep': serializer.toJson<int>(defaultMinutesPerSheep),
+      'defaultMinutesPerSmall': serializer.toJson<int>(defaultMinutesPerSmall),
+      'defaultMinutesPerLarge': serializer.toJson<int>(defaultMinutesPerLarge),
       'travelFeeEurosPerBracket':
           serializer.toJson<int>(travelFeeEurosPerBracket),
       'bracketKm': serializer.toJson<int>(bracketKm),
@@ -440,7 +465,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           double? baseLat,
           double? baseLon,
           int? defaultRadiusKm,
-          int? defaultMinutesPerSheep,
+          int? defaultMinutesPerSmall,
+          int? defaultMinutesPerLarge,
           int? travelFeeEurosPerBracket,
           int? bracketKm,
           String? themeMode,
@@ -457,8 +483,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
         baseLat: baseLat ?? this.baseLat,
         baseLon: baseLon ?? this.baseLon,
         defaultRadiusKm: defaultRadiusKm ?? this.defaultRadiusKm,
-        defaultMinutesPerSheep:
-            defaultMinutesPerSheep ?? this.defaultMinutesPerSheep,
+        defaultMinutesPerSmall:
+            defaultMinutesPerSmall ?? this.defaultMinutesPerSmall,
+        defaultMinutesPerLarge:
+            defaultMinutesPerLarge ?? this.defaultMinutesPerLarge,
         travelFeeEurosPerBracket:
             travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
         bracketKm: bracketKm ?? this.bracketKm,
@@ -482,9 +510,12 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       defaultRadiusKm: data.defaultRadiusKm.present
           ? data.defaultRadiusKm.value
           : this.defaultRadiusKm,
-      defaultMinutesPerSheep: data.defaultMinutesPerSheep.present
-          ? data.defaultMinutesPerSheep.value
-          : this.defaultMinutesPerSheep,
+      defaultMinutesPerSmall: data.defaultMinutesPerSmall.present
+          ? data.defaultMinutesPerSmall.value
+          : this.defaultMinutesPerSmall,
+      defaultMinutesPerLarge: data.defaultMinutesPerLarge.present
+          ? data.defaultMinutesPerLarge.value
+          : this.defaultMinutesPerLarge,
       travelFeeEurosPerBracket: data.travelFeeEurosPerBracket.present
           ? data.travelFeeEurosPerBracket.value
           : this.travelFeeEurosPerBracket,
@@ -522,7 +553,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('baseLat: $baseLat, ')
           ..write('baseLon: $baseLon, ')
           ..write('defaultRadiusKm: $defaultRadiusKm, ')
-          ..write('defaultMinutesPerSheep: $defaultMinutesPerSheep, ')
+          ..write('defaultMinutesPerSmall: $defaultMinutesPerSmall, ')
+          ..write('defaultMinutesPerLarge: $defaultMinutesPerLarge, ')
           ..write('travelFeeEurosPerBracket: $travelFeeEurosPerBracket, ')
           ..write('bracketKm: $bracketKm, ')
           ..write('themeMode: $themeMode, ')
@@ -544,7 +576,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       baseLat,
       baseLon,
       defaultRadiusKm,
-      defaultMinutesPerSheep,
+      defaultMinutesPerSmall,
+      defaultMinutesPerLarge,
       travelFeeEurosPerBracket,
       bracketKm,
       themeMode,
@@ -564,7 +597,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.baseLat == this.baseLat &&
           other.baseLon == this.baseLon &&
           other.defaultRadiusKm == this.defaultRadiusKm &&
-          other.defaultMinutesPerSheep == this.defaultMinutesPerSheep &&
+          other.defaultMinutesPerSmall == this.defaultMinutesPerSmall &&
+          other.defaultMinutesPerLarge == this.defaultMinutesPerLarge &&
           other.travelFeeEurosPerBracket == this.travelFeeEurosPerBracket &&
           other.bracketKm == this.bracketKm &&
           other.themeMode == this.themeMode &&
@@ -583,7 +617,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
   final Value<double> baseLat;
   final Value<double> baseLon;
   final Value<int> defaultRadiusKm;
-  final Value<int> defaultMinutesPerSheep;
+  final Value<int> defaultMinutesPerSmall;
+  final Value<int> defaultMinutesPerLarge;
   final Value<int> travelFeeEurosPerBracket;
   final Value<int> bracketKm;
   final Value<String> themeMode;
@@ -600,7 +635,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.baseLat = const Value.absent(),
     this.baseLon = const Value.absent(),
     this.defaultRadiusKm = const Value.absent(),
-    this.defaultMinutesPerSheep = const Value.absent(),
+    this.defaultMinutesPerSmall = const Value.absent(),
+    this.defaultMinutesPerLarge = const Value.absent(),
     this.travelFeeEurosPerBracket = const Value.absent(),
     this.bracketKm = const Value.absent(),
     this.themeMode = const Value.absent(),
@@ -618,7 +654,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     required double baseLat,
     required double baseLon,
     this.defaultRadiusKm = const Value.absent(),
-    this.defaultMinutesPerSheep = const Value.absent(),
+    this.defaultMinutesPerSmall = const Value.absent(),
+    this.defaultMinutesPerLarge = const Value.absent(),
     this.travelFeeEurosPerBracket = const Value.absent(),
     this.bracketKm = const Value.absent(),
     this.themeMode = const Value.absent(),
@@ -638,7 +675,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     Expression<double>? baseLat,
     Expression<double>? baseLon,
     Expression<int>? defaultRadiusKm,
-    Expression<int>? defaultMinutesPerSheep,
+    Expression<int>? defaultMinutesPerSmall,
+    Expression<int>? defaultMinutesPerLarge,
     Expression<int>? travelFeeEurosPerBracket,
     Expression<int>? bracketKm,
     Expression<String>? themeMode,
@@ -656,8 +694,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       if (baseLat != null) 'base_lat': baseLat,
       if (baseLon != null) 'base_lon': baseLon,
       if (defaultRadiusKm != null) 'default_radius_km': defaultRadiusKm,
-      if (defaultMinutesPerSheep != null)
-        'default_minutes_per_sheep': defaultMinutesPerSheep,
+      if (defaultMinutesPerSmall != null)
+        'default_minutes_per_small': defaultMinutesPerSmall,
+      if (defaultMinutesPerLarge != null)
+        'default_minutes_per_large': defaultMinutesPerLarge,
       if (travelFeeEurosPerBracket != null)
         'travel_fee_euros_per_bracket': travelFeeEurosPerBracket,
       if (bracketKm != null) 'bracket_km': bracketKm,
@@ -682,7 +722,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       Value<double>? baseLat,
       Value<double>? baseLon,
       Value<int>? defaultRadiusKm,
-      Value<int>? defaultMinutesPerSheep,
+      Value<int>? defaultMinutesPerSmall,
+      Value<int>? defaultMinutesPerLarge,
       Value<int>? travelFeeEurosPerBracket,
       Value<int>? bracketKm,
       Value<String>? themeMode,
@@ -699,8 +740,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       baseLat: baseLat ?? this.baseLat,
       baseLon: baseLon ?? this.baseLon,
       defaultRadiusKm: defaultRadiusKm ?? this.defaultRadiusKm,
-      defaultMinutesPerSheep:
-          defaultMinutesPerSheep ?? this.defaultMinutesPerSheep,
+      defaultMinutesPerSmall:
+          defaultMinutesPerSmall ?? this.defaultMinutesPerSmall,
+      defaultMinutesPerLarge:
+          defaultMinutesPerLarge ?? this.defaultMinutesPerLarge,
       travelFeeEurosPerBracket:
           travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
       bracketKm: bracketKm ?? this.bracketKm,
@@ -733,9 +776,13 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     if (defaultRadiusKm.present) {
       map['default_radius_km'] = Variable<int>(defaultRadiusKm.value);
     }
-    if (defaultMinutesPerSheep.present) {
-      map['default_minutes_per_sheep'] =
-          Variable<int>(defaultMinutesPerSheep.value);
+    if (defaultMinutesPerSmall.present) {
+      map['default_minutes_per_small'] =
+          Variable<int>(defaultMinutesPerSmall.value);
+    }
+    if (defaultMinutesPerLarge.present) {
+      map['default_minutes_per_large'] =
+          Variable<int>(defaultMinutesPerLarge.value);
     }
     if (travelFeeEurosPerBracket.present) {
       map['travel_fee_euros_per_bracket'] =
@@ -780,7 +827,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
           ..write('baseLat: $baseLat, ')
           ..write('baseLon: $baseLon, ')
           ..write('defaultRadiusKm: $defaultRadiusKm, ')
-          ..write('defaultMinutesPerSheep: $defaultMinutesPerSheep, ')
+          ..write('defaultMinutesPerSmall: $defaultMinutesPerSmall, ')
+          ..write('defaultMinutesPerLarge: $defaultMinutesPerLarge, ')
           ..write('travelFeeEurosPerBracket: $travelFeeEurosPerBracket, ')
           ..write('bracketKm: $bracketKm, ')
           ..write('themeMode: $themeMode, ')
@@ -848,20 +896,22 @@ class $ClientsTableTable extends ClientsTable
   late final GeneratedColumn<double> lon = GeneratedColumn<double>(
       'lon', aliasedName, false,
       type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _sheepCountMeta =
-      const VerificationMeta('sheepCount');
+  static const VerificationMeta _sheepCountSmallMeta =
+      const VerificationMeta('sheepCountSmall');
   @override
-  late final GeneratedColumn<int> sheepCount = GeneratedColumn<int>(
-      'sheep_count', aliasedName, false,
+  late final GeneratedColumn<int> sheepCountSmall = GeneratedColumn<int>(
+      'sheep_count_small', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
-  static const VerificationMeta _minutesPerSheepOverrideMeta =
-      const VerificationMeta('minutesPerSheepOverride');
+  static const VerificationMeta _sheepCountLargeMeta =
+      const VerificationMeta('sheepCountLarge');
   @override
-  late final GeneratedColumn<int> minutesPerSheepOverride =
-      GeneratedColumn<int>('minutes_per_sheep_override', aliasedName, true,
-          type: DriftSqlType.int, requiredDuringInsert: false);
+  late final GeneratedColumn<int> sheepCountLarge = GeneratedColumn<int>(
+      'sheep_count_large', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _markerColorHexMeta =
       const VerificationMeta('markerColorHex');
   @override
@@ -926,8 +976,8 @@ class $ClientsTableTable extends ClientsTable
         city,
         lat,
         lon,
-        sheepCount,
-        minutesPerSheepOverride,
+        sheepCountSmall,
+        sheepCountLarge,
         markerColorHex,
         isWaiting,
         lastShearingDate,
@@ -991,18 +1041,17 @@ class $ClientsTableTable extends ClientsTable
     } else if (isInserting) {
       context.missing(_lonMeta);
     }
-    if (data.containsKey('sheep_count')) {
+    if (data.containsKey('sheep_count_small')) {
       context.handle(
-          _sheepCountMeta,
-          sheepCount.isAcceptableOrUnknown(
-              data['sheep_count']!, _sheepCountMeta));
+          _sheepCountSmallMeta,
+          sheepCountSmall.isAcceptableOrUnknown(
+              data['sheep_count_small']!, _sheepCountSmallMeta));
     }
-    if (data.containsKey('minutes_per_sheep_override')) {
+    if (data.containsKey('sheep_count_large')) {
       context.handle(
-          _minutesPerSheepOverrideMeta,
-          minutesPerSheepOverride.isAcceptableOrUnknown(
-              data['minutes_per_sheep_override']!,
-              _minutesPerSheepOverrideMeta));
+          _sheepCountLargeMeta,
+          sheepCountLarge.isAcceptableOrUnknown(
+              data['sheep_count_large']!, _sheepCountLargeMeta));
     }
     if (data.containsKey('marker_color_hex')) {
       context.handle(
@@ -1067,11 +1116,10 @@ class $ClientsTableTable extends ClientsTable
           .read(DriftSqlType.double, data['${effectivePrefix}lat'])!,
       lon: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}lon'])!,
-      sheepCount: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sheep_count'])!,
-      minutesPerSheepOverride: attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
-          data['${effectivePrefix}minutes_per_sheep_override']),
+      sheepCountSmall: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sheep_count_small'])!,
+      sheepCountLarge: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sheep_count_large'])!,
       markerColorHex: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}marker_color_hex']),
       isWaiting: attachedDatabase.typeMapping
@@ -1105,8 +1153,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
   final String city;
   final double lat;
   final double lon;
-  final int sheepCount;
-  final int? minutesPerSheepOverride;
+  final int sheepCountSmall;
+  final int sheepCountLarge;
   final String? markerColorHex;
   final bool isWaiting;
   final int? lastShearingDate;
@@ -1123,8 +1171,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       required this.city,
       required this.lat,
       required this.lon,
-      required this.sheepCount,
-      this.minutesPerSheepOverride,
+      required this.sheepCountSmall,
+      required this.sheepCountLarge,
       this.markerColorHex,
       required this.isWaiting,
       this.lastShearingDate,
@@ -1145,11 +1193,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     map['city'] = Variable<String>(city);
     map['lat'] = Variable<double>(lat);
     map['lon'] = Variable<double>(lon);
-    map['sheep_count'] = Variable<int>(sheepCount);
-    if (!nullToAbsent || minutesPerSheepOverride != null) {
-      map['minutes_per_sheep_override'] =
-          Variable<int>(minutesPerSheepOverride);
-    }
+    map['sheep_count_small'] = Variable<int>(sheepCountSmall);
+    map['sheep_count_large'] = Variable<int>(sheepCountLarge);
     if (!nullToAbsent || markerColorHex != null) {
       map['marker_color_hex'] = Variable<String>(markerColorHex);
     }
@@ -1175,10 +1220,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       city: Value(city),
       lat: Value(lat),
       lon: Value(lon),
-      sheepCount: Value(sheepCount),
-      minutesPerSheepOverride: minutesPerSheepOverride == null && nullToAbsent
-          ? const Value.absent()
-          : Value(minutesPerSheepOverride),
+      sheepCountSmall: Value(sheepCountSmall),
+      sheepCountLarge: Value(sheepCountLarge),
       markerColorHex: markerColorHex == null && nullToAbsent
           ? const Value.absent()
           : Value(markerColorHex),
@@ -1205,9 +1248,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       city: serializer.fromJson<String>(json['city']),
       lat: serializer.fromJson<double>(json['lat']),
       lon: serializer.fromJson<double>(json['lon']),
-      sheepCount: serializer.fromJson<int>(json['sheepCount']),
-      minutesPerSheepOverride:
-          serializer.fromJson<int?>(json['minutesPerSheepOverride']),
+      sheepCountSmall: serializer.fromJson<int>(json['sheepCountSmall']),
+      sheepCountLarge: serializer.fromJson<int>(json['sheepCountLarge']),
       markerColorHex: serializer.fromJson<String?>(json['markerColorHex']),
       isWaiting: serializer.fromJson<bool>(json['isWaiting']),
       lastShearingDate: serializer.fromJson<int?>(json['lastShearingDate']),
@@ -1230,9 +1272,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       'city': serializer.toJson<String>(city),
       'lat': serializer.toJson<double>(lat),
       'lon': serializer.toJson<double>(lon),
-      'sheepCount': serializer.toJson<int>(sheepCount),
-      'minutesPerSheepOverride':
-          serializer.toJson<int?>(minutesPerSheepOverride),
+      'sheepCountSmall': serializer.toJson<int>(sheepCountSmall),
+      'sheepCountLarge': serializer.toJson<int>(sheepCountLarge),
       'markerColorHex': serializer.toJson<String?>(markerColorHex),
       'isWaiting': serializer.toJson<bool>(isWaiting),
       'lastShearingDate': serializer.toJson<int?>(lastShearingDate),
@@ -1252,8 +1293,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           String? city,
           double? lat,
           double? lon,
-          int? sheepCount,
-          Value<int?> minutesPerSheepOverride = const Value.absent(),
+          int? sheepCountSmall,
+          int? sheepCountLarge,
           Value<String?> markerColorHex = const Value.absent(),
           bool? isWaiting,
           Value<int?> lastShearingDate = const Value.absent(),
@@ -1270,10 +1311,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
         city: city ?? this.city,
         lat: lat ?? this.lat,
         lon: lon ?? this.lon,
-        sheepCount: sheepCount ?? this.sheepCount,
-        minutesPerSheepOverride: minutesPerSheepOverride.present
-            ? minutesPerSheepOverride.value
-            : this.minutesPerSheepOverride,
+        sheepCountSmall: sheepCountSmall ?? this.sheepCountSmall,
+        sheepCountLarge: sheepCountLarge ?? this.sheepCountLarge,
         markerColorHex:
             markerColorHex.present ? markerColorHex.value : this.markerColorHex,
         isWaiting: isWaiting ?? this.isWaiting,
@@ -1298,11 +1337,12 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       city: data.city.present ? data.city.value : this.city,
       lat: data.lat.present ? data.lat.value : this.lat,
       lon: data.lon.present ? data.lon.value : this.lon,
-      sheepCount:
-          data.sheepCount.present ? data.sheepCount.value : this.sheepCount,
-      minutesPerSheepOverride: data.minutesPerSheepOverride.present
-          ? data.minutesPerSheepOverride.value
-          : this.minutesPerSheepOverride,
+      sheepCountSmall: data.sheepCountSmall.present
+          ? data.sheepCountSmall.value
+          : this.sheepCountSmall,
+      sheepCountLarge: data.sheepCountLarge.present
+          ? data.sheepCountLarge.value
+          : this.sheepCountLarge,
       markerColorHex: data.markerColorHex.present
           ? data.markerColorHex.value
           : this.markerColorHex,
@@ -1330,8 +1370,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           ..write('city: $city, ')
           ..write('lat: $lat, ')
           ..write('lon: $lon, ')
-          ..write('sheepCount: $sheepCount, ')
-          ..write('minutesPerSheepOverride: $minutesPerSheepOverride, ')
+          ..write('sheepCountSmall: $sheepCountSmall, ')
+          ..write('sheepCountLarge: $sheepCountLarge, ')
           ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
           ..write('lastShearingDate: $lastShearingDate, ')
@@ -1353,8 +1393,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       city,
       lat,
       lon,
-      sheepCount,
-      minutesPerSheepOverride,
+      sheepCountSmall,
+      sheepCountLarge,
       markerColorHex,
       isWaiting,
       lastShearingDate,
@@ -1374,8 +1414,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           other.city == this.city &&
           other.lat == this.lat &&
           other.lon == this.lon &&
-          other.sheepCount == this.sheepCount &&
-          other.minutesPerSheepOverride == this.minutesPerSheepOverride &&
+          other.sheepCountSmall == this.sheepCountSmall &&
+          other.sheepCountLarge == this.sheepCountLarge &&
           other.markerColorHex == this.markerColorHex &&
           other.isWaiting == this.isWaiting &&
           other.lastShearingDate == this.lastShearingDate &&
@@ -1394,8 +1434,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   final Value<String> city;
   final Value<double> lat;
   final Value<double> lon;
-  final Value<int> sheepCount;
-  final Value<int?> minutesPerSheepOverride;
+  final Value<int> sheepCountSmall;
+  final Value<int> sheepCountLarge;
   final Value<String?> markerColorHex;
   final Value<bool> isWaiting;
   final Value<int?> lastShearingDate;
@@ -1412,8 +1452,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     this.city = const Value.absent(),
     this.lat = const Value.absent(),
     this.lon = const Value.absent(),
-    this.sheepCount = const Value.absent(),
-    this.minutesPerSheepOverride = const Value.absent(),
+    this.sheepCountSmall = const Value.absent(),
+    this.sheepCountLarge = const Value.absent(),
     this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
     this.lastShearingDate = const Value.absent(),
@@ -1431,8 +1471,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     required String city,
     required double lat,
     required double lon,
-    this.sheepCount = const Value.absent(),
-    this.minutesPerSheepOverride = const Value.absent(),
+    this.sheepCountSmall = const Value.absent(),
+    this.sheepCountLarge = const Value.absent(),
     this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
     this.lastShearingDate = const Value.absent(),
@@ -1457,8 +1497,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     Expression<String>? city,
     Expression<double>? lat,
     Expression<double>? lon,
-    Expression<int>? sheepCount,
-    Expression<int>? minutesPerSheepOverride,
+    Expression<int>? sheepCountSmall,
+    Expression<int>? sheepCountLarge,
     Expression<String>? markerColorHex,
     Expression<bool>? isWaiting,
     Expression<int>? lastShearingDate,
@@ -1476,9 +1516,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       if (city != null) 'city': city,
       if (lat != null) 'lat': lat,
       if (lon != null) 'lon': lon,
-      if (sheepCount != null) 'sheep_count': sheepCount,
-      if (minutesPerSheepOverride != null)
-        'minutes_per_sheep_override': minutesPerSheepOverride,
+      if (sheepCountSmall != null) 'sheep_count_small': sheepCountSmall,
+      if (sheepCountLarge != null) 'sheep_count_large': sheepCountLarge,
       if (markerColorHex != null) 'marker_color_hex': markerColorHex,
       if (isWaiting != null) 'is_waiting': isWaiting,
       if (lastShearingDate != null) 'last_shearing_date': lastShearingDate,
@@ -1499,8 +1538,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       Value<String>? city,
       Value<double>? lat,
       Value<double>? lon,
-      Value<int>? sheepCount,
-      Value<int?>? minutesPerSheepOverride,
+      Value<int>? sheepCountSmall,
+      Value<int>? sheepCountLarge,
       Value<String?>? markerColorHex,
       Value<bool>? isWaiting,
       Value<int?>? lastShearingDate,
@@ -1517,9 +1556,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       city: city ?? this.city,
       lat: lat ?? this.lat,
       lon: lon ?? this.lon,
-      sheepCount: sheepCount ?? this.sheepCount,
-      minutesPerSheepOverride:
-          minutesPerSheepOverride ?? this.minutesPerSheepOverride,
+      sheepCountSmall: sheepCountSmall ?? this.sheepCountSmall,
+      sheepCountLarge: sheepCountLarge ?? this.sheepCountLarge,
       markerColorHex: markerColorHex ?? this.markerColorHex,
       isWaiting: isWaiting ?? this.isWaiting,
       lastShearingDate: lastShearingDate ?? this.lastShearingDate,
@@ -1558,12 +1596,11 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     if (lon.present) {
       map['lon'] = Variable<double>(lon.value);
     }
-    if (sheepCount.present) {
-      map['sheep_count'] = Variable<int>(sheepCount.value);
+    if (sheepCountSmall.present) {
+      map['sheep_count_small'] = Variable<int>(sheepCountSmall.value);
     }
-    if (minutesPerSheepOverride.present) {
-      map['minutes_per_sheep_override'] =
-          Variable<int>(minutesPerSheepOverride.value);
+    if (sheepCountLarge.present) {
+      map['sheep_count_large'] = Variable<int>(sheepCountLarge.value);
     }
     if (markerColorHex.present) {
       map['marker_color_hex'] = Variable<String>(markerColorHex.value);
@@ -1601,8 +1638,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
           ..write('city: $city, ')
           ..write('lat: $lat, ')
           ..write('lon: $lon, ')
-          ..write('sheepCount: $sheepCount, ')
-          ..write('minutesPerSheepOverride: $minutesPerSheepOverride, ')
+          ..write('sheepCountSmall: $sheepCountSmall, ')
+          ..write('sheepCountLarge: $sheepCountLarge, ')
           ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
           ..write('lastShearingDate: $lastShearingDate, ')
@@ -2523,18 +2560,56 @@ class $TourStopsTableTable extends TourStopsTable
   late final GeneratedColumn<int> estimatedDepartureMinutes =
       GeneratedColumn<int>('estimated_departure_minutes', aliasedName, false,
           type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _sheepCountSnapshotMeta =
-      const VerificationMeta('sheepCountSnapshot');
+  static const VerificationMeta _plannedSmallMeta =
+      const VerificationMeta('plannedSmall');
   @override
-  late final GeneratedColumn<int> sheepCountSnapshot = GeneratedColumn<int>(
-      'sheep_count_snapshot', aliasedName, false,
-      type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _minutesPerSheepSnapshotMeta =
-      const VerificationMeta('minutesPerSheepSnapshot');
+  late final GeneratedColumn<int> plannedSmall = GeneratedColumn<int>(
+      'planned_small', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _plannedLargeMeta =
+      const VerificationMeta('plannedLarge');
   @override
-  late final GeneratedColumn<int> minutesPerSheepSnapshot =
-      GeneratedColumn<int>('minutes_per_sheep_snapshot', aliasedName, false,
-          type: DriftSqlType.int, requiredDuringInsert: true);
+  late final GeneratedColumn<int> plannedLarge = GeneratedColumn<int>(
+      'planned_large', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _minutesPerSmallSnapshotMeta =
+      const VerificationMeta('minutesPerSmallSnapshot');
+  @override
+  late final GeneratedColumn<int> minutesPerSmallSnapshot =
+      GeneratedColumn<int>('minutes_per_small_snapshot', aliasedName, false,
+          type: DriftSqlType.int,
+          requiredDuringInsert: false,
+          defaultValue: const Constant(0));
+  static const VerificationMeta _minutesPerLargeSnapshotMeta =
+      const VerificationMeta('minutesPerLargeSnapshot');
+  @override
+  late final GeneratedColumn<int> minutesPerLargeSnapshot =
+      GeneratedColumn<int>('minutes_per_large_snapshot', aliasedName, false,
+          type: DriftSqlType.int,
+          requiredDuringInsert: false,
+          defaultValue: const Constant(0));
+  static const VerificationMeta _actualSmallMeta =
+      const VerificationMeta('actualSmall');
+  @override
+  late final GeneratedColumn<int> actualSmall = GeneratedColumn<int>(
+      'actual_small', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _actualLargeMeta =
+      const VerificationMeta('actualLarge');
+  @override
+  late final GeneratedColumn<int> actualLarge = GeneratedColumn<int>(
+      'actual_large', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _interventionNoteMeta =
+      const VerificationMeta('interventionNote');
+  @override
+  late final GeneratedColumn<String> interventionNote = GeneratedColumn<String>(
+      'intervention_note', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _feeShareCentsMeta =
       const VerificationMeta('feeShareCents');
   @override
@@ -2550,8 +2625,13 @@ class $TourStopsTableTable extends TourStopsTable
         orderIndex,
         estimatedArrivalMinutes,
         estimatedDepartureMinutes,
-        sheepCountSnapshot,
-        minutesPerSheepSnapshot,
+        plannedSmall,
+        plannedLarge,
+        minutesPerSmallSnapshot,
+        minutesPerLargeSnapshot,
+        actualSmall,
+        actualLarge,
+        interventionNote,
         feeShareCents
       ];
   @override
@@ -2611,22 +2691,49 @@ class $TourStopsTableTable extends TourStopsTable
     } else if (isInserting) {
       context.missing(_estimatedDepartureMinutesMeta);
     }
-    if (data.containsKey('sheep_count_snapshot')) {
+    if (data.containsKey('planned_small')) {
       context.handle(
-          _sheepCountSnapshotMeta,
-          sheepCountSnapshot.isAcceptableOrUnknown(
-              data['sheep_count_snapshot']!, _sheepCountSnapshotMeta));
-    } else if (isInserting) {
-      context.missing(_sheepCountSnapshotMeta);
+          _plannedSmallMeta,
+          plannedSmall.isAcceptableOrUnknown(
+              data['planned_small']!, _plannedSmallMeta));
     }
-    if (data.containsKey('minutes_per_sheep_snapshot')) {
+    if (data.containsKey('planned_large')) {
       context.handle(
-          _minutesPerSheepSnapshotMeta,
-          minutesPerSheepSnapshot.isAcceptableOrUnknown(
-              data['minutes_per_sheep_snapshot']!,
-              _minutesPerSheepSnapshotMeta));
-    } else if (isInserting) {
-      context.missing(_minutesPerSheepSnapshotMeta);
+          _plannedLargeMeta,
+          plannedLarge.isAcceptableOrUnknown(
+              data['planned_large']!, _plannedLargeMeta));
+    }
+    if (data.containsKey('minutes_per_small_snapshot')) {
+      context.handle(
+          _minutesPerSmallSnapshotMeta,
+          minutesPerSmallSnapshot.isAcceptableOrUnknown(
+              data['minutes_per_small_snapshot']!,
+              _minutesPerSmallSnapshotMeta));
+    }
+    if (data.containsKey('minutes_per_large_snapshot')) {
+      context.handle(
+          _minutesPerLargeSnapshotMeta,
+          minutesPerLargeSnapshot.isAcceptableOrUnknown(
+              data['minutes_per_large_snapshot']!,
+              _minutesPerLargeSnapshotMeta));
+    }
+    if (data.containsKey('actual_small')) {
+      context.handle(
+          _actualSmallMeta,
+          actualSmall.isAcceptableOrUnknown(
+              data['actual_small']!, _actualSmallMeta));
+    }
+    if (data.containsKey('actual_large')) {
+      context.handle(
+          _actualLargeMeta,
+          actualLarge.isAcceptableOrUnknown(
+              data['actual_large']!, _actualLargeMeta));
+    }
+    if (data.containsKey('intervention_note')) {
+      context.handle(
+          _interventionNoteMeta,
+          interventionNote.isAcceptableOrUnknown(
+              data['intervention_note']!, _interventionNoteMeta));
     }
     if (data.containsKey('fee_share_cents')) {
       context.handle(
@@ -2661,11 +2768,22 @@ class $TourStopsTableTable extends TourStopsTable
       estimatedDepartureMinutes: attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}estimated_departure_minutes'])!,
-      sheepCountSnapshot: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}sheep_count_snapshot'])!,
-      minutesPerSheepSnapshot: attachedDatabase.typeMapping.read(
+      plannedSmall: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}planned_small'])!,
+      plannedLarge: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}planned_large'])!,
+      minutesPerSmallSnapshot: attachedDatabase.typeMapping.read(
           DriftSqlType.int,
-          data['${effectivePrefix}minutes_per_sheep_snapshot'])!,
+          data['${effectivePrefix}minutes_per_small_snapshot'])!,
+      minutesPerLargeSnapshot: attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}minutes_per_large_snapshot'])!,
+      actualSmall: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}actual_small']),
+      actualLarge: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}actual_large']),
+      interventionNote: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}intervention_note']),
       feeShareCents: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}fee_share_cents'])!,
     );
@@ -2685,8 +2803,13 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
   final int orderIndex;
   final int estimatedArrivalMinutes;
   final int estimatedDepartureMinutes;
-  final int sheepCountSnapshot;
-  final int minutesPerSheepSnapshot;
+  final int plannedSmall;
+  final int plannedLarge;
+  final int minutesPerSmallSnapshot;
+  final int minutesPerLargeSnapshot;
+  final int? actualSmall;
+  final int? actualLarge;
+  final String? interventionNote;
   final int feeShareCents;
   const TourStopRow(
       {required this.id,
@@ -2696,8 +2819,13 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       required this.orderIndex,
       required this.estimatedArrivalMinutes,
       required this.estimatedDepartureMinutes,
-      required this.sheepCountSnapshot,
-      required this.minutesPerSheepSnapshot,
+      required this.plannedSmall,
+      required this.plannedLarge,
+      required this.minutesPerSmallSnapshot,
+      required this.minutesPerLargeSnapshot,
+      this.actualSmall,
+      this.actualLarge,
+      this.interventionNote,
       required this.feeShareCents});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2712,8 +2840,19 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
     map['estimated_arrival_minutes'] = Variable<int>(estimatedArrivalMinutes);
     map['estimated_departure_minutes'] =
         Variable<int>(estimatedDepartureMinutes);
-    map['sheep_count_snapshot'] = Variable<int>(sheepCountSnapshot);
-    map['minutes_per_sheep_snapshot'] = Variable<int>(minutesPerSheepSnapshot);
+    map['planned_small'] = Variable<int>(plannedSmall);
+    map['planned_large'] = Variable<int>(plannedLarge);
+    map['minutes_per_small_snapshot'] = Variable<int>(minutesPerSmallSnapshot);
+    map['minutes_per_large_snapshot'] = Variable<int>(minutesPerLargeSnapshot);
+    if (!nullToAbsent || actualSmall != null) {
+      map['actual_small'] = Variable<int>(actualSmall);
+    }
+    if (!nullToAbsent || actualLarge != null) {
+      map['actual_large'] = Variable<int>(actualLarge);
+    }
+    if (!nullToAbsent || interventionNote != null) {
+      map['intervention_note'] = Variable<String>(interventionNote);
+    }
     map['fee_share_cents'] = Variable<int>(feeShareCents);
     return map;
   }
@@ -2729,8 +2868,19 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       orderIndex: Value(orderIndex),
       estimatedArrivalMinutes: Value(estimatedArrivalMinutes),
       estimatedDepartureMinutes: Value(estimatedDepartureMinutes),
-      sheepCountSnapshot: Value(sheepCountSnapshot),
-      minutesPerSheepSnapshot: Value(minutesPerSheepSnapshot),
+      plannedSmall: Value(plannedSmall),
+      plannedLarge: Value(plannedLarge),
+      minutesPerSmallSnapshot: Value(minutesPerSmallSnapshot),
+      minutesPerLargeSnapshot: Value(minutesPerLargeSnapshot),
+      actualSmall: actualSmall == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actualSmall),
+      actualLarge: actualLarge == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actualLarge),
+      interventionNote: interventionNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(interventionNote),
       feeShareCents: Value(feeShareCents),
     );
   }
@@ -2749,9 +2899,15 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           serializer.fromJson<int>(json['estimatedArrivalMinutes']),
       estimatedDepartureMinutes:
           serializer.fromJson<int>(json['estimatedDepartureMinutes']),
-      sheepCountSnapshot: serializer.fromJson<int>(json['sheepCountSnapshot']),
-      minutesPerSheepSnapshot:
-          serializer.fromJson<int>(json['minutesPerSheepSnapshot']),
+      plannedSmall: serializer.fromJson<int>(json['plannedSmall']),
+      plannedLarge: serializer.fromJson<int>(json['plannedLarge']),
+      minutesPerSmallSnapshot:
+          serializer.fromJson<int>(json['minutesPerSmallSnapshot']),
+      minutesPerLargeSnapshot:
+          serializer.fromJson<int>(json['minutesPerLargeSnapshot']),
+      actualSmall: serializer.fromJson<int?>(json['actualSmall']),
+      actualLarge: serializer.fromJson<int?>(json['actualLarge']),
+      interventionNote: serializer.fromJson<String?>(json['interventionNote']),
       feeShareCents: serializer.fromJson<int>(json['feeShareCents']),
     );
   }
@@ -2768,9 +2924,15 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           serializer.toJson<int>(estimatedArrivalMinutes),
       'estimatedDepartureMinutes':
           serializer.toJson<int>(estimatedDepartureMinutes),
-      'sheepCountSnapshot': serializer.toJson<int>(sheepCountSnapshot),
-      'minutesPerSheepSnapshot':
-          serializer.toJson<int>(minutesPerSheepSnapshot),
+      'plannedSmall': serializer.toJson<int>(plannedSmall),
+      'plannedLarge': serializer.toJson<int>(plannedLarge),
+      'minutesPerSmallSnapshot':
+          serializer.toJson<int>(minutesPerSmallSnapshot),
+      'minutesPerLargeSnapshot':
+          serializer.toJson<int>(minutesPerLargeSnapshot),
+      'actualSmall': serializer.toJson<int?>(actualSmall),
+      'actualLarge': serializer.toJson<int?>(actualLarge),
+      'interventionNote': serializer.toJson<String?>(interventionNote),
       'feeShareCents': serializer.toJson<int>(feeShareCents),
     };
   }
@@ -2783,8 +2945,13 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           int? orderIndex,
           int? estimatedArrivalMinutes,
           int? estimatedDepartureMinutes,
-          int? sheepCountSnapshot,
-          int? minutesPerSheepSnapshot,
+          int? plannedSmall,
+          int? plannedLarge,
+          int? minutesPerSmallSnapshot,
+          int? minutesPerLargeSnapshot,
+          Value<int?> actualSmall = const Value.absent(),
+          Value<int?> actualLarge = const Value.absent(),
+          Value<String?> interventionNote = const Value.absent(),
           int? feeShareCents}) =>
       TourStopRow(
         id: id ?? this.id,
@@ -2796,9 +2963,17 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
             estimatedArrivalMinutes ?? this.estimatedArrivalMinutes,
         estimatedDepartureMinutes:
             estimatedDepartureMinutes ?? this.estimatedDepartureMinutes,
-        sheepCountSnapshot: sheepCountSnapshot ?? this.sheepCountSnapshot,
-        minutesPerSheepSnapshot:
-            minutesPerSheepSnapshot ?? this.minutesPerSheepSnapshot,
+        plannedSmall: plannedSmall ?? this.plannedSmall,
+        plannedLarge: plannedLarge ?? this.plannedLarge,
+        minutesPerSmallSnapshot:
+            minutesPerSmallSnapshot ?? this.minutesPerSmallSnapshot,
+        minutesPerLargeSnapshot:
+            minutesPerLargeSnapshot ?? this.minutesPerLargeSnapshot,
+        actualSmall: actualSmall.present ? actualSmall.value : this.actualSmall,
+        actualLarge: actualLarge.present ? actualLarge.value : this.actualLarge,
+        interventionNote: interventionNote.present
+            ? interventionNote.value
+            : this.interventionNote,
         feeShareCents: feeShareCents ?? this.feeShareCents,
       );
   TourStopRow copyWithCompanion(TourStopsTableCompanion data) {
@@ -2817,12 +2992,25 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       estimatedDepartureMinutes: data.estimatedDepartureMinutes.present
           ? data.estimatedDepartureMinutes.value
           : this.estimatedDepartureMinutes,
-      sheepCountSnapshot: data.sheepCountSnapshot.present
-          ? data.sheepCountSnapshot.value
-          : this.sheepCountSnapshot,
-      minutesPerSheepSnapshot: data.minutesPerSheepSnapshot.present
-          ? data.minutesPerSheepSnapshot.value
-          : this.minutesPerSheepSnapshot,
+      plannedSmall: data.plannedSmall.present
+          ? data.plannedSmall.value
+          : this.plannedSmall,
+      plannedLarge: data.plannedLarge.present
+          ? data.plannedLarge.value
+          : this.plannedLarge,
+      minutesPerSmallSnapshot: data.minutesPerSmallSnapshot.present
+          ? data.minutesPerSmallSnapshot.value
+          : this.minutesPerSmallSnapshot,
+      minutesPerLargeSnapshot: data.minutesPerLargeSnapshot.present
+          ? data.minutesPerLargeSnapshot.value
+          : this.minutesPerLargeSnapshot,
+      actualSmall:
+          data.actualSmall.present ? data.actualSmall.value : this.actualSmall,
+      actualLarge:
+          data.actualLarge.present ? data.actualLarge.value : this.actualLarge,
+      interventionNote: data.interventionNote.present
+          ? data.interventionNote.value
+          : this.interventionNote,
       feeShareCents: data.feeShareCents.present
           ? data.feeShareCents.value
           : this.feeShareCents,
@@ -2839,8 +3027,13 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           ..write('orderIndex: $orderIndex, ')
           ..write('estimatedArrivalMinutes: $estimatedArrivalMinutes, ')
           ..write('estimatedDepartureMinutes: $estimatedDepartureMinutes, ')
-          ..write('sheepCountSnapshot: $sheepCountSnapshot, ')
-          ..write('minutesPerSheepSnapshot: $minutesPerSheepSnapshot, ')
+          ..write('plannedSmall: $plannedSmall, ')
+          ..write('plannedLarge: $plannedLarge, ')
+          ..write('minutesPerSmallSnapshot: $minutesPerSmallSnapshot, ')
+          ..write('minutesPerLargeSnapshot: $minutesPerLargeSnapshot, ')
+          ..write('actualSmall: $actualSmall, ')
+          ..write('actualLarge: $actualLarge, ')
+          ..write('interventionNote: $interventionNote, ')
           ..write('feeShareCents: $feeShareCents')
           ..write(')'))
         .toString();
@@ -2855,8 +3048,13 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       orderIndex,
       estimatedArrivalMinutes,
       estimatedDepartureMinutes,
-      sheepCountSnapshot,
-      minutesPerSheepSnapshot,
+      plannedSmall,
+      plannedLarge,
+      minutesPerSmallSnapshot,
+      minutesPerLargeSnapshot,
+      actualSmall,
+      actualLarge,
+      interventionNote,
       feeShareCents);
   @override
   bool operator ==(Object other) =>
@@ -2869,8 +3067,13 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           other.orderIndex == this.orderIndex &&
           other.estimatedArrivalMinutes == this.estimatedArrivalMinutes &&
           other.estimatedDepartureMinutes == this.estimatedDepartureMinutes &&
-          other.sheepCountSnapshot == this.sheepCountSnapshot &&
-          other.minutesPerSheepSnapshot == this.minutesPerSheepSnapshot &&
+          other.plannedSmall == this.plannedSmall &&
+          other.plannedLarge == this.plannedLarge &&
+          other.minutesPerSmallSnapshot == this.minutesPerSmallSnapshot &&
+          other.minutesPerLargeSnapshot == this.minutesPerLargeSnapshot &&
+          other.actualSmall == this.actualSmall &&
+          other.actualLarge == this.actualLarge &&
+          other.interventionNote == this.interventionNote &&
           other.feeShareCents == this.feeShareCents);
 }
 
@@ -2882,8 +3085,13 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
   final Value<int> orderIndex;
   final Value<int> estimatedArrivalMinutes;
   final Value<int> estimatedDepartureMinutes;
-  final Value<int> sheepCountSnapshot;
-  final Value<int> minutesPerSheepSnapshot;
+  final Value<int> plannedSmall;
+  final Value<int> plannedLarge;
+  final Value<int> minutesPerSmallSnapshot;
+  final Value<int> minutesPerLargeSnapshot;
+  final Value<int?> actualSmall;
+  final Value<int?> actualLarge;
+  final Value<String?> interventionNote;
   final Value<int> feeShareCents;
   const TourStopsTableCompanion({
     this.id = const Value.absent(),
@@ -2893,8 +3101,13 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
     this.orderIndex = const Value.absent(),
     this.estimatedArrivalMinutes = const Value.absent(),
     this.estimatedDepartureMinutes = const Value.absent(),
-    this.sheepCountSnapshot = const Value.absent(),
-    this.minutesPerSheepSnapshot = const Value.absent(),
+    this.plannedSmall = const Value.absent(),
+    this.plannedLarge = const Value.absent(),
+    this.minutesPerSmallSnapshot = const Value.absent(),
+    this.minutesPerLargeSnapshot = const Value.absent(),
+    this.actualSmall = const Value.absent(),
+    this.actualLarge = const Value.absent(),
+    this.interventionNote = const Value.absent(),
     this.feeShareCents = const Value.absent(),
   });
   TourStopsTableCompanion.insert({
@@ -2905,16 +3118,19 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
     required int orderIndex,
     required int estimatedArrivalMinutes,
     required int estimatedDepartureMinutes,
-    required int sheepCountSnapshot,
-    required int minutesPerSheepSnapshot,
+    this.plannedSmall = const Value.absent(),
+    this.plannedLarge = const Value.absent(),
+    this.minutesPerSmallSnapshot = const Value.absent(),
+    this.minutesPerLargeSnapshot = const Value.absent(),
+    this.actualSmall = const Value.absent(),
+    this.actualLarge = const Value.absent(),
+    this.interventionNote = const Value.absent(),
     required int feeShareCents,
   })  : tourId = Value(tourId),
         clientNameSnapshot = Value(clientNameSnapshot),
         orderIndex = Value(orderIndex),
         estimatedArrivalMinutes = Value(estimatedArrivalMinutes),
         estimatedDepartureMinutes = Value(estimatedDepartureMinutes),
-        sheepCountSnapshot = Value(sheepCountSnapshot),
-        minutesPerSheepSnapshot = Value(minutesPerSheepSnapshot),
         feeShareCents = Value(feeShareCents);
   static Insertable<TourStopRow> custom({
     Expression<int>? id,
@@ -2924,8 +3140,13 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
     Expression<int>? orderIndex,
     Expression<int>? estimatedArrivalMinutes,
     Expression<int>? estimatedDepartureMinutes,
-    Expression<int>? sheepCountSnapshot,
-    Expression<int>? minutesPerSheepSnapshot,
+    Expression<int>? plannedSmall,
+    Expression<int>? plannedLarge,
+    Expression<int>? minutesPerSmallSnapshot,
+    Expression<int>? minutesPerLargeSnapshot,
+    Expression<int>? actualSmall,
+    Expression<int>? actualLarge,
+    Expression<String>? interventionNote,
     Expression<int>? feeShareCents,
   }) {
     return RawValuesInsertable({
@@ -2939,10 +3160,15 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
         'estimated_arrival_minutes': estimatedArrivalMinutes,
       if (estimatedDepartureMinutes != null)
         'estimated_departure_minutes': estimatedDepartureMinutes,
-      if (sheepCountSnapshot != null)
-        'sheep_count_snapshot': sheepCountSnapshot,
-      if (minutesPerSheepSnapshot != null)
-        'minutes_per_sheep_snapshot': minutesPerSheepSnapshot,
+      if (plannedSmall != null) 'planned_small': plannedSmall,
+      if (plannedLarge != null) 'planned_large': plannedLarge,
+      if (minutesPerSmallSnapshot != null)
+        'minutes_per_small_snapshot': minutesPerSmallSnapshot,
+      if (minutesPerLargeSnapshot != null)
+        'minutes_per_large_snapshot': minutesPerLargeSnapshot,
+      if (actualSmall != null) 'actual_small': actualSmall,
+      if (actualLarge != null) 'actual_large': actualLarge,
+      if (interventionNote != null) 'intervention_note': interventionNote,
       if (feeShareCents != null) 'fee_share_cents': feeShareCents,
     });
   }
@@ -2955,8 +3181,13 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
       Value<int>? orderIndex,
       Value<int>? estimatedArrivalMinutes,
       Value<int>? estimatedDepartureMinutes,
-      Value<int>? sheepCountSnapshot,
-      Value<int>? minutesPerSheepSnapshot,
+      Value<int>? plannedSmall,
+      Value<int>? plannedLarge,
+      Value<int>? minutesPerSmallSnapshot,
+      Value<int>? minutesPerLargeSnapshot,
+      Value<int?>? actualSmall,
+      Value<int?>? actualLarge,
+      Value<String?>? interventionNote,
       Value<int>? feeShareCents}) {
     return TourStopsTableCompanion(
       id: id ?? this.id,
@@ -2968,9 +3199,15 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
           estimatedArrivalMinutes ?? this.estimatedArrivalMinutes,
       estimatedDepartureMinutes:
           estimatedDepartureMinutes ?? this.estimatedDepartureMinutes,
-      sheepCountSnapshot: sheepCountSnapshot ?? this.sheepCountSnapshot,
-      minutesPerSheepSnapshot:
-          minutesPerSheepSnapshot ?? this.minutesPerSheepSnapshot,
+      plannedSmall: plannedSmall ?? this.plannedSmall,
+      plannedLarge: plannedLarge ?? this.plannedLarge,
+      minutesPerSmallSnapshot:
+          minutesPerSmallSnapshot ?? this.minutesPerSmallSnapshot,
+      minutesPerLargeSnapshot:
+          minutesPerLargeSnapshot ?? this.minutesPerLargeSnapshot,
+      actualSmall: actualSmall ?? this.actualSmall,
+      actualLarge: actualLarge ?? this.actualLarge,
+      interventionNote: interventionNote ?? this.interventionNote,
       feeShareCents: feeShareCents ?? this.feeShareCents,
     );
   }
@@ -3001,12 +3238,28 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
       map['estimated_departure_minutes'] =
           Variable<int>(estimatedDepartureMinutes.value);
     }
-    if (sheepCountSnapshot.present) {
-      map['sheep_count_snapshot'] = Variable<int>(sheepCountSnapshot.value);
+    if (plannedSmall.present) {
+      map['planned_small'] = Variable<int>(plannedSmall.value);
     }
-    if (minutesPerSheepSnapshot.present) {
-      map['minutes_per_sheep_snapshot'] =
-          Variable<int>(minutesPerSheepSnapshot.value);
+    if (plannedLarge.present) {
+      map['planned_large'] = Variable<int>(plannedLarge.value);
+    }
+    if (minutesPerSmallSnapshot.present) {
+      map['minutes_per_small_snapshot'] =
+          Variable<int>(minutesPerSmallSnapshot.value);
+    }
+    if (minutesPerLargeSnapshot.present) {
+      map['minutes_per_large_snapshot'] =
+          Variable<int>(minutesPerLargeSnapshot.value);
+    }
+    if (actualSmall.present) {
+      map['actual_small'] = Variable<int>(actualSmall.value);
+    }
+    if (actualLarge.present) {
+      map['actual_large'] = Variable<int>(actualLarge.value);
+    }
+    if (interventionNote.present) {
+      map['intervention_note'] = Variable<String>(interventionNote.value);
     }
     if (feeShareCents.present) {
       map['fee_share_cents'] = Variable<int>(feeShareCents.value);
@@ -3024,8 +3277,13 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
           ..write('orderIndex: $orderIndex, ')
           ..write('estimatedArrivalMinutes: $estimatedArrivalMinutes, ')
           ..write('estimatedDepartureMinutes: $estimatedDepartureMinutes, ')
-          ..write('sheepCountSnapshot: $sheepCountSnapshot, ')
-          ..write('minutesPerSheepSnapshot: $minutesPerSheepSnapshot, ')
+          ..write('plannedSmall: $plannedSmall, ')
+          ..write('plannedLarge: $plannedLarge, ')
+          ..write('minutesPerSmallSnapshot: $minutesPerSmallSnapshot, ')
+          ..write('minutesPerLargeSnapshot: $minutesPerLargeSnapshot, ')
+          ..write('actualSmall: $actualSmall, ')
+          ..write('actualLarge: $actualLarge, ')
+          ..write('interventionNote: $interventionNote, ')
           ..write('feeShareCents: $feeShareCents')
           ..write(')'))
         .toString();
@@ -3080,7 +3338,8 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   required double baseLat,
   required double baseLon,
   Value<int> defaultRadiusKm,
-  Value<int> defaultMinutesPerSheep,
+  Value<int> defaultMinutesPerSmall,
+  Value<int> defaultMinutesPerLarge,
   Value<int> travelFeeEurosPerBracket,
   Value<int> bracketKm,
   Value<String> themeMode,
@@ -3099,7 +3358,8 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<double> baseLat,
   Value<double> baseLon,
   Value<int> defaultRadiusKm,
-  Value<int> defaultMinutesPerSheep,
+  Value<int> defaultMinutesPerSmall,
+  Value<int> defaultMinutesPerLarge,
   Value<int> travelFeeEurosPerBracket,
   Value<int> bracketKm,
   Value<String> themeMode,
@@ -3138,8 +3398,12 @@ class $$SettingsTableTableFilterComposer
       column: $table.defaultRadiusKm,
       builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get defaultMinutesPerSheep => $composableBuilder(
-      column: $table.defaultMinutesPerSheep,
+  ColumnFilters<int> get defaultMinutesPerSmall => $composableBuilder(
+      column: $table.defaultMinutesPerSmall,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get defaultMinutesPerLarge => $composableBuilder(
+      column: $table.defaultMinutesPerLarge,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get travelFeeEurosPerBracket => $composableBuilder(
@@ -3207,8 +3471,12 @@ class $$SettingsTableTableOrderingComposer
       column: $table.defaultRadiusKm,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get defaultMinutesPerSheep => $composableBuilder(
-      column: $table.defaultMinutesPerSheep,
+  ColumnOrderings<int> get defaultMinutesPerSmall => $composableBuilder(
+      column: $table.defaultMinutesPerSmall,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get defaultMinutesPerLarge => $composableBuilder(
+      column: $table.defaultMinutesPerLarge,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get travelFeeEurosPerBracket => $composableBuilder(
@@ -3274,8 +3542,11 @@ class $$SettingsTableTableAnnotationComposer
   GeneratedColumn<int> get defaultRadiusKm => $composableBuilder(
       column: $table.defaultRadiusKm, builder: (column) => column);
 
-  GeneratedColumn<int> get defaultMinutesPerSheep => $composableBuilder(
-      column: $table.defaultMinutesPerSheep, builder: (column) => column);
+  GeneratedColumn<int> get defaultMinutesPerSmall => $composableBuilder(
+      column: $table.defaultMinutesPerSmall, builder: (column) => column);
+
+  GeneratedColumn<int> get defaultMinutesPerLarge => $composableBuilder(
+      column: $table.defaultMinutesPerLarge, builder: (column) => column);
 
   GeneratedColumn<int> get travelFeeEurosPerBracket => $composableBuilder(
       column: $table.travelFeeEurosPerBracket, builder: (column) => column);
@@ -3339,7 +3610,8 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<double> baseLat = const Value.absent(),
             Value<double> baseLon = const Value.absent(),
             Value<int> defaultRadiusKm = const Value.absent(),
-            Value<int> defaultMinutesPerSheep = const Value.absent(),
+            Value<int> defaultMinutesPerSmall = const Value.absent(),
+            Value<int> defaultMinutesPerLarge = const Value.absent(),
             Value<int> travelFeeEurosPerBracket = const Value.absent(),
             Value<int> bracketKm = const Value.absent(),
             Value<String> themeMode = const Value.absent(),
@@ -3357,7 +3629,8 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             baseLat: baseLat,
             baseLon: baseLon,
             defaultRadiusKm: defaultRadiusKm,
-            defaultMinutesPerSheep: defaultMinutesPerSheep,
+            defaultMinutesPerSmall: defaultMinutesPerSmall,
+            defaultMinutesPerLarge: defaultMinutesPerLarge,
             travelFeeEurosPerBracket: travelFeeEurosPerBracket,
             bracketKm: bracketKm,
             themeMode: themeMode,
@@ -3375,7 +3648,8 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             required double baseLat,
             required double baseLon,
             Value<int> defaultRadiusKm = const Value.absent(),
-            Value<int> defaultMinutesPerSheep = const Value.absent(),
+            Value<int> defaultMinutesPerSmall = const Value.absent(),
+            Value<int> defaultMinutesPerLarge = const Value.absent(),
             Value<int> travelFeeEurosPerBracket = const Value.absent(),
             Value<int> bracketKm = const Value.absent(),
             Value<String> themeMode = const Value.absent(),
@@ -3393,7 +3667,8 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             baseLat: baseLat,
             baseLon: baseLon,
             defaultRadiusKm: defaultRadiusKm,
-            defaultMinutesPerSheep: defaultMinutesPerSheep,
+            defaultMinutesPerSmall: defaultMinutesPerSmall,
+            defaultMinutesPerLarge: defaultMinutesPerLarge,
             travelFeeEurosPerBracket: travelFeeEurosPerBracket,
             bracketKm: bracketKm,
             themeMode: themeMode,
@@ -3437,8 +3712,8 @@ typedef $$ClientsTableTableCreateCompanionBuilder = ClientsTableCompanion
   required String city,
   required double lat,
   required double lon,
-  Value<int> sheepCount,
-  Value<int?> minutesPerSheepOverride,
+  Value<int> sheepCountSmall,
+  Value<int> sheepCountLarge,
   Value<String?> markerColorHex,
   Value<bool> isWaiting,
   Value<int?> lastShearingDate,
@@ -3457,8 +3732,8 @@ typedef $$ClientsTableTableUpdateCompanionBuilder = ClientsTableCompanion
   Value<String> city,
   Value<double> lat,
   Value<double> lon,
-  Value<int> sheepCount,
-  Value<int?> minutesPerSheepOverride,
+  Value<int> sheepCountSmall,
+  Value<int> sheepCountLarge,
   Value<String?> markerColorHex,
   Value<bool> isWaiting,
   Value<int?> lastShearingDate,
@@ -3521,11 +3796,12 @@ class $$ClientsTableTableFilterComposer
   ColumnFilters<double> get lon => $composableBuilder(
       column: $table.lon, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get sheepCount => $composableBuilder(
-      column: $table.sheepCount, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get sheepCountSmall => $composableBuilder(
+      column: $table.sheepCountSmall,
+      builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get minutesPerSheepOverride => $composableBuilder(
-      column: $table.minutesPerSheepOverride,
+  ColumnFilters<int> get sheepCountLarge => $composableBuilder(
+      column: $table.sheepCountLarge,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get markerColorHex => $composableBuilder(
@@ -3608,11 +3884,12 @@ class $$ClientsTableTableOrderingComposer
   ColumnOrderings<double> get lon => $composableBuilder(
       column: $table.lon, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get sheepCount => $composableBuilder(
-      column: $table.sheepCount, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get sheepCountSmall => $composableBuilder(
+      column: $table.sheepCountSmall,
+      builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get minutesPerSheepOverride => $composableBuilder(
-      column: $table.minutesPerSheepOverride,
+  ColumnOrderings<int> get sheepCountLarge => $composableBuilder(
+      column: $table.sheepCountLarge,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get markerColorHex => $composableBuilder(
@@ -3673,11 +3950,11 @@ class $$ClientsTableTableAnnotationComposer
   GeneratedColumn<double> get lon =>
       $composableBuilder(column: $table.lon, builder: (column) => column);
 
-  GeneratedColumn<int> get sheepCount => $composableBuilder(
-      column: $table.sheepCount, builder: (column) => column);
+  GeneratedColumn<int> get sheepCountSmall => $composableBuilder(
+      column: $table.sheepCountSmall, builder: (column) => column);
 
-  GeneratedColumn<int> get minutesPerSheepOverride => $composableBuilder(
-      column: $table.minutesPerSheepOverride, builder: (column) => column);
+  GeneratedColumn<int> get sheepCountLarge => $composableBuilder(
+      column: $table.sheepCountLarge, builder: (column) => column);
 
   GeneratedColumn<String> get markerColorHex => $composableBuilder(
       column: $table.markerColorHex, builder: (column) => column);
@@ -3753,8 +4030,8 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             Value<String> city = const Value.absent(),
             Value<double> lat = const Value.absent(),
             Value<double> lon = const Value.absent(),
-            Value<int> sheepCount = const Value.absent(),
-            Value<int?> minutesPerSheepOverride = const Value.absent(),
+            Value<int> sheepCountSmall = const Value.absent(),
+            Value<int> sheepCountLarge = const Value.absent(),
             Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
             Value<int?> lastShearingDate = const Value.absent(),
@@ -3772,8 +4049,8 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             city: city,
             lat: lat,
             lon: lon,
-            sheepCount: sheepCount,
-            minutesPerSheepOverride: minutesPerSheepOverride,
+            sheepCountSmall: sheepCountSmall,
+            sheepCountLarge: sheepCountLarge,
             markerColorHex: markerColorHex,
             isWaiting: isWaiting,
             lastShearingDate: lastShearingDate,
@@ -3791,8 +4068,8 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             required String city,
             required double lat,
             required double lon,
-            Value<int> sheepCount = const Value.absent(),
-            Value<int?> minutesPerSheepOverride = const Value.absent(),
+            Value<int> sheepCountSmall = const Value.absent(),
+            Value<int> sheepCountLarge = const Value.absent(),
             Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
             Value<int?> lastShearingDate = const Value.absent(),
@@ -3810,8 +4087,8 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             city: city,
             lat: lat,
             lon: lon,
-            sheepCount: sheepCount,
-            minutesPerSheepOverride: minutesPerSheepOverride,
+            sheepCountSmall: sheepCountSmall,
+            sheepCountLarge: sheepCountLarge,
             markerColorHex: markerColorHex,
             isWaiting: isWaiting,
             lastShearingDate: lastShearingDate,
@@ -4390,8 +4667,13 @@ typedef $$TourStopsTableTableCreateCompanionBuilder = TourStopsTableCompanion
   required int orderIndex,
   required int estimatedArrivalMinutes,
   required int estimatedDepartureMinutes,
-  required int sheepCountSnapshot,
-  required int minutesPerSheepSnapshot,
+  Value<int> plannedSmall,
+  Value<int> plannedLarge,
+  Value<int> minutesPerSmallSnapshot,
+  Value<int> minutesPerLargeSnapshot,
+  Value<int?> actualSmall,
+  Value<int?> actualLarge,
+  Value<String?> interventionNote,
   required int feeShareCents,
 });
 typedef $$TourStopsTableTableUpdateCompanionBuilder = TourStopsTableCompanion
@@ -4403,8 +4685,13 @@ typedef $$TourStopsTableTableUpdateCompanionBuilder = TourStopsTableCompanion
   Value<int> orderIndex,
   Value<int> estimatedArrivalMinutes,
   Value<int> estimatedDepartureMinutes,
-  Value<int> sheepCountSnapshot,
-  Value<int> minutesPerSheepSnapshot,
+  Value<int> plannedSmall,
+  Value<int> plannedLarge,
+  Value<int> minutesPerSmallSnapshot,
+  Value<int> minutesPerLargeSnapshot,
+  Value<int?> actualSmall,
+  Value<int?> actualLarge,
+  Value<String?> interventionNote,
   Value<int> feeShareCents,
 });
 
@@ -4471,12 +4758,28 @@ class $$TourStopsTableTableFilterComposer
       column: $table.estimatedDepartureMinutes,
       builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get sheepCountSnapshot => $composableBuilder(
-      column: $table.sheepCountSnapshot,
+  ColumnFilters<int> get plannedSmall => $composableBuilder(
+      column: $table.plannedSmall, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get plannedLarge => $composableBuilder(
+      column: $table.plannedLarge, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get minutesPerSmallSnapshot => $composableBuilder(
+      column: $table.minutesPerSmallSnapshot,
       builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get minutesPerSheepSnapshot => $composableBuilder(
-      column: $table.minutesPerSheepSnapshot,
+  ColumnFilters<int> get minutesPerLargeSnapshot => $composableBuilder(
+      column: $table.minutesPerLargeSnapshot,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get actualSmall => $composableBuilder(
+      column: $table.actualSmall, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get actualLarge => $composableBuilder(
+      column: $table.actualLarge, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get interventionNote => $composableBuilder(
+      column: $table.interventionNote,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get feeShareCents => $composableBuilder(
@@ -4550,12 +4853,30 @@ class $$TourStopsTableTableOrderingComposer
       column: $table.estimatedDepartureMinutes,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get sheepCountSnapshot => $composableBuilder(
-      column: $table.sheepCountSnapshot,
+  ColumnOrderings<int> get plannedSmall => $composableBuilder(
+      column: $table.plannedSmall,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get minutesPerSheepSnapshot => $composableBuilder(
-      column: $table.minutesPerSheepSnapshot,
+  ColumnOrderings<int> get plannedLarge => $composableBuilder(
+      column: $table.plannedLarge,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get minutesPerSmallSnapshot => $composableBuilder(
+      column: $table.minutesPerSmallSnapshot,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get minutesPerLargeSnapshot => $composableBuilder(
+      column: $table.minutesPerLargeSnapshot,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get actualSmall => $composableBuilder(
+      column: $table.actualSmall, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get actualLarge => $composableBuilder(
+      column: $table.actualLarge, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get interventionNote => $composableBuilder(
+      column: $table.interventionNote,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get feeShareCents => $composableBuilder(
@@ -4627,11 +4948,26 @@ class $$TourStopsTableTableAnnotationComposer
   GeneratedColumn<int> get estimatedDepartureMinutes => $composableBuilder(
       column: $table.estimatedDepartureMinutes, builder: (column) => column);
 
-  GeneratedColumn<int> get sheepCountSnapshot => $composableBuilder(
-      column: $table.sheepCountSnapshot, builder: (column) => column);
+  GeneratedColumn<int> get plannedSmall => $composableBuilder(
+      column: $table.plannedSmall, builder: (column) => column);
 
-  GeneratedColumn<int> get minutesPerSheepSnapshot => $composableBuilder(
-      column: $table.minutesPerSheepSnapshot, builder: (column) => column);
+  GeneratedColumn<int> get plannedLarge => $composableBuilder(
+      column: $table.plannedLarge, builder: (column) => column);
+
+  GeneratedColumn<int> get minutesPerSmallSnapshot => $composableBuilder(
+      column: $table.minutesPerSmallSnapshot, builder: (column) => column);
+
+  GeneratedColumn<int> get minutesPerLargeSnapshot => $composableBuilder(
+      column: $table.minutesPerLargeSnapshot, builder: (column) => column);
+
+  GeneratedColumn<int> get actualSmall => $composableBuilder(
+      column: $table.actualSmall, builder: (column) => column);
+
+  GeneratedColumn<int> get actualLarge => $composableBuilder(
+      column: $table.actualLarge, builder: (column) => column);
+
+  GeneratedColumn<String> get interventionNote => $composableBuilder(
+      column: $table.interventionNote, builder: (column) => column);
 
   GeneratedColumn<int> get feeShareCents => $composableBuilder(
       column: $table.feeShareCents, builder: (column) => column);
@@ -4708,8 +5044,13 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             Value<int> orderIndex = const Value.absent(),
             Value<int> estimatedArrivalMinutes = const Value.absent(),
             Value<int> estimatedDepartureMinutes = const Value.absent(),
-            Value<int> sheepCountSnapshot = const Value.absent(),
-            Value<int> minutesPerSheepSnapshot = const Value.absent(),
+            Value<int> plannedSmall = const Value.absent(),
+            Value<int> plannedLarge = const Value.absent(),
+            Value<int> minutesPerSmallSnapshot = const Value.absent(),
+            Value<int> minutesPerLargeSnapshot = const Value.absent(),
+            Value<int?> actualSmall = const Value.absent(),
+            Value<int?> actualLarge = const Value.absent(),
+            Value<String?> interventionNote = const Value.absent(),
             Value<int> feeShareCents = const Value.absent(),
           }) =>
               TourStopsTableCompanion(
@@ -4720,8 +5061,13 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             orderIndex: orderIndex,
             estimatedArrivalMinutes: estimatedArrivalMinutes,
             estimatedDepartureMinutes: estimatedDepartureMinutes,
-            sheepCountSnapshot: sheepCountSnapshot,
-            minutesPerSheepSnapshot: minutesPerSheepSnapshot,
+            plannedSmall: plannedSmall,
+            plannedLarge: plannedLarge,
+            minutesPerSmallSnapshot: minutesPerSmallSnapshot,
+            minutesPerLargeSnapshot: minutesPerLargeSnapshot,
+            actualSmall: actualSmall,
+            actualLarge: actualLarge,
+            interventionNote: interventionNote,
             feeShareCents: feeShareCents,
           ),
           createCompanionCallback: ({
@@ -4732,8 +5078,13 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             required int orderIndex,
             required int estimatedArrivalMinutes,
             required int estimatedDepartureMinutes,
-            required int sheepCountSnapshot,
-            required int minutesPerSheepSnapshot,
+            Value<int> plannedSmall = const Value.absent(),
+            Value<int> plannedLarge = const Value.absent(),
+            Value<int> minutesPerSmallSnapshot = const Value.absent(),
+            Value<int> minutesPerLargeSnapshot = const Value.absent(),
+            Value<int?> actualSmall = const Value.absent(),
+            Value<int?> actualLarge = const Value.absent(),
+            Value<String?> interventionNote = const Value.absent(),
             required int feeShareCents,
           }) =>
               TourStopsTableCompanion.insert(
@@ -4744,8 +5095,13 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             orderIndex: orderIndex,
             estimatedArrivalMinutes: estimatedArrivalMinutes,
             estimatedDepartureMinutes: estimatedDepartureMinutes,
-            sheepCountSnapshot: sheepCountSnapshot,
-            minutesPerSheepSnapshot: minutesPerSheepSnapshot,
+            plannedSmall: plannedSmall,
+            plannedLarge: plannedLarge,
+            minutesPerSmallSnapshot: minutesPerSmallSnapshot,
+            minutesPerLargeSnapshot: minutesPerLargeSnapshot,
+            actualSmall: actualSmall,
+            actualLarge: actualLarge,
+            interventionNote: interventionNote,
             feeShareCents: feeShareCents,
           ),
           withReferenceMapper: (p0) => p0
