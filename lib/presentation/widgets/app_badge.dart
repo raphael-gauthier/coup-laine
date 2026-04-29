@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 
 import '../../core/design_tokens.dart';
+import '../../domain/use_cases/client_status.dart';
 
 class AppBadge extends StatelessWidget {
   final String label;
@@ -26,13 +27,32 @@ class AppBadge extends StatelessWidget {
     );
   }
 
-  factory AppBadge.overdue(BuildContext context, {String label = 'En retard'}) {
+  factory AppBadge.fromStatus(
+    BuildContext context, {
+    required ClientStatus status,
+    required String label,
+  }) {
     final colors = context.theme.colors;
     return AppBadge._(
       label: label,
-      icon: FIcons.triangleAlert,
-      background: colors.destructive,
-      foreground: colors.destructiveForeground,
+      icon: switch (status) {
+        ClientStatus.defaultStatus => FIcons.circle,
+        ClientStatus.waiting => FIcons.clock,
+        ClientStatus.scheduled => FIcons.calendar,
+        ClientStatus.done => FIcons.check,
+        ClientStatus.noSheep => FIcons.x,
+        ClientStatus.banned => FIcons.ban,
+      },
+      background: switch (status) {
+        ClientStatus.banned => colors.destructive,
+        ClientStatus.waiting => colors.secondary,
+        _ => colors.muted,
+      },
+      foreground: switch (status) {
+        ClientStatus.banned => colors.destructiveForeground,
+        ClientStatus.waiting => colors.secondaryForeground,
+        _ => colors.foreground,
+      },
     );
   }
 

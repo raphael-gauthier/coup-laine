@@ -134,5 +134,18 @@
   "settingsSeasonStartedFmt": "Saison en cours depuis le {date}",
   "@settingsSeasonStartedFmt": {"placeholders": {"date": {"type": "String"}}},
   "mapLayersDialogTitle": "Afficher les marqueurs",
-  "mapLayersDialogClose": "Fermer"
+  "mapLayersDialogClose": "Fermer",
+  "clientStatusDefault": "Par défaut",
+  "clientStatusWaiting": "En attente de RDV",
+  "clientStatusScheduled": "RDV calé",
+  "clientStatusDone": "Passé",
+  "clientStatusNoSheep": "Sans moutons",
+  "clientStatusBanned": "Banni",
+  "clientDetailWaitingDisabledHintFmt": "Le statut actuel ({label}) prend le dessus.",
+  "@clientDetailWaitingDisabledHintFmt": {"placeholders": {"label": {"type": "String"}}},
+  "clientDetailBan": "Bannir",
+  "clientDetailUnban": "Lever le bannissement",
+  "clientDetailResetToDefault": "Remettre par défaut",
+  "clientDetailResetDisabledFmt": "Ce client est dans la tournée du {date}. Retire-le de la tournée pour pouvoir le réinitialiser.",
+  "@clientDetailResetDisabledFmt": {"placeholders": {"date": {"type": "String"}}}
 }

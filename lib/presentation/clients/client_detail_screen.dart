@@ -1,4 +1,5 @@
 // lib/presentation/clients/client_detail_screen.dart
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,6 +10,7 @@ import 'package:intl/intl.dart';
 import '../../core/design_tokens.dart';
 import 'client_actions.dart';
 import '../../domain/models/client.dart';
+import '../../domain/use_cases/client_status.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
 import '../widgets/app_badge.dart';
@@ -17,8 +19,12 @@ import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
-final _clientByIdProvider = FutureProvider.family<Client?, int>((ref, id) {
-  return ref.watch(clientRepositoryProvider).findById(id);
+final _clientByIdProvider =
+    FutureProvider.family<(Client, ClientStatus)?, int>((ref, id) async {
+  final settings = await ref.watch(settingsRepositoryProvider).read();
+  final seasonStart = settings?.seasonStartedAt ??
+      DateTime.fromMillisecondsSinceEpoch(0);
+  return ref.watch(clientRepositoryProvider).findByIdWithStatus(id, seasonStart);
 });
 
 class ClientDetailScreen extends ConsumerWidget {
@@ -32,7 +38,7 @@ class ClientDetailScreen extends ConsumerWidget {
 
     return FScaffold(
       header: FHeader.nested(
-        title: Text(async.value?.name ?? '...'),
+        title: Text(async.value?.$1.name ?? '...'),
         suffixes: [
           FButton.icon(
             child: const Icon(FIcons.pencil),
@@ -47,7 +53,9 @@ class ClientDetailScreen extends ConsumerWidget {
       child: async.when(
         loading: () => const Center(child: FCircularProgress()),
         error: (e, _) => Center(child: Text('$e')),
-        data: (c) => c == null ? const SizedBox.shrink() : _Body(client: c),
+        data: (record) => record == null
+            ? const SizedBox.shrink()
+            : _Body(client: record.$1, status: record.$2),
       ),
     );
   }
@@ -87,7 +95,8 @@ class ClientDetailScreen extends ConsumerWidget {
 
 class _Body extends ConsumerWidget {
   final Client client;
-  const _Body({required this.client});
+  final ClientStatus status;
+  const _Body({required this.client, required this.status});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -111,7 +120,11 @@ class _Body extends ConsumerWidget {
         children: [
           // Hero card: sheep count
           AppHeroCard(
-            badge: client.isWaiting ? AppBadge.waiting(context) : null,
+            badge: AppBadge.fromStatus(
+              context,
+              status: status,
+              label: _statusLabel(l, status),
+            ),
             bigNumber: '${client.sheepCount}',
             label: 'moutons',
             subtitle: subtitle,
@@ -235,18 +248,62 @@ class _Body extends ConsumerWidget {
           AppSectionCard(
             icon: FIcons.bellRing,
             title: l.clientDetailSectionStatus,
-            child: FTile(
-              title: Text(l.clientDetailWaitingToggle),
-              suffix: FSwitch(
-                value: client.isWaiting,
-                onChange: (v) async {
-                  await ref
-                      .read(clientRepositoryProvider)
-                      .setWaiting(id: client.id, isWaiting: v);
-                  ref.invalidate(_clientByIdProvider(client.id));
-                  ref.invalidate(clientsAsyncProvider);
-                },
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FTile(
+                  title: Text(l.clientStatusWaiting),
+                  subtitle: (status == ClientStatus.banned ||
+                          status == ClientStatus.noSheep ||
+                          status == ClientStatus.scheduled ||
+                          status == ClientStatus.done)
+                      ? Text(
+                          l.clientDetailWaitingDisabledHintFmt(
+                            _statusLabel(l, status),
+                          ),
+                          style: theme.typography.xs.copyWith(
+                            color: theme.colors.mutedForeground,
+                          ),
+                        )
+                      : null,
+                  suffix: FSwitch(
+                    value: client.isWaiting,
+                    onChange: (status == ClientStatus.banned ||
+                            status == ClientStatus.noSheep ||
+                            status == ClientStatus.scheduled ||
+                            status == ClientStatus.done)
+                        ? null
+                        : (v) async {
+                            await ref
+                                .read(clientRepositoryProvider)
+                                .setWaiting(id: client.id, isWaiting: v);
+                            ref.invalidate(_clientByIdProvider(client.id));
+                            ref.invalidate(clientsAsyncProvider);
+                          },
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                FButton(
+                  variant: client.isBanned
+                      ? FButtonVariant.outline
+                      : FButtonVariant.destructive,
+                  prefix: Icon(client.isBanned ? FIcons.shieldOff : FIcons.ban),
+                  onPress: () async {
+                    await ref
+                        .read(clientRepositoryProvider)
+                        .setBanned(client.id, !client.isBanned);
+                    ref.invalidate(_clientByIdProvider(client.id));
+                    ref.invalidate(clientsAsyncProvider);
+                  },
+                  child: Text(
+                    client.isBanned
+                        ? l.clientDetailUnban
+                        : l.clientDetailBan,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                _ResetToDefaultButton(client: client, status: status),
+              ],
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -255,7 +312,7 @@ class _Body extends ConsumerWidget {
           AppPrimaryButton(
             label: l.clientDetailFindNearby,
             prefixIcon: FIcons.compass,
-            onPress: (client.isWaiting && !client.needsDistanceRecompute)
+            onPress: status == ClientStatus.waiting
                 ? () => context.push('/proximity/${client.id}')
                 : null,
           ),
@@ -265,3 +322,92 @@ class _Body extends ConsumerWidget {
     );
   }
 }
+
+String _statusLabel(AppLocalizations l, ClientStatus status) => switch (status) {
+      ClientStatus.defaultStatus => l.clientStatusDefault,
+      ClientStatus.waiting => l.clientStatusWaiting,
+      ClientStatus.scheduled => l.clientStatusScheduled,
+      ClientStatus.done => l.clientStatusDone,
+      ClientStatus.noSheep => l.clientStatusNoSheep,
+      ClientStatus.banned => l.clientStatusBanned,
+    };
+
+class _ResetToDefaultButton extends ConsumerWidget {
+  final Client client;
+  final ClientStatus status;
+  const _ResetToDefaultButton({required this.client, required this.status});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
+
+    final plannedTourAsync = ref.watch(_plannedTourForClientProvider(client.id));
+
+    return plannedTourAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (tourDate) {
+        final blocked = tourDate != null;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            FButton(
+              variant: FButtonVariant.outline,
+              prefix: const Icon(FIcons.rotateCcw),
+              onPress: blocked
+                  ? null
+                  : () async {
+                      final repo = ref.read(clientRepositoryProvider);
+                      await repo.setWaiting(id: client.id, isWaiting: false);
+                      await repo.setBanned(client.id, false);
+                      ref.invalidate(_clientByIdProvider(client.id));
+                      ref.invalidate(clientsAsyncProvider);
+                    },
+              child: Text(l.clientDetailResetToDefault),
+            ),
+            if (blocked) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                l.clientDetailResetDisabledFmt(
+                  DateFormat('dd/MM/yyyy').format(tourDate),
+                ),
+                style: theme.typography.xs.copyWith(
+                  color: theme.colors.mutedForeground,
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Returns the planned date of the *earliest* tour this client is part of
+/// in the current season, or null if none exists.
+final _plannedTourForClientProvider =
+    FutureProvider.family.autoDispose<DateTime?, int>((ref, clientId) async {
+  final settings = await ref.watch(settingsRepositoryProvider).read();
+  final seasonStart = settings?.seasonStartedAt ??
+      DateTime.fromMillisecondsSinceEpoch(0);
+  final db = ref.watch(appDatabaseProvider);
+  final seasonEpochDays = seasonStart.millisecondsSinceEpoch ~/ 86400000;
+
+  final rows = await (db.select(db.tourStopsTable).join([
+    innerJoin(db.toursTable, db.toursTable.id.equalsExp(db.tourStopsTable.tourId)),
+  ])
+        ..where(
+          db.tourStopsTable.clientId.equals(clientId) &
+              db.toursTable.status.equals('planned') &
+              db.toursTable.plannedDate.isBiggerOrEqualValue(seasonEpochDays),
+        )
+        ..orderBy([
+          OrderingTerm.asc(db.toursTable.plannedDate),
+        ]))
+      .get();
+
+  if (rows.isEmpty) return null;
+  final tour = rows.first.readTable(db.toursTable);
+  return DateTime.fromMillisecondsSinceEpoch(tour.plannedDate * 86400000);
+});

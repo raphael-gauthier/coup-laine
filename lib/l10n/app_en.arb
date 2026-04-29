@@ -134,5 +134,18 @@
   "settingsSeasonStartedFmt": "Season ongoing since {date}",
   "@settingsSeasonStartedFmt": {"placeholders": {"date": {"type": "String"}}},
   "mapLayersDialogTitle": "Show markers",
-  "mapLayersDialogClose": "Close"
+  "mapLayersDialogClose": "Close",
+  "clientStatusDefault": "Default",
+  "clientStatusWaiting": "Waiting for appointment",
+  "clientStatusScheduled": "Scheduled",
+  "clientStatusDone": "Done",
+  "clientStatusNoSheep": "No sheep",
+  "clientStatusBanned": "Banned",
+  "clientDetailWaitingDisabledHintFmt": "Current status ({label}) takes precedence.",
+  "@clientDetailWaitingDisabledHintFmt": {"placeholders": {"label": {"type": "String"}}},
+  "clientDetailBan": "Ban",
+  "clientDetailUnban": "Lift ban",
+  "clientDetailResetToDefault": "Reset to default",
+  "clientDetailResetDisabledFmt": "This client is in the tour of {date}. Remove them from the tour to reset.",
+  "@clientDetailResetDisabledFmt": {"placeholders": {"date": {"type": "String"}}}
 }
