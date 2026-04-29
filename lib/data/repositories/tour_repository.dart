@@ -133,7 +133,6 @@ class TourRepository {
               ..where((c) => c.id.equals(s.clientId!)))
             .write(
           ClientsTableCompanion(
-            isWaiting: const Value(false),
             lastShearingDate: Value(tour.plannedDate * 86400000),
             updatedAt: Value(now),
           ),

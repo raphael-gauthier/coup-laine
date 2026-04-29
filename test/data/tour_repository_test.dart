@@ -75,7 +75,8 @@ void main() {
     expect(read.stops.map((s) => s.clientNameSnapshot), ['A', 'B']);
   });
 
-  test('completing a tour updates clients', () async {
+  test('markCompleted writes lastShearingDate but does not touch isWaiting',
+      () async {
     final c1 = await _addClient('A', waiting: true);
     final tourId = await tours.plan(TourDraft(
       plannedDate: DateTime(2026, 5, 12),
@@ -100,7 +101,8 @@ void main() {
     final read = await tours.findById(tourId);
     expect(read!.tour.status, TourStatus.completed);
     final c = await clients.findById(c1);
-    expect(c!.isWaiting, isFalse);
+    // isWaiting is left untouched — derived status (now `done`) replaces it.
+    expect(c!.isWaiting, isTrue);
     expect(c.lastShearingDate, isNotNull);
   });
 
