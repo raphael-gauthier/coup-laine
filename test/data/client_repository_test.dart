@@ -123,14 +123,14 @@ void main() {
     final tours = TourRepository(db);
 
     // C1: default
-    final c1 = await repo.insert(_newClient(name: 'C1'));
+    await repo.insert(_newClient(name: 'C1'));
     // C2: waiting flag
-    final c2 = await repo.insert(_newClient(name: 'C2', isWaiting: true));
+    await repo.insert(_newClient(name: 'C2', isWaiting: true));
     // C3: banned flag
     final c3 = await repo.insert(_newClient(name: 'C3', isWaiting: true));
     await repo.setBanned(c3, true);
     // C4: sheepCount = 0 (override _newClient default of 12)
-    final c4 = await db.into(db.clientsTable).insert(
+    await db.into(db.clientsTable).insert(
       ClientsTableCompanion.insert(
         name: 'C4',
         addressLabel: 'a',
@@ -219,8 +219,5 @@ void main() {
     expect(byName['C5'], ClientStatus.scheduled);
     expect(byName['C6'], ClientStatus.done);
     expect(byName['C7'], ClientStatus.defaultStatus);
-
-    // silence unused-variable warnings
-    expect([c1, c2, c4], isNotEmpty);
   });
 }

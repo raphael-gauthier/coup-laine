@@ -186,14 +186,17 @@ class ClientRepository {
 
     return [
       for (final row in clientRows)
-        (
-          _toDomain(row),
-          deriveStatus(
-            _toDomain(row),
-            hasCompletedTourThisSeason: hasCompleted.contains(row.id),
-            hasPlannedTourThisSeason: hasPlanned.contains(row.id),
-          ),
-        ),
+        (() {
+          final c = _toDomain(row);
+          return (
+            c,
+            deriveStatus(
+              c,
+              hasCompletedTourThisSeason: hasCompleted.contains(row.id),
+              hasPlannedTourThisSeason: hasPlanned.contains(row.id),
+            ),
+          );
+        })(),
     ];
   }
 
