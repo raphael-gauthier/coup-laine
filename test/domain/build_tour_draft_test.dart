@@ -5,14 +5,15 @@ import 'package:coup_laine/domain/models/settings.dart';
 import 'package:coup_laine/domain/use_cases/build_tour_draft.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Client _c(int id, String name, int sheep) => Client(
+Client _c(int id, String name, int small, {int large = 0}) => Client(
       id: id,
       name: name,
       addressLabel: 'a',
       postcode: '00000',
       city: 'X',
       coordinates: const Coordinates(lat: 48, lon: -3),
-      sheepCount: sheep,
+      sheepCountSmall: small,
+      sheepCountLarge: large,
       isWaiting: true,
     );
 

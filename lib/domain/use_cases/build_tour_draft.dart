@@ -16,7 +16,10 @@ class TourDraftResult {
   final int totalShearingMinutes;
   final int totalFeeCents;
   final List<int> feeShareCents;
-  final List<int> minutesPerSheepPerStop;
+  final List<int> plannedSmallPerStop;
+  final List<int> plannedLargePerStop;
+  final List<int> minutesPerSmallPerStop;
+  final List<int> minutesPerLargePerStop;
   final int feeFarthestCents;
   final int feeInterCents;
 
@@ -30,7 +33,10 @@ class TourDraftResult {
     required this.totalShearingMinutes,
     required this.totalFeeCents,
     required this.feeShareCents,
-    required this.minutesPerSheepPerStop,
+    required this.plannedSmallPerStop,
+    required this.plannedLargePerStop,
+    required this.minutesPerSmallPerStop,
+    required this.minutesPerLargePerStop,
     required this.feeFarthestCents,
     required this.feeInterCents,
   });
@@ -90,17 +96,26 @@ class BuildTourDraft {
         tm[k == 0 ? 0 : visitIndices[k - 1]][visitIndices[k]]
     ];
     final driveBack = tm[visitIndices.last][0];
-    final sheepCounts = orderedIds.map((id) => byId[id]!.sheepCount).toList();
-    final minPerSheep = orderedIds
-        .map((id) => byId[id]!.minutesPerSheep(settings))
-        .toList();
+    final smalls = orderedIds.map((id) => byId[id]!.sheepCountSmall).toList();
+    final larges = orderedIds.map((id) => byId[id]!.sheepCountLarge).toList();
+    final minutesSmall =
+        List<int>.filled(orderedIds.length, settings.defaultMinutesPerSmall);
+    final minutesLarge =
+        List<int>.filled(orderedIds.length, settings.defaultMinutesPerLarge);
 
     final duration = const TourDurationEstimator().estimate(
       startTimeMinutes: startTimeMinutes,
       driveSecondsToStops: driveToStops,
       driveSecondsBackToBase: driveBack,
-      sheepCountPerStop: sheepCounts,
-      minutesPerSheepPerStop: minPerSheep,
+      stops: [
+        for (var i = 0; i < orderedIds.length; i++)
+          (
+            small: smalls[i],
+            large: larges[i],
+            minutesSmall: minutesSmall[i],
+            minutesLarge: minutesLarge[i],
+          ),
+      ],
     );
 
     final baseToStopMeters = <int>[
@@ -135,7 +150,10 @@ class BuildTourDraft {
       totalShearingMinutes: duration.totalShearingMinutes,
       totalFeeCents: split.totalFeeCents,
       feeShareCents: split.shareCents,
-      minutesPerSheepPerStop: minPerSheep,
+      plannedSmallPerStop: smalls,
+      plannedLargePerStop: larges,
+      minutesPerSmallPerStop: minutesSmall,
+      minutesPerLargePerStop: minutesLarge,
       feeFarthestCents: split.feeFarthestCents,
       feeInterCents: split.feeInterCents,
     );
