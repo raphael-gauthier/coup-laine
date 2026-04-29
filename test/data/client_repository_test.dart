@@ -95,4 +95,23 @@ void main() {
     await repo.setMarkerColor(id, null);
     expect((await repo.findById(id))!.markerColorHex, isNull);
   });
+
+  test('setBanned flips the flag', () async {
+    final id = await repo.insert(_newClient());
+    expect((await repo.findById(id))!.isBanned, isFalse);
+    await repo.setBanned(id, true);
+    expect((await repo.findById(id))!.isBanned, isTrue);
+    await repo.setBanned(id, false);
+    expect((await repo.findById(id))!.isBanned, isFalse);
+  });
+
+  test('resetAllWaiting clears every isWaiting=true row', () async {
+    final a = await repo.insert(_newClient(name: 'A', isWaiting: true));
+    final b = await repo.insert(_newClient(name: 'B', isWaiting: true));
+    final c = await repo.insert(_newClient(name: 'C', isWaiting: false));
+    await repo.resetAllWaiting();
+    expect((await repo.findById(a))!.isWaiting, isFalse);
+    expect((await repo.findById(b))!.isWaiting, isFalse);
+    expect((await repo.findById(c))!.isWaiting, isFalse);
+  });
 }

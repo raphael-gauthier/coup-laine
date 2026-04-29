@@ -23,6 +23,7 @@ class ClientRepository {
             minutesPerSheepOverride: Value(c.minutesPerSheepOverride),
             notes: Value(c.notes),
             isWaiting: Value(c.isWaiting),
+            isBanned: Value(c.isBanned),
             lastShearingDate: Value(
               c.lastShearingDate?.millisecondsSinceEpoch,
             ),
@@ -69,6 +70,24 @@ class ClientRepository {
     await (_db.update(_db.clientsTable)..where((t) => t.id.equals(id))).write(
       ClientsTableCompanion(
         isWaiting: Value(isWaiting),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  Future<void> setBanned(int id, bool isBanned) async {
+    await (_db.update(_db.clientsTable)..where((t) => t.id.equals(id))).write(
+      ClientsTableCompanion(
+        isBanned: Value(isBanned),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  Future<void> resetAllWaiting() async {
+    await _db.update(_db.clientsTable).write(
+      ClientsTableCompanion(
+        isWaiting: const Value(false),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
@@ -152,6 +171,7 @@ class ClientRepository {
         notes: row.notes,
         markerColorHex: row.markerColorHex,
         isWaiting: row.isWaiting,
+        isBanned: row.isBanned,
         lastShearingDate: row.lastShearingDate == null
             ? null
             : DateTime.fromMillisecondsSinceEpoch(row.lastShearingDate!),
