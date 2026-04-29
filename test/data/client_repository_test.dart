@@ -246,4 +246,124 @@ void main() {
     expect(c.sheepCountLarge, 3);
     expect(c.lastShearingDate, DateTime(2026, 5, 12));
   });
+
+  // TODO: Task 6 — uncomment body and remove placeholder once markCompleted
+  // gains the actuals-map signature: markCompleted(int, Map<int, ({...})>).
+  test(
+    'listInterventionsForClient returns completed stops only, sorted desc, '
+    'with hasBilan reflecting actual_* presence',
+    () async {
+      // placeholder — real body below, commented out until Task 6
+      expect(true, isTrue);
+    },
+    skip: 'Enabled by Task 6 (markCompleted with actuals map signature)',
+  );
+
+  /*
+  // TASK 6: uncomment the body below and replace the placeholder test above.
+  test(
+    'listInterventionsForClient returns completed stops only, sorted desc, '
+    'with hasBilan reflecting actual_* presence',
+    () async {
+      final tours = TourRepository(db);
+      final cId = await repo.insert(_newClient(name: 'C'));
+
+      // Tour 1 — completed with actuals (most recent in date)
+      final t1 = await tours.plan(TourDraft(
+        plannedDate: DateTime(2026, 5, 14),
+        startTimeMinutes: 480,
+        totalDistanceMeters: 0,
+        totalDriveSeconds: 0,
+        totalTravelFeeCents: 0,
+        stops: [
+          TourStopDraft(
+            clientId: cId,
+            clientNameSnapshot: 'C',
+            orderIndex: 0,
+            estimatedArrivalMinutes: 480,
+            estimatedDepartureMinutes: 580,
+            plannedSmall: 5,
+            plannedLarge: 1,
+            minutesPerSmallSnapshot: 8,
+            minutesPerLargeSnapshot: 25,
+            feeShareCents: 0,
+          ),
+        ],
+      ));
+      await tours.markCompleted(t1, {
+        (await tours.findById(t1))!.stops.first.id: (
+          actualSmall: 4,
+          actualLarge: 1,
+          note: 'RAS',
+        ),
+      });
+
+      // Tour 2 — older but still completed
+      final t2 = await tours.plan(TourDraft(
+        plannedDate: DateTime(2026, 4, 1),
+        startTimeMinutes: 480,
+        totalDistanceMeters: 0,
+        totalDriveSeconds: 0,
+        totalTravelFeeCents: 0,
+        stops: [
+          TourStopDraft(
+            clientId: cId,
+            clientNameSnapshot: 'C',
+            orderIndex: 0,
+            estimatedArrivalMinutes: 480,
+            estimatedDepartureMinutes: 580,
+            plannedSmall: 6,
+            plannedLarge: 0,
+            minutesPerSmallSnapshot: 8,
+            minutesPerLargeSnapshot: 25,
+            feeShareCents: 0,
+          ),
+        ],
+      ));
+      await tours.markCompleted(t2, {
+        (await tours.findById(t2))!.stops.first.id: (
+          actualSmall: 6,
+          actualLarge: 0,
+          note: null,
+        ),
+      });
+
+      // Tour 3 — planned but not completed -> must NOT appear
+      await tours.plan(TourDraft(
+        plannedDate: DateTime(2026, 6, 1),
+        startTimeMinutes: 480,
+        totalDistanceMeters: 0,
+        totalDriveSeconds: 0,
+        totalTravelFeeCents: 0,
+        stops: [
+          TourStopDraft(
+            clientId: cId,
+            clientNameSnapshot: 'C',
+            orderIndex: 0,
+            estimatedArrivalMinutes: 480,
+            estimatedDepartureMinutes: 580,
+            plannedSmall: 4,
+            plannedLarge: 0,
+            minutesPerSmallSnapshot: 8,
+            minutesPerLargeSnapshot: 25,
+            feeShareCents: 0,
+          ),
+        ],
+      ));
+
+      final history = await repo.listInterventionsForClient(cId);
+      expect(history.length, 2);
+      expect(history[0].date, DateTime(2026, 5, 14));
+      expect(history[0].small, 4);
+      expect(history[0].large, 1);
+      expect(history[0].note, 'RAS');
+      expect(history[0].hasBilan, isTrue);
+      expect(history[1].date, DateTime(2026, 4, 1));
+      expect(history[1].small, 6);
+      expect(history[1].large, 0);
+      expect(history[1].hasBilan, isTrue);
+    },
+    skip: 'Enabled by Task 6 (markCompleted with actuals map signature)',
+  );
+  */
 }

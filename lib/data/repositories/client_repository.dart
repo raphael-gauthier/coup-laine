@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
+import '../../domain/models/intervention.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../infra/db/app_database.dart';
 
@@ -231,6 +232,47 @@ class ClientRepository {
         hasPlannedTourThisSeason: hasPlanned,
       ),
     );
+  }
+
+  /// Returns the client's intervention history — i.e. every `tour_stop`
+  /// belonging to a `tour` whose status is `'completed'`, sorted by tour
+  /// date desc. For pre-v6 stops (without `actual_*`), falls back to the
+  /// planned snapshots and flags the row with `hasBilan: false`.
+  Future<List<Intervention>> listInterventionsForClient(int clientId) async {
+    final rows = await (_db.select(_db.tourStopsTable).join([
+      innerJoin(
+        _db.toursTable,
+        _db.toursTable.id.equalsExp(_db.tourStopsTable.tourId),
+      ),
+    ])
+          ..where(
+            _db.tourStopsTable.clientId.equals(clientId) &
+                _db.toursTable.status.equals('completed'),
+          )
+          ..orderBy([
+            OrderingTerm.desc(_db.toursTable.plannedDate),
+          ]))
+        .get();
+
+    return [
+      for (final r in rows)
+        () {
+          final stop = r.readTable(_db.tourStopsTable);
+          final tour = r.readTable(_db.toursTable);
+          final hasBilan = stop.actualSmall != null && stop.actualLarge != null;
+          return Intervention(
+            tourId: tour.id,
+            stopId: stop.id,
+            date: DateTime.fromMillisecondsSinceEpoch(
+              tour.plannedDate * 86400000,
+            ),
+            small: stop.actualSmall ?? stop.plannedSmall,
+            large: stop.actualLarge ?? stop.plannedLarge,
+            note: stop.interventionNote,
+            hasBilan: hasBilan,
+          );
+        }(),
+    ];
   }
 
   /// Persists the actual sheep counts captured during a tour completion onto
