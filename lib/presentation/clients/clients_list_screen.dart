@@ -15,7 +15,6 @@ import '../../domain/use_cases/client_status.dart';
 import '../../state/providers.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_empty_state.dart';
-import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 
@@ -253,14 +252,6 @@ class _ClientTile extends ConsumerWidget {
   final ClientStatus status;
   const _ClientTile({required this.client, required this.status});
 
-  String _initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.length >= 2) {
-      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    }
-    return name.isNotEmpty ? name[0].toUpperCase() : '?';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
@@ -271,37 +262,15 @@ class _ClientTile extends ConsumerWidget {
         : _hexForStatus(settingsAsync.value!, status);
     final dotColor = _hexToColor(hex);
 
-    return AppListTile(
-      prefix: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 6),
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: theme.colors.primary,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              _initials(client.name),
-              style: theme.typography.sm.copyWith(
-                color: theme.colors.primaryForeground,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
+    return FTile(
+      prefix: Container(
+        width: 12,
+        height: 12,
+        decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
       ),
-      title: client.name,
-      subtitle:
-          '${client.city} · ${l.clientsListSheepCountFmt(client.sheepCountTotal)}',
+      title: Text(client.name),
+      subtitle: Text(client.city),
+      details: Text(l.clientsListSheepCountFmt(client.sheepCountTotal)),
       suffix: client.needsDistanceRecompute
           ? AppBadge.recompute(context)
           : Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),
