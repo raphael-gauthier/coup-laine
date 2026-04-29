@@ -186,7 +186,15 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         title: Text(widget.isEdit ? l.clientFormTitleEdit : l.clientFormTitleNew),
       ),
       child: SingleChildScrollView(
-        padding: AppSizes.screenPadding,
+        // forui's FScaffold doesn't shrink its body when there's no footer
+        // and the keyboard opens — the keyboard ends up overlapping the
+        // bottom of the form. Add the keyboard height as bottom padding so
+        // Flutter's auto-scroll-into-view can lift the focused field above
+        // the keyboard.
+        padding: AppSizes.screenPadding.copyWith(
+          bottom: AppSizes.screenPadding.bottom +
+              MediaQuery.viewInsetsOf(context).bottom,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
