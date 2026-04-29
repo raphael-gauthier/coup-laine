@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart' hide Path;
 
 import '../../core/design_tokens.dart';
+import '../../core/text_search.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/settings.dart';
 import '../../domain/use_cases/client_status.dart';
@@ -19,30 +20,6 @@ import '../../state/map_controller.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
 import 'client_pin_popup.dart';
-
-String _removeAccents(String s) {
-  const tr = {
-    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
-    'ç': 'c',
-    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
-    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
-    'ò': 'o', 'ó': 'o', 'ô': 'o', 'ö': 'o',
-    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
-    'ÿ': 'y',
-    'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A',
-    'Ç': 'C',
-    'È': 'E', 'É': 'E', 'Ê': 'E', 'Ë': 'E',
-    'Ì': 'I', 'Í': 'I', 'Î': 'I', 'Ï': 'I',
-    'Ò': 'O', 'Ó': 'O', 'Ô': 'O', 'Ö': 'O',
-    'Ù': 'U', 'Ú': 'U', 'Û': 'U', 'Ü': 'U',
-  };
-  final buf = StringBuffer();
-  for (final ch in s.runes) {
-    final c = String.fromCharCode(ch);
-    buf.write(tr[c] ?? c);
-  }
-  return buf.toString();
-}
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
@@ -385,10 +362,9 @@ class _SearchOverlay extends ConsumerWidget {
     final results = query.trim().isEmpty
         ? const <Client>[]
         : () {
-            final q = _removeAccents(query.toLowerCase());
+            final q = normalize(query.trim());
             return clients
-                .where((r) =>
-                    _removeAccents(r.$1.name.toLowerCase()).contains(q))
+                .where((r) => matchesClient(r.$1, q))
                 .map((r) => r.$1)
                 .take(5)
                 .toList();

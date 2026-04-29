@@ -8,6 +8,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
+import '../../core/text_search.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/settings.dart';
 import '../../domain/use_cases/client_status.dart';
@@ -36,41 +37,6 @@ final clientsPendingProvider = FutureProvider<int>((ref) async {
   return (await clients.listNeedingRecompute()).length;
 });
 
-String _normalize(String s) {
-  const tr = {
-    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
-    'ç': 'c',
-    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
-    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
-    'ò': 'o', 'ó': 'o', 'ô': 'o', 'ö': 'o',
-    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
-    'ÿ': 'y',
-  };
-  final lower = s.toLowerCase();
-  final buf = StringBuffer();
-  for (final ch in lower.runes) {
-    final c = String.fromCharCode(ch);
-    buf.write(tr[c] ?? c);
-  }
-  return buf.toString();
-}
-
-bool _matchesQuery(Client c, String normalizedQuery) {
-  if (normalizedQuery.isEmpty) return true;
-  final fields = [
-    c.name,
-    c.phone ?? '',
-    c.city,
-    c.postcode,
-    c.addressLabel,
-    c.notes ?? '',
-  ];
-  for (final f in fields) {
-    if (_normalize(f).contains(normalizedQuery)) return true;
-  }
-  return false;
-}
-
 class ClientsListScreen extends ConsumerWidget {
   const ClientsListScreen({super.key});
 
@@ -94,12 +60,12 @@ class ClientsListScreen extends ConsumerWidget {
           data: (all) {
           final waiting = all.where((r) => r.$2 == ClientStatus.waiting).toList();
           final base = all.where((r) => visible.contains(r.$2)).toList();
-          final normalizedQuery = _normalize(query.trim());
-          final list = [...base.where((r) => _matchesQuery(r.$1, normalizedQuery))]
+          final normalizedQuery = normalize(query.trim());
+          final list = [...base.where((r) => matchesClient(r.$1, normalizedQuery))]
             ..sort((a, b) {
-              final byCity = _normalize(a.$1.city).compareTo(_normalize(b.$1.city));
+              final byCity = normalize(a.$1.city).compareTo(normalize(b.$1.city));
               if (byCity != 0) return byCity;
-              return _normalize(a.$1.name).compareTo(_normalize(b.$1.name));
+              return normalize(a.$1.name).compareTo(normalize(b.$1.name));
             });
           final pending = ref.watch(clientsPendingProvider).value ?? 0;
 
