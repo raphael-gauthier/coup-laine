@@ -245,6 +245,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             userAgentPackageName: 'fr.raphaelgauthier.couplaine',
                           ),
                           MarkerLayer(
+                            rotate: true,
                             markers: [
                               // Base star
                               Marker(
@@ -290,6 +291,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           ),
                           if (selectedClient != null)
                             MarkerLayer(
+                              rotate: true,
                               markers: [
                                 Marker(
                                   point: LatLng(
