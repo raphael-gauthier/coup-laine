@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../presentation/clients/client_detail_screen.dart';
+import '../../presentation/clients/client_history_screen.dart';
 import '../../presentation/proximity/proximity_screen.dart';
 import '../../presentation/clients/client_form_screen.dart';
 import '../../presentation/clients/clients_list_screen.dart';
@@ -65,6 +66,12 @@ class AppRouter {
                       GoRoute(
                         path: 'edit',
                         builder: (_, state) => ClientFormScreen(
+                          clientId: int.parse(state.pathParameters['id']!),
+                        ),
+                      ),
+                      GoRoute(
+                        path: 'history',
+                        builder: (_, state) => ClientHistoryScreen(
                           clientId: int.parse(state.pathParameters['id']!),
                         ),
                       ),
