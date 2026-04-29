@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
@@ -20,6 +19,7 @@ import '../widgets/app_section_card.dart';
 enum _Filter { all, waiting }
 
 final _filterProvider = StateProvider<_Filter>((_) => _Filter.all);
+final _searchQueryProvider = StateProvider<String>((_) => '');
 
 final clientsAsyncProvider = FutureProvider<List<Client>>((ref) {
   return ref.watch(clientRepositoryProvider).listAll();
@@ -30,6 +30,41 @@ final clientsPendingProvider = FutureProvider<int>((ref) async {
   return (await clients.listNeedingRecompute()).length;
 });
 
+String _normalize(String s) {
+  const tr = {
+    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',
+    'ç': 'c',
+    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
+    'ò': 'o', 'ó': 'o', 'ô': 'o', 'ö': 'o',
+    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+    'ÿ': 'y',
+  };
+  final lower = s.toLowerCase();
+  final buf = StringBuffer();
+  for (final ch in lower.runes) {
+    final c = String.fromCharCode(ch);
+    buf.write(tr[c] ?? c);
+  }
+  return buf.toString();
+}
+
+bool _matchesQuery(Client c, String normalizedQuery) {
+  if (normalizedQuery.isEmpty) return true;
+  final fields = [
+    c.name,
+    c.phone ?? '',
+    c.city,
+    c.postcode,
+    c.addressLabel,
+    c.notes ?? '',
+  ];
+  for (final f in fields) {
+    if (_normalize(f).contains(normalizedQuery)) return true;
+  }
+  return false;
+}
+
 class ClientsListScreen extends ConsumerWidget {
   const ClientsListScreen({super.key});
 
@@ -38,6 +73,7 @@ class ClientsListScreen extends ConsumerWidget {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
     final filter = ref.watch(_filterProvider);
+    final query = ref.watch(_searchQueryProvider);
     final async = ref.watch(clientsAsyncProvider);
 
     return FScaffold(
@@ -48,7 +84,14 @@ class ClientsListScreen extends ConsumerWidget {
           error: (e, _) => Center(child: Text('$e')),
           data: (all) {
           final waiting = all.where((c) => c.isWaiting).toList();
-          final list = filter == _Filter.waiting ? waiting : all;
+          final base = filter == _Filter.waiting ? waiting : all;
+          final normalizedQuery = _normalize(query.trim());
+          final list = [...base.where((c) => _matchesQuery(c, normalizedQuery))]
+            ..sort((a, b) {
+              final byCity = _normalize(a.city).compareTo(_normalize(b.city));
+              if (byCity != 0) return byCity;
+              return _normalize(a.name).compareTo(_normalize(b.name));
+            });
           final pending = ref.watch(clientsPendingProvider).value ?? 0;
 
           return Stack(
@@ -92,6 +135,9 @@ class ClientsListScreen extends ConsumerWidget {
                               onSelectionChanged: (s) =>
                                   ref.read(_filterProvider.notifier).state = s.first,
                             ),
+                            const SizedBox(height: AppSpacing.md),
+                            // Search field
+                            const _SearchField(),
                             const SizedBox(height: AppSpacing.md),
                             // Recompute banner
                             if (pending > 0) ...[
@@ -179,6 +225,41 @@ class ClientsListScreen extends ConsumerWidget {
   }
 }
 
+class _SearchField extends ConsumerStatefulWidget {
+  const _SearchField();
+
+  @override
+  ConsumerState<_SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends ConsumerState<_SearchField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: ref.read(_searchQueryProvider));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return FTextField(
+      control: FTextFieldControl.managed(
+        controller: _controller,
+        onChange: (v) => ref.read(_searchQueryProvider.notifier).state = v.text,
+      ),
+      hint: l.clientsSearchHint,
+    );
+  }
+}
+
 class _ClientTile extends StatelessWidget {
   final Client client;
   const _ClientTile({required this.client});
@@ -195,18 +276,9 @@ class _ClientTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final isOverdue = client.lastShearingDate != null &&
-        DateTime.now().difference(client.lastShearingDate!).inDays > 395;
-
-    final lastShearing = client.lastShearingDate == null
-        ? l.clientsLastShearingNever
-        : l.clientsLastShearingFmt(
-            DateFormat('dd/MM/yyyy').format(client.lastShearingDate!),
-          );
 
     final badges = <Widget>[];
     if (client.isWaiting) badges.add(AppBadge.waiting(context));
-    if (isOverdue) badges.add(AppBadge.overdue(context));
     if (client.needsDistanceRecompute) badges.add(AppBadge.recompute(context));
 
     return AppListTile(
@@ -227,7 +299,7 @@ class _ClientTile extends StatelessWidget {
         ),
       ),
       title: client.name,
-      subtitle: '${client.city} · $lastShearing',
+      subtitle: '${client.city} · ${l.clientsListSheepCountFmt(client.sheepCount)}',
       suffix: badges.isNotEmpty
           ? Wrap(spacing: 4, runSpacing: 4, children: badges)
           : Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),
