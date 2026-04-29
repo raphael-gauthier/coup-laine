@@ -167,35 +167,24 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final headerTitle = widget.isEdit ? l.clientFormTitleEdit : l.clientFormTitleNew;
 
     if (_loading) {
-      return SafeArea(
-        child: FScaffold(
-          header: FHeader.nested(
-            title: Text(widget.isEdit ? l.clientFormTitleEdit : l.clientFormTitleNew),
-          ),
-          child: const Center(child: FCircularProgress()),
-        ),
+      return FScaffold(
+        header: FHeader.nested(title: Text(headerTitle)),
+        child: const Center(child: FCircularProgress()),
       );
     }
 
-    return SafeArea(
-      child: FScaffold(
-        resizeToAvoidBottomInset: true,
-        header: FHeader.nested(
-        title: Text(widget.isEdit ? l.clientFormTitleEdit : l.clientFormTitleNew),
-      ),
-      child: SingleChildScrollView(
-        // forui's FScaffold doesn't shrink its body when there's no footer
-        // and the keyboard opens — the keyboard ends up overlapping the
-        // bottom of the form. Add the keyboard height as bottom padding so
-        // Flutter's auto-scroll-into-view can lift the focused field above
-        // the keyboard.
-        padding: AppSizes.screenPadding.copyWith(
-          bottom: AppSizes.screenPadding.bottom +
-              MediaQuery.viewInsetsOf(context).bottom,
-        ),
-        child: Column(
+    return FScaffold(
+      resizeToAvoidBottomInset: true,
+      header: FHeader.nested(title: Text(headerTitle)),
+      child: SafeArea(
+        top: true,
+        bottom: false,
+        child: SingleChildScrollView(
+          padding: AppSizes.screenPadding,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Section: Identité
@@ -304,8 +293,8 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
           ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -333,20 +322,15 @@ class _MarkerColorEditor extends StatelessWidget {
     return Column(
       children: [
         FTile(
-          selected: isAuto,
-          title: const Text('Automatique (selon statut)'),
+          title: const Text('Couleur automatique'),
           subtitle: const Text(
               'Suit la couleur de la palette selon le statut du client.'),
-          onPress: () => onChanged(null),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        FTile(
-          selected: !isAuto,
-          title: const Text('Personnalisée'),
-          subtitle: !isAuto ? Text(currentHex!) : null,
-          onPress: () {
-            if (isAuto) onChanged(_toHex(kColorSwatchPalette.first));
-          },
+          suffix: FSwitch(
+            value: isAuto,
+            onChange: (v) => onChanged(
+              v ? null : _toHex(kColorSwatchPalette.first),
+            ),
+          ),
         ),
         if (!isAuto) ...[
           const SizedBox(height: AppSpacing.md),
