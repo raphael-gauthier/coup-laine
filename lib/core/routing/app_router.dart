@@ -129,10 +129,12 @@ class _ShellScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    return FScaffold(
-      childPad: false,
+    final theme = context.theme;
+    return Scaffold(
+      backgroundColor: theme.colors.background,
       resizeToAvoidBottomInset: true,
-      footer: FBottomNavigationBar(
+      body: shell,
+      bottomNavigationBar: FBottomNavigationBar(
         index: shell.currentIndex,
         onChange: (i) => shell.goBranch(i, initialLocation: i == shell.currentIndex),
         children: [
@@ -154,7 +156,6 @@ class _ShellScaffold extends StatelessWidget {
           ),
         ],
       ),
-      child: shell,
     );
   }
 }
