@@ -245,67 +245,67 @@ class _Body extends ConsumerWidget {
           ],
 
           // Status section
-          AppSectionCard(
-            icon: FIcons.bellRing,
-            title: l.clientDetailSectionStatus,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                FTile(
-                  title: Text(l.clientStatusWaiting),
-                  subtitle: (status == ClientStatus.banned ||
-                          status == ClientStatus.noSheep ||
-                          status == ClientStatus.scheduled ||
-                          status == ClientStatus.done)
-                      ? Text(
-                          l.clientDetailWaitingDisabledHintFmt(
-                            _statusLabel(l, status),
-                          ),
-                          style: theme.typography.xs.copyWith(
-                            color: theme.colors.mutedForeground,
-                          ),
-                        )
-                      : null,
-                  suffix: FSwitch(
-                    value: client.isWaiting,
-                    onChange: (status == ClientStatus.banned ||
-                            status == ClientStatus.noSheep ||
-                            status == ClientStatus.scheduled ||
-                            status == ClientStatus.done)
-                        ? null
-                        : (v) async {
-                            await ref
-                                .read(clientRepositoryProvider)
-                                .setWaiting(id: client.id, isWaiting: v);
-                            ref.invalidate(_clientByIdProvider(client.id));
-                            ref.invalidate(clientsAsyncProvider);
-                          },
+          Builder(builder: (context) {
+            final waitingToggleDisabled = status == ClientStatus.banned ||
+                status == ClientStatus.noSheep ||
+                status == ClientStatus.scheduled ||
+                status == ClientStatus.done;
+            return AppSectionCard(
+              icon: FIcons.bellRing,
+              title: l.clientDetailSectionStatus,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  FTile(
+                    title: Text(l.clientStatusWaiting),
+                    subtitle: waitingToggleDisabled
+                        ? Text(
+                            l.clientDetailWaitingDisabledHintFmt(
+                              _statusLabel(l, status),
+                            ),
+                            style: theme.typography.xs.copyWith(
+                              color: theme.colors.mutedForeground,
+                            ),
+                          )
+                        : null,
+                    suffix: FSwitch(
+                      value: client.isWaiting,
+                      onChange: waitingToggleDisabled
+                          ? null
+                          : (v) async {
+                              await ref
+                                  .read(clientRepositoryProvider)
+                                  .setWaiting(id: client.id, isWaiting: v);
+                              ref.invalidate(_clientByIdProvider(client.id));
+                              ref.invalidate(clientsAsyncProvider);
+                            },
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                FButton(
-                  variant: client.isBanned
-                      ? FButtonVariant.outline
-                      : FButtonVariant.destructive,
-                  prefix: Icon(client.isBanned ? FIcons.shieldOff : FIcons.ban),
-                  onPress: () async {
-                    await ref
-                        .read(clientRepositoryProvider)
-                        .setBanned(client.id, !client.isBanned);
-                    ref.invalidate(_clientByIdProvider(client.id));
-                    ref.invalidate(clientsAsyncProvider);
-                  },
-                  child: Text(
-                    client.isBanned
-                        ? l.clientDetailUnban
-                        : l.clientDetailBan,
+                  const SizedBox(height: AppSpacing.sm),
+                  FButton(
+                    variant: client.isBanned
+                        ? FButtonVariant.outline
+                        : FButtonVariant.destructive,
+                    prefix: Icon(client.isBanned ? FIcons.shieldOff : FIcons.ban),
+                    onPress: () async {
+                      await ref
+                          .read(clientRepositoryProvider)
+                          .setBanned(client.id, !client.isBanned);
+                      ref.invalidate(_clientByIdProvider(client.id));
+                      ref.invalidate(clientsAsyncProvider);
+                    },
+                    child: Text(
+                      client.isBanned
+                          ? l.clientDetailUnban
+                          : l.clientDetailBan,
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _ResetToDefaultButton(client: client, status: status),
-              ],
-            ),
-          ),
+                  const SizedBox(height: AppSpacing.sm),
+                  _ResetToDefaultButton(client: client),
+                ],
+              ),
+            );
+          }),
           const SizedBox(height: AppSpacing.lg),
 
           // CTA: find nearby clients
@@ -334,8 +334,7 @@ String _statusLabel(AppLocalizations l, ClientStatus status) => switch (status) 
 
 class _ResetToDefaultButton extends ConsumerWidget {
   final Client client;
-  final ClientStatus status;
-  const _ResetToDefaultButton({required this.client, required this.status});
+  const _ResetToDefaultButton({required this.client});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -404,7 +403,8 @@ final _plannedTourForClientProvider =
         )
         ..orderBy([
           OrderingTerm.asc(db.toursTable.plannedDate),
-        ]))
+        ])
+        ..limit(1))
       .get();
 
   if (rows.isEmpty) return null;
