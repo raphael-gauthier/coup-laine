@@ -1,5 +1,6 @@
 import '../models/client.dart';
 import '../models/distance_matrix_entry.dart';
+import 'client_status.dart';
 
 class NearbyClient {
   final Client client;
@@ -20,6 +21,7 @@ class FindNearbyClients {
     required int maxRadiusMeters,
     required List<Client> candidates,
     required List<DistanceMatrixEntry> pivotDistances,
+    required Map<int, ClientStatus> statusByClientId,
   }) {
     final byId = {for (final c in candidates) c.id: c};
     final results = <NearbyClient>[];
@@ -27,7 +29,8 @@ class FindNearbyClients {
       if (e.distanceMeters > maxRadiusMeters) continue;
       if (e.toId == pivotId) continue;
       final c = byId[e.toId];
-      if (c == null || !c.isWaiting) continue;
+      if (c == null) continue;
+      if (statusByClientId[c.id] != ClientStatus.waiting) continue;
       results.add(NearbyClient(
         client: c,
         distanceMeters: e.distanceMeters,
