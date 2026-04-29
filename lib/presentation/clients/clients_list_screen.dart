@@ -100,11 +100,14 @@ class ClientsListScreen extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: AppSpacing.md),
-                            // Status filter (multi-select dropdown)
-                            const _StatusFilterField(),
-                            const SizedBox(height: AppSpacing.md),
-                            // Search field
-                            const _SearchField(),
+                            // Search field + status filter button on a single row
+                            Row(
+                              children: const [
+                                Expanded(child: _SearchField()),
+                                SizedBox(width: AppSpacing.sm),
+                                _StatusFilterButton(),
+                              ],
+                            ),
                             const SizedBox(height: AppSpacing.md),
                             // Recompute banner
                             if (pending > 0) ...[
@@ -316,52 +319,123 @@ String _statusLabel(AppLocalizations l, ClientStatus s) => switch (s) {
       ClientStatus.banned => l.clientStatusBanned,
     };
 
-class _StatusFilterField extends ConsumerWidget {
-  const _StatusFilterField();
+/// Square icon button placed next to the search field that opens a dialog
+/// of status checkboxes. A small dot in the corner signals when the filter
+/// is non-default (i.e. at least one status hidden).
+class _StatusFilterButton extends ConsumerWidget {
+  const _StatusFilterButton();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
     final visible = ref.watch(_visibleStatusesProvider);
-    final settingsAsync = ref.watch(_settingsForChipProvider);
+    final hasActiveFilter = visible.length != ClientStatus.values.length;
 
-    Color colorOf(ClientStatus s) {
-      final settings = settingsAsync.value;
-      if (settings == null) return _hexToColor('#9CA3AF');
-      return _hexToColor(_hexForStatus(settings, s));
-    }
-
-    return FMultiSelect<ClientStatus>.rich(
-      format: (s) => Text(_statusLabel(l, s)),
-      hint: Text(l.clientsFilterByStatus),
-      keepHint: false,
-      clearable: true,
-      control: FMultiValueControl.lifted(
-        value: visible,
-        onChange: (next) =>
-            ref.read(_visibleStatusesProvider.notifier).state = next,
-      ),
-      children: [
-        for (final s in ClientStatus.values)
-          FSelectItem<ClientStatus>(
-            title: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _openFilterDialog(context, ref),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: theme.colors.card,
+          borderRadius: BorderRadius.circular(AppBorderRadius.md),
+          border: Border.all(color: theme.colors.border),
+        ),
+        alignment: Alignment.center,
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            Icon(FIcons.listFilter, color: theme.colors.foreground, size: 20),
+            if (hasActiveFilter)
+              Positioned(
+                right: -1,
+                top: -1,
+                child: Container(
                   width: 8,
                   height: 8,
                   decoration: BoxDecoration(
-                    color: colorOf(s),
+                    color: theme.colors.primary,
                     shape: BoxShape.circle,
+                    border: Border.all(color: theme.colors.card, width: 1),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(_statusLabel(l, s)),
-              ],
-            ),
-            value: s,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openFilterDialog(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context)!;
+    await showFDialog<void>(
+      context: context,
+      builder: (ctx, style, animation) => FDialog(
+        style: style,
+        animation: animation,
+        title: Text(l.clientsFilterByStatus),
+        body: SizedBox(
+          width: 280,
+          child: Consumer(
+            builder: (context, ref, _) {
+              final visible = ref.watch(_visibleStatusesProvider);
+              final settingsAsync = ref.watch(_settingsForChipProvider);
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final s in ClientStatus.values)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.xxs,
+                      ),
+                      child: FCheckbox(
+                        value: visible.contains(s),
+                        onChange: (on) {
+                          final next = {...visible};
+                          if (on) {
+                            next.add(s);
+                          } else {
+                            next.remove(s);
+                          }
+                          ref.read(_visibleStatusesProvider.notifier).state =
+                              next;
+                        },
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: settingsAsync.value == null
+                                    ? _hexToColor('#9CA3AF')
+                                    : _hexToColor(_hexForStatus(
+                                        settingsAsync.value!, s)),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            Text(_statusLabel(l, s)),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
           ),
-      ],
+        ),
+        actions: [
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(ctx).pop(),
+            child: const Text('Fermer'),
+          ),
+        ],
+      ),
     );
   }
 }
