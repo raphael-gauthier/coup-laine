@@ -8,6 +8,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
+import '../../core/phone_formatter.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
 import '../../infra/services/ors_routing_service.dart';
@@ -75,7 +76,9 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     _nameCtrl.text = c.name;
     _phoneCtrls
       ..clear()
-      ..addAll(c.phones.map((p) => TextEditingController(text: p)));
+      ..addAll(c.phones.map(
+        (p) => TextEditingController(text: formatPhoneInput(p)),
+      ));
     _sheepSmallCtrl.text = c.sheepCountSmall.toString();
     _sheepLargeCtrl.text = c.sheepCountLarge.toString();
     _addressLabel = c.addressLabel;
@@ -437,6 +440,7 @@ class _PhoneListEditor extends StatelessWidget {
                           controller: controllers[index],
                         ),
                         keyboardType: TextInputType.phone,
+                        inputFormatters: const [PhoneInputFormatter()],
                       ),
                     ),
                     IconButton(
