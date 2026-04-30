@@ -180,6 +180,49 @@ class TourRepository {
     });
   }
 
+  /// Replace the contents of a planned tour: tour totals, date, start time,
+  /// notes, and the entire stops list. Stop ids are not preserved (we delete
+  /// then reinsert) — there is no consumer that holds onto them.
+  ///
+  /// Status, completedAt, id and createdAt are intentionally left untouched.
+  /// The caller (UI) must only invoke this for tours with status `planned`.
+  Future<void> update(int id, TourDraft draft) async {
+    await _db.transaction(() async {
+      await (_db.update(_db.toursTable)..where((t) => t.id.equals(id))).write(
+        ToursTableCompanion(
+          plannedDate: Value(_toEpochDay(draft.plannedDate)),
+          startTimeMinutes: Value(draft.startTimeMinutes),
+          totalDistanceMeters: Value(draft.totalDistanceMeters),
+          totalDriveSeconds: Value(draft.totalDriveSeconds),
+          totalTravelFeeCents: Value(draft.totalTravelFeeCents),
+          notes: Value(draft.notes),
+        ),
+      );
+
+      await (_db.delete(_db.tourStopsTable)
+            ..where((s) => s.tourId.equals(id)))
+          .go();
+
+      for (final s in draft.stops) {
+        await _db.into(_db.tourStopsTable).insert(
+              TourStopsTableCompanion.insert(
+                tourId: id,
+                clientId: Value(s.clientId),
+                clientNameSnapshot: s.clientNameSnapshot,
+                orderIndex: s.orderIndex,
+                estimatedArrivalMinutes: s.estimatedArrivalMinutes,
+                estimatedDepartureMinutes: s.estimatedDepartureMinutes,
+                plannedSmall: Value(s.plannedSmall),
+                plannedLarge: Value(s.plannedLarge),
+                minutesPerSmallSnapshot: Value(s.minutesPerSmallSnapshot),
+                minutesPerLargeSnapshot: Value(s.minutesPerLargeSnapshot),
+                feeShareCents: s.feeShareCents,
+              ),
+            );
+      }
+    });
+  }
+
   Future<void> delete(int id) async {
     await (_db.delete(_db.toursTable)..where((t) => t.id.equals(id))).go();
   }
@@ -190,8 +233,12 @@ class TourRepository {
 
   Tour _tourFromRow(TourRow row) => Tour(
         id: row.id,
-        plannedDate:
-            DateTime.fromMillisecondsSinceEpoch(row.plannedDate * 86400000),
+        plannedDate: () {
+          final utc = DateTime.fromMillisecondsSinceEpoch(
+              row.plannedDate * 86400000,
+              isUtc: true);
+          return DateTime(utc.year, utc.month, utc.day);
+        }(),
         startTimeMinutes: row.startTimeMinutes,
         status: row.status == 'completed'
             ? TourStatus.completed

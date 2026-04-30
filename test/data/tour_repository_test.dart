@@ -155,4 +155,163 @@ void main() {
     expect(read.stops.first.clientId, isNull);
     expect(read.stops.first.clientNameSnapshot, 'A');
   });
+
+  test('update replaces stops and updates totals while preserving id, '
+      'createdAt and status', () async {
+    final c1 = await addClient('A');
+    final c2 = await addClient('B');
+    final c3 = await addClient('C');
+
+    final tourId = await tours.plan(TourDraft(
+      plannedDate: DateTime(2026, 5, 12),
+      startTimeMinutes: 8 * 60,
+      totalDistanceMeters: 30000,
+      totalDriveSeconds: 3600,
+      totalTravelFeeCents: 4000,
+      stops: [
+        TourStopDraft(
+          clientId: c1,
+          clientNameSnapshot: 'A',
+          orderIndex: 0,
+          estimatedArrivalMinutes: 8 * 60 + 20,
+          estimatedDepartureMinutes: 8 * 60 + 80,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
+          feeShareCents: 2000,
+        ),
+        TourStopDraft(
+          clientId: c2,
+          clientNameSnapshot: 'B',
+          orderIndex: 1,
+          estimatedArrivalMinutes: 9 * 60 + 30,
+          estimatedDepartureMinutes: 10 * 60 + 30,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
+          feeShareCents: 2000,
+        ),
+      ],
+    ));
+    final beforeRead = await tours.findById(tourId);
+    final originalCreatedAt = beforeRead!.tour.createdAt;
+
+    // Replace [A, B] with [C, A] and bump the date / start / totals.
+    await tours.update(
+      tourId,
+      TourDraft(
+        plannedDate: DateTime(2026, 5, 14),
+        startTimeMinutes: 9 * 60,
+        totalDistanceMeters: 50000,
+        totalDriveSeconds: 7200,
+        totalTravelFeeCents: 6000,
+        stops: [
+          TourStopDraft(
+            clientId: c3,
+            clientNameSnapshot: 'C',
+            orderIndex: 0,
+            estimatedArrivalMinutes: 9 * 60 + 40,
+            estimatedDepartureMinutes: 10 * 60 + 20,
+            plannedSmall: 5,
+            plannedLarge: 0,
+            minutesPerSmallSnapshot: 8,
+            minutesPerLargeSnapshot: 25,
+            feeShareCents: 3000,
+          ),
+          TourStopDraft(
+            clientId: c1,
+            clientNameSnapshot: 'A',
+            orderIndex: 1,
+            estimatedArrivalMinutes: 11 * 60,
+            estimatedDepartureMinutes: 11 * 60 + 40,
+            plannedSmall: 5,
+            plannedLarge: 0,
+            minutesPerSmallSnapshot: 8,
+            minutesPerLargeSnapshot: 25,
+            feeShareCents: 3000,
+          ),
+        ],
+      ),
+    );
+
+    final after = await tours.findById(tourId);
+    expect(after, isNotNull);
+    expect(after!.tour.id, tourId);
+    expect(after.tour.createdAt, originalCreatedAt);
+    expect(after.tour.status, TourStatus.planned);
+    expect(after.tour.plannedDate, DateTime(2026, 5, 14));
+    expect(after.tour.startTimeMinutes, 9 * 60);
+    expect(after.tour.totalDistanceMeters, 50000);
+    expect(after.tour.totalDriveSeconds, 7200);
+    expect(after.tour.totalTravelFeeCents, 6000);
+    expect(after.stops.map((s) => s.clientNameSnapshot), ['C', 'A']);
+    expect(after.stops.map((s) => s.clientId), [c3, c1]);
+  });
+
+  test('update does not leak stops from other tours', () async {
+    final c1 = await addClient('A');
+    final c2 = await addClient('B');
+    final tourA = await tours.plan(TourDraft(
+      plannedDate: DateTime(2026, 5, 12),
+      startTimeMinutes: 8 * 60,
+      totalDistanceMeters: 0,
+      totalDriveSeconds: 0,
+      totalTravelFeeCents: 0,
+      stops: [
+        TourStopDraft(
+          clientId: c1,
+          clientNameSnapshot: 'A',
+          orderIndex: 0,
+          estimatedArrivalMinutes: 480,
+          estimatedDepartureMinutes: 580,
+          plannedSmall: 1,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
+          feeShareCents: 0,
+        ),
+      ],
+    ));
+    final tourB = await tours.plan(TourDraft(
+      plannedDate: DateTime(2026, 5, 13),
+      startTimeMinutes: 8 * 60,
+      totalDistanceMeters: 0,
+      totalDriveSeconds: 0,
+      totalTravelFeeCents: 0,
+      stops: [
+        TourStopDraft(
+          clientId: c2,
+          clientNameSnapshot: 'B',
+          orderIndex: 0,
+          estimatedArrivalMinutes: 480,
+          estimatedDepartureMinutes: 580,
+          plannedSmall: 1,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
+          feeShareCents: 0,
+        ),
+      ],
+    ));
+
+    // Replace tourA's stops only — tourB must remain untouched.
+    await tours.update(
+      tourA,
+      TourDraft(
+        plannedDate: DateTime(2026, 5, 12),
+        startTimeMinutes: 8 * 60,
+        totalDistanceMeters: 0,
+        totalDriveSeconds: 0,
+        totalTravelFeeCents: 0,
+        stops: const [],
+      ),
+    );
+
+    final readA = await tours.findById(tourA);
+    final readB = await tours.findById(tourB);
+    expect(readA!.stops, isEmpty);
+    expect(readB!.stops.map((s) => s.clientNameSnapshot), ['B']);
+  });
 }
