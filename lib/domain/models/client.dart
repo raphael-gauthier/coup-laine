@@ -1,3 +1,5 @@
+// lib/domain/models/client.dart
+import 'animal_count.dart';
 import 'coordinates.dart';
 
 class Client {
@@ -8,8 +10,7 @@ class Client {
   final String postcode;
   final String city;
   final Coordinates coordinates;
-  final int sheepCountSmall;
-  final int sheepCountLarge;
+  final List<AnimalCount> animals;
   final String? markerColorHex;
   final bool isWaiting;
   final bool isBanned;
@@ -23,8 +24,7 @@ class Client {
     required this.postcode,
     required this.city,
     required this.coordinates,
-    this.sheepCountSmall = 0,
-    this.sheepCountLarge = 0,
+    this.animals = const [],
     this.phones = const [],
     this.markerColorHex,
     this.isWaiting = false,
@@ -33,10 +33,15 @@ class Client {
     this.needsDistanceRecompute = false,
   });
 
-  int get sheepCountTotal => sheepCountSmall + sheepCountLarge;
+  /// Total animal count across all categories. Used for the "no animals"
+  /// status derivation and for compact list display.
+  int get animalsTotal {
+    var total = 0;
+    for (final a in animals) {
+      total += a.count;
+    }
+    return total;
+  }
 
-  /// First entry of [phones], or null if the list is empty. Used as the
-  /// default phone for call/SMS actions on surfaces that show a single
-  /// action button (e.g. the map popup).
   String? get principalPhone => phones.isNotEmpty ? phones.first : null;
 }
