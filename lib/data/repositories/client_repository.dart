@@ -5,10 +5,16 @@ import '../../domain/models/coordinates.dart';
 import '../../domain/models/intervention.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../infra/db/app_database.dart';
+import 'manual_history_repository.dart';
 
 class ClientRepository {
   final AppDatabase _db;
-  ClientRepository(this._db);
+  // ignore: unused_field
+  final ManualHistoryRepository _manualHistory;
+  ClientRepository(
+    this._db, {
+    required ManualHistoryRepository manualHistory,
+  }) : _manualHistory = manualHistory;
 
   Future<int> insert(Client c) async {
     final now = DateTime.now().millisecondsSinceEpoch;

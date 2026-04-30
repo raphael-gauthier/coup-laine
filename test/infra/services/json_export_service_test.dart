@@ -1,5 +1,6 @@
 import 'package:coup_laine/data/repositories/client_repository.dart';
 import 'package:coup_laine/data/repositories/distance_matrix_repository.dart';
+import 'package:coup_laine/data/repositories/manual_history_repository.dart';
 import 'package:coup_laine/data/repositories/settings_repository.dart';
 import 'package:coup_laine/data/repositories/tour_repository.dart';
 import 'package:coup_laine/domain/models/client.dart';
@@ -19,7 +20,7 @@ void main() {
   setUp(() async {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     settings = SettingsRepository(db);
-    clients = ClientRepository(db);
+    clients = ClientRepository(db, manualHistory: ManualHistoryRepository(db));
     svc = JsonExportService(
       database: db,
       settings: settings,

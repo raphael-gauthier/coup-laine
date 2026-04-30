@@ -9,6 +9,7 @@ import '../data/consistency_check.dart';
 import '../data/distance_matrix_sync.dart';
 import '../data/repositories/client_repository.dart';
 import '../data/repositories/distance_matrix_repository.dart';
+import '../data/repositories/manual_history_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/tour_repository.dart';
 import '../domain/models/client.dart';
@@ -38,8 +39,16 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository(ref.watch(appDatabaseProvider));
 });
 
+final manualHistoryRepositoryProvider =
+    Provider<ManualHistoryRepository>((ref) {
+  return ManualHistoryRepository(ref.watch(appDatabaseProvider));
+});
+
 final clientRepositoryProvider = Provider<ClientRepository>((ref) {
-  return ClientRepository(ref.watch(appDatabaseProvider));
+  return ClientRepository(
+    ref.watch(appDatabaseProvider),
+    manualHistory: ref.watch(manualHistoryRepositoryProvider),
+  );
 });
 
 final distanceMatrixRepositoryProvider =
