@@ -37,6 +37,12 @@ class TourDetailScreen extends ConsumerWidget {
               : DateFormat('EEE d MMM yyyy', 'fr')
                   .format(async.value!.tour.plannedDate)),
           suffixes: [
+            if (async.value != null &&
+                async.value!.tour.status == TourStatus.planned)
+              FButton.icon(
+                onPress: () => context.push('/tours/$tourId/edit'),
+                child: const Icon(FIcons.pencil),
+              ),
             FButton.icon(
               onPress: async.value == null
                   ? null
