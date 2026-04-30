@@ -78,6 +78,22 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     });
   }
 
+  void _maybeConsumePendingFocus(List<(Client, ClientStatus)> clients) {
+    final pending = ref.read(mapPendingFocusProvider);
+    if (pending == null) return;
+    final tuple = clients.firstWhereOrNull((r) => r.$1.id == pending);
+    if (tuple == null) {
+      ref.read(mapPendingFocusProvider.notifier).state = null;
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _flyTo(tuple.$1);
+      ref.read(mapPendingFocusProvider.notifier).state = null;
+      _initialFitDone = true;
+    });
+  }
+
   void _onSearchChanged(String q) {
     _searchDebounce?.cancel();
     _searchDebounce = Timer(const Duration(milliseconds: 200), () {
@@ -187,6 +203,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 if (settings == null) {
                   return const Center(child: Text('Settings introuvables'));
                 }
+                _maybeConsumePendingFocus(clients);
                 _maybeFitToBounds(clients, settings);
                 final visibleStatuses = ref.watch(mapVisibleStatusesProvider);
                 final visibleClients = clients

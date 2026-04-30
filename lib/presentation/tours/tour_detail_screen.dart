@@ -12,6 +12,7 @@ import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/tour.dart';
 import '../../domain/models/tour_stop.dart';
+import '../../state/map_controller.dart';
 import '../../state/providers.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_hero_card.dart';
@@ -152,107 +153,90 @@ class _Body extends ConsumerWidget {
   }
 }
 
-class _ScheduleRow extends StatelessWidget {
+class _ScheduleRow extends ConsumerWidget {
   final TourStop stop;
   final int index;
   const _ScheduleRow({required this.stop, required this.index});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final plannedTotal = stop.plannedSmall + stop.plannedLarge;
     final actualSmall = stop.actualSmall;
     final actualLarge = stop.actualLarge;
     final hasActuals = actualSmall != null && actualLarge != null;
-    final actualTotal = hasActuals ? actualSmall + actualLarge : null;
     final note = stop.interventionNote;
+    final clientId = stop.clientId;
 
-    return Container(
-      padding: AppSizes.listTilePadding,
-      decoration: BoxDecoration(
-        color: theme.colors.card,
-        borderRadius: BorderRadius.circular(AppBorderRadius.md),
-        border: Border.all(color: theme.colors.border),
+    return FTile(
+      prefix: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: theme.colors.primary,
+          shape: BoxShape.circle,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          '$index',
+          style: theme.typography.sm.copyWith(
+            color: theme.colors.primaryForeground,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-      child: Row(
+      title: Text(
+        clientId == null
+            ? '${stop.clientNameSnapshot} ${l.tourDetailDeleted}'
+            : stop.clientNameSnapshot,
+      ),
+      subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: theme.colors.primary,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              '$index',
+          Text(
+            '${formatHm(stop.estimatedArrivalMinutes)} → '
+            '${formatHm(stop.estimatedDepartureMinutes)} · '
+            '${_formatBreeds(stop.plannedSmall, stop.plannedLarge)} · '
+            '${formatEuros(stop.feeShareCents)}',
+          ),
+          if (hasActuals) ...[
+            const SizedBox(height: AppSpacing.hairline),
+            Text(
+              'Effectif : ${_formatBreeds(actualSmall, actualLarge)}',
               style: theme.typography.sm.copyWith(
-                color: theme.colors.primaryForeground,
-                fontWeight: FontWeight.bold,
+                color: theme.colors.foreground,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  stop.clientId == null
-                      ? '${stop.clientNameSnapshot} ${l.tourDetailDeleted}'
-                      : stop.clientNameSnapshot,
-                  style: theme.typography.md.copyWith(
-                    color: theme.colors.foreground,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.hairline),
-                Text(
-                  '${formatHm(stop.estimatedArrivalMinutes)} → '
-                  '${formatHm(stop.estimatedDepartureMinutes)} · '
-                  'Planifié : $plannedTotal moutons '
-                  '(${stop.plannedSmall}/${stop.plannedLarge})',
-                  style: theme.typography.sm.copyWith(
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
-                if (hasActuals) ...[
-                  const SizedBox(height: AppSpacing.hairline),
-                  Text(
-                    'Effectif : $actualTotal moutons '
-                    '($actualSmall/$actualLarge)',
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.foreground,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-                if (note != null && note.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.hairline),
-                  Text(
-                    note,
-                    style: theme.typography.xs.copyWith(
-                      color: theme.colors.mutedForeground,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-              ],
+          ],
+          if (note != null && note.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.hairline),
+            Text(
+              note,
+              style: theme.typography.xs.copyWith(
+                color: theme.colors.mutedForeground,
+                fontStyle: FontStyle.italic,
+              ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            formatEuros(stop.feeShareCents),
-            style: theme.typography.sm.copyWith(
-              color: theme.colors.mutedForeground,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          ],
         ],
       ),
+      onPress: clientId == null
+          ? null
+          : () {
+              ref.read(mapPendingFocusProvider.notifier).state = clientId;
+              ref.read(mapSelectedClientIdProvider.notifier).state = clientId;
+              context.go('/map');
+            },
     );
   }
+}
+
+String _formatBreeds(int small, int large) {
+  if (small == 0 && large == 0) return '0 mouton';
+  if (small == 0) return '$large ${large == 1 ? 'grand' : 'grands'}';
+  if (large == 0) return '$small ${small == 1 ? 'petit' : 'petits'}';
+  return '$small ${small == 1 ? 'petit' : 'petits'} + '
+      '$large ${large == 1 ? 'grand' : 'grands'}';
 }
