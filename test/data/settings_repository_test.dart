@@ -78,13 +78,24 @@ void main() {
     expect(read.markerWaitingColor, '#EAB308');
     expect(read.markerScheduledColor, '#65A30D');
     expect(read.markerDoneColor, '#166534');
-    expect(read.markerNoSheepColor, '#1F2937');
+    expect(read.markerNoAnimalsColor, '#1F2937');
     expect(read.markerBannedColor, '#B91C1C');
 
     await repo.updateMarkerColor(ClientStatus.banned, '#FF00FF');
     read = await repo.read();
     expect(read!.markerBannedColor, '#FF00FF');
     expect(read.markerDefaultColor, '#9CA3AF');
+  });
+
+  test('appAvatarKey round-trips', () async {
+    await repo.save(Settings(
+      baseCoordinates: const Coordinates(lat: 48.0, lon: 2.0),
+      baseAddressLabel: 'Foo',
+      seasonStartedAt: DateTime(2026),
+      appAvatarKey: 'scissors',
+    ));
+    final s = await repo.read();
+    expect(s!.appAvatarKey, 'scissors');
   });
 
   test('bumpSeasonStartedAt updates the timestamp', () async {

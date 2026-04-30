@@ -18,8 +18,6 @@ class SettingsRepository {
       baseCoordinates: Coordinates(lat: row.baseLat, lon: row.baseLon),
       baseAddressLabel: row.baseAddressLabel,
       defaultRadiusKm: row.defaultRadiusKm,
-      defaultMinutesPerSmall: row.defaultMinutesPerSmall,
-      defaultMinutesPerLarge: row.defaultMinutesPerLarge,
       travelFeeEurosPerBracket: row.travelFeeEurosPerBracket,
       bracketKm: row.bracketKm,
       themeMode: _parseMode(row.themeMode),
@@ -27,9 +25,10 @@ class SettingsRepository {
       markerWaitingColor: row.markerWaitingColor,
       markerScheduledColor: row.markerScheduledColor,
       markerDoneColor: row.markerDoneColor,
-      markerNoSheepColor: row.markerNoSheepColor,
+      markerNoAnimalsColor: row.markerNoAnimalsColor,
       markerBannedColor: row.markerBannedColor,
       seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(row.seasonStartedAt),
+      appAvatarKey: row.appAvatarKey,
     );
   }
 
@@ -41,8 +40,6 @@ class SettingsRepository {
             baseLat: settings.baseCoordinates.lat,
             baseLon: settings.baseCoordinates.lon,
             defaultRadiusKm: Value(settings.defaultRadiusKm),
-            defaultMinutesPerSmall: Value(settings.defaultMinutesPerSmall),
-            defaultMinutesPerLarge: Value(settings.defaultMinutesPerLarge),
             travelFeeEurosPerBracket: Value(settings.travelFeeEurosPerBracket),
             bracketKm: Value(settings.bracketKm),
             themeMode: Value(_serializeMode(settings.themeMode)),
@@ -50,8 +47,9 @@ class SettingsRepository {
             markerWaitingColor: Value(settings.markerWaitingColor),
             markerScheduledColor: Value(settings.markerScheduledColor),
             markerDoneColor: Value(settings.markerDoneColor),
-            markerNoSheepColor: Value(settings.markerNoSheepColor),
+            markerNoAnimalsColor: Value(settings.markerNoAnimalsColor),
             markerBannedColor: Value(settings.markerBannedColor),
+            appAvatarKey: Value(settings.appAvatarKey),
             seasonStartedAt: Value(
               settings.seasonStartedAt.millisecondsSinceEpoch,
             ),
@@ -70,7 +68,7 @@ class SettingsRepository {
       ClientStatus.done =>
         SettingsTableCompanion(markerDoneColor: Value(hex)),
       ClientStatus.noSheep =>
-        SettingsTableCompanion(markerNoSheepColor: Value(hex)),
+        SettingsTableCompanion(markerNoAnimalsColor: Value(hex)),
       ClientStatus.banned =>
         SettingsTableCompanion(markerBannedColor: Value(hex)),
     };
