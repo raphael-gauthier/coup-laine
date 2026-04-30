@@ -16,7 +16,7 @@ part 'app_database.g.dart';
     DistanceMatrixTable,
     ToursTable,
     TourStopsTable,
-    ManualHistoryEntriesTable, // NEW
+    ManualHistoryEntriesTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {

@@ -3319,17 +3319,19 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
   late final GeneratedColumn<int> date = GeneratedColumn<int>(
       'date', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _smallMeta = const VerificationMeta('small');
+  static const VerificationMeta _sheepCountSmallMeta =
+      const VerificationMeta('sheepCountSmall');
   @override
-  late final GeneratedColumn<int> small = GeneratedColumn<int>(
-      'small', aliasedName, false,
+  late final GeneratedColumn<int> sheepCountSmall = GeneratedColumn<int>(
+      'sheep_count_small', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
-  static const VerificationMeta _largeMeta = const VerificationMeta('large');
+  static const VerificationMeta _sheepCountLargeMeta =
+      const VerificationMeta('sheepCountLarge');
   @override
-  late final GeneratedColumn<int> large = GeneratedColumn<int>(
-      'large', aliasedName, false,
+  late final GeneratedColumn<int> sheepCountLarge = GeneratedColumn<int>(
+      'sheep_count_large', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
@@ -3351,8 +3353,16 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
       'updated_at', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, clientId, date, small, large, note, createdAt, updatedAt];
+  List<GeneratedColumn> get $columns => [
+        id,
+        clientId,
+        date,
+        sheepCountSmall,
+        sheepCountLarge,
+        note,
+        createdAt,
+        updatedAt
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3379,13 +3389,17 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
     } else if (isInserting) {
       context.missing(_dateMeta);
     }
-    if (data.containsKey('small')) {
+    if (data.containsKey('sheep_count_small')) {
       context.handle(
-          _smallMeta, small.isAcceptableOrUnknown(data['small']!, _smallMeta));
+          _sheepCountSmallMeta,
+          sheepCountSmall.isAcceptableOrUnknown(
+              data['sheep_count_small']!, _sheepCountSmallMeta));
     }
-    if (data.containsKey('large')) {
+    if (data.containsKey('sheep_count_large')) {
       context.handle(
-          _largeMeta, large.isAcceptableOrUnknown(data['large']!, _largeMeta));
+          _sheepCountLargeMeta,
+          sheepCountLarge.isAcceptableOrUnknown(
+              data['sheep_count_large']!, _sheepCountLargeMeta));
     }
     if (data.containsKey('note')) {
       context.handle(
@@ -3418,10 +3432,10 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
           .read(DriftSqlType.int, data['${effectivePrefix}client_id'])!,
       date: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}date'])!,
-      small: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}small'])!,
-      large: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}large'])!,
+      sheepCountSmall: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sheep_count_small'])!,
+      sheepCountLarge: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}sheep_count_large'])!,
       note: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}note']),
       createdAt: attachedDatabase.typeMapping
@@ -3442,8 +3456,8 @@ class ManualHistoryEntryRow extends DataClass
   final int id;
   final int clientId;
   final int date;
-  final int small;
-  final int large;
+  final int sheepCountSmall;
+  final int sheepCountLarge;
   final String? note;
   final int createdAt;
   final int updatedAt;
@@ -3451,8 +3465,8 @@ class ManualHistoryEntryRow extends DataClass
       {required this.id,
       required this.clientId,
       required this.date,
-      required this.small,
-      required this.large,
+      required this.sheepCountSmall,
+      required this.sheepCountLarge,
       this.note,
       required this.createdAt,
       required this.updatedAt});
@@ -3462,8 +3476,8 @@ class ManualHistoryEntryRow extends DataClass
     map['id'] = Variable<int>(id);
     map['client_id'] = Variable<int>(clientId);
     map['date'] = Variable<int>(date);
-    map['small'] = Variable<int>(small);
-    map['large'] = Variable<int>(large);
+    map['sheep_count_small'] = Variable<int>(sheepCountSmall);
+    map['sheep_count_large'] = Variable<int>(sheepCountLarge);
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
@@ -3477,8 +3491,8 @@ class ManualHistoryEntryRow extends DataClass
       id: Value(id),
       clientId: Value(clientId),
       date: Value(date),
-      small: Value(small),
-      large: Value(large),
+      sheepCountSmall: Value(sheepCountSmall),
+      sheepCountLarge: Value(sheepCountLarge),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -3492,8 +3506,8 @@ class ManualHistoryEntryRow extends DataClass
       id: serializer.fromJson<int>(json['id']),
       clientId: serializer.fromJson<int>(json['clientId']),
       date: serializer.fromJson<int>(json['date']),
-      small: serializer.fromJson<int>(json['small']),
-      large: serializer.fromJson<int>(json['large']),
+      sheepCountSmall: serializer.fromJson<int>(json['sheepCountSmall']),
+      sheepCountLarge: serializer.fromJson<int>(json['sheepCountLarge']),
       note: serializer.fromJson<String?>(json['note']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
@@ -3506,8 +3520,8 @@ class ManualHistoryEntryRow extends DataClass
       'id': serializer.toJson<int>(id),
       'clientId': serializer.toJson<int>(clientId),
       'date': serializer.toJson<int>(date),
-      'small': serializer.toJson<int>(small),
-      'large': serializer.toJson<int>(large),
+      'sheepCountSmall': serializer.toJson<int>(sheepCountSmall),
+      'sheepCountLarge': serializer.toJson<int>(sheepCountLarge),
       'note': serializer.toJson<String?>(note),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
@@ -3518,8 +3532,8 @@ class ManualHistoryEntryRow extends DataClass
           {int? id,
           int? clientId,
           int? date,
-          int? small,
-          int? large,
+          int? sheepCountSmall,
+          int? sheepCountLarge,
           Value<String?> note = const Value.absent(),
           int? createdAt,
           int? updatedAt}) =>
@@ -3527,8 +3541,8 @@ class ManualHistoryEntryRow extends DataClass
         id: id ?? this.id,
         clientId: clientId ?? this.clientId,
         date: date ?? this.date,
-        small: small ?? this.small,
-        large: large ?? this.large,
+        sheepCountSmall: sheepCountSmall ?? this.sheepCountSmall,
+        sheepCountLarge: sheepCountLarge ?? this.sheepCountLarge,
         note: note.present ? note.value : this.note,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
@@ -3539,8 +3553,12 @@ class ManualHistoryEntryRow extends DataClass
       id: data.id.present ? data.id.value : this.id,
       clientId: data.clientId.present ? data.clientId.value : this.clientId,
       date: data.date.present ? data.date.value : this.date,
-      small: data.small.present ? data.small.value : this.small,
-      large: data.large.present ? data.large.value : this.large,
+      sheepCountSmall: data.sheepCountSmall.present
+          ? data.sheepCountSmall.value
+          : this.sheepCountSmall,
+      sheepCountLarge: data.sheepCountLarge.present
+          ? data.sheepCountLarge.value
+          : this.sheepCountLarge,
       note: data.note.present ? data.note.value : this.note,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -3553,8 +3571,8 @@ class ManualHistoryEntryRow extends DataClass
           ..write('id: $id, ')
           ..write('clientId: $clientId, ')
           ..write('date: $date, ')
-          ..write('small: $small, ')
-          ..write('large: $large, ')
+          ..write('sheepCountSmall: $sheepCountSmall, ')
+          ..write('sheepCountLarge: $sheepCountLarge, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -3563,8 +3581,8 @@ class ManualHistoryEntryRow extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, clientId, date, small, large, note, createdAt, updatedAt);
+  int get hashCode => Object.hash(id, clientId, date, sheepCountSmall,
+      sheepCountLarge, note, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3572,8 +3590,8 @@ class ManualHistoryEntryRow extends DataClass
           other.id == this.id &&
           other.clientId == this.clientId &&
           other.date == this.date &&
-          other.small == this.small &&
-          other.large == this.large &&
+          other.sheepCountSmall == this.sheepCountSmall &&
+          other.sheepCountLarge == this.sheepCountLarge &&
           other.note == this.note &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -3584,8 +3602,8 @@ class ManualHistoryEntriesTableCompanion
   final Value<int> id;
   final Value<int> clientId;
   final Value<int> date;
-  final Value<int> small;
-  final Value<int> large;
+  final Value<int> sheepCountSmall;
+  final Value<int> sheepCountLarge;
   final Value<String?> note;
   final Value<int> createdAt;
   final Value<int> updatedAt;
@@ -3593,8 +3611,8 @@ class ManualHistoryEntriesTableCompanion
     this.id = const Value.absent(),
     this.clientId = const Value.absent(),
     this.date = const Value.absent(),
-    this.small = const Value.absent(),
-    this.large = const Value.absent(),
+    this.sheepCountSmall = const Value.absent(),
+    this.sheepCountLarge = const Value.absent(),
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -3603,8 +3621,8 @@ class ManualHistoryEntriesTableCompanion
     this.id = const Value.absent(),
     required int clientId,
     required int date,
-    this.small = const Value.absent(),
-    this.large = const Value.absent(),
+    this.sheepCountSmall = const Value.absent(),
+    this.sheepCountLarge = const Value.absent(),
     this.note = const Value.absent(),
     required int createdAt,
     required int updatedAt,
@@ -3616,8 +3634,8 @@ class ManualHistoryEntriesTableCompanion
     Expression<int>? id,
     Expression<int>? clientId,
     Expression<int>? date,
-    Expression<int>? small,
-    Expression<int>? large,
+    Expression<int>? sheepCountSmall,
+    Expression<int>? sheepCountLarge,
     Expression<String>? note,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
@@ -3626,8 +3644,8 @@ class ManualHistoryEntriesTableCompanion
       if (id != null) 'id': id,
       if (clientId != null) 'client_id': clientId,
       if (date != null) 'date': date,
-      if (small != null) 'small': small,
-      if (large != null) 'large': large,
+      if (sheepCountSmall != null) 'sheep_count_small': sheepCountSmall,
+      if (sheepCountLarge != null) 'sheep_count_large': sheepCountLarge,
       if (note != null) 'note': note,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -3638,8 +3656,8 @@ class ManualHistoryEntriesTableCompanion
       {Value<int>? id,
       Value<int>? clientId,
       Value<int>? date,
-      Value<int>? small,
-      Value<int>? large,
+      Value<int>? sheepCountSmall,
+      Value<int>? sheepCountLarge,
       Value<String?>? note,
       Value<int>? createdAt,
       Value<int>? updatedAt}) {
@@ -3647,8 +3665,8 @@ class ManualHistoryEntriesTableCompanion
       id: id ?? this.id,
       clientId: clientId ?? this.clientId,
       date: date ?? this.date,
-      small: small ?? this.small,
-      large: large ?? this.large,
+      sheepCountSmall: sheepCountSmall ?? this.sheepCountSmall,
+      sheepCountLarge: sheepCountLarge ?? this.sheepCountLarge,
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -3667,11 +3685,11 @@ class ManualHistoryEntriesTableCompanion
     if (date.present) {
       map['date'] = Variable<int>(date.value);
     }
-    if (small.present) {
-      map['small'] = Variable<int>(small.value);
+    if (sheepCountSmall.present) {
+      map['sheep_count_small'] = Variable<int>(sheepCountSmall.value);
     }
-    if (large.present) {
-      map['large'] = Variable<int>(large.value);
+    if (sheepCountLarge.present) {
+      map['sheep_count_large'] = Variable<int>(sheepCountLarge.value);
     }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
@@ -3691,8 +3709,8 @@ class ManualHistoryEntriesTableCompanion
           ..write('id: $id, ')
           ..write('clientId: $clientId, ')
           ..write('date: $date, ')
-          ..write('small: $small, ')
-          ..write('large: $large, ')
+          ..write('sheepCountSmall: $sheepCountSmall, ')
+          ..write('sheepCountLarge: $sheepCountLarge, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -5681,8 +5699,8 @@ typedef $$ManualHistoryEntriesTableTableCreateCompanionBuilder
   Value<int> id,
   required int clientId,
   required int date,
-  Value<int> small,
-  Value<int> large,
+  Value<int> sheepCountSmall,
+  Value<int> sheepCountLarge,
   Value<String?> note,
   required int createdAt,
   required int updatedAt,
@@ -5692,8 +5710,8 @@ typedef $$ManualHistoryEntriesTableTableUpdateCompanionBuilder
   Value<int> id,
   Value<int> clientId,
   Value<int> date,
-  Value<int> small,
-  Value<int> large,
+  Value<int> sheepCountSmall,
+  Value<int> sheepCountLarge,
   Value<String?> note,
   Value<int> createdAt,
   Value<int> updatedAt,
@@ -5735,11 +5753,13 @@ class $$ManualHistoryEntriesTableTableFilterComposer
   ColumnFilters<int> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get small => $composableBuilder(
-      column: $table.small, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get sheepCountSmall => $composableBuilder(
+      column: $table.sheepCountSmall,
+      builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get large => $composableBuilder(
-      column: $table.large, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get sheepCountLarge => $composableBuilder(
+      column: $table.sheepCountLarge,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get note => $composableBuilder(
       column: $table.note, builder: (column) => ColumnFilters(column));
@@ -5786,11 +5806,13 @@ class $$ManualHistoryEntriesTableTableOrderingComposer
   ColumnOrderings<int> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get small => $composableBuilder(
-      column: $table.small, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get sheepCountSmall => $composableBuilder(
+      column: $table.sheepCountSmall,
+      builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get large => $composableBuilder(
-      column: $table.large, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get sheepCountLarge => $composableBuilder(
+      column: $table.sheepCountLarge,
+      builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get note => $composableBuilder(
       column: $table.note, builder: (column) => ColumnOrderings(column));
@@ -5837,11 +5859,11 @@ class $$ManualHistoryEntriesTableTableAnnotationComposer
   GeneratedColumn<int> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
-  GeneratedColumn<int> get small =>
-      $composableBuilder(column: $table.small, builder: (column) => column);
+  GeneratedColumn<int> get sheepCountSmall => $composableBuilder(
+      column: $table.sheepCountSmall, builder: (column) => column);
 
-  GeneratedColumn<int> get large =>
-      $composableBuilder(column: $table.large, builder: (column) => column);
+  GeneratedColumn<int> get sheepCountLarge => $composableBuilder(
+      column: $table.sheepCountLarge, builder: (column) => column);
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
@@ -5903,8 +5925,8 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<int> clientId = const Value.absent(),
             Value<int> date = const Value.absent(),
-            Value<int> small = const Value.absent(),
-            Value<int> large = const Value.absent(),
+            Value<int> sheepCountSmall = const Value.absent(),
+            Value<int> sheepCountLarge = const Value.absent(),
             Value<String?> note = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
@@ -5913,8 +5935,8 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             id: id,
             clientId: clientId,
             date: date,
-            small: small,
-            large: large,
+            sheepCountSmall: sheepCountSmall,
+            sheepCountLarge: sheepCountLarge,
             note: note,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -5923,8 +5945,8 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             required int clientId,
             required int date,
-            Value<int> small = const Value.absent(),
-            Value<int> large = const Value.absent(),
+            Value<int> sheepCountSmall = const Value.absent(),
+            Value<int> sheepCountLarge = const Value.absent(),
             Value<String?> note = const Value.absent(),
             required int createdAt,
             required int updatedAt,
@@ -5933,8 +5955,8 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             id: id,
             clientId: clientId,
             date: date,
-            small: small,
-            large: large,
+            sheepCountSmall: sheepCountSmall,
+            sheepCountLarge: sheepCountLarge,
             note: note,
             createdAt: createdAt,
             updatedAt: updatedAt,

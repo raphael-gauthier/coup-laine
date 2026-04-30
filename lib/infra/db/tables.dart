@@ -131,8 +131,8 @@ class ManualHistoryEntriesTable extends Table {
   IntColumn get clientId => integer()
       .references(ClientsTable, #id, onDelete: KeyAction.cascade)();
   IntColumn get date => integer()(); // epoch days, like tours.plannedDate
-  IntColumn get small => integer().withDefault(const Constant(0))();
-  IntColumn get large => integer().withDefault(const Constant(0))();
+  IntColumn get sheepCountSmall => integer().withDefault(const Constant(0))();
+  IntColumn get sheepCountLarge => integer().withDefault(const Constant(0))();
   TextColumn get note => text().nullable()();
   IntColumn get createdAt => integer()(); // epoch ms
   IntColumn get updatedAt => integer()(); // epoch ms
