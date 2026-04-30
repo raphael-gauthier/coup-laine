@@ -12,14 +12,35 @@ import '../../domain/models/client.dart';
 import '../../state/providers.dart';
 import 'app_empty_state.dart';
 
+/// One-shot loader for a fixed set of client ids. Used by
+/// [WaitingClientsMultiPicker] to surface clients that don't satisfy the
+/// "waiting" filter but must remain selectable (e.g. tour edit mode).
+final _clientsByIdsProvider = FutureProvider.autoDispose
+    .family<List<Client>, Set<int>>((ref, ids) async {
+  final repo = ref.watch(clientRepositoryProvider);
+  final out = <Client>[];
+  for (final id in ids) {
+    final c = await repo.findById(id);
+    if (c != null) out.add(c);
+  }
+  return out;
+});
+
 class WaitingClientsMultiPicker extends ConsumerStatefulWidget {
   final Set<int> initialSelection;
   final ValueChanged<Set<int>> onSelectionChanged;
+
+  /// Clients listed here are forced into the picker even when they don't
+  /// satisfy the "waiting" filter — used by tour edit mode so a client that
+  /// is already on the tour stays visible (and therefore deselectable) even
+  /// if its status has since moved out of `waiting`.
+  final Set<int> alwaysIncludeIds;
 
   const WaitingClientsMultiPicker({
     super.key,
     required this.initialSelection,
     required this.onSelectionChanged,
+    this.alwaysIncludeIds = const {},
   });
 
   @override
@@ -53,57 +74,70 @@ class _WaitingClientsMultiPickerState
       loading: () => const Center(child: FCircularProgress()),
       error: (e, _) => Center(child: Text('$e')),
       data: (data) {
-        if (data.eligible.isEmpty) {
-          return AppEmptyState(
-            illustrationAsset: 'assets/illustrations/empty-clients.svg',
-            title: l.manualPickerEmptyTitle,
-            body: l.manualPickerEmptyBody,
-          );
-        }
-        return Column(
-          children: [
-            if (data.excludedCount > 0)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
-                child: FCard.raw(
-                  child: Padding(
-                    padding: AppSizes.cardPadding,
-                    child: Text(
-                      l.manualPickerExcludedFmt(data.excludedCount),
-                      style: context.theme.typography.sm.copyWith(
-                        color: context.theme.colors.mutedForeground,
+        // Pull in clients that must stay visible even if they're not waiting.
+        final extraIds =
+            widget.alwaysIncludeIds.difference(data.eligible.map((c) => c.id).toSet());
+        final extraAsync = extraIds.isEmpty
+            ? const AsyncData<List<Client>>(<Client>[])
+            : ref.watch(_clientsByIdsProvider(extraIds));
+        return extraAsync.when(
+          loading: () => const Center(child: FCircularProgress()),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (extras) {
+            final eligible = [...extras, ...data.eligible];
+            if (eligible.isEmpty) {
+              return AppEmptyState(
+                illustrationAsset: 'assets/illustrations/empty-clients.svg',
+                title: l.manualPickerEmptyTitle,
+                body: l.manualPickerEmptyBody,
+              );
+            }
+            return Column(
+              children: [
+                if (data.excludedCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
+                    child: FCard.raw(
+                      child: Padding(
+                        padding: AppSizes.cardPadding,
+                        child: Text(
+                          l.manualPickerExcludedFmt(data.excludedCount),
+                          style: context.theme.typography.sm.copyWith(
+                            color: context.theme.colors.mutedForeground,
+                          ),
+                        ),
                       ),
                     ),
                   ),
+                Expanded(
+                  child: FTabs(
+                    expands: true,
+                    children: [
+                      FTabEntry(
+                        label: Text(l.manualPickerTabList),
+                        child: _ListTab(
+                          clients: eligible,
+                          selection: _selection,
+                          query: _query,
+                          onQueryChanged: (q) => setState(() => _query = q),
+                          onToggle: _toggle,
+                        ),
+                      ),
+                      FTabEntry(
+                        label: Text(l.manualPickerTabMap),
+                        child: _MapTab(
+                          clients: eligible,
+                          selection: _selection,
+                          onToggle: _toggle,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            Expanded(
-              child: FTabs(
-                expands: true,
-                children: [
-                  FTabEntry(
-                    label: Text(l.manualPickerTabList),
-                    child: _ListTab(
-                      clients: data.eligible,
-                      selection: _selection,
-                      query: _query,
-                      onQueryChanged: (q) => setState(() => _query = q),
-                      onToggle: _toggle,
-                    ),
-                  ),
-                  FTabEntry(
-                    label: Text(l.manualPickerTabMap),
-                    child: _MapTab(
-                      clients: data.eligible,
-                      selection: _selection,
-                      onToggle: _toggle,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         );
       },
     );
