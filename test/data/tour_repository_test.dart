@@ -1,4 +1,5 @@
 import 'package:coup_laine/data/repositories/client_repository.dart';
+import 'package:coup_laine/data/repositories/manual_history_repository.dart';
 import 'package:coup_laine/data/repositories/tour_repository.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
@@ -15,7 +16,7 @@ void main() {
   setUp(() {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     tours = TourRepository(db);
-    clients = ClientRepository(db);
+    clients = ClientRepository(db, manualHistory: ManualHistoryRepository(db));
   });
 
   tearDown(() async {

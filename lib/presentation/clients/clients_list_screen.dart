@@ -36,6 +36,14 @@ final clientsPendingProvider = FutureProvider<int>((ref) async {
   return (await clients.listNeedingRecompute()).length;
 });
 
+/// `clientId → list of historical notes` (manual entries + completed tour
+/// stops). Folded into the client-list search so a query can match the
+/// content of any note saved on a client.
+final clientNotesMapProvider =
+    FutureProvider<Map<int, List<String>>>((ref) async {
+  return ref.watch(clientRepositoryProvider).loadClientNotesMap();
+});
+
 class ClientsListScreen extends ConsumerWidget {
   const ClientsListScreen({super.key});
 
@@ -60,8 +68,15 @@ class ClientsListScreen extends ConsumerWidget {
           final waiting = all.where((r) => r.$2 == ClientStatus.waiting).toList();
           final base = all.where((r) => visible.contains(r.$2)).toList();
           final normalizedQuery = normalize(query.trim());
-          final list = [...base.where((r) => matchesClient(r.$1, normalizedQuery))]
-            ..sort((a, b) {
+          final notesMap =
+              ref.watch(clientNotesMapProvider).value ?? const {};
+          final list = [
+            ...base.where((r) => matchesClient(
+                  r.$1,
+                  normalizedQuery,
+                  extraFields: notesMap[r.$1.id] ?? const [],
+                )),
+          ]..sort((a, b) {
               final byCity = normalize(a.$1.city).compareTo(normalize(b.$1.city));
               if (byCity != 0) return byCity;
               return normalize(a.$1.name).compareTo(normalize(b.$1.name));

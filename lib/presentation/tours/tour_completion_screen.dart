@@ -8,7 +8,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../state/providers.dart';
-import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
+import '../clients/clients_list_screen.dart'
+    show clientsAsyncProvider, clientNotesMapProvider;
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
@@ -76,6 +77,7 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
     // Invalidate downstream caches.
     ref.invalidate(_tourForCompletionProvider(widget.tourId));
     ref.invalidate(clientsAsyncProvider);
+    ref.invalidate(clientNotesMapProvider);
     ref.invalidate(toursAsyncProvider);
 
     if (!mounted) return;

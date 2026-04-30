@@ -1,13 +1,20 @@
 /// Read-model returned by ClientRepository.listInterventionsForClient.
 ///
-/// Each row is derived from a completed tour_stop: the date comes from
-/// `tour.plannedDate`, counts and note from the stop. For tour_stops
-/// completed before schemaVersion 6 (no `actual_*` columns yet), the
-/// repository falls back to the planned snapshots and sets
-/// `hasBilan = false` so the UI can mark the line as "planifié, pas de bilan".
+/// Two sources merge into a single list:
+/// - `kind == InterventionKind.tour` — derived from a completed tour_stop.
+///   `tourId` and `stopId` are non-null; `manualEntryId` is null.
+///   `hasBilan` reflects whether `actual_*` were captured (else it's a
+///   pre-v6 row falling back to planned snapshots).
+/// - `kind == InterventionKind.manual` — a row in `manual_history_entries`.
+///   `manualEntryId` is non-null; `tourId`/`stopId` are null.
+///   `hasBilan` is always true (the user typed it in).
+enum InterventionKind { tour, manual }
+
 class Intervention {
-  final int tourId;
-  final int stopId;
+  final InterventionKind kind;
+  final int? tourId;
+  final int? stopId;
+  final int? manualEntryId;
   final DateTime date;
   final int small;
   final int large;
@@ -15,12 +22,14 @@ class Intervention {
   final bool hasBilan;
 
   const Intervention({
-    required this.tourId,
-    required this.stopId,
+    required this.kind,
     required this.date,
     required this.small,
     required this.large,
     required this.hasBilan,
+    this.tourId,
+    this.stopId,
+    this.manualEntryId,
     this.note,
   });
 

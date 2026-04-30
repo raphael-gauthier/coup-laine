@@ -435,8 +435,8 @@ class ManualHistoryRepository {
           ManualHistoryEntriesTableCompanion.insert(
             clientId: clientId,
             date: _toEpochDays(date),
-            small: Value(small),
-            large: Value(large),
+            sheepCountSmall: Value(small),
+            sheepCountLarge: Value(large),
             note: Value(note),
             createdAt: now,
             updatedAt: now,
@@ -456,8 +456,8 @@ class ManualHistoryRepository {
         .write(
       ManualHistoryEntriesTableCompanion(
         date: Value(_toEpochDays(date)),
-        small: Value(small),
-        large: Value(large),
+        sheepCountSmall: Value(small),
+        sheepCountLarge: Value(large),
         note: Value(note),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
@@ -506,8 +506,8 @@ class ManualHistoryRepository {
       id: r.id,
       clientId: r.clientId,
       date: DateTime(utc.year, utc.month, utc.day),
-      small: r.small,
-      large: r.large,
+      small: r.sheepCountSmall,
+      large: r.sheepCountLarge,
       note: r.note,
     );
   }

@@ -9,10 +9,12 @@ import '../data/consistency_check.dart';
 import '../data/distance_matrix_sync.dart';
 import '../data/repositories/client_repository.dart';
 import '../data/repositories/distance_matrix_repository.dart';
+import '../data/repositories/manual_history_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/tour_repository.dart';
 import '../domain/models/client.dart';
 import '../domain/models/distance_matrix_entry.dart';
+import '../domain/models/intervention.dart';
 import '../domain/models/settings.dart';
 import '../domain/use_cases/build_optimized_tour_proposal.dart';
 import '../domain/use_cases/client_status.dart';
@@ -38,8 +40,21 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository(ref.watch(appDatabaseProvider));
 });
 
+final manualHistoryRepositoryProvider =
+    Provider<ManualHistoryRepository>((ref) {
+  return ManualHistoryRepository(ref.watch(appDatabaseProvider));
+});
+
 final clientRepositoryProvider = Provider<ClientRepository>((ref) {
-  return ClientRepository(ref.watch(appDatabaseProvider));
+  return ClientRepository(
+    ref.watch(appDatabaseProvider),
+    manualHistory: ref.watch(manualHistoryRepositoryProvider),
+  );
+});
+
+final historyForClientProvider =
+    FutureProvider.family.autoDispose<List<Intervention>, int>((ref, id) {
+  return ref.watch(clientRepositoryProvider).listInterventionsForClient(id);
 });
 
 final distanceMatrixRepositoryProvider =

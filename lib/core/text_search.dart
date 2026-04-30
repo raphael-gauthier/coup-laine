@@ -26,10 +26,15 @@ String normalize(String s) {
 
 /// Returns true if [normalizedQuery] (already passed through [normalize])
 /// matches any of the client's searchable fields: name, phone, city,
-/// postcode, full address.
+/// postcode, full address — plus any string in [extraFields] (used to
+/// fold in history-entry notes).
 ///
 /// An empty query always matches.
-bool matchesClient(Client c, String normalizedQuery) {
+bool matchesClient(
+  Client c,
+  String normalizedQuery, {
+  Iterable<String> extraFields = const [],
+}) {
   if (normalizedQuery.isEmpty) return true;
   final fields = [
     c.name,
@@ -37,6 +42,7 @@ bool matchesClient(Client c, String normalizedQuery) {
     c.city,
     c.postcode,
     c.addressLabel,
+    ...extraFields,
   ];
   for (final f in fields) {
     if (normalize(f).contains(normalizedQuery)) return true;

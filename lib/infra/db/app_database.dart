@@ -16,6 +16,7 @@ part 'app_database.g.dart';
     DistanceMatrixTable,
     ToursTable,
     TourStopsTable,
+    ManualHistoryEntriesTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -24,7 +25,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -126,6 +127,13 @@ class AppDatabase extends _$AppDatabase {
         );
         await customStatement(
           'ALTER TABLE tour_stops DROP COLUMN minutes_per_sheep_snapshot',
+        );
+      }
+      if (from < 7) {
+        await m.createTable(manualHistoryEntriesTable);
+        await customStatement(
+          'CREATE INDEX idx_manual_history_client '
+          'ON manual_history_entries(client_id)',
         );
       }
     },
