@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../core/phone_normalizer.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
 import '../../domain/models/intervention.dart';
@@ -20,7 +21,7 @@ class ClientRepository {
     return _db.into(_db.clientsTable).insert(
           ClientsTableCompanion.insert(
             name: c.name,
-            phone: Value(c.phone),
+            phones: Value(normalizePhones(c.phones)),
             addressLabel: c.addressLabel,
             postcode: c.postcode,
             city: c.city,
@@ -122,14 +123,14 @@ class ClientRepository {
   Future<void> updateBasics({
     required int id,
     required String name,
-    String? phone,
+    required List<String> phones,
     required int sheepCountSmall,
     required int sheepCountLarge,
   }) async {
     await (_db.update(_db.clientsTable)..where((t) => t.id.equals(id))).write(
       ClientsTableCompanion(
         name: Value(name),
-        phone: Value(phone),
+        phones: Value(normalizePhones(phones)),
         sheepCountSmall: Value(sheepCountSmall),
         sheepCountLarge: Value(sheepCountLarge),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
@@ -459,7 +460,7 @@ class ClientRepository {
   Client _toDomain(ClientRow row) => Client(
         id: row.id,
         name: row.name,
-        phone: row.phone,
+        phones: row.phones,
         addressLabel: row.addressLabel,
         postcode: row.postcode,
         city: row.city,

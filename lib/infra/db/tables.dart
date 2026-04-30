@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'phone_list_converter.dart';
 
 @DataClassName('SettingsRow')
 class SettingsTable extends Table {
@@ -44,7 +45,9 @@ class ClientsTable extends Table {
 
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
-  TextColumn get phone => text().nullable()();
+  TextColumn get phones => text()
+      .map(const PhoneListConverter())
+      .withDefault(const Constant('[]'))();
   TextColumn get addressLabel => text()();
   TextColumn get postcode => text()();
   TextColumn get city => text()();
