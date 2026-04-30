@@ -67,7 +67,7 @@ class SettingsRepository {
         SettingsTableCompanion(markerScheduledColor: Value(hex)),
       ClientStatus.done =>
         SettingsTableCompanion(markerDoneColor: Value(hex)),
-      ClientStatus.noSheep =>
+      ClientStatus.noAnimals =>
         SettingsTableCompanion(markerNoAnimalsColor: Value(hex)),
       ClientStatus.banned =>
         SettingsTableCompanion(markerBannedColor: Value(hex)),

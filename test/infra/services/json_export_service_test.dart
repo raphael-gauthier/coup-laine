@@ -47,7 +47,6 @@ void main() {
       postcode: '22000',
       city: 'Saint-Brieuc',
       coordinates: const Coordinates(lat: 48.5, lon: -2.8),
-      sheepCountSmall: 12,
     ));
     final json = await svc.exportToJsonString();
 

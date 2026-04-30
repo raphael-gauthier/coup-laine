@@ -1,3 +1,4 @@
+import 'package:coup_laine/domain/models/animal_count.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:coup_laine/domain/use_cases/client_status.dart';
@@ -6,8 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 Client _client({
   bool isWaiting = false,
   bool isBanned = false,
-  int sheepCountSmall = 5,
-  int sheepCountLarge = 0,
+  List<AnimalCount> animals = const [AnimalCount(categoryId: 1, count: 5)],
 }) {
   return Client(
     id: 1,
@@ -16,8 +16,7 @@ Client _client({
     postcode: '22000',
     city: 'Saint-Brieuc',
     coordinates: const Coordinates(lat: 48, lon: -3),
-    sheepCountSmall: sheepCountSmall,
-    sheepCountLarge: sheepCountLarge,
+    animals: animals,
     isWaiting: isWaiting,
     isBanned: isBanned,
   );
@@ -66,28 +65,21 @@ void main() {
       );
     });
 
-    test('both counts at 0 → noSheep', () {
+    test('animals empty → noAnimals', () {
       expect(
         _derive(
-          _client(sheepCountSmall: 0, sheepCountLarge: 0),
+          _client(animals: const []),
           planned: true,
           completed: true,
         ),
-        ClientStatus.noSheep,
+        ClientStatus.noAnimals,
       );
     });
 
-    test('only large at 0 (small > 0) → NOT noSheep', () {
-      // The small flock is enough to keep the client active.
+    test('animalsTotal > 0 → NOT noAnimals', () {
+      // Any non-zero total keeps the client active.
       expect(
-        _derive(_client(sheepCountSmall: 3, sheepCountLarge: 0)),
-        ClientStatus.defaultStatus,
-      );
-    });
-
-    test('only small at 0 (large > 0) → NOT noSheep', () {
-      expect(
-        _derive(_client(sheepCountSmall: 0, sheepCountLarge: 2)),
+        _derive(_client(animals: const [AnimalCount(categoryId: 1, count: 3)])),
         ClientStatus.defaultStatus,
       );
     });
@@ -97,8 +89,7 @@ void main() {
         _derive(
           _client(
             isBanned: true,
-            sheepCountSmall: 0,
-            sheepCountLarge: 0,
+            animals: const [],
             isWaiting: true,
           ),
           planned: true,

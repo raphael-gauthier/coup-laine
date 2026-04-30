@@ -1,3 +1,4 @@
+import 'package:coup_laine/domain/models/animal_count.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:coup_laine/domain/use_cases/client_status.dart';
@@ -11,8 +12,7 @@ Client _c(int id, String city, {bool needsRecompute = false}) => Client(
       postcode: '00000',
       city: city,
       coordinates: const Coordinates(lat: 48, lon: -3),
-      sheepCountSmall: 5,
-      sheepCountLarge: 0,
+      animals: const [AnimalCount(categoryId: 1, count: 5)],
       isWaiting: true,
       needsDistanceRecompute: needsRecompute,
     );

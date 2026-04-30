@@ -1,3 +1,4 @@
+import 'package:coup_laine/domain/models/animal_count.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:coup_laine/domain/models/distance_matrix_entry.dart';
@@ -5,15 +6,14 @@ import 'package:coup_laine/domain/models/settings.dart';
 import 'package:coup_laine/domain/use_cases/build_tour_draft.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Client _c(int id, String name, int small, {int large = 0}) => Client(
+Client _c(int id, String name, int total) => Client(
       id: id,
       name: name,
       addressLabel: 'a',
       postcode: '00000',
       city: 'X',
       coordinates: const Coordinates(lat: 48, lon: -3),
-      sheepCountSmall: small,
-      sheepCountLarge: large,
+      animals: [AnimalCount(categoryId: 1, count: total)],
       isWaiting: true,
     );
 
@@ -33,7 +33,7 @@ void main() {
       baseAddressLabel: 'base',
       seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(0),
     );
-    final clients = [_c(1, 'A', 5), _c(2, 'B', 3), _c(3, 'C', 8)];
+    final clients = [_c(1, 'A', 5), _c(2, 'B', 3), _c(3, 'C', 8)]; // totals: 5, 3, 8
     // Distances chosen so that NN/2-opt visit order is 1,2,3.
     final matrix = [
       _e(0, 1, 5000, 600), _e(1, 0, 5000, 600),

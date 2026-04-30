@@ -1,3 +1,4 @@
+import 'package:coup_laine/domain/models/animal_count.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:coup_laine/domain/models/distance_matrix_entry.dart';
@@ -11,7 +12,6 @@ Client _c(
   double lat = 48,
   double lon = -3,
   int small = 5,
-  int large = 0,
 }) =>
     Client(
       id: id,
@@ -20,8 +20,7 @@ Client _c(
       postcode: '00000',
       city: city,
       coordinates: Coordinates(lat: lat, lon: lon),
-      sheepCountSmall: small,
-      sheepCountLarge: large,
+      animals: [AnimalCount(categoryId: 1, count: small)],
       isWaiting: true,
     );
 
@@ -218,8 +217,7 @@ void main() {
         postcode: '00000',
         city: 'Quimper',
         coordinates: const Coordinates(lat: 48, lon: -3),
-        sheepCountSmall: 5,
-        sheepCountLarge: 0,
+        animals: const [AnimalCount(categoryId: 1, count: 5)],
         isWaiting: true,
         needsDistanceRecompute: true,
       ),

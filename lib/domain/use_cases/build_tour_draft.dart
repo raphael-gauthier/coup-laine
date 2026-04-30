@@ -96,12 +96,11 @@ class BuildTourDraft {
         tm[k == 0 ? 0 : visitIndices[k - 1]][visitIndices[k]]
     ];
     final driveBack = tm[visitIndices.last][0];
-    final smalls = orderedIds.map((id) => byId[id]!.sheepCountSmall).toList();
-    final larges = orderedIds.map((id) => byId[id]!.sheepCountLarge).toList();
-    final minutesSmall =
-        List<int>.filled(orderedIds.length, settings.defaultMinutesPerSmall);
-    final minutesLarge =
-        List<int>.filled(orderedIds.length, settings.defaultMinutesPerLarge);
+    final smalls =
+        orderedIds.map((id) => byId[id]!.animalsTotal).toList();
+    final larges = List<int>.filled(orderedIds.length, 0);
+    final minutesSmall = List<int>.filled(orderedIds.length, 0);
+    final minutesLarge = List<int>.filled(orderedIds.length, 0);
 
     final duration = const TourDurationEstimator().estimate(
       startTimeMinutes: startTimeMinutes,

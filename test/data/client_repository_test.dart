@@ -308,7 +308,7 @@ void main() {
     expect(byName['C1'], ClientStatus.defaultStatus);
     expect(byName['C2'], ClientStatus.waiting);
     expect(byName['C3'], ClientStatus.banned);
-    expect(byName['C4'], ClientStatus.noSheep);
+    expect(byName['C4'], ClientStatus.noAnimals);
     expect(byName['C5'], ClientStatus.scheduled);
     expect(byName['C6'], ClientStatus.done);
     expect(byName['C7'], ClientStatus.defaultStatus);

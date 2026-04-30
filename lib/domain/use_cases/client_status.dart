@@ -4,11 +4,11 @@ import '../models/client.dart';
 /// status-aware UI (badges, filters, list chips).
 ///
 /// Values are declared in natural lifecycle / display order
-/// (default → waiting → scheduled → done → noSheep → banned), which is
+/// (default → waiting → scheduled → done → noAnimals → banned), which is
 /// the order chips and layer toggles render in.
 ///
 /// Derivation priority (highest first, see [deriveStatus]):
-///   banned > noSheep > scheduled > done > waiting > defaultStatus.
+///   banned > noAnimals > scheduled > done > waiting > defaultStatus.
 ///
 /// `scheduled` outranks `done` so that a client with an upcoming planned
 /// tour stays surfaced as actionable even if a past completion (real or
@@ -18,7 +18,7 @@ enum ClientStatus {
   waiting,
   scheduled,
   done,
-  noSheep,
+  noAnimals,
   banned,
 }
 
@@ -31,9 +31,7 @@ ClientStatus deriveStatus(
   required bool hasPlannedTourThisSeason,
 }) {
   if (c.isBanned) return ClientStatus.banned;
-  if (c.sheepCountSmall == 0 && c.sheepCountLarge == 0) {
-    return ClientStatus.noSheep;
-  }
+  if (c.animalsTotal == 0) return ClientStatus.noAnimals;
   if (hasPlannedTourThisSeason) return ClientStatus.scheduled;
   if (hasCompletedTourThisSeason) return ClientStatus.done;
   if (c.isWaiting) return ClientStatus.waiting;
