@@ -314,4 +314,64 @@ void main() {
     expect(readA!.stops, isEmpty);
     expect(readB!.stops.map((s) => s.clientNameSnapshot), ['B']);
   });
+
+  test('update is atomic: FK violation rolls back tour and stops', () async {
+    final c1 = await addClient('A');
+    final tourId = await tours.plan(TourDraft(
+      plannedDate: DateTime(2026, 5, 12),
+      startTimeMinutes: 8 * 60,
+      totalDistanceMeters: 10000,
+      totalDriveSeconds: 1800,
+      totalTravelFeeCents: 2000,
+      stops: [
+        TourStopDraft(
+          clientId: c1,
+          clientNameSnapshot: 'A',
+          orderIndex: 0,
+          estimatedArrivalMinutes: 480,
+          estimatedDepartureMinutes: 580,
+          plannedSmall: 3,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
+          feeShareCents: 2000,
+        ),
+      ],
+    ));
+
+    await expectLater(
+      tours.update(
+        tourId,
+        TourDraft(
+          plannedDate: DateTime(2026, 6, 1),
+          startTimeMinutes: 9 * 60,
+          totalDistanceMeters: 99999,
+          totalDriveSeconds: 9999,
+          totalTravelFeeCents: 9999,
+          stops: [
+            TourStopDraft(
+              clientId: 99999,
+              clientNameSnapshot: 'Ghost',
+              orderIndex: 0,
+              estimatedArrivalMinutes: 540,
+              estimatedDepartureMinutes: 640,
+              plannedSmall: 1,
+              plannedLarge: 0,
+              minutesPerSmallSnapshot: 8,
+              minutesPerLargeSnapshot: 25,
+              feeShareCents: 9999,
+            ),
+          ],
+        ),
+      ),
+      throwsA(isA<Exception>()),
+    );
+
+    final after = await tours.findById(tourId);
+    expect(after!.tour.plannedDate, DateTime(2026, 5, 12));
+    expect(after.tour.startTimeMinutes, 8 * 60);
+    expect(after.tour.totalDistanceMeters, 10000);
+    expect(after.stops.length, 1);
+    expect(after.stops.first.clientNameSnapshot, 'A');
+  });
 }
