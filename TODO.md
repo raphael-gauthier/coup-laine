@@ -1,50 +1,97 @@
 # TODO
 
-Liste des fonctionnalités à venir. Chaque entrée décrit le besoin, le périmètre et les critères d'acceptation.
+Index des fonctionnalités. Le brief détaillé (périmètre, critères d'acceptation, points ouverts) est produit lors du brainstorming au moment de la spec — cette liste reste un index : titre, contexte court, et les rares choses importantes à ne pas perdre entre deux sessions.
 
 ---
 
-## 1. Synchronisation cloud
+## À venir
 
-**Statut :** à spécifier
-**Priorité :** haute
+### 1. Synchronisation cloud — priorité haute
+Sauvegarde + restauration sur un nouveau device, à terme multi-device. Prérequis : choix du backend (Firebase / Supabase / custom), push-only vs bidirectionnel, auth, mode offline avec sync différée. À articuler avec la migration `ORS_API_KEY` côté backend (cf. memory).
 
-### Contexte
-Les données (clients, tontes, historique, matrices de distances) sont aujourd'hui stockées localement via la base SQLite de l'application. Une perte ou un changement d'appareil entraîne la perte de l'ensemble des données. Une synchro cloud permettrait :
-- la sauvegarde automatique,
-- la restauration sur un nouvel appareil,
-- à terme, le multi-appareil (consultation depuis plusieurs téléphones / tablettes).
+### 3. Personnalisation des statuts client — priorité moyenne
+Les statuts (`waiting`, `scheduled`, `done`, `noSheep`, `banned`) ont libellés et couleurs en dur. À l'onboarding + dans Réglages, l'utilisateur doit pouvoir les nommer et choisir leurs couleurs. Les couleurs sont déjà persistées (`Settings.markerXxxColor`) ; il faut ajouter les libellés en base et brancher l'UI dessus partout (badges, légende carte, filtres, fiche).
 
-### Périmètre
-- [ ] Choisir le backend (Firebase / Supabase / backend custom). Décision à documenter.
-- [ ] Définir le modèle de synchro : push-only (sauvegarde) vs bidirectionnelle (multi-device).
-- [ ] Authentification utilisateur (compte unique propriétaire des données).
-- [ ] Stratégie de résolution de conflits si bidirectionnelle (last-write-wins, vector clocks, CRDT...).
-- [ ] Schéma cloud aligné sur les tables locales (`clients`, `tontes`, `historique`, `distance_matrix`, etc.).
-- [ ] Synchro incrémentale (timestamp `updated_at` ou journal d'opérations) — pas de full dump à chaque fois.
-- [ ] Mode hors-ligne : l'app reste utilisable sans réseau, sync différée à la reconnexion.
-- [ ] Indicateur d'état de sync dans l'UI (dernière sync, en cours, erreur).
+### 4. Tarification par animal — priorité moyenne
+Aujourd'hui une tournée n'affiche que les frais de déplacement. Ajouter prix par catégorie d'animal (`defaultPriceSmallCents` / `LargeCents`), snapshot dans `tour_stops`, et un calcul revenu / net dans `BuildTourDraft`. **Sera probablement absorbé par #6** si on y va direct — utile uniquement comme phase 1 minimale si #5/#6 sont repoussés.
 
-### Critères d'acceptation
-- Un utilisateur peut se connecter et retrouver ses données sur un nouvel appareil.
-- Une modification effectuée hors-ligne est synchronisée à la reconnexion sans perte.
-- Aucun blocage de l'UI pendant la sync.
-- Les données sensibles (adresses clients) sont chiffrées en transit (HTTPS) et au repos côté backend.
+### 5. Pivot multi-praticien (espèces à l'onboarding) — priorité haute (prérequis à #6 et #7)
+L'app est mono-vertical : tonte de moutons (`sheepCountSmall/Large`, libellés, mascotte, l10n — tout est en dur). Élargir à tout praticien animalier itinérant (dentistes équins, ostéopathes animaliers, vétérinaires de campagne, maréchaux-ferrants, parage…). À l'onboarding, l'utilisateur choisit ses espèces ; les compteurs adaptés se débloquent. **Refactor lourd** côté domaine, l10n, branding (`Coup'Laine` est explicitement orienté tonte — rebrand à discuter). À trancher au brainstorming : compteurs par espèce, par catégorie générique, ou hybride.
 
-### Points ouverts
-- Coût du backend selon le volume.
-- RGPD : localisation des données, consentement, droit à l'effacement.
-- Articulation avec la migration `ORS_API_KEY` côté backend (cf. memory) — éventuellement même backend ?
+### 6. Catalogue de prestations et tarifs — priorité haute (dépend de #5, supersede #4)
+Une fois multi-praticien, l'utilisateur définit son catalogue de prestations (label, prix, durée estimée, espèces applicables). À la planification, sélection par arrêt avec quantité — un arrêt peut combiner plusieurs prestations. Snapshot dans `tour_stops` pour figer les valeurs. Base nécessaire à #7. Catalogues préconfigurés selon les espèces actives au gain de temps initial.
+
+### 7. Génération de facture + envoi client — priorité haute (dépend de #6)
+PDF facture par client par tournée, conforme légalement : numérotation continue (`FAC-2026-0001`), mentions, identité praticien saisie dans Settings, totaux HT/TVA/TTC, facture immuable une fois émise. Envoi via email natif + partage `share_plus`. **Vigilance** : conformité anti-fraude TVA française (loi 2018, logiciels de facturation certifiés), spécificités micro-entrepreneur. Phase 1 : template figé, pas de mode paiement, pas de SMS.
 
 ---
 
-## 2. Ajout manuel d'un historique de tonte ✅
+## Livrées
 
-**Statut :** fait — mergé sur `main` (2026-04-30, commit `f888b15`)
+### Édition d'une tournée planifiée + suggestions à proximité
+**Mergé sur `main`** — 2026-04-30 (commit de merge `6b59e4a`)
+**Spec :** `docs/superpowers/specs/2026-04-30-edit-tour-stops-design.md`
+**Plan :** `docs/superpowers/plans/2026-04-30-edit-tour-stops.md`
+
+#### Ce qui a été livré
+
+**Édition de tournée**
+- Bouton « Modifier » sur le détail d'une tournée `planned` (icône crayon dans le header). Aucun bouton sur les tournées `completed`.
+- Nouvelle route `/tours/:id/edit` qui réutilise `TourDraftScreen` en mode édition (paramètre `editingTourId`). Préchargement complet : date, heure, ordre des arrêts existants comme `presetOrder`.
+- À la confirmation : `TourRepository.update` (nouvelle méthode, replace-in-place transactionnel — totals + stops réécrits, `id`/`createdAt`/`status` préservés).
+- Gestion des stops orphelins (`clientId == null`, client supprimé entre-temps) : exclus du préremplissage, disparaissent silencieusement à la sauvegarde.
+- Cas marginal `findById` retournant `null` (tournée supprimée concurremment) : pop avec retour à l'écran précédent.
+
+**Picker — clients déjà sur la tournée**
+- `WaitingClientsMultiPicker` étendu avec `alwaysIncludeIds` : les clients de la tournée en cours d'édition restent visibles (et donc décochables) même s'ils ne satisfont plus le filtre « waiting ».
+- Loader interne `_clientsByIdsProvider` keyé par string sortée pour éviter les re-fetchs à chaque rebuild (Set/List ont une égalité d'identité en Dart).
+
+**Picker — suggestions par proximité**
+- Nouveau use case `FindClientsNearAnchors` (pure, 6 tests). Pour chaque candidat, distance routière min vers un anchor ; inclus si ≤ `radiusMeters`. Anchors toujours inclus (distance 0).
+- Provider `nearbyToAnchorsProvider` qui agrège les entrées matrice depuis chaque arrêt de la tournée et applique le use case avec `Settings.defaultRadiusKm`.
+- Le picker affiche deux sections : « Suggérés à proximité » et « Autres clients en attente », masquées si vides après filtre. Map-tab inchangé.
+
+**Refactors et fixes collatéraux**
+- `tourByIdProvider` promu de privé (dans `tour_detail_screen.dart`) à public dans `state/providers.dart` — l'édition l'invalide après save pour rafraîchir le détail.
+- `tour_completion_screen` invalide aussi `tourByIdProvider` (bug pré-existant : le détail montrait « planifiée » après complétion).
+- Bug timezone latent dans `_tourFromRow` corrigé (epoch-day décodé en UTC puis reconstruit en local, pattern déjà utilisé dans `markCompleted`).
+- Fix UI global : la zone `SafeArea` du status bar sur les routes top-level (en dehors du `StatefulShellRoute`) montrait le noir système. Wrap au niveau de `MaterialApp.router.builder` avec `ColoredBox(theme.colors.background)` — couvre draft/edit/manual picker/optimized config/completion/onboarding/proximity en un seul fix.
+- Fix UI : sheet « Nouvelle tournée » (`tours_list_screen`) sans fond — wrap `ColoredBox`. Audit complet des 3 `showFSheet` de l'app, tous OK désormais.
+- Sync `tourSelectionProvider` après validation de la sheet « Modifier la sélection » (bug pré-existant : la sélection éditée se perdait au prochain `_refresh`).
+
+**Tests**
+- 3 tests `TourRepository.update` (replace stops, isolation entre tournées, atomicité sur FK violation).
+- 6 tests `FindClientsNearAnchors`.
+- Total branche : 140 tests verts.
+
+#### Écarts vs périmètre initial
+- Pas de tests widget pour le flow d'édition. La base de tests widget est quasi inexistante (un seul, `skip: true`) — disproportionné de monter le harness pour ce flow. Smoke test manuel en remplacement.
+- Hors scope : suppression de tournée depuis l'écran d'édition (autre feature) ; édition des tournées `completed` (cascade compteurs clients trop complexe à dérouler).
+
+---
+
+### Multi-phones par client
+**Mergé sur `main`** — 2026-04-30 (commit de merge `31ad994`)
+**Spec :** `docs/superpowers/specs/2026-04-30-multiple-phones-per-client-design.md`
+**Plan :** `docs/superpowers/plans/2026-04-30-multiple-phones-per-client.md`
+
+#### Ce qui a été livré
+- Migration Drift v7→v8 : `clients.phone` (TEXT nullable) remplacé par `clients.phones` (JSON array via `PhoneListConverter`).
+- Helper pur `normalizePhones` (trim + drop-empty + dedup stable) appelé sur tous les writes.
+- Domaine `Client` expose `List<String> phones` + getter `principalPhone` (premier élément ou null).
+- Formulaire client : éditeur multi-phones reorderable, ajout/suppression, formatter d'input (`PhoneInputFormatter` — FR domestique 10 chiffres, international 11).
+- Détail client : chaque numéro affiché sur deux lignes (icône + numéro, puis ligne Appeler/SMS).
+- Map popup : actions sur le `principalPhone` uniquement (un seul bouton appel + un seul SMS).
+- Recherche client : matching whitespace-insensitive sur tous les numéros.
+
+---
+
+### Ajout manuel d'un historique de tonte
+**Mergé sur `main`** — 2026-04-30 (commit `f888b15`)
 **Spec :** `docs/superpowers/specs/2026-04-30-manual-history-entries-design.md`
 **Plan :** `docs/superpowers/plans/2026-04-30-manual-history-entries.md`
 
-### Ce qui a été livré
+#### Ce qui a été livré
 
 **Données**
 - Nouvelle table Drift `manual_history_entries` (FK cascade vers `clients`), `schemaVersion: 6 → 7`. Colonnes : `client_id`, `date` (epoch days), `sheep_count_small`, `sheep_count_large`, `note`, `created_at`, `updated_at`.
@@ -55,7 +102,7 @@ Les données (clients, tontes, historique, matrices de distances) sont aujourd'h
 **Règles métier**
 - À la création d'une entrée manuelle : si la date est strictement plus récente que `lastShearingDate`, on met à jour `lastShearingDate` + `sheepCountSmall/Large` du client (`applyManualEntryToClient`). Sinon no-op.
 - À l'édition / suppression : recalcul intégral de l'état dénormalisé du client à partir de l'union des sources (`recomputeClientFromHistory`).
-- Une entrée manuelle dans la saison fait basculer le client en statut `done` (sauf s'il a un rdv planifié — voir ci-dessous).
+- Une entrée manuelle dans la saison fait basculer le client en statut `done` (sauf s'il a un rdv planifié).
 
 **Statut**
 - Priorité inversée : `scheduled > done` (au lieu de `done > scheduled`). Un client avec un rdv planifié ET une tonte passée dans la saison reste affiché comme planifié, pour ne pas masquer le travail à venir.
@@ -63,94 +110,17 @@ Les données (clients, tontes, historique, matrices de distances) sont aujourd'h
 **UI**
 - Bottom sheet `ManualHistoryEntrySheet` (création + édition + suppression avec confirmation), scrollable, fond opaque.
 - Bouton `+` dans `ClientHistoryScreen` ; bouton « Ajouter une tonte » sur la fiche client (toujours visible, même historique vide).
-- Refonte des lignes d'historique sur les deux surfaces : icône (`scissors` pour tournée, `pencil` pour saisie manuelle) + date prominente (`12 mai 2026`) + détail muté + total à droite. Plus de phrase dense.
-- Tap cohérent partout : ligne tournée → page tournée ; ligne manuelle → sheet d'édition. Même comportement sur la fiche client et sur l'écran plein historique.
+- Refonte des lignes d'historique : icône (`scissors` pour tournée, `pencil` pour saisie manuelle) + date prominente + détail muté + total à droite.
+- Tap cohérent : ligne tournée → page tournée ; ligne manuelle → sheet d'édition.
 
 **Recherche**
-- La recherche client matche maintenant aussi le contenu des notes d'historique (manuelles + tournées complétées). `loadClientNotesMap` agrège les deux sources, exposé via `clientNotesMapProvider`, branché dans `matchesClient`.
-
-**Localisation**
-- 15 nouvelles clés FR/EN (titres du sheet, libellés des champs, confirmations).
+- La recherche client matche aussi le contenu des notes d'historique (manuelles + tournées complétées). `loadClientNotesMap` agrège les deux sources, exposé via `clientNotesMapProvider`.
 
 **Tests**
-- 21 tests couche data sur `ClientRepository` (merge, statut, applyManualEntryToClient avec ses 4 cas, recomputeClientFromHistory, loadClientNotesMap).
+- 21 tests couche data sur `ClientRepository` (merge, statut, applyManualEntryToClient, recomputeClientFromHistory, loadClientNotesMap).
 - 5 tests sur `ManualHistoryRepository` (CRUD + cascade + filtre saison).
-- Test du nouveau ordre de priorité du statut.
 
-### Écarts vs périmètre initial
-
-- **Champs livrés** : date, petits moutons, grands moutons, note. Durée et prix non livrés (pas de besoin formulé).
-- **Saisie en lot** : volontairement hors scope. Si le besoin réapparaît, c'est un add-on séparé.
-- **Critère « les entrées historiques ne déclenchent aucune logique métier »** : non respecté à dessein — choix produit explicite. Une entrée manuelle plus récente écrase `lastShearingDate` + compteurs et compte pour la saison. Sinon le backfill rétroactif n'aurait servi à rien.
-
----
-
-## 3. Personnalisation des statuts client (libellés + couleurs) à l'onboarding
-
-**Statut :** à spécifier
-**Priorité :** moyenne
-
-### Contexte
-Les statuts client (`default`, `waiting`, `scheduled`, `done`, `noSheep`, `banned`) ont aujourd'hui des libellés et couleurs codés en dur (cf. `Settings.markerXxxColor` qui sont déjà persistés mais non éditables côté UI à l'onboarding, et l'écran Réglages qui les expose partiellement). Chaque éleveur a son propre vocabulaire et ses propres préférences visuelles — ce qui est « En attente de RDV » pour l'un est « À voir » pour l'autre.
-
-### Périmètre
-- [ ] À la première ouverture (onboarding), proposer une étape supplémentaire « Personnaliser vos statuts ».
-- [ ] Pour chaque statut : champ libellé (texte) + sélecteur de couleur (réutiliser `ColorSwatchPicker` déjà en place).
-- [ ] Stocker les libellés en base — actuellement seuls les `markerXxxColor` sont persistés ; ajouter `markerXxxLabel` côté `SettingsTable`.
-- [ ] Migration Drift `schemaVersion: 7 → 8` (ou la version courante + 1).
-- [ ] Réglages : la même surface d'édition reste accessible plus tard via Réglages → Statuts pour modifier ces choix.
-- [ ] L'utilisateur peut toujours revenir aux valeurs par défaut (bouton « Réinitialiser »).
-- [ ] Les libellés affichés partout (filtres, badges, légendes carte, fiche client) doivent passer par les valeurs de Settings, pas par les clés l10n actuelles `clientStatusXxx`.
-
-### Critères d'acceptation
-- À la première ouverture, l'utilisateur peut nommer ses statuts et choisir leurs couleurs avant d'arriver sur la liste clients.
-- Les choix sont persistés et survivent au redémarrage.
-- Les couleurs et libellés sont reflétés cohéremment sur tous les écrans (carte, liste, fiche, filtres).
-- L'utilisateur peut éditer ces choix après-coup depuis Réglages.
-- L10n : pour la version EN, les libellés saisis en FR ne sont pas traduits — c'est de la donnée utilisateur, pas du contenu localisable. Documenter ce choix.
-
-### Points ouverts
-- Faut-il limiter la longueur du libellé (10/15 caractères) pour éviter de casser les badges ?
-- Que se passe-t-il pour `default` et `noSheep` qui sont aujourd'hui des cas particuliers (gris, presque jamais montrés) ? Toujours éditables ou en lecture seule ?
-- Le statut `banned` est aussi un toggle métier (`isBanned`) — la perso porte uniquement sur libellé/couleur, pas sur la sémantique.
-- Couplage avec la fonctionnalité « Réinitialiser la saison » (cf. clés `settingsSeasonResetXxx`) qui mentionne les statuts par leurs libellés actuels — re-vérifier ce texte.
-
----
-
-## 4. Tarification par prestation : prix de tonte par animal en plus du forfait kilométrique
-
-**Statut :** à spécifier
-**Priorité :** moyenne
-
-### Contexte
-Aujourd'hui le calcul de coût d'une tournée se limite aux frais de déplacement (`travelFeeEurosPerBracket` × tranches de `bracketKm`, partagé entre les arrêts via `CostSplitCalculator`). Le revenu réel d'une tournée vient surtout de la tonte elle-même (X € par mouton tondu). Sans intégrer ça, l'éleveur n'a pas de vue globale du chiffre d'affaires d'une tournée — uniquement des frais de route.
-
-### Périmètre
-- [ ] Ajouter dans `Settings` un prix par défaut par catégorie d'animal :
-  - `defaultPriceSmallCents` (petit mouton)
-  - `defaultPriceLargeCents` (grand mouton / bélier)
-- [ ] (Optionnel — point ouvert) Permettre un override par client : `Client.priceSmallCents` / `priceLargeCents` nullables — fallback sur les défauts si null.
-- [ ] Snapshot des prix dans `tour_stops` au moment de la planification (comme `minutesPerSmallSnapshot` aujourd'hui), pour figer les valeurs même si Settings change après.
-- [ ] Calcul dans `BuildTourDraft` :
-  - revenu de tonte par arrêt = `actualOrPlannedSmall × priceSmall + actualOrPlannedLarge × priceLarge` (snapshot)
-  - revenu total tournée = somme des arrêts
-  - frais de déplacement (existant)
-  - **net** = revenu - frais (ou revenu brut + frais à part, selon présentation choisie)
-- [ ] UI tournée :
-  - Sur le détail tournée et le brouillon : afficher en plus du « km au total » un « € prévus » (revenu) et le « € de frais » existant.
-  - Sur la complétion : recalculer avec les `actualSmall`/`actualLarge` pour le revenu réel, afficher net réel.
-  - Sur le partage texte (`SharePlus`) : ajouter le revenu prévu / réel.
-- [ ] Onboarding / Réglages : champs pour saisir les prix par défaut. À l'onboarding ce n'est pas bloquant (peut être laissé à 0 et configuré plus tard).
-- [ ] Migration Drift pour ajouter les colonnes (Settings + TourStops, et éventuellement Clients si override).
-
-### Critères d'acceptation
-- L'éleveur voit le chiffre d'affaires prévu d'une tournée avant de la confirmer.
-- Après complétion, la tournée affiche le revenu réel (basé sur les comptages effectifs) en plus des frais.
-- Les prix appliqués à une tournée déjà planifiée ne changent pas si l'éleveur modifie ses prix par défaut après-coup.
-- Si les prix valent 0 (cas migration / pas encore configurés), l'app se comporte comme aujourd'hui (pas de revenu affiché, pas de crash).
-
-### Points ouverts
-- Un seul prix global ou un override par client ? Cas d'usage : un éleveur peut faire un prix de groupe pour un gros client. À trancher au brainstorming.
-- Faut-il distinguer prix de la prestation (par animal) et frais fixes (déplacement de minimum X€) ? Aujourd'hui les frais kilométriques sont déjà découpés en deux (le plus loin + l'inter-stop) — éviter d'empiler une troisième composante sans bonne raison.
-- Affichage du « net » (revenu − frais) ou des deux séparément ? Le forfait déplacement est aujourd'hui partagé entre clients, donc le « net par client » a une lecture particulière.
-- TVA : hors scope sauf demande explicite.
+#### Écarts vs périmètre initial
+- Champs livrés : date, petits moutons, grands moutons, note. Durée et prix non livrés (pas de besoin formulé).
+- Saisie en lot : volontairement hors scope.
+- Critère « les entrées historiques ne déclenchent aucune logique métier » : non respecté à dessein — choix produit explicite. Une entrée manuelle plus récente écrase `lastShearingDate` + compteurs et compte pour la saison. Sinon le backfill rétroactif n'aurait servi à rien.
