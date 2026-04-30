@@ -1,6 +1,3 @@
-import 'package:meta/meta.dart';
-
-@immutable
 class TourStopAnimal {
   final int categoryId;
   final int count;

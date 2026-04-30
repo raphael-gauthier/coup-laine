@@ -1,6 +1,3 @@
-import 'package:meta/meta.dart';
-
-@immutable
 class AnimalCount {
   final int categoryId;
   final int count;

@@ -1,6 +1,3 @@
-import 'package:meta/meta.dart';
-
-@immutable
 class Species {
   final int id;
   final String name;
