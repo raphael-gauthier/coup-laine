@@ -1,9 +1,12 @@
 import 'package:drift/drift.dart';
 
+import '../../core/animal_counts_normalizer.dart';
 import '../../core/phone_normalizer.dart';
+import '../../domain/models/animal_count.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
 import '../../domain/models/intervention.dart';
+import '../../domain/models/tour_stop_animal.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../infra/db/app_database.dart';
 import 'manual_history_repository.dart';
@@ -27,8 +30,7 @@ class ClientRepository {
             city: c.city,
             lat: c.coordinates.lat,
             lon: c.coordinates.lon,
-            sheepCountSmall: Value(c.sheepCountSmall),
-            sheepCountLarge: Value(c.sheepCountLarge),
+            animals: Value(normalizeAnimalCounts(c.animals)),
             isWaiting: Value(c.isWaiting),
             isBanned: Value(c.isBanned),
             lastShearingDate: Value(
@@ -124,15 +126,13 @@ class ClientRepository {
     required int id,
     required String name,
     required List<String> phones,
-    required int sheepCountSmall,
-    required int sheepCountLarge,
+    required List<AnimalCount> animals,
   }) async {
     await (_db.update(_db.clientsTable)..where((t) => t.id.equals(id))).write(
       ClientsTableCompanion(
         name: Value(name),
         phones: Value(normalizePhones(phones)),
-        sheepCountSmall: Value(sheepCountSmall),
-        sheepCountLarge: Value(sheepCountLarge),
+        animals: Value(normalizeAnimalCounts(animals)),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
@@ -276,8 +276,7 @@ class ClientRepository {
         () {
           final stop = r.readTable(_db.tourStopsTable);
           final tour = r.readTable(_db.toursTable);
-          final hasBilan =
-              stop.actualSmall != null && stop.actualLarge != null;
+          final hasBilan = stop.actualAnimals != null;
           final utc = DateTime.fromMillisecondsSinceEpoch(
             tour.plannedDate * 86400000,
             isUtc: true,
@@ -287,8 +286,7 @@ class ClientRepository {
             tourId: tour.id,
             stopId: stop.id,
             date: DateTime(utc.year, utc.month, utc.day),
-            small: stop.actualSmall ?? stop.plannedSmall,
-            large: stop.actualLarge ?? stop.plannedLarge,
+            animals: stop.actualAnimals ?? stop.plannedAnimals,
             note: stop.interventionNote,
             hasBilan: hasBilan,
           );
@@ -303,8 +301,7 @@ class ClientRepository {
           kind: InterventionKind.manual,
           manualEntryId: e.id,
           date: e.date,
-          small: e.small,
-          large: e.large,
+          animals: e.animals,
           note: e.note,
           hasBilan: true,
         ),
@@ -354,22 +351,24 @@ class ClientRepository {
     return result;
   }
 
-  /// Persists the actual sheep counts captured during a tour completion onto
-  /// the client's stored counts, and bumps `lastShearingDate` to the tour's
-  /// planned date. Does not mutate `isWaiting` (status now derives from
-  /// completed tour membership).
+  /// Persists the actuals captured during a tour completion onto the client's
+  /// stored animal counts, merging per `categoryId` (entries in [actuals]
+  /// overwrite the matching category, others untouched). Bumps
+  /// `lastShearingDate` to [tourDate]. Does not mutate `isWaiting` (status now
+  /// derives from completed tour membership).
   Future<void> applyInterventionActuals(
     int clientId, {
-    required int small,
-    required int large,
+    required List<TourStopAnimal> actuals,
     required DateTime tourDate,
   }) async {
+    final c = await findById(clientId);
+    if (c == null) return;
+    final merged = _mergePerCategory(c.animals, actuals);
     await (_db.update(_db.clientsTable)
           ..where((t) => t.id.equals(clientId)))
         .write(
       ClientsTableCompanion(
-        sheepCountSmall: Value(small),
-        sheepCountLarge: Value(large),
+        animals: Value(merged),
         lastShearingDate: Value(tourDate.millisecondsSinceEpoch),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
@@ -385,8 +384,7 @@ class ClientRepository {
   Future<void> applyManualEntryToClient(
     int clientId, {
     required DateTime date,
-    required int small,
-    required int large,
+    required List<TourStopAnimal> animals,
   }) async {
     final c = await findById(clientId);
     if (c == null) return;
@@ -395,12 +393,12 @@ class ClientRepository {
     final currentMs = c.lastShearingDate?.millisecondsSinceEpoch;
     if (currentMs != null && entryMs <= currentMs) return;
 
+    final merged = _mergePerCategory(c.animals, animals);
     await (_db.update(_db.clientsTable)
           ..where((t) => t.id.equals(clientId)))
         .write(
       ClientsTableCompanion(
-        sheepCountSmall: Value(small),
-        sheepCountLarge: Value(large),
+        animals: Value(merged),
         lastShearingDate: Value(entryMs),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
@@ -408,10 +406,10 @@ class ClientRepository {
   }
 
   /// Recomputes the client's denormalized state from the union of
-  /// {tour-stops on completed tours, manual history entries}, picking the
-  /// most recent date and applying its `(small, large, date)`. If no source
-  /// exists, sets `lastShearingDate` to null and leaves the counts as-is
-  /// (we don't snapshot earlier counts to revert to).
+  /// {tour-stops on completed tours, manual history entries}. For each
+  /// `categoryId` involved, picks the count from the most recent intervention
+  /// that mentions it. `lastShearingDate` is set to the newest date. If no
+  /// source exists, animals become empty and `lastShearingDate` is null.
   Future<void> recomputeClientFromHistory(int clientId) async {
     final list = await listInterventionsForClient(clientId);
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -421,6 +419,7 @@ class ClientRepository {
             ..where((t) => t.id.equals(clientId)))
           .write(
         ClientsTableCompanion(
+          animals: const Value([]),
           lastShearingDate: const Value(null),
           updatedAt: Value(now),
         ),
@@ -428,7 +427,14 @@ class ClientRepository {
       return;
     }
 
-    // listInterventionsForClient is already sorted desc by date.
+    // listInterventionsForClient is sorted desc by date — for each categoryId,
+    // the first occurrence wins (= most recent).
+    final byId = <int, int>{};
+    for (final iv in list) {
+      for (final a in iv.animals) {
+        byId.putIfAbsent(a.categoryId, () => a.count);
+      }
+    }
     final newest = list.first;
     final newestMs = DateTime(
       newest.date.year,
@@ -440,8 +446,10 @@ class ClientRepository {
           ..where((t) => t.id.equals(clientId)))
         .write(
       ClientsTableCompanion(
-        sheepCountSmall: Value(newest.small),
-        sheepCountLarge: Value(newest.large),
+        animals: Value(normalizeAnimalCounts([
+          for (final e in byId.entries)
+            AnimalCount(categoryId: e.key, count: e.value),
+        ])),
         lastShearingDate: Value(newestMs),
         updatedAt: Value(now),
       ),
@@ -465,8 +473,7 @@ class ClientRepository {
         postcode: row.postcode,
         city: row.city,
         coordinates: Coordinates(lat: row.lat, lon: row.lon),
-        sheepCountSmall: row.sheepCountSmall,
-        sheepCountLarge: row.sheepCountLarge,
+        animals: row.animals,
         markerColorHex: row.markerColorHex,
         isWaiting: row.isWaiting,
         isBanned: row.isBanned,
@@ -475,4 +482,23 @@ class ClientRepository {
             : DateTime.fromMillisecondsSinceEpoch(row.lastShearingDate!),
         needsDistanceRecompute: row.needsDistanceRecompute,
       );
+
+  /// Merges [incoming] into [existing] per `categoryId`. Entries in [incoming]
+  /// overwrite the count for matching ids; other categories remain untouched.
+  /// Result is normalized (sorted, zeros dropped, dedup-summed).
+  List<AnimalCount> _mergePerCategory(
+    List<AnimalCount> existing,
+    List<TourStopAnimal> incoming,
+  ) {
+    final byId = <int, int>{
+      for (final a in existing) a.categoryId: a.count,
+    };
+    for (final a in incoming) {
+      byId[a.categoryId] = a.count;
+    }
+    return normalizeAnimalCounts([
+      for (final entry in byId.entries)
+        AnimalCount(categoryId: entry.key, count: entry.value),
+    ]);
+  }
 }

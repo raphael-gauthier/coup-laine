@@ -1,21 +1,41 @@
 import 'package:coup_laine/data/repositories/client_repository.dart';
 import 'package:coup_laine/data/repositories/manual_history_repository.dart';
 import 'package:coup_laine/data/repositories/tour_repository.dart';
+import 'package:coup_laine/domain/models/animal_count.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:coup_laine/domain/models/intervention.dart';
+import 'package:coup_laine/domain/models/tour_stop_animal.dart';
 import 'package:coup_laine/domain/use_cases/client_status.dart';
 import 'package:coup_laine/infra/db/app_database.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+// Stable test convention:
+//   - categoryId 1 stands for "small / Petit Mouton"
+//   - categoryId 2 stands for "large / Gros Mouton"
+TourStopAnimal _small(int n) => TourStopAnimal(
+      categoryId: 1,
+      count: n,
+      categoryNameSnapshot: 'Petit',
+      speciesNameSnapshot: 'Mouton',
+      minutesSnapshot: 8,
+    );
+
+TourStopAnimal _large(int n) => TourStopAnimal(
+      categoryId: 2,
+      count: n,
+      categoryNameSnapshot: 'Gros',
+      speciesNameSnapshot: 'Mouton',
+      minutesSnapshot: 25,
+    );
+
 Client _newClient({
   String name = 'Le Gall',
   bool isWaiting = false,
   bool needsDistanceRecompute = false,
-  int sheepCountSmall = 12,
-  int sheepCountLarge = 0,
+  List<AnimalCount> animals = const [AnimalCount(categoryId: 1, count: 12)],
 }) {
   return Client(
     id: 0,
@@ -24,8 +44,7 @@ Client _newClient({
     postcode: '29000',
     city: 'Quimper',
     coordinates: const Coordinates(lat: 48.0, lon: -4.1),
-    sheepCountSmall: sheepCountSmall,
-    sheepCountLarge: sheepCountLarge,
+    animals: animals,
     isWaiting: isWaiting,
     needsDistanceRecompute: needsDistanceRecompute,
   );
@@ -123,8 +142,7 @@ void main() {
       id: id,
       name: 'Le Gall',
       phones: const ['0788', '0612'],
-      sheepCountSmall: 12,
-      sheepCountLarge: 0,
+      animals: const [AnimalCount(categoryId: 1, count: 12)],
     );
     final read = await repo.findById(id);
     expect(read!.phones, ['0788', '0612']);
@@ -192,7 +210,7 @@ void main() {
     // C3: banned flag
     final c3 = await repo.insert(_newClient(name: 'C3', isWaiting: true));
     await repo.setBanned(c3, true);
-    // C4: sheepCount = 0 (override _newClient default of 12)
+    // C4: no animals (override _newClient default of 12)
     await db.into(db.clientsTable).insert(
       ClientsTableCompanion.insert(
         name: 'C4',
@@ -201,8 +219,7 @@ void main() {
         city: 'X',
         lat: 48,
         lon: -4,
-        sheepCountSmall: const Value(0),
-        sheepCountLarge: const Value(0),
+        animals: const Value([]),
         createdAt: 0,
         updatedAt: 0,
       ),
@@ -297,26 +314,27 @@ void main() {
     expect(byName['C7'], ClientStatus.defaultStatus);
   });
 
-  test('applyInterventionActuals updates breed counts and lastShearingDate',
+  test('applyInterventionActuals updates animal counts and lastShearingDate',
       () async {
     final id = await repo.insert(
-      _newClient(sheepCountSmall: 8, sheepCountLarge: 0),
+      _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
     );
     await repo.applyInterventionActuals(
       id,
-      small: 6,
-      large: 3,
+      actuals: [_small(6), _large(3)],
       tourDate: DateTime(2026, 5, 12),
     );
     final c = (await repo.findById(id))!;
-    expect(c.sheepCountSmall, 6);
-    expect(c.sheepCountLarge, 3);
+    expect(c.animals, const [
+      AnimalCount(categoryId: 1, count: 6),
+      AnimalCount(categoryId: 2, count: 3),
+    ]);
     expect(c.lastShearingDate, DateTime(2026, 5, 12));
   });
 
   test(
     'listInterventionsForClient returns completed stops only, sorted desc, '
-    'with hasBilan reflecting actual_* presence',
+    'with hasBilan reflecting actual presence',
     () async {
       final tours = TourRepository(db);
       final cId = await repo.insert(_newClient(name: 'C'));
@@ -407,13 +425,11 @@ void main() {
       final history = await repo.listInterventionsForClient(cId);
       expect(history.length, 2);
       expect(history[0].date, DateTime(2026, 5, 14));
-      expect(history[0].small, 4);
-      expect(history[0].large, 1);
+      expect(history[0].animalsTotal, 5);
       expect(history[0].note, 'RAS');
       expect(history[0].hasBilan, isTrue);
       expect(history[1].date, DateTime(2026, 4, 1));
-      expect(history[1].small, 6);
-      expect(history[1].large, 0);
+      expect(history[1].animalsTotal, 6);
       expect(history[1].hasBilan, isTrue);
     },
   );
@@ -428,8 +444,7 @@ void main() {
     await manual.insert(
       clientId: cId,
       date: DateTime(2026, 5, 1),
-      small: 4,
-      large: 0,
+      animals: [_small(4)],
     );
 
     final all = await repo.listAllWithStatus(season);
@@ -447,8 +462,7 @@ void main() {
       await manual.insert(
         clientId: cId,
         date: DateTime(2025, 9, 1), // before season
-        small: 4,
-        large: 0,
+        animals: [_small(4)],
       );
 
       final all = await repo.listAllWithStatus(season);
@@ -497,16 +511,14 @@ void main() {
     await manual.insert(
       clientId: cId,
       date: DateTime(2025, 9, 10),
-      small: 3,
-      large: 1,
+      animals: [_small(3), _large(1)],
       note: 'manual older',
     );
     // Manual entry on 2026-06-01 (newest)
     final newestId = await manual.insert(
       clientId: cId,
       date: DateTime(2026, 6, 1),
-      small: 4,
-      large: 0,
+      animals: [_small(4)],
       note: 'manual newer',
     );
 
@@ -566,8 +578,7 @@ void main() {
     await manual.insert(
       clientId: a,
       date: DateTime(2024, 6, 1),
-      small: 3,
-      large: 1,
+      animals: [_small(3), _large(1)],
       note: 'manual-note-A',
     );
 
@@ -575,8 +586,7 @@ void main() {
     await manual.insert(
       clientId: b,
       date: DateTime(2024, 6, 1),
-      small: 3,
-      large: 1,
+      animals: [_small(3), _large(1)],
       note: 'manual-note-B',
     );
 
@@ -585,8 +595,7 @@ void main() {
     await manual.insert(
       clientId: c,
       date: DateTime(2024, 6, 1),
-      small: 3,
-      large: 1,
+      animals: [_small(3), _large(1)],
     );
 
     final map = await repo.loadClientNotesMap();
@@ -599,7 +608,7 @@ void main() {
   group('applyManualEntryToClient', () {
     test('lastShearingDate null → applies', () async {
       final cId = await repo.insert(
-        _newClient(sheepCountSmall: 8, sheepCountLarge: 0),
+        _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
       );
       // Sanity: lastShearingDate is null on a fresh client.
       expect((await repo.findById(cId))!.lastShearingDate, isNull);
@@ -607,73 +616,75 @@ void main() {
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2025, 5, 1),
-        small: 6,
-        large: 2,
+        animals: [_small(6), _large(2)],
       );
       final c = (await repo.findById(cId))!;
       expect(c.lastShearingDate, DateTime(2025, 5, 1));
-      expect(c.sheepCountSmall, 6);
-      expect(c.sheepCountLarge, 2);
+      expect(c.animals, const [
+        AnimalCount(categoryId: 1, count: 6),
+        AnimalCount(categoryId: 2, count: 2),
+      ]);
     });
 
     test('entry.date > lastShearingDate → applies', () async {
-      final cId = await repo.insert(_newClient(sheepCountSmall: 8));
+      final cId = await repo.insert(
+        _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
+      );
       await repo.applyInterventionActuals(
         cId,
-        small: 5,
-        large: 0,
+        actuals: [_small(5)],
         tourDate: DateTime(2025, 5, 1),
       );
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2025, 6, 1), // later
-        small: 7,
-        large: 1,
+        animals: [_small(7), _large(1)],
       );
       final c = (await repo.findById(cId))!;
       expect(c.lastShearingDate, DateTime(2025, 6, 1));
-      expect(c.sheepCountSmall, 7);
-      expect(c.sheepCountLarge, 1);
+      expect(c.animals, const [
+        AnimalCount(categoryId: 1, count: 7),
+        AnimalCount(categoryId: 2, count: 1),
+      ]);
     });
 
     test('entry.date == lastShearingDate → no-op (strict greater-than)',
         () async {
-      final cId = await repo.insert(_newClient(sheepCountSmall: 8));
+      final cId = await repo.insert(
+        _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
+      );
       await repo.applyInterventionActuals(
         cId,
-        small: 5,
-        large: 0,
+        actuals: [_small(5)],
         tourDate: DateTime(2025, 5, 1),
       );
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2025, 5, 1), // equal
-        small: 99,
-        large: 99,
+        animals: [_small(99), _large(99)],
       );
       final c = (await repo.findById(cId))!;
-      expect(c.sheepCountSmall, 5); // untouched
-      expect(c.sheepCountLarge, 0);
+      // animals untouched: small=5 from the intervention, no large entry.
+      expect(c.animals, const [AnimalCount(categoryId: 1, count: 5)]);
     });
 
     test('entry.date < lastShearingDate → no-op', () async {
-      final cId = await repo.insert(_newClient(sheepCountSmall: 8));
+      final cId = await repo.insert(
+        _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
+      );
       await repo.applyInterventionActuals(
         cId,
-        small: 5,
-        large: 0,
+        actuals: [_small(5)],
         tourDate: DateTime(2025, 5, 1),
       );
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2024, 1, 1), // earlier
-        small: 99,
-        large: 99,
+        animals: [_small(99), _large(99)],
       );
       final c = (await repo.findById(cId))!;
       expect(c.lastShearingDate, DateTime(2025, 5, 1));
-      expect(c.sheepCountSmall, 5);
-      expect(c.sheepCountLarge, 0);
+      expect(c.animals, const [AnimalCount(categoryId: 1, count: 5)]);
     });
   });
 
@@ -682,11 +693,9 @@ void main() {
         () async {
       final tours = TourRepository(db);
       final manual = ManualHistoryRepository(db);
-      final cId = await repo.insert(
-        _newClient(sheepCountSmall: 0, sheepCountLarge: 0),
-      );
+      final cId = await repo.insert(_newClient(animals: const []));
 
-      // Tour completed on 2025-05-01 with actuals (small=5, large=0).
+      // Tour completed on 2025-05-01 with actuals (small=5).
       final tourId = await tours.plan(TourDraft(
         plannedDate: DateTime(2025, 5, 1),
         startTimeMinutes: 480,
@@ -716,61 +725,67 @@ void main() {
         ),
       });
       // Sanity: client now has the tour's actuals.
-      expect((await repo.findById(cId))!.sheepCountSmall, 5);
+      expect(
+        (await repo.findById(cId))!.animals,
+        const [AnimalCount(categoryId: 1, count: 5)],
+      );
 
       // Newer manual entry: 2026-05-01, small=8, large=2.
       final manualId = await manual.insert(
         clientId: cId,
         date: DateTime(2026, 5, 1),
-        small: 8,
-        large: 2,
+        animals: [_small(8), _large(2)],
       );
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2026, 5, 1),
-        small: 8,
-        large: 2,
+        animals: [_small(8), _large(2)],
       );
-      expect((await repo.findById(cId))!.sheepCountSmall, 8);
+      expect((await repo.findById(cId))!.animals, const [
+        AnimalCount(categoryId: 1, count: 8),
+        AnimalCount(categoryId: 2, count: 2),
+      ]);
 
       // Delete the manual entry, then recompute → falls back to the tour.
       await manual.delete(manualId);
       await repo.recomputeClientFromHistory(cId);
       final c = (await repo.findById(cId))!;
       expect(c.lastShearingDate, DateTime(2025, 5, 1));
-      expect(c.sheepCountSmall, 5);
-      expect(c.sheepCountLarge, 0);
+      expect(c.animals, const [AnimalCount(categoryId: 1, count: 5)]);
     });
 
-    test('no source → lastShearingDate becomes null, counts left as-is',
+    test('no source → lastShearingDate becomes null, animals empty',
         () async {
       final manual = ManualHistoryRepository(db);
-      final cId = await repo.insert(
-        _newClient(sheepCountSmall: 8, sheepCountLarge: 1),
-      );
+      final cId = await repo.insert(_newClient(
+        animals: const [
+          AnimalCount(categoryId: 1, count: 8),
+          AnimalCount(categoryId: 2, count: 1),
+        ],
+      ));
       final id = await manual.insert(
         clientId: cId,
         date: DateTime(2026, 5, 1),
-        small: 4,
-        large: 0,
+        animals: [_small(4)],
       );
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2026, 5, 1),
-        small: 4,
-        large: 0,
+        animals: [_small(4)],
       );
-      // Sanity: counts now reflect the manual entry.
-      expect((await repo.findById(cId))!.sheepCountSmall, 4);
+      // Sanity: small now reflects the manual entry; large untouched.
+      expect((await repo.findById(cId))!.animals, const [
+        AnimalCount(categoryId: 1, count: 4),
+        AnimalCount(categoryId: 2, count: 1),
+      ]);
 
       await manual.delete(id);
       await repo.recomputeClientFromHistory(cId);
 
       final c = (await repo.findById(cId))!;
       expect(c.lastShearingDate, isNull);
-      // Counts left as-is (no source to restore from).
-      expect(c.sheepCountSmall, 4);
-      expect(c.sheepCountLarge, 0);
+      // No source to rebuild from → animals cleared.
+      expect(c.animals, const <AnimalCount>[]);
     });
   });
 }
