@@ -1,3 +1,5 @@
+import 'tour_stop_animal.dart';
+
 class TourStop {
   final int id;
   final int tourId;
@@ -6,30 +8,22 @@ class TourStop {
   final int orderIndex;
   final int estimatedArrivalMinutes;
   final int estimatedDepartureMinutes;
-  final int plannedSmall;
-  final int plannedLarge;
-  final int minutesPerSmallSnapshot;
-  final int minutesPerLargeSnapshot;
-  final int? actualSmall;
-  final int? actualLarge;
+  final List<TourStopAnimal> planned;
+  final List<TourStopAnimal>? actual;
   final String? interventionNote;
   final int feeShareCents;
 
   const TourStop({
     required this.id,
     required this.tourId,
+    required this.clientId,
     required this.clientNameSnapshot,
     required this.orderIndex,
     required this.estimatedArrivalMinutes,
     required this.estimatedDepartureMinutes,
-    required this.plannedSmall,
-    required this.plannedLarge,
-    required this.minutesPerSmallSnapshot,
-    required this.minutesPerLargeSnapshot,
-    required this.feeShareCents,
-    this.clientId,
-    this.actualSmall,
-    this.actualLarge,
+    required this.planned,
+    this.actual,
     this.interventionNote,
+    required this.feeShareCents,
   });
 }
