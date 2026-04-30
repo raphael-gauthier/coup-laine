@@ -7,13 +7,13 @@ import '../domain/use_cases/build_tour_draft.dart';
 import 'providers.dart';
 
 class TourDraftInput {
-  final int pivotId;
+  final int? pivotId;
   final List<int> selectedIds;
   final DateTime plannedDate;
   final int startTimeMinutes;
   final List<int>? overrideOrder;
   const TourDraftInput({
-    required this.pivotId,
+    this.pivotId,
     required this.selectedIds,
     required this.plannedDate,
     required this.startTimeMinutes,
@@ -39,7 +39,9 @@ final tourDraftProvider =
   if (settings == null) return null;
 
   final all = await clients.listAll();
-  final ids = [input.pivotId, ...input.selectedIds.where((id) => id != input.pivotId)];
+  final ids = input.pivotId == null
+      ? [...input.selectedIds]
+      : [input.pivotId!, ...input.selectedIds.where((id) => id != input.pivotId)];
 
   // We need every matrix cell in the sub-matrix. Pull all rows from any of
   // these node ids. Including base (0) explicitly.

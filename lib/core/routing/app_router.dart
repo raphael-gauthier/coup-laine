@@ -15,6 +15,8 @@ import '../../presentation/map/map_screen.dart';
 import '../../presentation/tours/tour_completion_screen.dart';
 import '../../presentation/tours/tour_detail_screen.dart';
 import '../../presentation/tours/tour_draft_screen.dart';
+import '../../presentation/tours/tour_manual_picker_screen.dart';
+import '../../presentation/tours/tour_optimized_config_screen.dart';
 import '../../presentation/tours/tours_list_screen.dart';
 import '../../state/providers.dart';
 
@@ -42,9 +44,20 @@ class AppRouter {
         ),
         GoRoute(
           path: '/tours/draft',
-          builder: (_, state) => TourDraftScreen(
-            pivotId: int.parse(state.uri.queryParameters['pivot']!),
-          ),
+          builder: (_, state) {
+            final raw = state.uri.queryParameters['pivot'];
+            return TourDraftScreen(
+              pivotId: raw == null ? null : int.parse(raw),
+            );
+          },
+        ),
+        GoRoute(
+          path: '/tours/new/manual',
+          builder: (_, __) => const TourManualPickerScreen(),
+        ),
+        GoRoute(
+          path: '/tours/new/optimized',
+          builder: (_, __) => const TourOptimizedConfigScreen(),
         ),
         StatefulShellRoute.indexedStack(
           builder: (context, state, shell) => _ShellScaffold(shell: shell),

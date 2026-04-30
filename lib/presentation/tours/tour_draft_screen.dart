@@ -16,11 +16,12 @@ import '../../state/tour_draft_controller.dart';
 import '../widgets/app_hero_card.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
+import '../widgets/waiting_clients_multi_picker.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
 
 class TourDraftScreen extends ConsumerStatefulWidget {
-  final int pivotId;
-  const TourDraftScreen({super.key, required this.pivotId});
+  final int? pivotId;
+  const TourDraftScreen({super.key, this.pivotId});
 
   @override
   ConsumerState<TourDraftScreen> createState() => _TourDraftScreenState();
@@ -107,6 +108,66 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     context.go('/tours/$tourId');
   }
 
+  Future<void> _openEditSelection(
+      BuildContext context, TourDraftBundle bundle) async {
+    final l = AppLocalizations.of(context)!;
+    final initial = bundle.orderedClients.map((c) => c.id).toSet();
+    var working = {...initial};
+    await showFSheet<void>(
+      context: context,
+      side: FLayout.btt,
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (innerCtx, setSheetState) {
+            return Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: SizedBox(
+                height: MediaQuery.of(innerCtx).size.height * 0.85,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: Text(
+                        l.tourDraftEditSelectionSheetTitle,
+                        style: innerCtx.theme.typography.lg.copyWith(
+                            fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    Expanded(
+                      child: WaitingClientsMultiPicker(
+                        initialSelection: working,
+                        onSelectionChanged: (s) =>
+                            setSheetState(() => working = s),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    AppPrimaryButton(
+                      label: l.tourDraftEditSelectionValidate,
+                      onPress: working.isEmpty
+                          ? null
+                          : () {
+                              Navigator.of(innerCtx).pop();
+                              setState(() => _manualOrder = null);
+                              ref.read(tourDraftInputProvider.notifier).state =
+                                  TourDraftInput(
+                                pivotId: widget.pivotId,
+                                selectedIds: working.toList(),
+                                plannedDate: _date,
+                                startTimeMinutes: _startMinutes,
+                                overrideOrder: null,
+                              );
+                            },
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -161,12 +222,24 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                     AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxs),
-                child: Text(
-                  l.tourDraftStepsTitle,
-                  style: theme.typography.lg.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colors.foreground,
-                  ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l.tourDraftStepsTitle,
+                        style: theme.typography.lg.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colors.foreground,
+                        ),
+                      ),
+                    ),
+                    FButton(
+                      variant: FButtonVariant.outline,
+                      prefix: const Icon(FIcons.pencil, size: 16),
+                      onPress: () => _openEditSelection(context, bundle),
+                      child: Text(l.tourDraftEditSelection),
+                    ),
+                  ],
                 ),
               ),
               // Reorderable list

@@ -36,9 +36,11 @@ class ToursListScreen extends ConsumerWidget {
       child: SafeArea(
         top: true,
         bottom: false,
-        child: Material(
-          type: MaterialType.transparency,
-          child: async.when(
+        child: Stack(
+          children: [
+            Material(
+              type: MaterialType.transparency,
+              child: async.when(
         loading: () => const Center(child: FCircularProgress()),
         error: (e, _) => Center(child: Text('$e')),
         data: (all) {
@@ -123,7 +125,14 @@ class ToursListScreen extends ConsumerWidget {
             ),
           );
         },
-        ),
+              ),
+            ),
+            const Positioned(
+              right: AppSpacing.md,
+              bottom: AppSpacing.md,
+              child: _NewTourFab(),
+            ),
+          ],
         ),
       ),
     );
@@ -305,6 +314,82 @@ class _TourTile extends StatelessWidget {
       subtitle: Text('$km km · $driveMin min'),
       suffix: isCompleted ? AppBadge.completed(context) : AppBadge.planned(context),
       onPress: () => context.push('/tours/${tour.id}'),
+    );
+  }
+}
+
+class _NewTourFab extends StatelessWidget {
+  const _NewTourFab();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
+    return GestureDetector(
+      onTap: () => _open(context, l),
+      child: Container(
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: theme.colors.primary,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: theme.colors.foreground.withValues(alpha: 0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(FIcons.plus,
+            color: theme.colors.primaryForeground, size: 28),
+      ),
+    );
+  }
+
+  Future<void> _open(BuildContext context, AppLocalizations l) async {
+    await showFSheet<void>(
+      context: context,
+      side: FLayout.btt,
+      builder: (sheetCtx) {
+        final theme = sheetCtx.theme;
+        return Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Text(
+                  l.newTourSheetTitle,
+                  style: theme.typography.lg
+                      .copyWith(fontWeight: FontWeight.w600),
+                ),
+              ),
+              FTile(
+                prefix: const Icon(FIcons.users),
+                title: Text(l.newTourSheetManual),
+                subtitle: Text(l.newTourSheetManualSubtitle),
+                onPress: () {
+                  Navigator.of(sheetCtx).pop();
+                  context.push('/tours/new/manual');
+                },
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              FTile(
+                prefix: const Icon(FIcons.route),
+                title: Text(l.newTourSheetOptimized),
+                subtitle: Text(l.newTourSheetOptimizedSubtitle),
+                onPress: () {
+                  Navigator.of(sheetCtx).pop();
+                  context.push('/tours/new/optimized');
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
