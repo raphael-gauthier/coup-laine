@@ -336,6 +336,37 @@ class ClientRepository {
     );
   }
 
+  /// Applies a manual history entry's effects to the client's denormalized
+  /// state, BUT only if the entry's date is strictly more recent than the
+  /// current `lastShearingDate` (or the client has never been shorn).
+  ///
+  /// Strict `>` is intentional: an entry on the same day as an existing
+  /// `lastShearingDate` is treated as a no-op to keep behavior idempotent.
+  Future<void> applyManualEntryToClient(
+    int clientId, {
+    required DateTime date,
+    required int small,
+    required int large,
+  }) async {
+    final c = await findById(clientId);
+    if (c == null) return;
+    final entryMs = DateTime(date.year, date.month, date.day)
+        .millisecondsSinceEpoch;
+    final currentMs = c.lastShearingDate?.millisecondsSinceEpoch;
+    if (currentMs != null && entryMs <= currentMs) return;
+
+    await (_db.update(_db.clientsTable)
+          ..where((t) => t.id.equals(clientId)))
+        .write(
+      ClientsTableCompanion(
+        sheepCountSmall: Value(small),
+        sheepCountLarge: Value(large),
+        lastShearingDate: Value(entryMs),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
   Future<void> delete(int id) async {
     await (_db.delete(_db.clientsTable)..where((t) => t.id.equals(id))).go();
   }

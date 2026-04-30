@@ -469,4 +469,85 @@ void main() {
     expect(list[2].kind, InterventionKind.manual);
     expect(list[2].note, 'manual older');
   });
+
+  group('applyManualEntryToClient', () {
+    test('lastShearingDate null → applies', () async {
+      final cId = await repo.insert(
+        _newClient(sheepCountSmall: 8, sheepCountLarge: 0),
+      );
+      // Sanity: lastShearingDate is null on a fresh client.
+      expect((await repo.findById(cId))!.lastShearingDate, isNull);
+
+      await repo.applyManualEntryToClient(
+        cId,
+        date: DateTime(2025, 5, 1),
+        small: 6,
+        large: 2,
+      );
+      final c = (await repo.findById(cId))!;
+      expect(c.lastShearingDate, DateTime(2025, 5, 1));
+      expect(c.sheepCountSmall, 6);
+      expect(c.sheepCountLarge, 2);
+    });
+
+    test('entry.date > lastShearingDate → applies', () async {
+      final cId = await repo.insert(_newClient(sheepCountSmall: 8));
+      await repo.applyInterventionActuals(
+        cId,
+        small: 5,
+        large: 0,
+        tourDate: DateTime(2025, 5, 1),
+      );
+      await repo.applyManualEntryToClient(
+        cId,
+        date: DateTime(2025, 6, 1), // later
+        small: 7,
+        large: 1,
+      );
+      final c = (await repo.findById(cId))!;
+      expect(c.lastShearingDate, DateTime(2025, 6, 1));
+      expect(c.sheepCountSmall, 7);
+      expect(c.sheepCountLarge, 1);
+    });
+
+    test('entry.date == lastShearingDate → no-op (strict greater-than)',
+        () async {
+      final cId = await repo.insert(_newClient(sheepCountSmall: 8));
+      await repo.applyInterventionActuals(
+        cId,
+        small: 5,
+        large: 0,
+        tourDate: DateTime(2025, 5, 1),
+      );
+      await repo.applyManualEntryToClient(
+        cId,
+        date: DateTime(2025, 5, 1), // equal
+        small: 99,
+        large: 99,
+      );
+      final c = (await repo.findById(cId))!;
+      expect(c.sheepCountSmall, 5); // untouched
+      expect(c.sheepCountLarge, 0);
+    });
+
+    test('entry.date < lastShearingDate → no-op', () async {
+      final cId = await repo.insert(_newClient(sheepCountSmall: 8));
+      await repo.applyInterventionActuals(
+        cId,
+        small: 5,
+        large: 0,
+        tourDate: DateTime(2025, 5, 1),
+      );
+      await repo.applyManualEntryToClient(
+        cId,
+        date: DateTime(2024, 1, 1), // earlier
+        small: 99,
+        large: 99,
+      );
+      final c = (await repo.findById(cId))!;
+      expect(c.lastShearingDate, DateTime(2025, 5, 1));
+      expect(c.sheepCountSmall, 5);
+      expect(c.sheepCountLarge, 0);
+    });
+  });
 }
