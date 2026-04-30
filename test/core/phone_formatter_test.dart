@@ -33,6 +33,11 @@ void main() {
       expect(formatPhoneInput('abc'), '');
       expect(formatPhoneInput('   '), '');
     });
+
+    test('caps at 10 digits — extras are dropped', () {
+      expect(formatPhoneInput('06123456789'), '06 12 34 56 78');
+      expect(formatPhoneInput('061234567890123'), '06 12 34 56 78');
+    });
   });
 
   group('formatPhoneInput — international (starts with +)', () {
@@ -59,6 +64,11 @@ void main() {
 
     test('keeps + alone if user just typed plus', () {
       expect(formatPhoneInput('+'), '+');
+    });
+
+    test('caps at 11 digits after the + (max 12 chars total)', () {
+      expect(formatPhoneInput('+336123456789'), '+33 6 12 34 56 78');
+      expect(formatPhoneInput('+33612345678999'), '+33 6 12 34 56 78');
     });
   });
 }

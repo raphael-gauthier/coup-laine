@@ -3,20 +3,27 @@ import 'package:flutter/services.dart';
 /// Formats a phone number string for display in the client form.
 ///
 /// Two modes auto-detected from the input:
-///   * Domestic French (default): groups of 2 from the start.
-///     `0612345678` → `06 12 34 56 78`.
+///   * Domestic French (default): groups of 2 from the start, capped at
+///     10 digits. `0612345678` → `06 12 34 56 78`.
 ///   * International: when the input starts with `+`. The country code is
 ///     held to 2 digits (covering FR, ES, IT, DE…); the remainder is grouped
 ///     by 2 with a leading single digit when the remaining length is odd.
-///     `+33612345678` → `+33 6 12 34 56 78`.
+///     Capped at 11 digits after the `+`, so the canonical French
+///     international form `+33 6 12 34 56 78` is the maximum.
 ///
 /// All non-digit characters are stripped before regrouping, so the function
 /// is idempotent: applying it to an already-formatted value yields the same
-/// string. Pasted input with dots, dashes, parens etc. is normalized.
+/// string. Pasted input with dots, dashes, parens etc. is normalized; extra
+/// digits beyond the cap are silently truncated.
 String formatPhoneInput(String input) {
   final hasPlus = input.startsWith('+');
-  final digits = input.replaceAll(RegExp(r'\D'), '');
+  var digits = input.replaceAll(RegExp(r'\D'), '');
   if (digits.isEmpty) return hasPlus ? '+' : '';
+
+  final maxDigits = hasPlus ? 11 : 10;
+  if (digits.length > maxDigits) {
+    digits = digits.substring(0, maxDigits);
+  }
 
   if (hasPlus) {
     if (digits.length <= 2) return '+$digits';
