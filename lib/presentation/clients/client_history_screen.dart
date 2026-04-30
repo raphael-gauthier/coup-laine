@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
+import '../../domain/models/intervention.dart';
 import '../../state/providers.dart';
+import 'manual_history_entry_sheet.dart';
 
 class ClientHistoryScreen extends ConsumerWidget {
   final int clientId;
@@ -20,7 +22,18 @@ class ClientHistoryScreen extends ConsumerWidget {
 
     return SafeArea(
       child: FScaffold(
-        header: FHeader.nested(title: Text(l.clientHistoryTitle)),
+        header: FHeader.nested(
+          title: Text(l.clientHistoryTitle),
+          suffixes: [
+            FButton.icon(
+              child: const Icon(FIcons.plus),
+              onPress: () => showManualHistoryEntrySheet(
+                context,
+                clientId: clientId,
+              ),
+            ),
+          ],
+        ),
         child: async.when(
           loading: () => const Center(child: FCircularProgress()),
           error: (e, _) => Center(child: Text('$e')),
@@ -46,9 +59,33 @@ class ClientHistoryScreen extends ConsumerWidget {
                 final dateStr = DateFormat('dd/MM/yyyy').format(it.date);
                 final main = l.clientDetailHistoryItemFmt(
                     dateStr, it.small, it.large);
+                final isManual = it.kind == InterventionKind.manual;
                 return GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => context.push('/tours/${it.tourId}'),
+                  onTap: () async {
+                    if (it.kind == InterventionKind.tour &&
+                        it.tourId != null) {
+                      context.push('/tours/${it.tourId}');
+                      return;
+                    }
+                    if (it.kind == InterventionKind.manual &&
+                        it.manualEntryId != null) {
+                      final manualRepo =
+                          ref.read(manualHistoryRepositoryProvider);
+                      final all = await manualRepo.listForClient(clientId);
+                      final matches =
+                          all.where((e) => e.id == it.manualEntryId);
+                      final entry =
+                          matches.isEmpty ? null : matches.first;
+                      if (entry != null && context.mounted) {
+                        await showManualHistoryEntrySheet(
+                          context,
+                          clientId: clientId,
+                          existing: entry,
+                        );
+                      }
+                    }
+                  },
                   child: Container(
                     padding: AppSizes.listTilePadding,
                     decoration: BoxDecoration(
@@ -69,6 +106,14 @@ class ClientHistoryScreen extends ConsumerWidget {
                                   color: theme.colors.foreground,
                                 ),
                               ),
+                              if (isManual)
+                                TextSpan(
+                                  text: ' · ${l.clientHistoryManualBadge}',
+                                  style: theme.typography.xs.copyWith(
+                                    color: theme.colors.mutedForeground,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
                               if (!it.hasBilan)
                                 TextSpan(
                                   text: l.clientDetailHistoryNoBilan,
