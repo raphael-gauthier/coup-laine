@@ -37,9 +37,17 @@ class CoupeLaineApp extends ConsumerWidget {
       builder: (context, child) {
         final brightness = Theme.of(context).brightness;
         final fTheme = brightness == Brightness.dark ? darkFTheme : lightFTheme;
+        // Paint the theme background under everything so the SafeArea
+        // status-bar inset on top-level routes (i.e. routes outside the
+        // shell scaffold) doesn't reveal the OS-default black behind.
         return FTheme(
           data: fTheme,
-          child: FToaster(child: child ?? const SizedBox.shrink()),
+          child: FToaster(
+            child: ColoredBox(
+              color: fTheme.colors.background,
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ),
         );
       },
       routerConfig: router,

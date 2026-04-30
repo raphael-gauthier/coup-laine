@@ -246,9 +246,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     final title = _isEditing ? l.tourEditTitle : l.tourDraftTitle;
     final isLoadingPrefill = _isEditing && !_prefilled;
 
-    return ColoredBox(
-      color: theme.colors.background,
-      child: SafeArea(
+    return SafeArea(
       child: FScaffold(
         resizeToAvoidBottomInset: true,
         header: FHeader.nested(title: Text(title)),
@@ -412,7 +410,6 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
             ],
           );
         },
-      ),
       ),
       ),
     );
