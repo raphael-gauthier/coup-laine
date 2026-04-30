@@ -51,9 +51,17 @@ void main() {
       );
     });
 
-    test('completed tour beats planned', () {
+    test('planned tour beats completed (scheduled surfaces upcoming work)',
+        () {
       expect(
         _derive(_client(isWaiting: true), planned: true, completed: true),
+        ClientStatus.scheduled,
+      );
+    });
+
+    test('completed tour without planned → done', () {
+      expect(
+        _derive(_client(), completed: true),
         ClientStatus.done,
       );
     });

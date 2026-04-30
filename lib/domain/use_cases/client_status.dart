@@ -8,7 +8,11 @@ import '../models/client.dart';
 /// the order chips and layer toggles render in.
 ///
 /// Derivation priority (highest first, see [deriveStatus]):
-///   banned > noSheep > done > scheduled > waiting > defaultStatus.
+///   banned > noSheep > scheduled > done > waiting > defaultStatus.
+///
+/// `scheduled` outranks `done` so that a client with an upcoming planned
+/// tour stays surfaced as actionable even if a past completion (real or
+/// backfilled via a manual history entry) also lands inside the season.
 enum ClientStatus {
   defaultStatus,
   waiting,
@@ -20,7 +24,7 @@ enum ClientStatus {
 
 /// Pure derivation. The two booleans are computed by the repository from
 /// the client's `tour_stop` rows joined to `tours` filtered by the current
-/// season epoch.
+/// season epoch (and, for completion, also from manual history entries).
 ClientStatus deriveStatus(
   Client c, {
   required bool hasCompletedTourThisSeason,
@@ -30,8 +34,8 @@ ClientStatus deriveStatus(
   if (c.sheepCountSmall == 0 && c.sheepCountLarge == 0) {
     return ClientStatus.noSheep;
   }
-  if (hasCompletedTourThisSeason) return ClientStatus.done;
   if (hasPlannedTourThisSeason) return ClientStatus.scheduled;
+  if (hasCompletedTourThisSeason) return ClientStatus.done;
   if (c.isWaiting) return ClientStatus.waiting;
   return ClientStatus.defaultStatus;
 }
