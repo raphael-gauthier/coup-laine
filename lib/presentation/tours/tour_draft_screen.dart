@@ -171,7 +171,9 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
       builder: (sheetCtx) {
         return StatefulBuilder(
           builder: (innerCtx, setSheetState) {
-            return Padding(
+            return ColoredBox(
+              color: innerCtx.theme.colors.background,
+              child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: SizedBox(
                 height: MediaQuery.of(innerCtx).size.height * 0.85,
@@ -220,6 +222,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                   ],
                 ),
               ),
+            ),
             );
           },
         );
