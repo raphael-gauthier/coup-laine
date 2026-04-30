@@ -55,14 +55,23 @@ class ManualHistoryEntriesTable extends Table {
 
 Index sur `client_id` (créé en SQL brut dans la migration).
 
-### Migration `m6to7`
+### Enregistrement et migration
+
+Ajouter `ManualHistoryEntriesTable` dans l'annotation `@DriftDatabase(tables: [...])` de `AppDatabase`.
+
+Le projet utilise le pattern manuel `onUpgrade(m, from, to)` avec des blocs `if (from < N)` (cf. `app_database.dart`). On ajoute un bloc :
 
 ```dart
-await m.createTable(manualHistoryEntries);
-await customStatement(
-  'CREATE INDEX idx_manual_history_client ON manual_history_entries(client_id)',
-);
+if (from < 7) {
+  await m.createTable(manualHistoryEntriesTable);
+  await customStatement(
+    'CREATE INDEX idx_manual_history_client '
+    'ON manual_history_entries(client_id)',
+  );
+}
 ```
+
+Les FK cascade fonctionnent grâce au `PRAGMA foreign_keys = ON` déjà posé dans `beforeOpen`.
 
 ## Modèle domaine
 
