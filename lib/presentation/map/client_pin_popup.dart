@@ -19,7 +19,8 @@ class ClientPinPopup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final hasPhone = client.phone != null && client.phone!.trim().isNotEmpty;
+    final principalPhone = client.principalPhone;
+    final hasPhone = principalPhone != null;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -76,7 +77,7 @@ class ClientPinPopup extends StatelessWidget {
                     size: FButtonSizeVariant.sm,
                     prefix: const Icon(FIcons.phone),
                     onPress:
-                        hasPhone ? () => callPhone(context, client.phone!) : null,
+                        hasPhone ? () => callPhone(context, principalPhone) : null,
                     child: const Text('Appeler'),
                   ),
                 ),
@@ -87,7 +88,7 @@ class ClientPinPopup extends StatelessWidget {
                     size: FButtonSizeVariant.sm,
                     prefix: const Icon(FIcons.messageCircle),
                     onPress:
-                        hasPhone ? () => sendSms(context, client.phone!) : null,
+                        hasPhone ? () => sendSms(context, principalPhone) : null,
                     child: const Text('SMS'),
                   ),
                 ),

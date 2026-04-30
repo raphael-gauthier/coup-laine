@@ -25,7 +25,7 @@ String normalize(String s) {
 }
 
 /// Returns true if [normalizedQuery] (already passed through [normalize])
-/// matches any of the client's searchable fields: name, phone, city,
+/// matches any of the client's searchable fields: name, phones, city,
 /// postcode, full address — plus any string in [extraFields] (used to
 /// fold in history-entry notes).
 ///
@@ -38,7 +38,7 @@ bool matchesClient(
   if (normalizedQuery.isEmpty) return true;
   final fields = [
     c.name,
-    c.phone ?? '',
+    c.phones.join(' '),
     c.city,
     c.postcode,
     c.addressLabel,

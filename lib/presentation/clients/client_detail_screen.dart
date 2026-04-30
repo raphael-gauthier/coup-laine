@@ -189,14 +189,14 @@ class _Body extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
 
           // Contact card (only if phone set)
-          if (client.phone != null) ...[
+          if (client.principalPhone != null) ...[
             AppSectionCard(
               icon: FIcons.phone,
               title: l.clientDetailSectionContact,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(client.phone!, style: theme.typography.md),
+                  Text(client.principalPhone!, style: theme.typography.md),
                   const SizedBox(height: AppSpacing.md),
                   Row(
                     children: [
@@ -204,7 +204,7 @@ class _Body extends ConsumerWidget {
                         child: FButton(
                           variant: FButtonVariant.outline,
                           prefix: const Icon(FIcons.phone),
-                          onPress: () => callPhone(context, client.phone!),
+                          onPress: () => callPhone(context, client.principalPhone!),
                           child: const Text('Appeler'),
                         ),
                       ),
@@ -213,7 +213,7 @@ class _Body extends ConsumerWidget {
                         child: FButton(
                           variant: FButtonVariant.outline,
                           prefix: const Icon(FIcons.messageCircle),
-                          onPress: () => sendSms(context, client.phone!),
+                          onPress: () => sendSms(context, client.principalPhone!),
                           child: const Text('SMS'),
                         ),
                       ),

@@ -66,7 +66,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     final c = await ref.read(clientRepositoryProvider).findById(widget.clientId!);
     if (c == null) return;
     _nameCtrl.text = c.name;
-    _phoneCtrl.text = c.phone ?? '';
+    _phoneCtrl.text = c.principalPhone ?? '';
     _sheepSmallCtrl.text = c.sheepCountSmall.toString();
     _sheepLargeCtrl.text = c.sheepCountLarge.toString();
     _addressLabel = c.addressLabel;
@@ -122,7 +122,9 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       await repo.updateBasics(
         id: id,
         name: _nameCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+        phones: _phoneCtrl.text.trim().isEmpty
+            ? const []
+            : [_phoneCtrl.text.trim()],
         sheepCountSmall: int.parse(_sheepSmallCtrl.text),
         sheepCountLarge: int.parse(_sheepLargeCtrl.text),
       );
@@ -137,7 +139,9 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       id = await repo.insert(Client(
         id: 0,
         name: _nameCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+        phones: _phoneCtrl.text.trim().isEmpty
+            ? const []
+            : [_phoneCtrl.text.trim()],
         addressLabel: _addressLabel!,
         postcode: _postcode!,
         city: _city!,
