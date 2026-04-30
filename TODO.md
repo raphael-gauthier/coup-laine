@@ -38,32 +38,47 @@ Les données (clients, tontes, historique, matrices de distances) sont aujourd'h
 
 ---
 
-## 2. Ajout manuel d'un historique de tonte
+## 2. Ajout manuel d'un historique de tonte ✅
 
-**Statut :** à spécifier
-**Priorité :** moyenne
+**Statut :** fait — mergé sur `main` (2026-04-30, commit `f888b15`)
+**Spec :** `docs/superpowers/specs/2026-04-30-manual-history-entries-design.md`
+**Plan :** `docs/superpowers/plans/2026-04-30-manual-history-entries.md`
 
-### Contexte
-Lors de la prise en charge d'un nouveau client, l'utilisateur connaît souvent l'historique des tontes des années précédentes (effectuées par lui hors de l'app, ou par un prédécesseur). Aujourd'hui seules les tontes saisies dans l'app sont enregistrées ; il n'existe pas de moyen de saisir rétroactivement une tonte passée pour enrichir la fiche client.
+### Ce qui a été livré
 
-### Périmètre
-- [ ] Depuis la fiche client, ajouter une action « Ajouter une tonte passée » / « Ajouter à l'historique ».
-- [ ] Formulaire dédié avec au minimum :
-  - date de la tonte (sélecteur de date, antérieure à aujourd'hui),
-  - durée ou prix (optionnel),
-  - notes libres (optionnel).
-- [ ] Marquer ces entrées comme « historiques » (saisies a posteriori) pour les distinguer des tontes réalisées via l'app — flag en base ou table dédiée.
-- [ ] Affichage dans la timeline / liste des tontes du client, avec un visuel différencié (icône, libellé « historique »).
-- [ ] Édition et suppression possibles d'une entrée historique.
-- [ ] Prise en compte (ou exclusion explicite) de ces entrées dans les statistiques et la planification.
+**Données**
+- Nouvelle table Drift `manual_history_entries` (FK cascade vers `clients`), `schemaVersion: 6 → 7`. Colonnes : `client_id`, `date` (epoch days), `sheep_count_small`, `sheep_count_large`, `note`, `created_at`, `updated_at`.
+- Modèle domaine `ManualHistoryEntry` + `Intervention` étendu d'un discriminant `kind` (`tour | manual`) avec `manualEntryId` nullable.
+- Repository `ManualHistoryRepository` (CRUD + filtre saison `listClientDatesSinceEpochDays`).
+- `ClientRepository.listInterventionsForClient` fusionne maintenant tour-stops + entrées manuelles, triés par date desc.
 
-### Critères d'acceptation
-- L'utilisateur peut, en ≤ 3 taps depuis la fiche client, ajouter une tonte datée d'une année précédente.
-- L'entrée apparaît dans l'historique du client, triée chronologiquement avec les autres tontes.
-- Une entrée historique est visuellement distincte d'une tonte réelle.
-- Les entrées historiques ne déclenchent aucune logique métier liée au présent (pas de notification, pas de relance).
+**Règles métier**
+- À la création d'une entrée manuelle : si la date est strictement plus récente que `lastShearingDate`, on met à jour `lastShearingDate` + `sheepCountSmall/Large` du client (`applyManualEntryToClient`). Sinon no-op.
+- À l'édition / suppression : recalcul intégral de l'état dénormalisé du client à partir de l'union des sources (`recomputeClientFromHistory`).
+- Une entrée manuelle dans la saison fait basculer le client en statut `done` (sauf s'il a un rdv planifié — voir ci-dessous).
 
-### Points ouverts
-- Champs minimums vraiment requis (date seule suffisante ?).
-- Faut-il permettre la saisie en lot (import CSV / multi-dates) ou uniquement une à une ?
-- Impact sur la stat « dernière tonte » : on prend la plus récente toutes sources confondues, ou on distingue ?
+**Statut**
+- Priorité inversée : `scheduled > done` (au lieu de `done > scheduled`). Un client avec un rdv planifié ET une tonte passée dans la saison reste affiché comme planifié, pour ne pas masquer le travail à venir.
+
+**UI**
+- Bottom sheet `ManualHistoryEntrySheet` (création + édition + suppression avec confirmation), scrollable, fond opaque.
+- Bouton `+` dans `ClientHistoryScreen` ; bouton « Ajouter une tonte » sur la fiche client (toujours visible, même historique vide).
+- Refonte des lignes d'historique sur les deux surfaces : icône (`scissors` pour tournée, `pencil` pour saisie manuelle) + date prominente (`12 mai 2026`) + détail muté + total à droite. Plus de phrase dense.
+- Tap cohérent partout : ligne tournée → page tournée ; ligne manuelle → sheet d'édition. Même comportement sur la fiche client et sur l'écran plein historique.
+
+**Recherche**
+- La recherche client matche maintenant aussi le contenu des notes d'historique (manuelles + tournées complétées). `loadClientNotesMap` agrège les deux sources, exposé via `clientNotesMapProvider`, branché dans `matchesClient`.
+
+**Localisation**
+- 15 nouvelles clés FR/EN (titres du sheet, libellés des champs, confirmations).
+
+**Tests**
+- 21 tests couche data sur `ClientRepository` (merge, statut, applyManualEntryToClient avec ses 4 cas, recomputeClientFromHistory, loadClientNotesMap).
+- 5 tests sur `ManualHistoryRepository` (CRUD + cascade + filtre saison).
+- Test du nouveau ordre de priorité du statut.
+
+### Écarts vs périmètre initial
+
+- **Champs livrés** : date, petits moutons, grands moutons, note. Durée et prix non livrés (pas de besoin formulé).
+- **Saisie en lot** : volontairement hors scope. Si le besoin réapparaît, c'est un add-on séparé.
+- **Critère « les entrées historiques ne déclenchent aucune logique métier »** : non respecté à dessein — choix produit explicite. Une entrée manuelle plus récente écrase `lastShearingDate` + compteurs et compte pour la saison. Sinon le backfill rétroactif n'aurait servi à rien.
