@@ -198,5 +198,7 @@
   "tourDraftEditSelectionSheetTitle": "Edit selection",
   "tourDraftEditSelectionValidate": "Confirm",
   "tourEditTitle": "Edit tour",
-  "tourDetailEdit": "Edit"
+  "tourDetailEdit": "Edit",
+  "pickerSectionNearby": "Suggested nearby",
+  "pickerSectionOthers": "Other waiting clients"
 }

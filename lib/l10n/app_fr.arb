@@ -198,5 +198,7 @@
   "tourDraftEditSelectionSheetTitle": "Modifier la sélection",
   "tourDraftEditSelectionValidate": "Valider",
   "tourEditTitle": "Modifier la tournée",
-  "tourDetailEdit": "Modifier"
+  "tourDetailEdit": "Modifier",
+  "pickerSectionNearby": "Suggérés à proximité",
+  "pickerSectionOthers": "Autres clients en attente"
 }
