@@ -38,29 +38,44 @@ class AddressAutocompleteField extends ConsumerStatefulWidget {
 class _AddressAutocompleteFieldState
     extends ConsumerState<AddressAutocompleteField> {
   final Map<String, GeocodingResult> _resultsByLabel = {};
+  late final FAutocompleteController _controller;
 
   /// Last label we've already reported via onPicked, so we don't
   /// repeatedly fire for the same value (the controller can notify
   /// several times after a pick — text + selection changes).
   String? _lastReportedLabel;
 
+  @override
+  void initState() {
+    super.initState();
+    _controller = FAutocompleteController(text: widget.initialLabel ?? '');
+    _controller.addListener(_onControllerChanged);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_onControllerChanged);
+    _controller.dispose();
+    super.dispose();
+  }
+
   Future<Iterable<String>> _filter(String query) async {
-    if (query.trim().isEmpty) {
-      _resultsByLabel.clear();
-      return const [];
-    }
+    if (query.trim().isEmpty) return const [];
     final svc = ref.read(banGeocodingServiceProvider);
     final results = await svc.search(query);
-    _resultsByLabel
-      ..clear()
-      ..addEntries(results.map((r) => MapEntry(r.label, r)));
+    // Merge instead of clearing: a previously-fetched label might be the
+    // one the user just picked, and FAutocomplete fires the controller
+    // listener after we've already issued a new filter for the picked
+    // text. Keeping past entries lets the lookup still resolve.
+    _resultsByLabel.addEntries(results.map((r) => MapEntry(r.label, r)));
     return results.map((r) => r.label);
   }
 
-  void _handleChange(TextEditingValue value) {
-    final picked = _resultsByLabel[value.text];
-    if (picked != null && value.text != _lastReportedLabel) {
-      _lastReportedLabel = value.text;
+  void _onControllerChanged() {
+    final text = _controller.text;
+    final picked = _resultsByLabel[text];
+    if (picked != null && text != _lastReportedLabel) {
+      _lastReportedLabel = text;
       widget.onPicked(picked);
     }
   }
@@ -85,10 +100,7 @@ class _AddressAutocompleteFieldState
             }(),
           ),
       ],
-      control: FAutocompleteControl.managed(
-        initial: TextEditingValue(text: widget.initialLabel ?? ''),
-        onChange: _handleChange,
-      ),
+      control: FAutocompleteControl.managed(controller: _controller),
     );
   }
 }
