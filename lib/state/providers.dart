@@ -7,15 +7,19 @@ import '../core/config/env.dart';
 import '../core/routing/app_router.dart';
 import '../data/consistency_check.dart';
 import '../data/distance_matrix_sync.dart';
+import '../data/repositories/animal_category_repository.dart';
 import '../data/repositories/client_repository.dart';
 import '../data/repositories/distance_matrix_repository.dart';
 import '../data/repositories/manual_history_repository.dart';
 import '../data/repositories/settings_repository.dart';
+import '../data/repositories/species_repository.dart';
 import '../data/repositories/tour_repository.dart';
+import '../domain/models/animal_category.dart';
 import '../domain/models/client.dart';
 import '../domain/models/distance_matrix_entry.dart';
 import '../domain/models/intervention.dart';
 import '../domain/models/settings.dart';
+import '../domain/models/species.dart';
 import '../domain/use_cases/build_optimized_tour_proposal.dart';
 import '../domain/use_cases/client_status.dart';
 import '../domain/use_cases/find_clients_near_anchors.dart';
@@ -44,6 +48,70 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
 final manualHistoryRepositoryProvider =
     Provider<ManualHistoryRepository>((ref) {
   return ManualHistoryRepository(ref.watch(appDatabaseProvider));
+});
+
+final speciesRepositoryProvider = Provider<SpeciesRepository>((ref) {
+  return SpeciesRepository(ref.watch(appDatabaseProvider));
+});
+
+final animalCategoryRepositoryProvider =
+    Provider<AnimalCategoryRepository>((ref) {
+  return AnimalCategoryRepository(ref.watch(appDatabaseProvider));
+});
+
+/// Active species (excludes archived). Watched by the species management
+/// screen and the AnimalCountsEditor widget.
+final activeSpeciesProvider = FutureProvider<List<Species>>((ref) {
+  return ref.watch(speciesRepositoryProvider).listActive();
+});
+
+/// Archived species. Watched by the species management screen for the
+/// archived section.
+final archivedSpeciesProvider = FutureProvider<List<Species>>((ref) {
+  return ref.watch(speciesRepositoryProvider).listArchived();
+});
+
+/// All categories (active + archived) keyed by id. Used by displays that
+/// need to look up snapshot context for archived categories.
+final allCategoriesByIdProvider =
+    FutureProvider<Map<int, AnimalCategory>>((ref) async {
+  final list = await ref.watch(animalCategoryRepositoryProvider).listAll();
+  return {for (final c in list) c.id: c};
+});
+
+/// Active categories grouped by speciesId. Used by AnimalCountsEditor.
+final activeCategoriesBySpeciesProvider =
+    FutureProvider<Map<int, List<AnimalCategory>>>((ref) async {
+  final list =
+      await ref.watch(animalCategoryRepositoryProvider).listAllActive();
+  final out = <int, List<AnimalCategory>>{};
+  for (final c in list) {
+    out.putIfAbsent(c.speciesId, () => []).add(c);
+  }
+  return out;
+});
+
+/// Convenience: the species + category info needed to build TourStopAnimal
+/// snapshots when constructing a TourDraft. Built once per provider read.
+/// Keys are categoryIds; values include speciesName, categoryName, and
+/// minutesSnapshot (defaulting to 0 if the user hasn't set defaultMinutes).
+/// Includes archived categories so historic clients still resolve.
+final categoryLookupProvider = FutureProvider<
+    Map<int, ({String speciesName, String categoryName, int minutes})>>(
+    (ref) async {
+  final speciesById = {
+    for (final s in await ref.watch(speciesRepositoryProvider).listAll())
+      s.id: s,
+  };
+  final cats = await ref.watch(animalCategoryRepositoryProvider).listAll();
+  return {
+    for (final c in cats)
+      c.id: (
+        speciesName: speciesById[c.speciesId]?.name ?? '',
+        categoryName: c.name,
+        minutes: c.defaultMinutes ?? 0,
+      ),
+  };
 });
 
 final clientRepositoryProvider = Provider<ClientRepository>((ref) {
@@ -251,6 +319,7 @@ final optimizedProposalProvider = FutureProvider.autoDispose
       ));
     }
   }
+  final categoryLookup = await ref.watch(categoryLookupProvider.future);
   return const BuildOptimizedTourProposal().call(
     communeName: req.communeName,
     targetMinutes: req.targetMinutes,
@@ -258,7 +327,6 @@ final optimizedProposalProvider = FutureProvider.autoDispose
     waitingClients: waiting,
     matrix: entries,
     settings: settings,
-    // TODO: wire via categoryLookupProvider in Task 23
-    categoryLookup: const {},
+    categoryLookup: categoryLookup,
   );
 });

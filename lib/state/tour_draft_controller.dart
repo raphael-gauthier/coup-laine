@@ -63,13 +63,13 @@ final tourDraftProvider =
     }
   }
 
+  final categoryLookup = await ref.read(categoryLookupProvider.future);
   final result = const BuildTourDraft().build(
     candidateIds: ids,
     candidates: all,
     matrix: entries,
     settings: settings,
-    // TODO: wire via categoryLookupProvider in Task 23
-    categoryLookup: const {},
+    categoryLookup: categoryLookup,
     startTimeMinutes: input.startTimeMinutes,
     presetOrder: input.overrideOrder,
   );
