@@ -39,6 +39,11 @@ Settings _settings() => Settings(
       seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(0),
     );
 
+const _categoryLookup = <int,
+    ({String speciesName, String categoryName, int minutes})>{
+  1: (speciesName: 'Mouton', categoryName: 'Adulte', minutes: 8),
+};
+
 /// Build a fully-symmetric matrix between every pair in [ids] (incl. base 0).
 List<DistanceMatrixEntry> _fullMatrix(
   List<int> ids,
@@ -68,6 +73,7 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
+      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds.toSet(), {1, 2});
     expect(result.isUnderTarget, isFalse);
@@ -99,6 +105,7 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
+      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds, contains(1));
     expect(result.selectedClientIds, contains(10));
@@ -124,6 +131,7 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
+      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds.length, lessThanOrEqualTo(2));
   });
@@ -141,6 +149,7 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
+      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds.toSet(), {1, 2});
     expect(result.isUnderTarget, isTrue);
@@ -170,6 +179,7 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
+      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds, isNot(contains(4)));
     expect(result.selectedClientIds.length, greaterThanOrEqualTo(1));
@@ -188,6 +198,7 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
+      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds.length, 1);
     expect(result.isOverTarget, isTrue);
@@ -203,6 +214,7 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
+      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds, isEmpty);
   });
@@ -230,6 +242,7 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
+      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds, [1]);
   });

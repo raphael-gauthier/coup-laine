@@ -1,6 +1,7 @@
 import '../models/client.dart';
 import '../models/distance_matrix_entry.dart';
 import '../models/settings.dart';
+import '../models/tour_stop_animal.dart';
 import 'bracket_counter.dart';
 import 'cost_split_calculator.dart';
 import 'tour_duration_estimator.dart';
@@ -16,10 +17,7 @@ class TourDraftResult {
   final int totalShearingMinutes;
   final int totalFeeCents;
   final List<int> feeShareCents;
-  final List<int> plannedSmallPerStop;
-  final List<int> plannedLargePerStop;
-  final List<int> minutesPerSmallPerStop;
-  final List<int> minutesPerLargePerStop;
+  final List<List<TourStopAnimal>> plannedAnimalsPerStop;
   final int feeFarthestCents;
   final int feeInterCents;
 
@@ -33,10 +31,7 @@ class TourDraftResult {
     required this.totalShearingMinutes,
     required this.totalFeeCents,
     required this.feeShareCents,
-    required this.plannedSmallPerStop,
-    required this.plannedLargePerStop,
-    required this.minutesPerSmallPerStop,
-    required this.minutesPerLargePerStop,
+    required this.plannedAnimalsPerStop,
     required this.feeFarthestCents,
     required this.feeInterCents,
   });
@@ -50,6 +45,8 @@ class BuildTourDraft {
     required List<Client> candidates,
     required List<DistanceMatrixEntry> matrix,
     required Settings settings,
+    required Map<int, ({String speciesName, String categoryName, int minutes})>
+        categoryLookup,
     required int startTimeMinutes,
     List<int>? presetOrder, // skip optimiser if provided
   }) {
@@ -96,25 +93,32 @@ class BuildTourDraft {
         tm[k == 0 ? 0 : visitIndices[k - 1]][visitIndices[k]]
     ];
     final driveBack = tm[visitIndices.last][0];
-    final smalls =
-        orderedIds.map((id) => byId[id]!.animalsTotal).toList();
-    final larges = List<int>.filled(orderedIds.length, 0);
-    final minutesSmall = List<int>.filled(orderedIds.length, 0);
-    final minutesLarge = List<int>.filled(orderedIds.length, 0);
+
+    // Build per-stop planned animals from each client's animals + the
+    // category lookup. Categories no longer in the lookup (deleted) are
+    // skipped silently.
+    final plannedAnimalsPerStop = <List<TourStopAnimal>>[
+      for (final id in orderedIds)
+        [
+          for (final ac in byId[id]!.animals)
+            if (categoryLookup[ac.categoryId] != null)
+              TourStopAnimal(
+                categoryId: ac.categoryId,
+                count: ac.count,
+                categoryNameSnapshot:
+                    categoryLookup[ac.categoryId]!.categoryName,
+                speciesNameSnapshot:
+                    categoryLookup[ac.categoryId]!.speciesName,
+                minutesSnapshot: categoryLookup[ac.categoryId]!.minutes,
+              ),
+        ],
+    ];
 
     final duration = const TourDurationEstimator().estimate(
       startTimeMinutes: startTimeMinutes,
       driveSecondsToStops: driveToStops,
       driveSecondsBackToBase: driveBack,
-      stops: [
-        for (var i = 0; i < orderedIds.length; i++)
-          (
-            small: smalls[i],
-            large: larges[i],
-            minutesSmall: minutesSmall[i],
-            minutesLarge: minutesLarge[i],
-          ),
-      ],
+      stops: plannedAnimalsPerStop,
     );
 
     final baseToStopMeters = <int>[
@@ -149,10 +153,7 @@ class BuildTourDraft {
       totalShearingMinutes: duration.totalShearingMinutes,
       totalFeeCents: split.totalFeeCents,
       feeShareCents: split.shareCents,
-      plannedSmallPerStop: smalls,
-      plannedLargePerStop: larges,
-      minutesPerSmallPerStop: minutesSmall,
-      minutesPerLargePerStop: minutesLarge,
+      plannedAnimalsPerStop: plannedAnimalsPerStop,
       feeFarthestCents: split.feeFarthestCents,
       feeInterCents: split.feeInterCents,
     );

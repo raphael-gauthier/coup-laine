@@ -1,5 +1,21 @@
+import 'package:coup_laine/domain/models/tour_stop_animal.dart';
 import 'package:coup_laine/domain/use_cases/tour_duration_estimator.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+TourStopAnimal _a({
+  int categoryId = 1,
+  required int count,
+  required int minutes,
+  String species = 'Mouton',
+  String category = 'Adulte',
+}) =>
+    TourStopAnimal(
+      categoryId: categoryId,
+      count: count,
+      categoryNameSnapshot: category,
+      speciesNameSnapshot: species,
+      minutesSnapshot: minutes,
+    );
 
 void main() {
   group('TourDurationEstimator', () {
@@ -10,8 +26,11 @@ void main() {
         startTimeMinutes: 8 * 60,
         driveSecondsToStops: const [1800],
         driveSecondsBackToBase: 1800,
-        stops: const [
-          (small: 10, large: 0, minutesSmall: 8, minutesLarge: 25),
+        stops: [
+          [
+            _a(categoryId: 1, count: 10, minutes: 8),
+            _a(categoryId: 2, count: 0, minutes: 25),
+          ],
         ],
       );
       // shearMin = 10*8 + 0*25 = 80
@@ -26,10 +45,13 @@ void main() {
         startTimeMinutes: 8 * 60,
         driveSecondsToStops: const [600, 900, 1200],
         driveSecondsBackToBase: 1500,
-        stops: const [
-          (small: 5, large: 0, minutesSmall: 8, minutesLarge: 25),
-          (small: 0, large: 3, minutesSmall: 8, minutesLarge: 25),
-          (small: 4, large: 4, minutesSmall: 8, minutesLarge: 25),
+        stops: [
+          [_a(categoryId: 1, count: 5, minutes: 8)],
+          [_a(categoryId: 2, count: 3, minutes: 25)],
+          [
+            _a(categoryId: 1, count: 4, minutes: 8),
+            _a(categoryId: 2, count: 4, minutes: 25),
+          ],
         ],
       );
       // shear: 5*8=40, 3*25=75, 4*8+4*25=132 → total 247
@@ -41,14 +63,29 @@ void main() {
           8 * 60 + 10 + 40 + 15 + 75 + 20);
     });
 
+    test('minutesSnapshot=0 contributes only drive time', () {
+      final result = estimator.estimate(
+        startTimeMinutes: 8 * 60,
+        driveSecondsToStops: const [600],
+        driveSecondsBackToBase: 600,
+        stops: [
+          [_a(categoryId: 1, count: 5, minutes: 0)],
+        ],
+      );
+      expect(result.totalShearingMinutes, 0);
+      expect(result.stopArrivalMinutes, [8 * 60 + 10]);
+      expect(result.stopDepartureMinutes, [8 * 60 + 10]);
+      expect(result.endTimeMinutes, 8 * 60 + 20);
+    });
+
     test('rejects mismatched stops vs driveSecondsToStops length', () {
       expect(
         () => estimator.estimate(
           startTimeMinutes: 0,
           driveSecondsToStops: const [60, 60],
           driveSecondsBackToBase: 60,
-          stops: const [
-            (small: 1, large: 0, minutesSmall: 8, minutesLarge: 25),
+          stops: [
+            [_a(categoryId: 1, count: 1, minutes: 8)],
           ],
         ),
         throwsArgumentError,

@@ -37,6 +37,8 @@ class BuildOptimizedTourProposal {
     required List<Client> waitingClients,
     required List<DistanceMatrixEntry> matrix,
     required Settings settings,
+    required Map<int, ({String speciesName, String categoryName, int minutes})>
+        categoryLookup,
   }) {
     final eligible = waitingClients
         .where((c) => !c.needsDistanceRecompute)
@@ -54,6 +56,7 @@ class BuildOptimizedTourProposal {
       candidates: eligible,
       matrix: matrix,
       settings: settings,
+      categoryLookup: categoryLookup,
       startTimeMinutes: startTimeMinutes,
     );
     var duration = initialDraft.endTimeMinutes - startTimeMinutes;
@@ -75,6 +78,7 @@ class BuildOptimizedTourProposal {
           candidates: eligible,
           matrix: matrix,
           settings: settings,
+          categoryLookup: categoryLookup,
           startTimeMinutes: startTimeMinutes,
         );
         final nextDuration = nextDraft.endTimeMinutes - startTimeMinutes;
@@ -102,6 +106,7 @@ class BuildOptimizedTourProposal {
           candidates: eligible,
           matrix: matrix,
           settings: settings,
+          categoryLookup: categoryLookup,
           startTimeMinutes: startTimeMinutes,
         );
         current = nextDraft.orderedClientIds;
@@ -122,6 +127,8 @@ class BuildOptimizedTourProposal {
     required List<Client> candidates,
     required List<DistanceMatrixEntry> matrix,
     required Settings settings,
+    required Map<int, ({String speciesName, String categoryName, int minutes})>
+        categoryLookup,
     required int startTimeMinutes,
   }) {
     return const BuildTourDraft().build(
@@ -129,6 +136,7 @@ class BuildOptimizedTourProposal {
       candidates: candidates,
       matrix: matrix,
       settings: settings,
+      categoryLookup: categoryLookup,
       startTimeMinutes: startTimeMinutes,
     );
   }

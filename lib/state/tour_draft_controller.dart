@@ -68,6 +68,8 @@ final tourDraftProvider =
     candidates: all,
     matrix: entries,
     settings: settings,
+    // TODO: wire via categoryLookupProvider in Task 23
+    categoryLookup: const {},
     startTimeMinutes: input.startTimeMinutes,
     presetOrder: input.overrideOrder,
   );

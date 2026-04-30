@@ -1,3 +1,5 @@
+import '../models/tour_stop_animal.dart';
+
 class TourDurationResult {
   final List<int> stopArrivalMinutes;
   final List<int> stopDepartureMinutes;
@@ -14,23 +16,20 @@ class TourDurationResult {
   });
 }
 
-/// Per-stop input for the estimator. Time spent shearing at the stop is
-/// `small * minutesSmall + large * minutesLarge`.
-typedef TourStopEstimateInput = ({
-  int small,
-  int large,
-  int minutesSmall,
-  int minutesLarge,
-});
-
 class TourDurationEstimator {
   const TourDurationEstimator();
 
+  /// Estimates per-stop arrival/departure clock minutes plus totals.
+  /// `stops[i]` is the planned animal list for stop i. Time spent at the
+  /// stop is `Σ animal.count * animal.minutesSnapshot`. If a category's
+  /// `minutesSnapshot` is 0 (the user hasn't entered a default duration),
+  /// it contributes 0 — the stop's intervention time falls to whatever
+  /// the user has filled in.
   TourDurationResult estimate({
     required int startTimeMinutes,
     required List<int> driveSecondsToStops,
     required int driveSecondsBackToBase,
-    required List<TourStopEstimateInput> stops,
+    required List<List<TourStopAnimal>> stops,
   }) {
     final n = driveSecondsToStops.length;
     if (stops.length != n) {
@@ -52,9 +51,10 @@ class TourDurationEstimator {
       totalDrive += driveSecondsToStops[i];
       arrivals.add(clock);
 
-      final stop = stops[i];
-      final shearMin = stop.small * stop.minutesSmall +
-          stop.large * stop.minutesLarge;
+      var shearMin = 0;
+      for (final a in stops[i]) {
+        shearMin += a.count * a.minutesSnapshot;
+      }
       clock += shearMin;
       totalShear += shearMin;
       departures.add(clock);

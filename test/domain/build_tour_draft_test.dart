@@ -26,6 +26,11 @@ DistanceMatrixEntry _e(int from, int to, int dist, int dur) =>
       computedAt: DateTime(2026),
     );
 
+const _categoryLookup = <int,
+    ({String speciesName, String categoryName, int minutes})>{
+  1: (speciesName: 'Mouton', categoryName: 'Adulte', minutes: 8),
+};
+
 void main() {
   test('builds a draft with optimised order, totals and fee shares', () {
     final settings = Settings(
@@ -48,6 +53,7 @@ void main() {
       candidates: clients,
       matrix: matrix,
       settings: settings,
+      categoryLookup: _categoryLookup,
       startTimeMinutes: 8 * 60,
     );
     // Visit order should be [1, 2, 3]: closest first then progressing outward
@@ -62,5 +68,49 @@ void main() {
     expect(draft.feeShareCents, [1600, 1600, 1600]);
     // Arrivals: 8:00 + 10 min drive = 8:10 first stop
     expect(draft.arrivalMinutes.first, 8 * 60 + 10);
+    // Per-stop planned animals carry the snapshot data from the lookup.
+    expect(draft.plannedAnimalsPerStop.length, 3);
+    expect(draft.plannedAnimalsPerStop[0].first.categoryId, 1);
+    expect(draft.plannedAnimalsPerStop[0].first.count, 5);
+    expect(draft.plannedAnimalsPerStop[0].first.minutesSnapshot, 8);
+    expect(draft.plannedAnimalsPerStop[0].first.categoryNameSnapshot, 'Adulte');
+    expect(draft.plannedAnimalsPerStop[0].first.speciesNameSnapshot, 'Mouton');
+    expect(draft.plannedAnimalsPerStop[1].first.count, 3);
+    expect(draft.plannedAnimalsPerStop[2].first.count, 8);
+  });
+
+  test('AnimalCount entries with unknown categoryId are skipped silently', () {
+    final settings = Settings(
+      baseCoordinates: const Coordinates(lat: 48.5, lon: -2.7),
+      baseAddressLabel: 'base',
+      seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(0),
+    );
+    final client = Client(
+      id: 1,
+      name: 'A',
+      addressLabel: 'a',
+      postcode: '00000',
+      city: 'X',
+      coordinates: const Coordinates(lat: 48, lon: -3),
+      animals: const [
+        AnimalCount(categoryId: 1, count: 5),
+        AnimalCount(categoryId: 99, count: 7), // category deleted/unknown
+      ],
+      isWaiting: true,
+    );
+    final matrix = [
+      _e(0, 1, 5000, 600),
+      _e(1, 0, 5000, 600),
+    ];
+    final draft = const BuildTourDraft().build(
+      candidateIds: const [1],
+      candidates: [client],
+      matrix: matrix,
+      settings: settings,
+      categoryLookup: _categoryLookup,
+      startTimeMinutes: 8 * 60,
+    );
+    expect(draft.plannedAnimalsPerStop.first.length, 1);
+    expect(draft.plannedAnimalsPerStop.first.first.categoryId, 1);
   });
 }

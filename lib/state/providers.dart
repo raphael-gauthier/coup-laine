@@ -258,5 +258,7 @@ final optimizedProposalProvider = FutureProvider.autoDispose
     waitingClients: waiting,
     matrix: entries,
     settings: settings,
+    // TODO: wire via categoryLookupProvider in Task 23
+    categoryLookup: const {},
   );
 });
