@@ -188,37 +188,43 @@ class _Body extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
 
-          // Contact card (only if phone set)
-          if (client.principalPhone != null) ...[
+          // Contact card (one row per phone)
+          if (client.phones.isNotEmpty) ...[
             AppSectionCard(
               icon: FIcons.phone,
               title: l.clientDetailSectionContact,
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(client.principalPhone!, style: theme.typography.md),
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: FButton(
+                  for (var i = 0; i < client.phones.length; i++) ...[
+                    if (i > 0) const SizedBox(height: AppSpacing.md),
+                    Row(
+                      children: [
+                        Icon(FIcons.phone, color: theme.colors.mutedForeground),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Text(
+                            client.phones[i],
+                            style: theme.typography.md,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        FButton(
                           variant: FButtonVariant.outline,
                           prefix: const Icon(FIcons.phone),
-                          onPress: () => callPhone(context, client.principalPhone!),
+                          onPress: () => callPhone(context, client.phones[i]),
                           child: const Text('Appeler'),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: FButton(
+                        const SizedBox(width: AppSpacing.xs),
+                        FButton(
                           variant: FButtonVariant.outline,
                           prefix: const Icon(FIcons.messageCircle),
-                          onPress: () => sendSms(context, client.principalPhone!),
+                          onPress: () => sendSms(context, client.phones[i]),
                           child: const Text('SMS'),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
