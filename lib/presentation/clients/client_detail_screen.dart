@@ -431,7 +431,35 @@ class _InterventionsCard extends ConsumerWidget {
                 )
               else
                 for (final it in visible) ...[
-                  _InterventionRow(item: it),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () async {
+                      if (it.kind == InterventionKind.tour &&
+                          it.tourId != null) {
+                        context.push('/tours/${it.tourId}');
+                        return;
+                      }
+                      if (it.kind == InterventionKind.manual &&
+                          it.manualEntryId != null) {
+                        final manualRepo =
+                            ref.read(manualHistoryRepositoryProvider);
+                        final all =
+                            await manualRepo.listForClient(clientId);
+                        final matches =
+                            all.where((e) => e.id == it.manualEntryId);
+                        final entry =
+                            matches.isEmpty ? null : matches.first;
+                        if (entry != null && context.mounted) {
+                          await showManualHistoryEntrySheet(
+                            context,
+                            clientId: clientId,
+                            existing: entry,
+                          );
+                        }
+                      }
+                    },
+                    child: _InterventionRow(item: it),
+                  ),
                   if (it != visible.last)
                     const SizedBox(height: AppSpacing.xs),
                 ],
