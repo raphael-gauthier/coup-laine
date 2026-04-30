@@ -11,6 +11,8 @@ import '../../presentation/clients/client_form_screen.dart';
 import '../../presentation/clients/clients_list_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/settings/settings_screen.dart';
+import '../../presentation/settings/species_edit_screen.dart';
+import '../../presentation/settings/species_management_screen.dart';
 import '../../presentation/map/map_screen.dart';
 import '../../presentation/tours/tour_completion_screen.dart';
 import '../../presentation/tours/tour_detail_screen.dart';
@@ -35,6 +37,16 @@ class AppRouter {
         GoRoute(
           path: '/onboarding',
           builder: (_, __) => const OnboardingScreen(),
+        ),
+        GoRoute(
+          path: '/settings/species',
+          builder: (_, __) => const SpeciesManagementScreen(),
+        ),
+        GoRoute(
+          path: '/settings/species/:id',
+          builder: (_, state) => SpeciesEditScreen(
+            speciesId: int.parse(state.pathParameters['id']!),
+          ),
         ),
         GoRoute(
           path: '/proximity/:pivotId',
