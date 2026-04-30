@@ -14,6 +14,7 @@ import '../data/repositories/settings_repository.dart';
 import '../data/repositories/tour_repository.dart';
 import '../domain/models/client.dart';
 import '../domain/models/distance_matrix_entry.dart';
+import '../domain/models/intervention.dart';
 import '../domain/models/settings.dart';
 import '../domain/use_cases/build_optimized_tour_proposal.dart';
 import '../domain/use_cases/client_status.dart';
@@ -49,6 +50,11 @@ final clientRepositoryProvider = Provider<ClientRepository>((ref) {
     ref.watch(appDatabaseProvider),
     manualHistory: ref.watch(manualHistoryRepositoryProvider),
   );
+});
+
+final historyForClientProvider =
+    FutureProvider.family.autoDispose<List<Intervention>, int>((ref, id) {
+  return ref.watch(clientRepositoryProvider).listInterventionsForClient(id);
 });
 
 final distanceMatrixRepositoryProvider =

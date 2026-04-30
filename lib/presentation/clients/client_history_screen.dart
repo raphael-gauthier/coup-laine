@@ -6,13 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
-import '../../domain/models/intervention.dart';
 import '../../state/providers.dart';
-
-final _historyForClientProvider =
-    FutureProvider.family.autoDispose<List<Intervention>, int>((ref, id) {
-  return ref.watch(clientRepositoryProvider).listInterventionsForClient(id);
-});
 
 class ClientHistoryScreen extends ConsumerWidget {
   final int clientId;
@@ -22,7 +16,7 @@ class ClientHistoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final async = ref.watch(_historyForClientProvider(clientId));
+    final async = ref.watch(historyForClientProvider(clientId));
 
     return SafeArea(
       child: FScaffold(

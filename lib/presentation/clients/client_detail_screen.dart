@@ -20,11 +20,6 @@ import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
-final _interventionsForClientProvider =
-    FutureProvider.family.autoDispose<List<Intervention>, int>((ref, id) {
-  return ref.watch(clientRepositoryProvider).listInterventionsForClient(id);
-});
-
 final _clientByIdProvider =
     FutureProvider.family<(Client, ClientStatus)?, int>((ref, id) async {
   final settings = await ref.watch(settingsRepositoryProvider).read();
@@ -409,7 +404,7 @@ class _InterventionsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final async = ref.watch(_interventionsForClientProvider(clientId));
+    final async = ref.watch(historyForClientProvider(clientId));
 
     return AppSectionCard(
       icon: FIcons.history,
