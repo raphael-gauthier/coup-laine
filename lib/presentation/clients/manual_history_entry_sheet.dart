@@ -8,7 +8,8 @@ import 'package:intl/intl.dart';
 import '../../core/design_tokens.dart';
 import '../../domain/models/manual_history_entry.dart';
 import '../../state/providers.dart';
-import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
+import '../clients/clients_list_screen.dart'
+    show clientsAsyncProvider, clientNotesMapProvider;
 
 Future<void> showManualHistoryEntrySheet(
   BuildContext context, {
@@ -148,6 +149,7 @@ class _SheetState extends ConsumerState<_Sheet> {
   void _invalidateProviders() {
     ref.invalidate(historyForClientProvider(widget.clientId));
     ref.invalidate(clientsAsyncProvider);
+    ref.invalidate(clientNotesMapProvider);
   }
 
   @override

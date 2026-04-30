@@ -314,6 +314,45 @@ class ClientRepository {
     return merged;
   }
 
+  /// Returns a `clientId → notes` map that aggregates non-empty intervention
+  /// notes from BOTH sources (completed tour stops + manual history entries),
+  /// for every client at once. Used by the client-list search to match
+  /// against historical notes.
+  Future<Map<int, List<String>>> loadClientNotesMap() async {
+    final result = <int, List<String>>{};
+
+    final stopRows = await (_db.select(_db.tourStopsTable).join([
+      innerJoin(
+        _db.toursTable,
+        _db.toursTable.id.equalsExp(_db.tourStopsTable.tourId),
+      ),
+    ])
+          ..where(
+            _db.tourStopsTable.clientId.isNotNull() &
+                _db.tourStopsTable.interventionNote.isNotNull() &
+                _db.toursTable.status.equals('completed'),
+          ))
+        .get();
+    for (final r in stopRows) {
+      final stop = r.readTable(_db.tourStopsTable);
+      final cid = stop.clientId;
+      final note = stop.interventionNote;
+      if (cid == null || note == null || note.isEmpty) continue;
+      (result[cid] ??= <String>[]).add(note);
+    }
+
+    final manualRows = await (_db.select(_db.manualHistoryEntriesTable)
+          ..where((t) => t.note.isNotNull()))
+        .get();
+    for (final r in manualRows) {
+      final note = r.note;
+      if (note == null || note.isEmpty) continue;
+      (result[r.clientId] ??= <String>[]).add(note);
+    }
+
+    return result;
+  }
+
   /// Persists the actual sheep counts captured during a tour completion onto
   /// the client's stored counts, and bumps `lastShearingDate` to the tour's
   /// planned date. Does not mutate `isWaiting` (status now derives from

@@ -470,6 +470,74 @@ void main() {
     expect(list[2].note, 'manual older');
   });
 
+  test('loadClientNotesMap aggregates notes from both sources', () async {
+    final tours = TourRepository(db);
+    final manual = ManualHistoryRepository(db);
+    final a = await repo.insert(_newClient(name: 'A'));
+    final b = await repo.insert(_newClient(name: 'B'));
+
+    // A — completed tour with a note + a manual entry with a note.
+    final tourId = await tours.plan(TourDraft(
+      plannedDate: DateTime(2026, 5, 14),
+      startTimeMinutes: 480,
+      totalDistanceMeters: 0,
+      totalDriveSeconds: 0,
+      totalTravelFeeCents: 0,
+      stops: [
+        TourStopDraft(
+          clientId: a,
+          clientNameSnapshot: 'A',
+          orderIndex: 0,
+          estimatedArrivalMinutes: 480,
+          estimatedDepartureMinutes: 580,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
+          feeShareCents: 0,
+        ),
+      ],
+    ));
+    await tours.markCompleted(tourId, {
+      (await tours.findById(tourId))!.stops.first.id: (
+        actualSmall: 5,
+        actualLarge: 0,
+        note: 'tour-note-A',
+      ),
+    });
+    await manual.insert(
+      clientId: a,
+      date: DateTime(2024, 6, 1),
+      small: 3,
+      large: 1,
+      note: 'manual-note-A',
+    );
+
+    // B — only a manual entry with a note.
+    await manual.insert(
+      clientId: b,
+      date: DateTime(2024, 6, 1),
+      small: 3,
+      large: 1,
+      note: 'manual-note-B',
+    );
+
+    // C — no notes at all (a noteless manual entry should not produce a key).
+    final c = await repo.insert(_newClient(name: 'C'));
+    await manual.insert(
+      clientId: c,
+      date: DateTime(2024, 6, 1),
+      small: 3,
+      large: 1,
+    );
+
+    final map = await repo.loadClientNotesMap();
+    expect(map[a], containsAll(['tour-note-A', 'manual-note-A']));
+    expect(map[a]!.length, 2);
+    expect(map[b], ['manual-note-B']);
+    expect(map.containsKey(c), isFalse);
+  });
+
   group('applyManualEntryToClient', () {
     test('lastShearingDate null → applies', () async {
       final cId = await repo.insert(
