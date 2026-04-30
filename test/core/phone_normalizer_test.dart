@@ -22,6 +22,17 @@ void main() {
       expect(normalizePhones(['  0612  ', '0612']), ['0612']);
     });
 
+    test('treats whitespace-only formatting differences as duplicates', () {
+      expect(normalizePhones(['06 12', '0612']), ['06 12']);
+    });
+
+    test('matches the spec example end-to-end', () {
+      expect(
+        normalizePhones(['  06 12  ', '', '0612', '0145']),
+        ['06 12', '0145'],
+      );
+    });
+
     test('preserves order of distinct entries', () {
       expect(
         normalizePhones(['C', 'A', 'B']),
