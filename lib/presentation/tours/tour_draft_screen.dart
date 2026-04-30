@@ -165,6 +165,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     final l = AppLocalizations.of(context)!;
     final initial = bundle.orderedClients.map((c) => c.id).toSet();
     var working = {...initial};
+    final anchorKey = (initial.toList()..sort()).join(',');
     await showFSheet<void>(
       context: context,
       side: FLayout.btt,
@@ -188,12 +189,19 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       ),
                     ),
                     Expanded(
-                      child: WaitingClientsMultiPicker(
-                        initialSelection: working,
-                        alwaysIncludeIds: initial,
-                        onSelectionChanged: (s) =>
-                            setSheetState(() => working = s),
-                      ),
+                      child: Consumer(builder: (ctx, ref, _) {
+                        final nearbyAsync =
+                            ref.watch(nearbyToAnchorsProvider(anchorKey));
+                        final nearbyIds =
+                            nearbyAsync.maybeWhen(data: (v) => v, orElse: () => const <int>{});
+                        return WaitingClientsMultiPicker(
+                          initialSelection: working,
+                          alwaysIncludeIds: initial,
+                          nearbyIds: nearbyIds,
+                          onSelectionChanged: (s) =>
+                              setSheetState(() => working = s),
+                        );
+                      }),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     AppPrimaryButton(
