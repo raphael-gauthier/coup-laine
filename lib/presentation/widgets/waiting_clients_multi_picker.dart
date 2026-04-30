@@ -15,8 +15,14 @@ import 'app_empty_state.dart';
 /// One-shot loader for a fixed set of client ids. Used by
 /// [WaitingClientsMultiPicker] to surface clients that don't satisfy the
 /// "waiting" filter but must remain selectable (e.g. tour edit mode).
+///
+/// The key is a sorted, comma-joined string of ids — Sets and Lists in Dart
+/// have identity equality, which would re-trigger the family on every
+/// rebuild even when the contents are unchanged.
 final _clientsByIdsProvider = FutureProvider.autoDispose
-    .family<List<Client>, Set<int>>((ref, ids) async {
+    .family<List<Client>, String>((ref, idsKey) async {
+  if (idsKey.isEmpty) return const <Client>[];
+  final ids = idsKey.split(',').map(int.parse);
   final repo = ref.watch(clientRepositoryProvider);
   final out = <Client>[];
   for (final id in ids) {
@@ -77,9 +83,10 @@ class _WaitingClientsMultiPickerState
         // Pull in clients that must stay visible even if they're not waiting.
         final extraIds =
             widget.alwaysIncludeIds.difference(data.eligible.map((c) => c.id).toSet());
+        final extraKey = (extraIds.toList()..sort()).join(',');
         final extraAsync = extraIds.isEmpty
             ? const AsyncData<List<Client>>(<Client>[])
-            : ref.watch(_clientsByIdsProvider(extraIds));
+            : ref.watch(_clientsByIdsProvider(extraKey));
         return extraAsync.when(
           loading: () => const Center(child: FCircularProgress()),
           error: (e, _) => Center(child: Text('$e')),
