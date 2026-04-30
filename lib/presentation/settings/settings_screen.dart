@@ -126,8 +126,8 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
           _draft.copyWith(markerScheduledColor: hex),
         ClientStatus.done =>
           _draft.copyWith(markerDoneColor: hex),
-        ClientStatus.noSheep =>
-          _draft.copyWith(markerNoSheepColor: hex),
+        ClientStatus.noAnimals =>
+          _draft.copyWith(markerNoAnimalsColor: hex),
         ClientStatus.banned =>
           _draft.copyWith(markerBannedColor: hex),
       };
@@ -355,10 +355,10 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(
-                  label: l.settingsMarkerNoSheep,
-                  currentHex: _draft.markerNoSheepColor,
+                  label: l.settingsMarkerNoAnimals,
+                  currentHex: _draft.markerNoAnimalsColor,
                   defaultHex: '#1F2937',
-                  onPicked: (hex) => _persistMarkerColor(ClientStatus.noSheep, hex),
+                  onPicked: (hex) => _persistMarkerColor(ClientStatus.noAnimals, hex),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _MarkerColorRow(

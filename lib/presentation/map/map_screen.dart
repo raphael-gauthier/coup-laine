@@ -53,7 +53,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       ClientStatus.waiting => _hexToColor(s.markerWaitingColor),
       ClientStatus.scheduled => _hexToColor(s.markerScheduledColor),
       ClientStatus.done => _hexToColor(s.markerDoneColor),
-      ClientStatus.noSheep => _hexToColor(s.markerNoSheepColor),
+      ClientStatus.noAnimals => _hexToColor(s.markerNoAnimalsColor),
       ClientStatus.banned => _hexToColor(s.markerBannedColor),
       ClientStatus.defaultStatus => _hexToColor(s.markerDefaultColor),
     };
@@ -133,7 +133,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                     (ClientStatus.waiting, l.settingsMarkerWaiting),
                     (ClientStatus.scheduled, l.settingsMarkerScheduled),
                     (ClientStatus.done, l.settingsMarkerDone),
-                    (ClientStatus.noSheep, l.settingsMarkerNoSheep),
+                    (ClientStatus.noAnimals, l.settingsMarkerNoAnimals),
                     (ClientStatus.banned, l.settingsMarkerBanned),
                   ])
                     _LayerToggleRow(
@@ -553,7 +553,7 @@ class _LayerToggleRow extends StatelessWidget {
       ClientStatus.waiting => _hex(settings.markerWaitingColor),
       ClientStatus.scheduled => _hex(settings.markerScheduledColor),
       ClientStatus.done => _hex(settings.markerDoneColor),
-      ClientStatus.noSheep => _hex(settings.markerNoSheepColor),
+      ClientStatus.noAnimals => _hex(settings.markerNoAnimalsColor),
       ClientStatus.banned => _hex(settings.markerBannedColor),
     };
     return Padding(

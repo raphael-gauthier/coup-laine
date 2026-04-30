@@ -298,7 +298,7 @@ String _statusLabel(AppLocalizations l, ClientStatus s) => switch (s) {
       ClientStatus.waiting => l.clientStatusWaiting,
       ClientStatus.scheduled => l.clientStatusScheduled,
       ClientStatus.done => l.clientStatusDone,
-      ClientStatus.noSheep => l.clientStatusNoSheep,
+      ClientStatus.noAnimals => l.clientStatusNoSheep,
       ClientStatus.banned => l.clientStatusBanned,
     };
 
@@ -449,7 +449,7 @@ String _hexForStatus(Settings s, ClientStatus status) => switch (status) {
       ClientStatus.waiting => s.markerWaitingColor,
       ClientStatus.scheduled => s.markerScheduledColor,
       ClientStatus.done => s.markerDoneColor,
-      ClientStatus.noSheep => s.markerNoSheepColor,
+      ClientStatus.noAnimals => s.markerNoAnimalsColor,
       ClientStatus.banned => s.markerBannedColor,
     };
 

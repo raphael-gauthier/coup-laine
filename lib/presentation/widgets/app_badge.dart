@@ -40,7 +40,7 @@ class AppBadge extends StatelessWidget {
         ClientStatus.waiting => FIcons.clock,
         ClientStatus.scheduled => FIcons.calendar,
         ClientStatus.done => FIcons.check,
-        ClientStatus.noSheep => FIcons.x,
+        ClientStatus.noAnimals => FIcons.x,
         ClientStatus.banned => FIcons.ban,
       },
       background: switch (status) {

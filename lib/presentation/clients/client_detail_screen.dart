@@ -244,7 +244,7 @@ class _Body extends ConsumerWidget {
           // Status section
           Builder(builder: (context) {
             final waitingToggleDisabled = status == ClientStatus.banned ||
-                status == ClientStatus.noSheep ||
+                status == ClientStatus.noAnimals ||
                 status == ClientStatus.scheduled ||
                 status == ClientStatus.done;
             return AppSectionCard(
@@ -329,7 +329,7 @@ String _statusLabel(AppLocalizations l, ClientStatus status) => switch (status) 
       ClientStatus.waiting => l.clientStatusWaiting,
       ClientStatus.scheduled => l.clientStatusScheduled,
       ClientStatus.done => l.clientStatusDone,
-      ClientStatus.noSheep => l.clientStatusNoSheep,
+      ClientStatus.noAnimals => l.clientStatusNoSheep,
       ClientStatus.banned => l.clientStatusBanned,
     };
 
