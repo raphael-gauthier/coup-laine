@@ -187,6 +187,13 @@ class ClientRepository {
       }
     }
 
+    // Manual history entries inside the season also count as "done".
+    final manualHits =
+        await _manualHistory.listClientDatesSinceEpochDays(seasonEpochDays);
+    for (final h in manualHits) {
+      hasCompleted.add(h.clientId);
+    }
+
     return [
       for (final row in clientRows)
         (() {
@@ -229,6 +236,14 @@ class ClientRepository {
       if (tour.status == 'completed') hasCompleted = true;
       if (tour.status == 'planned') hasPlanned = true;
     }
+
+    // Manual history entries inside the season also count as "done".
+    final manualHits =
+        await _manualHistory.listClientDatesSinceEpochDays(seasonEpochDays);
+    if (manualHits.any((h) => h.clientId == id)) {
+      hasCompleted = true;
+    }
+
     return (
       c,
       deriveStatus(

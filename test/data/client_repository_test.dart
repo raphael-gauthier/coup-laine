@@ -360,6 +360,45 @@ void main() {
     },
   );
 
+  test('listAllWithStatus marks client done when only a manual entry exists',
+      () async {
+    final manual = ManualHistoryRepository(db);
+    final cId = await repo.insert(_newClient(name: 'M'));
+    final season = DateTime(2026, 4, 1);
+
+    // No tour at all — only a manual entry inside the season.
+    await manual.insert(
+      clientId: cId,
+      date: DateTime(2026, 5, 1),
+      small: 4,
+      large: 0,
+    );
+
+    final all = await repo.listAllWithStatus(season);
+    final byName = {for (final r in all) r.$1.name: r.$2};
+    expect(byName['M'], ClientStatus.done);
+  });
+
+  test(
+    'listAllWithStatus does NOT mark client done when manual entry is before season',
+    () async {
+      final manual = ManualHistoryRepository(db);
+      final cId = await repo.insert(_newClient(name: 'OLD'));
+      final season = DateTime(2026, 4, 1);
+
+      await manual.insert(
+        clientId: cId,
+        date: DateTime(2025, 9, 1), // before season
+        small: 4,
+        large: 0,
+      );
+
+      final all = await repo.listAllWithStatus(season);
+      final byName = {for (final r in all) r.$1.name: r.$2};
+      expect(byName['OLD'], isNot(ClientStatus.done));
+    },
+  );
+
   test('listInterventionsForClient merges tour-stops + manual entries desc',
       () async {
     final tours = TourRepository(db);
