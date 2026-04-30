@@ -105,6 +105,11 @@ final jsonExportServiceProvider = Provider<JsonExportService>((ref) {
 
 final goRouterProvider = Provider<GoRouter>((ref) => AppRouter.forRef(ref));
 
+final tourByIdProvider =
+    FutureProvider.autoDispose.family<TourWithStops?, int>((ref, id) {
+  return ref.watch(tourRepositoryProvider).findById(id);
+});
+
 final themeModeProvider = FutureProvider<ThemeMode>((ref) async {
   final s = await ref.watch(settingsRepositoryProvider).read();
   if (s == null) return ThemeMode.system;
