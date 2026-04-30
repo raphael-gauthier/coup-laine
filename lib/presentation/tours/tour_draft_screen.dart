@@ -244,28 +244,15 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     final theme = context.theme;
     final async = ref.watch(tourDraftProvider);
     final title = _isEditing ? l.tourEditTitle : l.tourDraftTitle;
+    final isLoadingPrefill = _isEditing && !_prefilled;
 
-    // While the tour is loading in edit mode, show a spinner instead of the
-    // empty draft (which would otherwise flash with default values).
-    if (_isEditing && !_prefilled) {
-      return ColoredBox(
-        color: theme.colors.background,
-        child: SafeArea(
-          child: FScaffold(
-            header: FHeader.nested(title: Text(title)),
-            child: const Center(child: FCircularProgress()),
-          ),
-        ),
-      );
-    }
-
-    return ColoredBox(
-      color: theme.colors.background,
-      child: SafeArea(
+    return SafeArea(
       child: FScaffold(
         resizeToAvoidBottomInset: true,
         header: FHeader.nested(title: Text(title)),
-        child: async.when(
+        child: isLoadingPrefill
+            ? const Center(child: FCircularProgress())
+            : async.when(
         loading: () => const Center(child: FCircularProgress()),
         error: (e, _) => Center(child: Text('$e')),
         data: (bundle) {
@@ -423,7 +410,6 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
             ],
           );
         },
-      ),
       ),
       ),
     );
