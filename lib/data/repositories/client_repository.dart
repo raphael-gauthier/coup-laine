@@ -9,7 +9,6 @@ import 'manual_history_repository.dart';
 
 class ClientRepository {
   final AppDatabase _db;
-  // ignore: unused_field
   final ManualHistoryRepository _manualHistory;
   ClientRepository(
     this._db, {
@@ -240,12 +239,11 @@ class ClientRepository {
     );
   }
 
-  /// Returns the client's intervention history — i.e. every `tour_stop`
-  /// belonging to a `tour` whose status is `'completed'`, sorted by tour
-  /// date desc. For pre-v6 stops (without `actual_*`), falls back to the
-  /// planned snapshots and flags the row with `hasBilan: false`.
+  /// Returns the client's intervention history — completed tour stops merged
+  /// with manual history entries — sorted by date desc.
   Future<List<Intervention>> listInterventionsForClient(int clientId) async {
-    final rows = await (_db.select(_db.tourStopsTable).join([
+    // Source 1 — tour stops on completed tours.
+    final stopRows = await (_db.select(_db.tourStopsTable).join([
       innerJoin(
         _db.toursTable,
         _db.toursTable.id.equalsExp(_db.tourStopsTable.tourId),
@@ -254,29 +252,25 @@ class ClientRepository {
           ..where(
             _db.tourStopsTable.clientId.equals(clientId) &
                 _db.toursTable.status.equals('completed'),
-          )
-          ..orderBy([
-            OrderingTerm.desc(_db.toursTable.plannedDate),
-          ]))
+          ))
         .get();
 
-    return [
-      for (final r in rows)
+    final tourInterventions = <Intervention>[
+      for (final r in stopRows)
         () {
           final stop = r.readTable(_db.tourStopsTable);
           final tour = r.readTable(_db.toursTable);
-          final hasBilan = stop.actualSmall != null && stop.actualLarge != null;
+          final hasBilan =
+              stop.actualSmall != null && stop.actualLarge != null;
+          final utc = DateTime.fromMillisecondsSinceEpoch(
+            tour.plannedDate * 86400000,
+            isUtc: true,
+          );
           return Intervention(
             kind: InterventionKind.tour,
             tourId: tour.id,
             stopId: stop.id,
-            date: () {
-              final utc = DateTime.fromMillisecondsSinceEpoch(
-                tour.plannedDate * 86400000,
-                isUtc: true,
-              );
-              return DateTime(utc.year, utc.month, utc.day);
-            }(),
+            date: DateTime(utc.year, utc.month, utc.day),
             small: stop.actualSmall ?? stop.plannedSmall,
             large: stop.actualLarge ?? stop.plannedLarge,
             note: stop.interventionNote,
@@ -284,6 +278,25 @@ class ClientRepository {
           );
         }(),
     ];
+
+    // Source 2 — manual entries.
+    final manualEntries = await _manualHistory.listForClient(clientId);
+    final manualInterventions = <Intervention>[
+      for (final e in manualEntries)
+        Intervention(
+          kind: InterventionKind.manual,
+          manualEntryId: e.id,
+          date: e.date,
+          small: e.small,
+          large: e.large,
+          note: e.note,
+          hasBilan: true,
+        ),
+    ];
+
+    final merged = [...tourInterventions, ...manualInterventions]
+      ..sort((a, b) => b.date.compareTo(a.date));
+    return merged;
   }
 
   /// Persists the actual sheep counts captured during a tour completion onto

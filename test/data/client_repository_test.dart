@@ -3,6 +3,7 @@ import 'package:coup_laine/data/repositories/manual_history_repository.dart';
 import 'package:coup_laine/data/repositories/tour_repository.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
+import 'package:coup_laine/domain/models/intervention.dart';
 import 'package:coup_laine/domain/use_cases/client_status.dart';
 import 'package:coup_laine/infra/db/app_database.dart';
 import 'package:drift/drift.dart' show Value;
@@ -358,4 +359,75 @@ void main() {
       expect(history[1].hasBilan, isTrue);
     },
   );
+
+  test('listInterventionsForClient merges tour-stops + manual entries desc',
+      () async {
+    final tours = TourRepository(db);
+    final manual = ManualHistoryRepository(db);
+    final cId = await repo.insert(_newClient(name: 'C'));
+
+    // Tour completed on 2026-05-14
+    final tourId = await tours.plan(TourDraft(
+      plannedDate: DateTime(2026, 5, 14),
+      startTimeMinutes: 480,
+      totalDistanceMeters: 0,
+      totalDriveSeconds: 0,
+      totalTravelFeeCents: 0,
+      stops: [
+        TourStopDraft(
+          clientId: cId,
+          clientNameSnapshot: 'C',
+          orderIndex: 0,
+          estimatedArrivalMinutes: 480,
+          estimatedDepartureMinutes: 580,
+          plannedSmall: 5,
+          plannedLarge: 0,
+          minutesPerSmallSnapshot: 8,
+          minutesPerLargeSnapshot: 25,
+          feeShareCents: 0,
+        ),
+      ],
+    ));
+    await tours.markCompleted(tourId, {
+      (await tours.findById(tourId))!.stops.first.id: (
+        actualSmall: 5,
+        actualLarge: 0,
+        note: null,
+      ),
+    });
+
+    // Manual entry on 2025-09-10 (older)
+    await manual.insert(
+      clientId: cId,
+      date: DateTime(2025, 9, 10),
+      small: 3,
+      large: 1,
+      note: 'manual older',
+    );
+    // Manual entry on 2026-06-01 (newest)
+    final newestId = await manual.insert(
+      clientId: cId,
+      date: DateTime(2026, 6, 1),
+      small: 4,
+      large: 0,
+      note: 'manual newer',
+    );
+
+    final list = await repo.listInterventionsForClient(cId);
+    expect(list.length, 3);
+
+    // Sort: 2026-06-01 (manual), 2026-05-14 (tour), 2025-09-10 (manual)
+    expect(list[0].kind, InterventionKind.manual);
+    expect(list[0].manualEntryId, newestId);
+    expect(list[0].tourId, isNull);
+    expect(list[0].hasBilan, isTrue);
+    expect(list[0].note, 'manual newer');
+
+    expect(list[1].kind, InterventionKind.tour);
+    expect(list[1].tourId, isNotNull);
+    expect(list[1].manualEntryId, isNull);
+
+    expect(list[2].kind, InterventionKind.manual);
+    expect(list[2].note, 'manual older');
+  });
 }
