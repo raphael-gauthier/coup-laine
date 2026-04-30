@@ -469,44 +469,80 @@ class _InterventionRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final dateStr = DateFormat('dd/MM/yyyy').format(item.date);
-    final main = l.clientDetailHistoryItemFmt(dateStr, item.small, item.large);
+    final isManual = item.kind == InterventionKind.manual;
+    final dateStr = DateFormat('d MMM yyyy', 'fr').format(item.date);
+    final breakdown =
+        '${item.small} ${l.clientFormSheepCountSmall} · '
+        '${item.large} ${l.clientFormSheepCountLarge}';
     final note = item.note;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text.rich(
-          TextSpan(
+        Icon(
+          isManual ? FIcons.pencil : FIcons.scissors,
+          size: 18,
+          color: theme.colors.mutedForeground,
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextSpan(
-                text: main,
+              Text(
+                dateStr,
                 style: theme.typography.sm.copyWith(
+                  fontWeight: FontWeight.w600,
                   color: theme.colors.foreground,
                 ),
               ),
+              Text(
+                breakdown,
+                style: theme.typography.xs.copyWith(
+                  color: theme.colors.mutedForeground,
+                ),
+              ),
               if (!item.hasBilan)
-                TextSpan(
-                  text: l.clientDetailHistoryNoBilan,
+                Text(
+                  l.clientDetailHistoryNoBilan.trim(),
                   style: theme.typography.xs.copyWith(
                     color: theme.colors.mutedForeground,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
+              if (note != null && note.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.hairline),
+                Text(
+                  note,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.typography.xs.copyWith(
+                    color: theme.colors.mutedForeground,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
-        if (note != null && note.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.hairline),
-          Text(
-            note,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.typography.xs.copyWith(
-              color: theme.colors.mutedForeground,
-              fontStyle: FontStyle.italic,
+        const SizedBox(width: AppSpacing.sm),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              '${item.total}',
+              style: theme.typography.lg.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colors.foreground,
+              ),
             ),
-          ),
-        ],
+            Text(
+              'moutons',
+              style: theme.typography.xs.copyWith(
+                color: theme.colors.mutedForeground,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
