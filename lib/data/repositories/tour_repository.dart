@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart';
 
+import '../../core/animal_counts_normalizer.dart';
+import '../../domain/models/animal_count.dart';
 import '../../domain/models/tour.dart';
 import '../../domain/models/tour_stop.dart';
+import '../../domain/models/tour_stop_animal.dart';
 import '../../infra/db/app_database.dart';
 
 class TourStopDraft {
@@ -10,10 +13,7 @@ class TourStopDraft {
   final int orderIndex;
   final int estimatedArrivalMinutes;
   final int estimatedDepartureMinutes;
-  final int plannedSmall;
-  final int plannedLarge;
-  final int minutesPerSmallSnapshot;
-  final int minutesPerLargeSnapshot;
+  final List<TourStopAnimal> planned;
   final int feeShareCents;
 
   const TourStopDraft({
@@ -21,10 +21,7 @@ class TourStopDraft {
     required this.orderIndex,
     required this.estimatedArrivalMinutes,
     required this.estimatedDepartureMinutes,
-    required this.plannedSmall,
-    required this.plannedLarge,
-    required this.minutesPerSmallSnapshot,
-    required this.minutesPerLargeSnapshot,
+    required this.planned,
     required this.feeShareCents,
     this.clientId,
   });
@@ -84,10 +81,7 @@ class TourRepository {
                 orderIndex: s.orderIndex,
                 estimatedArrivalMinutes: s.estimatedArrivalMinutes,
                 estimatedDepartureMinutes: s.estimatedDepartureMinutes,
-                plannedSmall: Value(s.plannedSmall),
-                plannedLarge: Value(s.plannedLarge),
-                minutesPerSmallSnapshot: Value(s.minutesPerSmallSnapshot),
-                minutesPerLargeSnapshot: Value(s.minutesPerLargeSnapshot),
+                plannedAnimals: Value(normalizeTourStopAnimals(s.planned)),
                 feeShareCents: s.feeShareCents,
               ),
             );
@@ -119,22 +113,25 @@ class TourRepository {
   }
 
   /// Mark a tour as completed. The caller passes a map keyed by `stop.id`
-  /// containing the actual sheep counts and an optional note. For each stop
-  /// with a non-null `clientId`, the corresponding client's stored counts
-  /// are replaced with the actuals (auto-sync) and `lastShearingDate` is
-  /// bumped to the tour's planned date.
+  /// containing the actual animal counts and an optional note. For each stop
+  /// with a non-null `clientId`, the corresponding client's stored animals
+  /// are merged per `categoryId` (actuals overwrite per-category, other
+  /// categories untouched) and `lastShearingDate` is bumped to the tour's
+  /// planned date.
   Future<void> markCompleted(
     int id,
-    Map<int, ({int actualSmall, int actualLarge, String? note})> actuals,
+    Map<int, ({List<TourStopAnimal> actuals, String? note})> actuals,
   ) async {
     await _db.transaction(() async {
       final tour = await (_db.select(_db.toursTable)
             ..where((t) => t.id.equals(id)))
           .getSingle();
       final now = DateTime.now().millisecondsSinceEpoch;
-      final tourDateUtc =
-          DateTime.fromMillisecondsSinceEpoch(tour.plannedDate * 86400000, isUtc: true);
-      final tourDate = DateTime(tourDateUtc.year, tourDateUtc.month, tourDateUtc.day);
+      final tourDateUtc = DateTime.fromMillisecondsSinceEpoch(
+          tour.plannedDate * 86400000,
+          isUtc: true);
+      final tourDate =
+          DateTime(tourDateUtc.year, tourDateUtc.month, tourDateUtc.day);
 
       // 1. Status flip.
       await (_db.update(_db.toursTable)..where((t) => t.id.equals(id))).write(
@@ -144,8 +141,7 @@ class TourRepository {
         ),
       );
 
-      // 2. For each stop: persist the actuals + note (if provided), then
-      //    sync the linked client's counts.
+      // 2. For each stop: persist actuals + note, then sync the linked client.
       final stopRows = await (_db.select(_db.tourStopsTable)
             ..where((s) => s.tourId.equals(id)))
           .get();
@@ -153,28 +149,45 @@ class TourRepository {
       for (final s in stopRows) {
         final entry = actuals[s.id];
         if (entry == null) continue;
+        final normalized = normalizeTourStopAnimals(entry.actuals);
+
         await (_db.update(_db.tourStopsTable)
               ..where((t) => t.id.equals(s.id)))
             .write(
           TourStopsTableCompanion(
-            actualSmall: Value(entry.actualSmall),
-            actualLarge: Value(entry.actualLarge),
+            actualAnimals: Value(normalized),
             interventionNote: Value(entry.note),
           ),
         );
 
         final cid = s.clientId;
         if (cid != null) {
-          await (_db.update(_db.clientsTable)
+          // Sync the client's stored animals: merge actuals into client.animals
+          // by categoryId (actuals overwrite per-category, others untouched).
+          final clientRow = await (_db.select(_db.clientsTable)
                 ..where((c) => c.id.equals(cid)))
-              .write(
-            ClientsTableCompanion(
-              sheepCountSmall: Value(entry.actualSmall),
-              sheepCountLarge: Value(entry.actualLarge),
-              lastShearingDate: Value(tourDate.millisecondsSinceEpoch),
-              updatedAt: Value(now),
-            ),
-          );
+              .getSingleOrNull();
+          if (clientRow != null) {
+            final byId = <int, int>{
+              for (final a in clientRow.animals) a.categoryId: a.count,
+            };
+            for (final a in normalized) {
+              byId[a.categoryId] = a.count;
+            }
+            final mergedAnimals = normalizeAnimalCounts([
+              for (final entry in byId.entries)
+                AnimalCount(categoryId: entry.key, count: entry.value),
+            ]);
+            await (_db.update(_db.clientsTable)
+                  ..where((c) => c.id.equals(cid)))
+                .write(
+              ClientsTableCompanion(
+                animals: Value(mergedAnimals),
+                lastShearingDate: Value(tourDate.millisecondsSinceEpoch),
+                updatedAt: Value(now),
+              ),
+            );
+          }
         }
       }
     });
@@ -212,10 +225,7 @@ class TourRepository {
                 orderIndex: s.orderIndex,
                 estimatedArrivalMinutes: s.estimatedArrivalMinutes,
                 estimatedDepartureMinutes: s.estimatedDepartureMinutes,
-                plannedSmall: Value(s.plannedSmall),
-                plannedLarge: Value(s.plannedLarge),
-                minutesPerSmallSnapshot: Value(s.minutesPerSmallSnapshot),
-                minutesPerLargeSnapshot: Value(s.minutesPerLargeSnapshot),
+                plannedAnimals: Value(normalizeTourStopAnimals(s.planned)),
                 feeShareCents: s.feeShareCents,
               ),
             );
@@ -261,13 +271,9 @@ class TourRepository {
         orderIndex: row.orderIndex,
         estimatedArrivalMinutes: row.estimatedArrivalMinutes,
         estimatedDepartureMinutes: row.estimatedDepartureMinutes,
-        plannedSmall: row.plannedSmall,
-        plannedLarge: row.plannedLarge,
-        minutesPerSmallSnapshot: row.minutesPerSmallSnapshot,
-        minutesPerLargeSnapshot: row.minutesPerLargeSnapshot,
-        feeShareCents: row.feeShareCents,
-        actualSmall: row.actualSmall,
-        actualLarge: row.actualLarge,
+        planned: row.plannedAnimals,
+        actual: row.actualAnimals,
         interventionNote: row.interventionNote,
+        feeShareCents: row.feeShareCents,
       );
 }
