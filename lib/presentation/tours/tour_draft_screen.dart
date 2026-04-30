@@ -248,15 +248,20 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     // While the tour is loading in edit mode, show a spinner instead of the
     // empty draft (which would otherwise flash with default values).
     if (_isEditing && !_prefilled) {
-      return SafeArea(
-        child: FScaffold(
-          header: FHeader.nested(title: Text(title)),
-          child: const Center(child: FCircularProgress()),
+      return ColoredBox(
+        color: theme.colors.background,
+        child: SafeArea(
+          child: FScaffold(
+            header: FHeader.nested(title: Text(title)),
+            child: const Center(child: FCircularProgress()),
+          ),
         ),
       );
     }
 
-    return SafeArea(
+    return ColoredBox(
+      color: theme.colors.background,
+      child: SafeArea(
       child: FScaffold(
         resizeToAvoidBottomInset: true,
         header: FHeader.nested(title: Text(title)),
@@ -418,6 +423,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
             ],
           );
         },
+      ),
       ),
       ),
     );
