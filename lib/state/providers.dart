@@ -18,6 +18,7 @@ import '../domain/models/intervention.dart';
 import '../domain/models/settings.dart';
 import '../domain/use_cases/build_optimized_tour_proposal.dart';
 import '../domain/use_cases/client_status.dart';
+import '../domain/use_cases/find_clients_near_anchors.dart';
 import '../domain/use_cases/find_communes_with_waiting.dart';
 import '../infra/db/app_database.dart';
 import '../infra/services/ban_geocoding_service.dart';
@@ -104,6 +105,56 @@ final jsonExportServiceProvider = Provider<JsonExportService>((ref) {
 });
 
 final goRouterProvider = Provider<GoRouter>((ref) => AppRouter.forRef(ref));
+
+final tourByIdProvider =
+    FutureProvider.autoDispose.family<TourWithStops?, int>((ref, id) {
+  return ref.watch(tourRepositoryProvider).findById(id);
+});
+
+/// Computes the set of waiting client ids that are routing-close to any of
+/// the anchor client ids passed via [key]. The key is a sorted, comma-joined
+/// string of anchor ids — Sets / Lists in Dart have identity equality, which
+/// would re-trigger the family on every rebuild even when the contents are
+/// unchanged. Returns an empty set if settings or any anchor's matrix rows
+/// are unavailable.
+final nearbyToAnchorsProvider = FutureProvider.autoDispose
+    .family<Set<int>, String>((ref, key) async {
+  if (key.isEmpty) return const <int>{};
+  final anchorIds = key.split(',').map(int.parse).toSet();
+  final settings = await ref.watch(settingsRepositoryProvider).read();
+  if (settings == null) return const <int>{};
+  final radiusMeters = settings.defaultRadiusKm * 1000;
+  final matrix = ref.watch(distanceMatrixRepositoryProvider);
+  final clientsRepo = ref.watch(clientRepositoryProvider);
+
+  // Pull every entry "from anchor → other client" within radius. This is
+  // exactly what `distancesFromPivot` returns. We also add reverse-direction
+  // entries by querying each non-anchor → each anchor (cheap lookup, the
+  // matrix is ~Nclients^2 which is fine in-memory).
+  final entries = <DistanceMatrixEntry>[];
+  for (final aid in anchorIds) {
+    entries.addAll(
+      await matrix.distancesFromPivot(
+        pivotId: aid,
+        maxDistanceMeters: radiusMeters,
+      ),
+    );
+  }
+
+  // Build the candidate list: every waiting client.
+  final allClients = await clientsRepo.listAll();
+  final candidates = [
+    for (final c in allClients)
+      if (c.isWaiting && !c.needsDistanceRecompute) c.id,
+  ];
+
+  return const FindClientsNearAnchors().call(
+    anchorIds: anchorIds,
+    candidateIds: candidates,
+    matrix: entries,
+    radiusMeters: radiusMeters,
+  );
+});
 
 final themeModeProvider = FutureProvider<ThemeMode>((ref) async {
   final s = await ref.watch(settingsRepositoryProvider).read();

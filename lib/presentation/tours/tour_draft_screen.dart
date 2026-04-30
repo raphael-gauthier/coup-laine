@@ -21,21 +21,62 @@ import 'tours_list_screen.dart' show toursAsyncProvider;
 
 class TourDraftScreen extends ConsumerStatefulWidget {
   final int? pivotId;
-  const TourDraftScreen({super.key, this.pivotId});
+  final int? editingTourId;
+  const TourDraftScreen({super.key, this.pivotId, this.editingTourId});
 
   @override
   ConsumerState<TourDraftScreen> createState() => _TourDraftScreenState();
 }
 
+/// One-shot loader for the tour being edited. Local to this screen — no
+/// other consumer needs it.
+final _editingTourLoaderProvider =
+    FutureProvider.autoDispose.family<TourWithStops?, int>((ref, id) {
+  return ref.watch(tourRepositoryProvider).findById(id);
+});
+
 class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
   DateTime _date = DateTime.now().add(const Duration(days: 1));
   int _startMinutes = 8 * 60;
   List<int>? _manualOrder;
+  bool _prefilled = false;
+
+  bool get _isEditing => widget.editingTourId != null;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+    if (_isEditing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadForEdit());
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+    }
+  }
+
+  Future<void> _loadForEdit() async {
+    final tour = await ref.read(_editingTourLoaderProvider(widget.editingTourId!).future);
+    if (!mounted) return;
+    if (tour == null) {
+      // Tour vanished (deleted concurrently). Pop back.
+      if (context.canPop()) context.pop();
+      return;
+    }
+    final orderedIds = [
+      for (final s in tour.stops)
+        if (s.clientId != null) s.clientId!,
+    ];
+    setState(() {
+      _date = tour.tour.plannedDate;
+      _startMinutes = tour.tour.startTimeMinutes;
+      _manualOrder = orderedIds;
+      _prefilled = true;
+    });
+    final notifier = ref.read(tourSelectionProvider.notifier);
+    notifier.clear();
+    for (final id in orderedIds) {
+      notifier.toggle(id);
+    }
+    _refresh();
   }
 
   void _refresh() {
@@ -92,20 +133,31 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         feeShareCents: bundle.result.feeShareCents[i],
       ));
     }
-    final tourId = await ref.read(tourRepositoryProvider).plan(
-          TourDraft(
-            plannedDate: _date,
-            startTimeMinutes: _startMinutes,
-            totalDistanceMeters: bundle.result.totalDistanceMeters,
-            totalDriveSeconds: bundle.result.totalDriveSeconds,
-            totalTravelFeeCents: bundle.result.totalFeeCents,
-            stops: stops,
-          ),
-        );
+    final draft = TourDraft(
+      plannedDate: _date,
+      startTimeMinutes: _startMinutes,
+      totalDistanceMeters: bundle.result.totalDistanceMeters,
+      totalDriveSeconds: bundle.result.totalDriveSeconds,
+      totalTravelFeeCents: bundle.result.totalFeeCents,
+      stops: stops,
+    );
+
+    final repo = ref.read(tourRepositoryProvider);
+    final int destinationId;
+    if (_isEditing) {
+      await repo.update(widget.editingTourId!, draft);
+      destinationId = widget.editingTourId!;
+    } else {
+      destinationId = await repo.plan(draft);
+    }
     if (!mounted) return;
     ref.read(tourSelectionProvider.notifier).clear();
     ref.invalidate(toursAsyncProvider);
-    context.go('/tours/$tourId');
+    if (_isEditing) {
+      ref.invalidate(_editingTourLoaderProvider(widget.editingTourId!));
+      ref.invalidate(tourByIdProvider(widget.editingTourId!));
+    }
+    context.go('/tours/$destinationId');
   }
 
   Future<void> _openEditSelection(
@@ -113,13 +165,16 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     final l = AppLocalizations.of(context)!;
     final initial = bundle.orderedClients.map((c) => c.id).toSet();
     var working = {...initial};
+    final anchorKey = (initial.toList()..sort()).join(',');
     await showFSheet<void>(
       context: context,
       side: FLayout.btt,
       builder: (sheetCtx) {
         return StatefulBuilder(
           builder: (innerCtx, setSheetState) {
-            return Padding(
+            return ColoredBox(
+              color: innerCtx.theme.colors.background,
+              child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: SizedBox(
                 height: MediaQuery.of(innerCtx).size.height * 0.85,
@@ -134,11 +189,19 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       ),
                     ),
                     Expanded(
-                      child: WaitingClientsMultiPicker(
-                        initialSelection: working,
-                        onSelectionChanged: (s) =>
-                            setSheetState(() => working = s),
-                      ),
+                      child: Consumer(builder: (ctx, ref, _) {
+                        final nearbyAsync =
+                            ref.watch(nearbyToAnchorsProvider(anchorKey));
+                        final nearbyIds =
+                            nearbyAsync.maybeWhen(data: (v) => v, orElse: () => const <int>{});
+                        return WaitingClientsMultiPicker(
+                          initialSelection: working,
+                          alwaysIncludeIds: initial,
+                          nearbyIds: nearbyIds,
+                          onSelectionChanged: (s) =>
+                              setSheetState(() => working = s),
+                        );
+                      }),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     AppPrimaryButton(
@@ -148,6 +211,12 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                           : () {
                               Navigator.of(innerCtx).pop();
                               setState(() => _manualOrder = null);
+                              final notifier =
+                                  ref.read(tourSelectionProvider.notifier);
+                              notifier.clear();
+                              for (final id in working) {
+                                notifier.toggle(id);
+                              }
                               ref.read(tourDraftInputProvider.notifier).state =
                                   TourDraftInput(
                                 pivotId: widget.pivotId,
@@ -161,6 +230,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                   ],
                 ),
               ),
+            ),
             );
           },
         );
@@ -173,12 +243,16 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
     final async = ref.watch(tourDraftProvider);
+    final title = _isEditing ? l.tourEditTitle : l.tourDraftTitle;
+    final isLoadingPrefill = _isEditing && !_prefilled;
 
     return SafeArea(
       child: FScaffold(
         resizeToAvoidBottomInset: true,
-        header: FHeader.nested(title: Text(l.tourDraftTitle)),
-        child: async.when(
+        header: FHeader.nested(title: Text(title)),
+        child: isLoadingPrefill
+            ? const Center(child: FCircularProgress())
+            : async.when(
         loading: () => const Center(child: FCircularProgress()),
         error: (e, _) => Center(child: Text('$e')),
         data: (bundle) {

@@ -52,6 +52,12 @@ class AppRouter {
           },
         ),
         GoRoute(
+          path: '/tours/:id/edit',
+          builder: (_, state) => TourDraftScreen(
+            editingTourId: int.parse(state.pathParameters['id']!),
+          ),
+        ),
+        GoRoute(
           path: '/tours/new/manual',
           builder: (_, __) => const TourManualPickerScreen(),
         ),

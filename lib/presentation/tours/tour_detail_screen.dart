@@ -19,10 +19,6 @@ import '../widgets/app_hero_card.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 
-final _tourByIdProvider =
-    FutureProvider.autoDispose.family<TourWithStops?, int>((ref, id) {
-  return ref.watch(tourRepositoryProvider).findById(id);
-});
 
 class TourDetailScreen extends ConsumerWidget {
   final int tourId;
@@ -31,7 +27,7 @@ class TourDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
-    final async = ref.watch(_tourByIdProvider(tourId));
+    final async = ref.watch(tourByIdProvider(tourId));
 
     return SafeArea(
       child: FScaffold(
@@ -41,6 +37,12 @@ class TourDetailScreen extends ConsumerWidget {
               : DateFormat('EEE d MMM yyyy', 'fr')
                   .format(async.value!.tour.plannedDate)),
           suffixes: [
+            if (async.value != null &&
+                async.value!.tour.status == TourStatus.planned)
+              FButton.icon(
+                onPress: () => context.push('/tours/$tourId/edit'),
+                child: const Icon(FIcons.pencil),
+              ),
             FButton.icon(
               onPress: async.value == null
                   ? null

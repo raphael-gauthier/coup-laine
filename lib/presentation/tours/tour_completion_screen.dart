@@ -76,6 +76,7 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
 
     // Invalidate downstream caches.
     ref.invalidate(_tourForCompletionProvider(widget.tourId));
+    ref.invalidate(tourByIdProvider(widget.tourId));
     ref.invalidate(clientsAsyncProvider);
     ref.invalidate(clientNotesMapProvider);
     ref.invalidate(toursAsyncProvider);
