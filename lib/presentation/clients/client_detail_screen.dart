@@ -417,23 +417,24 @@ class _InterventionsCard extends ConsumerWidget {
         ),
         error: (e, _) => Text('$e'),
         data: (items) {
-          if (items.isEmpty) {
-            return Text(
-              l.clientDetailHistoryEmpty,
-              style: theme.typography.sm.copyWith(
-                color: theme.colors.mutedForeground,
-              ),
-            );
-          }
           final visible = items.take(5).toList();
           final hasMore = items.length > visible.length;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              for (final it in visible) ...[
-                _InterventionRow(item: it),
-                if (it != visible.last) const SizedBox(height: AppSpacing.xs),
-              ],
+              if (items.isEmpty)
+                Text(
+                  l.clientDetailHistoryEmpty,
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                )
+              else
+                for (final it in visible) ...[
+                  _InterventionRow(item: it),
+                  if (it != visible.last)
+                    const SizedBox(height: AppSpacing.xs),
+                ],
               if (hasMore) ...[
                 const SizedBox(height: AppSpacing.sm),
                 FButton(
