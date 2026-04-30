@@ -70,8 +70,14 @@ class JsonExportService {
             );
       }
       for (final c in (json['clients'] as List)) {
+        final row = Map<String, dynamic>.from(c as Map<String, dynamic>);
+        // Drift's default serializer cannot cast List<dynamic> → List<String>;
+        // coerce the phones field manually before handing to fromJson.
+        if (row['phones'] is List) {
+          row['phones'] = (row['phones'] as List).cast<String>();
+        }
         await database.into(database.clientsTable).insert(
-              ClientRow.fromJson(c as Map<String, dynamic>),
+              ClientRow.fromJson(row),
               mode: InsertMode.insertOrReplace,
             );
       }

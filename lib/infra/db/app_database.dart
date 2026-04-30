@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'phone_list_converter.dart';
 import 'tables.dart';
 
 part 'app_database.g.dart';
@@ -25,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -135,6 +136,24 @@ class AppDatabase extends _$AppDatabase {
           'CREATE INDEX idx_manual_history_client '
           'ON manual_history_entries(client_id)',
         );
+      }
+      if (from < 8) {
+        // Add the new JSON-array column. SQL-level default is the JSON literal
+        // "[]" so existing rows materialize as an empty list when read back.
+        await customStatement(
+          "ALTER TABLE clients ADD COLUMN phones TEXT NOT NULL DEFAULT '[]'",
+        );
+        // Backfill: each existing non-empty `phone` becomes the sole element
+        // (and therefore the principal) of the new list.
+        await customStatement(
+          "UPDATE clients "
+          "SET phones = json_array(phone) "
+          "WHERE phone IS NOT NULL AND trim(phone) <> ''",
+        );
+        // Drop the legacy column. SQLite >= 3.35 supports DROP COLUMN;
+        // sqlite3_flutter_libs bundles a recent enough version (already
+        // relied upon by the v4 migration above).
+        await customStatement('ALTER TABLE clients DROP COLUMN phone');
       }
     },
     beforeOpen: (details) async {

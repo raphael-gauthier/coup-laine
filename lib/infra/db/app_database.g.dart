@@ -864,11 +864,13 @@ class $ClientsTableTable extends ClientsTable
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
   @override
-  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
-      'phone', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
+  late final GeneratedColumnWithTypeConverter<List<String>, String> phones =
+      GeneratedColumn<String>('phones', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: const Constant('[]'))
+          .withConverter<List<String>>($ClientsTableTable.$converterphones);
   static const VerificationMeta _addressLabelMeta =
       const VerificationMeta('addressLabel');
   @override
@@ -970,7 +972,7 @@ class $ClientsTableTable extends ClientsTable
   List<GeneratedColumn> get $columns => [
         id,
         name,
-        phone,
+        phones,
         addressLabel,
         postcode,
         city,
@@ -1004,10 +1006,6 @@ class $ClientsTableTable extends ClientsTable
           _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
-    }
-    if (data.containsKey('phone')) {
-      context.handle(
-          _phoneMeta, phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta));
     }
     if (data.containsKey('address_label')) {
       context.handle(
@@ -1104,8 +1102,9 @@ class $ClientsTableTable extends ClientsTable
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      phone: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}phone']),
+      phones: $ClientsTableTable.$converterphones.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}phones'])!),
       addressLabel: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}address_label'])!,
       postcode: attachedDatabase.typeMapping
@@ -1142,12 +1141,15 @@ class $ClientsTableTable extends ClientsTable
   $ClientsTableTable createAlias(String alias) {
     return $ClientsTableTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<List<String>, String> $converterphones =
+      const PhoneListConverter();
 }
 
 class ClientRow extends DataClass implements Insertable<ClientRow> {
   final int id;
   final String name;
-  final String? phone;
+  final List<String> phones;
   final String addressLabel;
   final String postcode;
   final String city;
@@ -1165,7 +1167,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
   const ClientRow(
       {required this.id,
       required this.name,
-      this.phone,
+      required this.phones,
       required this.addressLabel,
       required this.postcode,
       required this.city,
@@ -1185,8 +1187,9 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
-    if (!nullToAbsent || phone != null) {
-      map['phone'] = Variable<String>(phone);
+    {
+      map['phones'] =
+          Variable<String>($ClientsTableTable.$converterphones.toSql(phones));
     }
     map['address_label'] = Variable<String>(addressLabel);
     map['postcode'] = Variable<String>(postcode);
@@ -1213,8 +1216,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     return ClientsTableCompanion(
       id: Value(id),
       name: Value(name),
-      phone:
-          phone == null && nullToAbsent ? const Value.absent() : Value(phone),
+      phones: Value(phones),
       addressLabel: Value(addressLabel),
       postcode: Value(postcode),
       city: Value(city),
@@ -1242,7 +1244,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     return ClientRow(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      phone: serializer.fromJson<String?>(json['phone']),
+      phones: serializer.fromJson<List<String>>(json['phones']),
       addressLabel: serializer.fromJson<String>(json['addressLabel']),
       postcode: serializer.fromJson<String>(json['postcode']),
       city: serializer.fromJson<String>(json['city']),
@@ -1266,7 +1268,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
-      'phone': serializer.toJson<String?>(phone),
+      'phones': serializer.toJson<List<String>>(phones),
       'addressLabel': serializer.toJson<String>(addressLabel),
       'postcode': serializer.toJson<String>(postcode),
       'city': serializer.toJson<String>(city),
@@ -1287,7 +1289,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
   ClientRow copyWith(
           {int? id,
           String? name,
-          Value<String?> phone = const Value.absent(),
+          List<String>? phones,
           String? addressLabel,
           String? postcode,
           String? city,
@@ -1305,7 +1307,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       ClientRow(
         id: id ?? this.id,
         name: name ?? this.name,
-        phone: phone.present ? phone.value : this.phone,
+        phones: phones ?? this.phones,
         addressLabel: addressLabel ?? this.addressLabel,
         postcode: postcode ?? this.postcode,
         city: city ?? this.city,
@@ -1329,7 +1331,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     return ClientRow(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
-      phone: data.phone.present ? data.phone.value : this.phone,
+      phones: data.phones.present ? data.phones.value : this.phones,
       addressLabel: data.addressLabel.present
           ? data.addressLabel.value
           : this.addressLabel,
@@ -1364,7 +1366,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     return (StringBuffer('ClientRow(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('phone: $phone, ')
+          ..write('phones: $phones, ')
           ..write('addressLabel: $addressLabel, ')
           ..write('postcode: $postcode, ')
           ..write('city: $city, ')
@@ -1387,7 +1389,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
   int get hashCode => Object.hash(
       id,
       name,
-      phone,
+      phones,
       addressLabel,
       postcode,
       city,
@@ -1408,7 +1410,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       (other is ClientRow &&
           other.id == this.id &&
           other.name == this.name &&
-          other.phone == this.phone &&
+          other.phones == this.phones &&
           other.addressLabel == this.addressLabel &&
           other.postcode == this.postcode &&
           other.city == this.city &&
@@ -1428,7 +1430,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
 class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   final Value<int> id;
   final Value<String> name;
-  final Value<String?> phone;
+  final Value<List<String>> phones;
   final Value<String> addressLabel;
   final Value<String> postcode;
   final Value<String> city;
@@ -1446,7 +1448,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   const ClientsTableCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
-    this.phone = const Value.absent(),
+    this.phones = const Value.absent(),
     this.addressLabel = const Value.absent(),
     this.postcode = const Value.absent(),
     this.city = const Value.absent(),
@@ -1465,7 +1467,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   ClientsTableCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-    this.phone = const Value.absent(),
+    this.phones = const Value.absent(),
     required String addressLabel,
     required String postcode,
     required String city,
@@ -1491,7 +1493,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   static Insertable<ClientRow> custom({
     Expression<int>? id,
     Expression<String>? name,
-    Expression<String>? phone,
+    Expression<String>? phones,
     Expression<String>? addressLabel,
     Expression<String>? postcode,
     Expression<String>? city,
@@ -1510,7 +1512,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
-      if (phone != null) 'phone': phone,
+      if (phones != null) 'phones': phones,
       if (addressLabel != null) 'address_label': addressLabel,
       if (postcode != null) 'postcode': postcode,
       if (city != null) 'city': city,
@@ -1532,7 +1534,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   ClientsTableCompanion copyWith(
       {Value<int>? id,
       Value<String>? name,
-      Value<String?>? phone,
+      Value<List<String>>? phones,
       Value<String>? addressLabel,
       Value<String>? postcode,
       Value<String>? city,
@@ -1550,7 +1552,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     return ClientsTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
-      phone: phone ?? this.phone,
+      phones: phones ?? this.phones,
       addressLabel: addressLabel ?? this.addressLabel,
       postcode: postcode ?? this.postcode,
       city: city ?? this.city,
@@ -1578,8 +1580,9 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (phone.present) {
-      map['phone'] = Variable<String>(phone.value);
+    if (phones.present) {
+      map['phones'] = Variable<String>(
+          $ClientsTableTable.$converterphones.toSql(phones.value));
     }
     if (addressLabel.present) {
       map['address_label'] = Variable<String>(addressLabel.value);
@@ -1632,7 +1635,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     return (StringBuffer('ClientsTableCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('phone: $phone, ')
+          ..write('phones: $phones, ')
           ..write('addressLabel: $addressLabel, ')
           ..write('postcode: $postcode, ')
           ..write('city: $city, ')
@@ -4145,7 +4148,7 @@ typedef $$ClientsTableTableCreateCompanionBuilder = ClientsTableCompanion
     Function({
   Value<int> id,
   required String name,
-  Value<String?> phone,
+  Value<List<String>> phones,
   required String addressLabel,
   required String postcode,
   required String city,
@@ -4165,7 +4168,7 @@ typedef $$ClientsTableTableUpdateCompanionBuilder = ClientsTableCompanion
     Function({
   Value<int> id,
   Value<String> name,
-  Value<String?> phone,
+  Value<List<String>> phones,
   Value<String> addressLabel,
   Value<String> postcode,
   Value<String> city,
@@ -4236,8 +4239,10 @@ class $$ClientsTableTableFilterComposer
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get phone => $composableBuilder(
-      column: $table.phone, builder: (column) => ColumnFilters(column));
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String>
+      get phones => $composableBuilder(
+          column: $table.phones,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<String> get addressLabel => $composableBuilder(
       column: $table.addressLabel, builder: (column) => ColumnFilters(column));
@@ -4347,8 +4352,8 @@ class $$ClientsTableTableOrderingComposer
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get phone => $composableBuilder(
-      column: $table.phone, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get phones => $composableBuilder(
+      column: $table.phones, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get addressLabel => $composableBuilder(
       column: $table.addressLabel,
@@ -4414,8 +4419,8 @@ class $$ClientsTableTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<String> get phone =>
-      $composableBuilder(column: $table.phone, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<List<String>, String> get phones =>
+      $composableBuilder(column: $table.phones, builder: (column) => column);
 
   GeneratedColumn<String> get addressLabel => $composableBuilder(
       column: $table.addressLabel, builder: (column) => column);
@@ -4531,7 +4536,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
           updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> name = const Value.absent(),
-            Value<String?> phone = const Value.absent(),
+            Value<List<String>> phones = const Value.absent(),
             Value<String> addressLabel = const Value.absent(),
             Value<String> postcode = const Value.absent(),
             Value<String> city = const Value.absent(),
@@ -4550,7 +4555,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
               ClientsTableCompanion(
             id: id,
             name: name,
-            phone: phone,
+            phones: phones,
             addressLabel: addressLabel,
             postcode: postcode,
             city: city,
@@ -4569,7 +4574,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String name,
-            Value<String?> phone = const Value.absent(),
+            Value<List<String>> phones = const Value.absent(),
             required String addressLabel,
             required String postcode,
             required String city,
@@ -4588,7 +4593,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
               ClientsTableCompanion.insert(
             id: id,
             name: name,
-            phone: phone,
+            phones: phones,
             addressLabel: addressLabel,
             postcode: postcode,
             city: city,

@@ -1,4 +1,5 @@
 // lib/presentation/clients/client_form_screen.dart
+import 'package:flutter/material.dart' show IconButton, ReorderableListView, ReorderableDragStartListener;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
@@ -7,6 +8,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
+import '../../core/phone_formatter.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
 import '../../infra/services/ors_routing_service.dart';
@@ -29,7 +31,7 @@ class ClientFormScreen extends ConsumerStatefulWidget {
 
 class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _nameCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
+  final List<TextEditingController> _phoneCtrls = [];
   final _sheepSmallCtrl = TextEditingController(text: '0');
   final _sheepLargeCtrl = TextEditingController(text: '0');
 
@@ -49,13 +51,19 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.isEdit) _load();
+    if (widget.isEdit) {
+      _load();
+    } else {
+      _phoneCtrls.add(TextEditingController());
+    }
   }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
-    _phoneCtrl.dispose();
+    for (final c in _phoneCtrls) {
+      c.dispose();
+    }
     _sheepSmallCtrl.dispose();
     _sheepLargeCtrl.dispose();
     super.dispose();
@@ -66,7 +74,11 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     final c = await ref.read(clientRepositoryProvider).findById(widget.clientId!);
     if (c == null) return;
     _nameCtrl.text = c.name;
-    _phoneCtrl.text = c.phone ?? '';
+    _phoneCtrls
+      ..clear()
+      ..addAll(c.phones.map(
+        (p) => TextEditingController(text: formatPhoneInput(p)),
+      ));
     _sheepSmallCtrl.text = c.sheepCountSmall.toString();
     _sheepLargeCtrl.text = c.sheepCountLarge.toString();
     _addressLabel = c.addressLabel;
@@ -122,7 +134,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       await repo.updateBasics(
         id: id,
         name: _nameCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+        phones: _phoneCtrls.map((c) => c.text).toList(),
         sheepCountSmall: int.parse(_sheepSmallCtrl.text),
         sheepCountLarge: int.parse(_sheepLargeCtrl.text),
       );
@@ -137,7 +149,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       id = await repo.insert(Client(
         id: 0,
         name: _nameCtrl.text.trim(),
-        phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
+        phones: _phoneCtrls.map((c) => c.text).toList(),
         addressLabel: _addressLabel!,
         postcode: _postcode!,
         city: _city!,
@@ -204,10 +216,31 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                     error: _nameError != null ? Text(_nameError!) : null,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  FTextField(
-                    control: FTextFieldControl.managed(controller: _phoneCtrl),
-                    label: Text(l.clientFormPhone),
-                    keyboardType: TextInputType.phone,
+                  _PhoneListEditor(
+                    controllers: _phoneCtrls,
+                    label: l.clientFormPhones,
+                    addLabel: l.clientFormAddPhone,
+                    removeTooltip: l.clientFormRemovePhone,
+                    onAdd: () {
+                      setState(() {
+                        _phoneCtrls.add(TextEditingController());
+                      });
+                    },
+                    onRemove: (index) {
+                      setState(() {
+                        _phoneCtrls.removeAt(index).dispose();
+                      });
+                    },
+                    onReorder: (oldIndex, newIndex) {
+                      setState(() {
+                        // ReorderableListView convention: when moving down, newIndex is one
+                        // past the destination, so adjust before the removeAt.
+                        final adjustedNew =
+                            newIndex > oldIndex ? newIndex - 1 : newIndex;
+                        final ctrl = _phoneCtrls.removeAt(oldIndex);
+                        _phoneCtrls.insert(adjustedNew, ctrl);
+                      });
+                    },
                   ),
                 ],
               ),
@@ -339,6 +372,96 @@ class _MarkerColorEditor extends StatelessWidget {
             onPicked: (c) => onChanged(_toHex(c)),
           ),
         ],
+      ],
+    );
+  }
+}
+
+class _PhoneListEditor extends StatelessWidget {
+  final List<TextEditingController> controllers;
+  final String label;
+  final String addLabel;
+  final String removeTooltip;
+  final VoidCallback onAdd;
+  final void Function(int index) onRemove;
+  final void Function(int oldIndex, int newIndex) onReorder;
+
+  const _PhoneListEditor({
+    required this.controllers,
+    required this.label,
+    required this.addLabel,
+    required this.removeTooltip,
+    required this.onAdd,
+    required this.onRemove,
+    required this.onReorder,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+          child: Text(
+            label,
+            style: theme.typography.sm.copyWith(
+              color: theme.colors.mutedForeground,
+            ),
+          ),
+        ),
+        if (controllers.isNotEmpty)
+          ReorderableListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            buildDefaultDragHandles: false,
+            itemCount: controllers.length,
+            onReorder: onReorder,
+            itemBuilder: (context, index) {
+              return Padding(
+                key: ValueKey(controllers[index]),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Row(
+                  children: [
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: AppSpacing.xs),
+                        child: Icon(
+                          FIcons.gripVertical,
+                          color: theme.colors.mutedForeground,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: FTextField(
+                        control: FTextFieldControl.managed(
+                          controller: controllers[index],
+                        ),
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: const [PhoneInputFormatter()],
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: removeTooltip,
+                      icon: Icon(
+                        FIcons.x,
+                        color: theme.colors.mutedForeground,
+                      ),
+                      onPressed: () => onRemove(index),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        FButton(
+          variant: FButtonVariant.outline,
+          prefix: const Icon(FIcons.plus),
+          onPress: onAdd,
+          child: Text(addLabel),
+        ),
       ],
     );
   }

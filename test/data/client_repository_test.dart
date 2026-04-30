@@ -80,6 +80,64 @@ void main() {
     expect(await repo.findById(id), isNull);
   });
 
+  test('insert persists phones list and reads it back in order', () async {
+    final id = await repo.insert(Client(
+      id: 0,
+      name: 'Le Gall',
+      addressLabel: '1 rue, 29000 Quimper',
+      postcode: '29000',
+      city: 'Quimper',
+      coordinates: const Coordinates(lat: 48.0, lon: -4.1),
+      phones: const ['0612', '0145', '0788'],
+    ));
+    final read = await repo.findById(id);
+    expect(read!.phones, ['0612', '0145', '0788']);
+    expect(read.principalPhone, '0612');
+  });
+
+  test('insert normalizes phones (trim, drop empty, dedupe)', () async {
+    final id = await repo.insert(Client(
+      id: 0,
+      name: 'Le Gall',
+      addressLabel: '1 rue, 29000 Quimper',
+      postcode: '29000',
+      city: 'Quimper',
+      coordinates: const Coordinates(lat: 48.0, lon: -4.1),
+      phones: const ['  06 12  ', '', '0612', '0145'],
+    ));
+    final read = await repo.findById(id);
+    expect(read!.phones, ['06 12', '0145']);
+  });
+
+  test('updateBasics replaces phones list and preserves new order', () async {
+    final id = await repo.insert(Client(
+      id: 0,
+      name: 'Le Gall',
+      addressLabel: '1 rue, 29000 Quimper',
+      postcode: '29000',
+      city: 'Quimper',
+      coordinates: const Coordinates(lat: 48.0, lon: -4.1),
+      phones: const ['0612'],
+    ));
+    await repo.updateBasics(
+      id: id,
+      name: 'Le Gall',
+      phones: const ['0788', '0612'],
+      sheepCountSmall: 12,
+      sheepCountLarge: 0,
+    );
+    final read = await repo.findById(id);
+    expect(read!.phones, ['0788', '0612']);
+    expect(read.principalPhone, '0788');
+  });
+
+  test('a client with no phones reads back as empty list', () async {
+    final id = await repo.insert(_newClient());
+    final read = await repo.findById(id);
+    expect(read!.phones, <String>[]);
+    expect(read.principalPhone, isNull);
+  });
+
   test('updateLocation marks needsDistanceRecompute', () async {
     final id = await repo.insert(_newClient());
     await repo.updateAddress(
