@@ -210,7 +210,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
                   const SizedBox(height: AppSpacing.md),
                   FTextField(
                     control: FTextFieldControl.managed(controller: _phoneCtrl),
-                    label: Text(l.clientFormPhone),
+                    label: Text(l.clientFormPhones),
                     keyboardType: TextInputType.phone,
                   ),
                 ],
