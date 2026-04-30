@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import '../../core/design_tokens.dart';
 import 'client_actions.dart';
 import '../../domain/models/client.dart';
+import 'manual_history_entry_sheet.dart';
 import '../../domain/models/intervention.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../infra/services/ors_routing_service.dart';
@@ -441,6 +442,16 @@ class _InterventionsCard extends ConsumerWidget {
                   child: Text(l.clientDetailHistoryViewAll),
                 ),
               ],
+              const SizedBox(height: AppSpacing.sm),
+              FButton(
+                variant: FButtonVariant.outline,
+                prefix: const Icon(FIcons.plus),
+                onPress: () => showManualHistoryEntrySheet(
+                  context,
+                  clientId: clientId,
+                ),
+                child: Text(l.clientHistoryAddAction),
+              ),
             ],
           );
         },
