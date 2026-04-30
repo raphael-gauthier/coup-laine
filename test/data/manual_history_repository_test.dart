@@ -2,9 +2,12 @@ import 'package:coup_laine/data/repositories/client_repository.dart';
 import 'package:coup_laine/data/repositories/manual_history_repository.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
+import 'package:coup_laine/domain/models/tour_stop_animal.dart';
 import 'package:coup_laine/infra/db/app_database.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../_helpers/animal_fixtures.dart';
 
 Client _newClient({String name = 'Le Gall'}) => Client(
       id: 0,
@@ -13,18 +16,19 @@ Client _newClient({String name = 'Le Gall'}) => Client(
       postcode: '29000',
       city: 'Quimper',
       coordinates: const Coordinates(lat: 48.0, lon: -4.1),
-      sheepCountSmall: 12,
     );
 
 void main() {
   late AppDatabase db;
   late ManualHistoryRepository repo;
   late ClientRepository clients;
+  late AnimalFixtures fix;
 
-  setUp(() {
+  setUp(() async {
     db = AppDatabase.forTesting(NativeDatabase.memory());
     repo = ManualHistoryRepository(db);
     clients = ClientRepository(db, manualHistory: repo);
+    fix = await seedTestSpeciesAndCategories(db);
   });
 
   tearDown(() async {
@@ -36,15 +40,36 @@ void main() {
     await repo.insert(
       clientId: cId,
       date: DateTime(2024, 5, 1),
-      small: 4,
-      large: 1,
+      animals: [
+        TourStopAnimal(
+          categoryId: fix.catPetit,
+          count: 4,
+          categoryNameSnapshot: 'Petit',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 8,
+        ),
+        TourStopAnimal(
+          categoryId: fix.catGrand,
+          count: 1,
+          categoryNameSnapshot: 'Grand',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 25,
+        ),
+      ],
       note: 'older',
     );
     await repo.insert(
       clientId: cId,
       date: DateTime(2025, 5, 1),
-      small: 5,
-      large: 0,
+      animals: [
+        TourStopAnimal(
+          categoryId: fix.catPetit,
+          count: 5,
+          categoryNameSnapshot: 'Petit',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 8,
+        ),
+      ],
       note: 'newer',
     );
     final list = await repo.listForClient(cId);
@@ -58,22 +83,54 @@ void main() {
     final id = await repo.insert(
       clientId: cId,
       date: DateTime(2024, 5, 1),
-      small: 4,
-      large: 1,
+      animals: [
+        TourStopAnimal(
+          categoryId: fix.catPetit,
+          count: 4,
+          categoryNameSnapshot: 'Petit',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 8,
+        ),
+        TourStopAnimal(
+          categoryId: fix.catGrand,
+          count: 1,
+          categoryNameSnapshot: 'Grand',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 25,
+        ),
+      ],
       note: 'old',
     );
     await repo.update(
       id,
       date: DateTime(2024, 6, 1),
-      small: 7,
-      large: 2,
+      animals: [
+        TourStopAnimal(
+          categoryId: fix.catGrand,
+          count: 7,
+          categoryNameSnapshot: 'Grand',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 25,
+        ),
+        TourStopAnimal(
+          categoryId: fix.catAdulte,
+          count: 2,
+          categoryNameSnapshot: 'Adulte',
+          speciesNameSnapshot: 'Cheval',
+          minutesSnapshot: 45,
+        ),
+      ],
       note: 'new',
     );
-    final list = await repo.listForClient(cId);
-    expect(list.single.date, DateTime(2024, 6, 1));
-    expect(list.single.small, 7);
-    expect(list.single.large, 2);
-    expect(list.single.note, 'new');
+    final entry = (await repo.listForClient(cId)).single;
+    expect(entry.date, DateTime(2024, 6, 1));
+    expect(entry.animalsTotal, 9);
+    expect(entry.animals.length, 2);
+    expect(entry.animals[0].categoryId, fix.catGrand);
+    expect(entry.animals[0].count, 7);
+    expect(entry.animals[1].categoryId, fix.catAdulte);
+    expect(entry.animals[1].count, 2);
+    expect(entry.note, 'new');
   });
 
   test('delete removes the entry', () async {
@@ -81,8 +138,15 @@ void main() {
     final id = await repo.insert(
       clientId: cId,
       date: DateTime(2024, 5, 1),
-      small: 4,
-      large: 1,
+      animals: [
+        TourStopAnimal(
+          categoryId: fix.catPetit,
+          count: 4,
+          categoryNameSnapshot: 'Petit',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 8,
+        ),
+      ],
     );
     await repo.delete(id);
     expect(await repo.listForClient(cId), isEmpty);
@@ -93,8 +157,15 @@ void main() {
     await repo.insert(
       clientId: cId,
       date: DateTime(2024, 5, 1),
-      small: 4,
-      large: 1,
+      animals: [
+        TourStopAnimal(
+          categoryId: fix.catPetit,
+          count: 4,
+          categoryNameSnapshot: 'Petit',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 8,
+        ),
+      ],
     );
     await clients.delete(cId);
     expect(await repo.listForClient(cId), isEmpty);
@@ -107,14 +178,28 @@ void main() {
     await repo.insert(
       clientId: cId,
       date: beforeSeason,
-      small: 1,
-      large: 0,
+      animals: [
+        TourStopAnimal(
+          categoryId: fix.catPetit,
+          count: 1,
+          categoryNameSnapshot: 'Petit',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 8,
+        ),
+      ],
     );
     await repo.insert(
       clientId: cId,
       date: afterSeason,
-      small: 1,
-      large: 0,
+      animals: [
+        TourStopAnimal(
+          categoryId: fix.catPetit,
+          count: 1,
+          categoryNameSnapshot: 'Petit',
+          speciesNameSnapshot: 'Mouton',
+          minutesSnapshot: 8,
+        ),
+      ],
     );
 
     final seasonStart = DateTime(2025, 4, 1);
