@@ -206,21 +206,31 @@ class _Body extends ConsumerWidget {
                           child: Text(
                             client.phones[i],
                             style: theme.typography.md,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: FButton(
+                            variant: FButtonVariant.outline,
+                            prefix: const Icon(FIcons.phone),
+                            onPress: () => callPhone(context, client.phones[i]),
+                            child: const Text('Appeler'),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
-                        FButton(
-                          variant: FButtonVariant.outline,
-                          prefix: const Icon(FIcons.phone),
-                          onPress: () => callPhone(context, client.phones[i]),
-                          child: const Text('Appeler'),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        FButton(
-                          variant: FButtonVariant.outline,
-                          prefix: const Icon(FIcons.messageCircle),
-                          onPress: () => sendSms(context, client.phones[i]),
-                          child: const Text('SMS'),
+                        Expanded(
+                          child: FButton(
+                            variant: FButtonVariant.outline,
+                            prefix: const Icon(FIcons.messageCircle),
+                            onPress: () => sendSms(context, client.phones[i]),
+                            child: const Text('SMS'),
+                          ),
                         ),
                       ],
                     ),
