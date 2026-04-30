@@ -353,7 +353,9 @@ class _NewTourFab extends StatelessWidget {
       side: FLayout.btt,
       builder: (sheetCtx) {
         final theme = sheetCtx.theme;
-        return Padding(
+        return ColoredBox(
+          color: theme.colors.background,
+          child: Padding(
           padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -387,6 +389,7 @@ class _NewTourFab extends StatelessWidget {
                 },
               ),
             ],
+          ),
           ),
         );
       },
