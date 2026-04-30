@@ -261,6 +261,7 @@ class ClientRepository {
           final tour = r.readTable(_db.toursTable);
           final hasBilan = stop.actualSmall != null && stop.actualLarge != null;
           return Intervention(
+            kind: InterventionKind.tour,
             tourId: tour.id,
             stopId: stop.id,
             date: () {
