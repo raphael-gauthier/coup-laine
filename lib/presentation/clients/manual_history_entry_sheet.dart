@@ -158,7 +158,9 @@ class _SheetState extends ConsumerState<_Sheet> {
         ? l.manualEntryDatePlaceholder
         : DateFormat('dd/MM/yyyy').format(_date!);
 
-    return Padding(
+    return ColoredBox(
+      color: theme.colors.background,
+      child: Padding(
       padding: EdgeInsets.only(
         left: AppSpacing.md,
         right: AppSpacing.md,
@@ -217,6 +219,7 @@ class _SheetState extends ConsumerState<_Sheet> {
             ),
           ],
         ],
+      ),
       ),
     );
   }
