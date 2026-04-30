@@ -42,22 +42,6 @@ class $SettingsTableTable extends SettingsTable
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(15));
-  static const VerificationMeta _defaultMinutesPerSmallMeta =
-      const VerificationMeta('defaultMinutesPerSmall');
-  @override
-  late final GeneratedColumn<int> defaultMinutesPerSmall = GeneratedColumn<int>(
-      'default_minutes_per_small', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(8));
-  static const VerificationMeta _defaultMinutesPerLargeMeta =
-      const VerificationMeta('defaultMinutesPerLarge');
-  @override
-  late final GeneratedColumn<int> defaultMinutesPerLarge = GeneratedColumn<int>(
-      'default_minutes_per_large', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(25));
   static const VerificationMeta _travelFeeEurosPerBracketMeta =
       const VerificationMeta('travelFeeEurosPerBracket');
   @override
@@ -114,11 +98,11 @@ class $SettingsTableTable extends SettingsTable
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('#166534'));
-  static const VerificationMeta _markerNoSheepColorMeta =
-      const VerificationMeta('markerNoSheepColor');
+  static const VerificationMeta _markerNoAnimalsColorMeta =
+      const VerificationMeta('markerNoAnimalsColor');
   @override
-  late final GeneratedColumn<String> markerNoSheepColor =
-      GeneratedColumn<String>('marker_no_sheep_color', aliasedName, false,
+  late final GeneratedColumn<String> markerNoAnimalsColor =
+      GeneratedColumn<String>('marker_no_animals_color', aliasedName, false,
           type: DriftSqlType.string,
           requiredDuringInsert: false,
           defaultValue: const Constant('#1F2937'));
@@ -138,6 +122,12 @@ class $SettingsTableTable extends SettingsTable
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _appAvatarKeyMeta =
+      const VerificationMeta('appAvatarKey');
+  @override
+  late final GeneratedColumn<String> appAvatarKey = GeneratedColumn<String>(
+      'app_avatar_key', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -145,8 +135,6 @@ class $SettingsTableTable extends SettingsTable
         baseLat,
         baseLon,
         defaultRadiusKm,
-        defaultMinutesPerSmall,
-        defaultMinutesPerLarge,
         travelFeeEurosPerBracket,
         bracketKm,
         themeMode,
@@ -154,9 +142,10 @@ class $SettingsTableTable extends SettingsTable
         markerWaitingColor,
         markerScheduledColor,
         markerDoneColor,
-        markerNoSheepColor,
+        markerNoAnimalsColor,
         markerBannedColor,
-        seasonStartedAt
+        seasonStartedAt,
+        appAvatarKey
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -197,18 +186,6 @@ class $SettingsTableTable extends SettingsTable
           defaultRadiusKm.isAcceptableOrUnknown(
               data['default_radius_km']!, _defaultRadiusKmMeta));
     }
-    if (data.containsKey('default_minutes_per_small')) {
-      context.handle(
-          _defaultMinutesPerSmallMeta,
-          defaultMinutesPerSmall.isAcceptableOrUnknown(
-              data['default_minutes_per_small']!, _defaultMinutesPerSmallMeta));
-    }
-    if (data.containsKey('default_minutes_per_large')) {
-      context.handle(
-          _defaultMinutesPerLargeMeta,
-          defaultMinutesPerLarge.isAcceptableOrUnknown(
-              data['default_minutes_per_large']!, _defaultMinutesPerLargeMeta));
-    }
     if (data.containsKey('travel_fee_euros_per_bracket')) {
       context.handle(
           _travelFeeEurosPerBracketMeta,
@@ -248,11 +225,11 @@ class $SettingsTableTable extends SettingsTable
           markerDoneColor.isAcceptableOrUnknown(
               data['marker_done_color']!, _markerDoneColorMeta));
     }
-    if (data.containsKey('marker_no_sheep_color')) {
+    if (data.containsKey('marker_no_animals_color')) {
       context.handle(
-          _markerNoSheepColorMeta,
-          markerNoSheepColor.isAcceptableOrUnknown(
-              data['marker_no_sheep_color']!, _markerNoSheepColorMeta));
+          _markerNoAnimalsColorMeta,
+          markerNoAnimalsColor.isAcceptableOrUnknown(
+              data['marker_no_animals_color']!, _markerNoAnimalsColorMeta));
     }
     if (data.containsKey('marker_banned_color')) {
       context.handle(
@@ -265,6 +242,12 @@ class $SettingsTableTable extends SettingsTable
           _seasonStartedAtMeta,
           seasonStartedAt.isAcceptableOrUnknown(
               data['season_started_at']!, _seasonStartedAtMeta));
+    }
+    if (data.containsKey('app_avatar_key')) {
+      context.handle(
+          _appAvatarKeyMeta,
+          appAvatarKey.isAcceptableOrUnknown(
+              data['app_avatar_key']!, _appAvatarKeyMeta));
     }
     return context;
   }
@@ -285,12 +268,6 @@ class $SettingsTableTable extends SettingsTable
           .read(DriftSqlType.double, data['${effectivePrefix}base_lon'])!,
       defaultRadiusKm: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}default_radius_km'])!,
-      defaultMinutesPerSmall: attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
-          data['${effectivePrefix}default_minutes_per_small'])!,
-      defaultMinutesPerLarge: attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
-          data['${effectivePrefix}default_minutes_per_large'])!,
       travelFeeEurosPerBracket: attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}travel_fee_euros_per_bracket'])!,
@@ -307,12 +284,15 @@ class $SettingsTableTable extends SettingsTable
           data['${effectivePrefix}marker_scheduled_color'])!,
       markerDoneColor: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}marker_done_color'])!,
-      markerNoSheepColor: attachedDatabase.typeMapping.read(DriftSqlType.string,
-          data['${effectivePrefix}marker_no_sheep_color'])!,
+      markerNoAnimalsColor: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}marker_no_animals_color'])!,
       markerBannedColor: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}marker_banned_color'])!,
       seasonStartedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}season_started_at'])!,
+      appAvatarKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}app_avatar_key']),
     );
   }
 
@@ -328,8 +308,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   final double baseLat;
   final double baseLon;
   final int defaultRadiusKm;
-  final int defaultMinutesPerSmall;
-  final int defaultMinutesPerLarge;
   final int travelFeeEurosPerBracket;
   final int bracketKm;
   final String themeMode;
@@ -337,17 +315,16 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   final String markerWaitingColor;
   final String markerScheduledColor;
   final String markerDoneColor;
-  final String markerNoSheepColor;
+  final String markerNoAnimalsColor;
   final String markerBannedColor;
   final int seasonStartedAt;
+  final String? appAvatarKey;
   const SettingsRow(
       {required this.id,
       required this.baseAddressLabel,
       required this.baseLat,
       required this.baseLon,
       required this.defaultRadiusKm,
-      required this.defaultMinutesPerSmall,
-      required this.defaultMinutesPerLarge,
       required this.travelFeeEurosPerBracket,
       required this.bracketKm,
       required this.themeMode,
@@ -355,9 +332,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       required this.markerWaitingColor,
       required this.markerScheduledColor,
       required this.markerDoneColor,
-      required this.markerNoSheepColor,
+      required this.markerNoAnimalsColor,
       required this.markerBannedColor,
-      required this.seasonStartedAt});
+      required this.seasonStartedAt,
+      this.appAvatarKey});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -366,8 +344,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['base_lat'] = Variable<double>(baseLat);
     map['base_lon'] = Variable<double>(baseLon);
     map['default_radius_km'] = Variable<int>(defaultRadiusKm);
-    map['default_minutes_per_small'] = Variable<int>(defaultMinutesPerSmall);
-    map['default_minutes_per_large'] = Variable<int>(defaultMinutesPerLarge);
     map['travel_fee_euros_per_bracket'] =
         Variable<int>(travelFeeEurosPerBracket);
     map['bracket_km'] = Variable<int>(bracketKm);
@@ -376,9 +352,12 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['marker_waiting_color'] = Variable<String>(markerWaitingColor);
     map['marker_scheduled_color'] = Variable<String>(markerScheduledColor);
     map['marker_done_color'] = Variable<String>(markerDoneColor);
-    map['marker_no_sheep_color'] = Variable<String>(markerNoSheepColor);
+    map['marker_no_animals_color'] = Variable<String>(markerNoAnimalsColor);
     map['marker_banned_color'] = Variable<String>(markerBannedColor);
     map['season_started_at'] = Variable<int>(seasonStartedAt);
+    if (!nullToAbsent || appAvatarKey != null) {
+      map['app_avatar_key'] = Variable<String>(appAvatarKey);
+    }
     return map;
   }
 
@@ -389,8 +368,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       baseLat: Value(baseLat),
       baseLon: Value(baseLon),
       defaultRadiusKm: Value(defaultRadiusKm),
-      defaultMinutesPerSmall: Value(defaultMinutesPerSmall),
-      defaultMinutesPerLarge: Value(defaultMinutesPerLarge),
       travelFeeEurosPerBracket: Value(travelFeeEurosPerBracket),
       bracketKm: Value(bracketKm),
       themeMode: Value(themeMode),
@@ -398,9 +375,12 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       markerWaitingColor: Value(markerWaitingColor),
       markerScheduledColor: Value(markerScheduledColor),
       markerDoneColor: Value(markerDoneColor),
-      markerNoSheepColor: Value(markerNoSheepColor),
+      markerNoAnimalsColor: Value(markerNoAnimalsColor),
       markerBannedColor: Value(markerBannedColor),
       seasonStartedAt: Value(seasonStartedAt),
+      appAvatarKey: appAvatarKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(appAvatarKey),
     );
   }
 
@@ -413,10 +393,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       baseLat: serializer.fromJson<double>(json['baseLat']),
       baseLon: serializer.fromJson<double>(json['baseLon']),
       defaultRadiusKm: serializer.fromJson<int>(json['defaultRadiusKm']),
-      defaultMinutesPerSmall:
-          serializer.fromJson<int>(json['defaultMinutesPerSmall']),
-      defaultMinutesPerLarge:
-          serializer.fromJson<int>(json['defaultMinutesPerLarge']),
       travelFeeEurosPerBracket:
           serializer.fromJson<int>(json['travelFeeEurosPerBracket']),
       bracketKm: serializer.fromJson<int>(json['bracketKm']),
@@ -428,10 +404,11 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       markerScheduledColor:
           serializer.fromJson<String>(json['markerScheduledColor']),
       markerDoneColor: serializer.fromJson<String>(json['markerDoneColor']),
-      markerNoSheepColor:
-          serializer.fromJson<String>(json['markerNoSheepColor']),
+      markerNoAnimalsColor:
+          serializer.fromJson<String>(json['markerNoAnimalsColor']),
       markerBannedColor: serializer.fromJson<String>(json['markerBannedColor']),
       seasonStartedAt: serializer.fromJson<int>(json['seasonStartedAt']),
+      appAvatarKey: serializer.fromJson<String?>(json['appAvatarKey']),
     );
   }
   @override
@@ -443,8 +420,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'baseLat': serializer.toJson<double>(baseLat),
       'baseLon': serializer.toJson<double>(baseLon),
       'defaultRadiusKm': serializer.toJson<int>(defaultRadiusKm),
-      'defaultMinutesPerSmall': serializer.toJson<int>(defaultMinutesPerSmall),
-      'defaultMinutesPerLarge': serializer.toJson<int>(defaultMinutesPerLarge),
       'travelFeeEurosPerBracket':
           serializer.toJson<int>(travelFeeEurosPerBracket),
       'bracketKm': serializer.toJson<int>(bracketKm),
@@ -453,9 +428,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'markerWaitingColor': serializer.toJson<String>(markerWaitingColor),
       'markerScheduledColor': serializer.toJson<String>(markerScheduledColor),
       'markerDoneColor': serializer.toJson<String>(markerDoneColor),
-      'markerNoSheepColor': serializer.toJson<String>(markerNoSheepColor),
+      'markerNoAnimalsColor': serializer.toJson<String>(markerNoAnimalsColor),
       'markerBannedColor': serializer.toJson<String>(markerBannedColor),
       'seasonStartedAt': serializer.toJson<int>(seasonStartedAt),
+      'appAvatarKey': serializer.toJson<String?>(appAvatarKey),
     };
   }
 
@@ -465,8 +441,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           double? baseLat,
           double? baseLon,
           int? defaultRadiusKm,
-          int? defaultMinutesPerSmall,
-          int? defaultMinutesPerLarge,
           int? travelFeeEurosPerBracket,
           int? bracketKm,
           String? themeMode,
@@ -474,19 +448,16 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           String? markerWaitingColor,
           String? markerScheduledColor,
           String? markerDoneColor,
-          String? markerNoSheepColor,
+          String? markerNoAnimalsColor,
           String? markerBannedColor,
-          int? seasonStartedAt}) =>
+          int? seasonStartedAt,
+          Value<String?> appAvatarKey = const Value.absent()}) =>
       SettingsRow(
         id: id ?? this.id,
         baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
         baseLat: baseLat ?? this.baseLat,
         baseLon: baseLon ?? this.baseLon,
         defaultRadiusKm: defaultRadiusKm ?? this.defaultRadiusKm,
-        defaultMinutesPerSmall:
-            defaultMinutesPerSmall ?? this.defaultMinutesPerSmall,
-        defaultMinutesPerLarge:
-            defaultMinutesPerLarge ?? this.defaultMinutesPerLarge,
         travelFeeEurosPerBracket:
             travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
         bracketKm: bracketKm ?? this.bracketKm,
@@ -495,9 +466,11 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
         markerWaitingColor: markerWaitingColor ?? this.markerWaitingColor,
         markerScheduledColor: markerScheduledColor ?? this.markerScheduledColor,
         markerDoneColor: markerDoneColor ?? this.markerDoneColor,
-        markerNoSheepColor: markerNoSheepColor ?? this.markerNoSheepColor,
+        markerNoAnimalsColor: markerNoAnimalsColor ?? this.markerNoAnimalsColor,
         markerBannedColor: markerBannedColor ?? this.markerBannedColor,
         seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
+        appAvatarKey:
+            appAvatarKey.present ? appAvatarKey.value : this.appAvatarKey,
       );
   SettingsRow copyWithCompanion(SettingsTableCompanion data) {
     return SettingsRow(
@@ -510,12 +483,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       defaultRadiusKm: data.defaultRadiusKm.present
           ? data.defaultRadiusKm.value
           : this.defaultRadiusKm,
-      defaultMinutesPerSmall: data.defaultMinutesPerSmall.present
-          ? data.defaultMinutesPerSmall.value
-          : this.defaultMinutesPerSmall,
-      defaultMinutesPerLarge: data.defaultMinutesPerLarge.present
-          ? data.defaultMinutesPerLarge.value
-          : this.defaultMinutesPerLarge,
       travelFeeEurosPerBracket: data.travelFeeEurosPerBracket.present
           ? data.travelFeeEurosPerBracket.value
           : this.travelFeeEurosPerBracket,
@@ -533,15 +500,18 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       markerDoneColor: data.markerDoneColor.present
           ? data.markerDoneColor.value
           : this.markerDoneColor,
-      markerNoSheepColor: data.markerNoSheepColor.present
-          ? data.markerNoSheepColor.value
-          : this.markerNoSheepColor,
+      markerNoAnimalsColor: data.markerNoAnimalsColor.present
+          ? data.markerNoAnimalsColor.value
+          : this.markerNoAnimalsColor,
       markerBannedColor: data.markerBannedColor.present
           ? data.markerBannedColor.value
           : this.markerBannedColor,
       seasonStartedAt: data.seasonStartedAt.present
           ? data.seasonStartedAt.value
           : this.seasonStartedAt,
+      appAvatarKey: data.appAvatarKey.present
+          ? data.appAvatarKey.value
+          : this.appAvatarKey,
     );
   }
 
@@ -553,8 +523,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('baseLat: $baseLat, ')
           ..write('baseLon: $baseLon, ')
           ..write('defaultRadiusKm: $defaultRadiusKm, ')
-          ..write('defaultMinutesPerSmall: $defaultMinutesPerSmall, ')
-          ..write('defaultMinutesPerLarge: $defaultMinutesPerLarge, ')
           ..write('travelFeeEurosPerBracket: $travelFeeEurosPerBracket, ')
           ..write('bracketKm: $bracketKm, ')
           ..write('themeMode: $themeMode, ')
@@ -562,9 +530,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('markerWaitingColor: $markerWaitingColor, ')
           ..write('markerScheduledColor: $markerScheduledColor, ')
           ..write('markerDoneColor: $markerDoneColor, ')
-          ..write('markerNoSheepColor: $markerNoSheepColor, ')
+          ..write('markerNoAnimalsColor: $markerNoAnimalsColor, ')
           ..write('markerBannedColor: $markerBannedColor, ')
-          ..write('seasonStartedAt: $seasonStartedAt')
+          ..write('seasonStartedAt: $seasonStartedAt, ')
+          ..write('appAvatarKey: $appAvatarKey')
           ..write(')'))
         .toString();
   }
@@ -576,8 +545,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       baseLat,
       baseLon,
       defaultRadiusKm,
-      defaultMinutesPerSmall,
-      defaultMinutesPerLarge,
       travelFeeEurosPerBracket,
       bracketKm,
       themeMode,
@@ -585,9 +552,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       markerWaitingColor,
       markerScheduledColor,
       markerDoneColor,
-      markerNoSheepColor,
+      markerNoAnimalsColor,
       markerBannedColor,
-      seasonStartedAt);
+      seasonStartedAt,
+      appAvatarKey);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -597,8 +565,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.baseLat == this.baseLat &&
           other.baseLon == this.baseLon &&
           other.defaultRadiusKm == this.defaultRadiusKm &&
-          other.defaultMinutesPerSmall == this.defaultMinutesPerSmall &&
-          other.defaultMinutesPerLarge == this.defaultMinutesPerLarge &&
           other.travelFeeEurosPerBracket == this.travelFeeEurosPerBracket &&
           other.bracketKm == this.bracketKm &&
           other.themeMode == this.themeMode &&
@@ -606,9 +572,10 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.markerWaitingColor == this.markerWaitingColor &&
           other.markerScheduledColor == this.markerScheduledColor &&
           other.markerDoneColor == this.markerDoneColor &&
-          other.markerNoSheepColor == this.markerNoSheepColor &&
+          other.markerNoAnimalsColor == this.markerNoAnimalsColor &&
           other.markerBannedColor == this.markerBannedColor &&
-          other.seasonStartedAt == this.seasonStartedAt);
+          other.seasonStartedAt == this.seasonStartedAt &&
+          other.appAvatarKey == this.appAvatarKey);
 }
 
 class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
@@ -617,8 +584,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
   final Value<double> baseLat;
   final Value<double> baseLon;
   final Value<int> defaultRadiusKm;
-  final Value<int> defaultMinutesPerSmall;
-  final Value<int> defaultMinutesPerLarge;
   final Value<int> travelFeeEurosPerBracket;
   final Value<int> bracketKm;
   final Value<String> themeMode;
@@ -626,17 +591,16 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
   final Value<String> markerWaitingColor;
   final Value<String> markerScheduledColor;
   final Value<String> markerDoneColor;
-  final Value<String> markerNoSheepColor;
+  final Value<String> markerNoAnimalsColor;
   final Value<String> markerBannedColor;
   final Value<int> seasonStartedAt;
+  final Value<String?> appAvatarKey;
   const SettingsTableCompanion({
     this.id = const Value.absent(),
     this.baseAddressLabel = const Value.absent(),
     this.baseLat = const Value.absent(),
     this.baseLon = const Value.absent(),
     this.defaultRadiusKm = const Value.absent(),
-    this.defaultMinutesPerSmall = const Value.absent(),
-    this.defaultMinutesPerLarge = const Value.absent(),
     this.travelFeeEurosPerBracket = const Value.absent(),
     this.bracketKm = const Value.absent(),
     this.themeMode = const Value.absent(),
@@ -644,9 +608,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.markerWaitingColor = const Value.absent(),
     this.markerScheduledColor = const Value.absent(),
     this.markerDoneColor = const Value.absent(),
-    this.markerNoSheepColor = const Value.absent(),
+    this.markerNoAnimalsColor = const Value.absent(),
     this.markerBannedColor = const Value.absent(),
     this.seasonStartedAt = const Value.absent(),
+    this.appAvatarKey = const Value.absent(),
   });
   SettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -654,8 +619,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     required double baseLat,
     required double baseLon,
     this.defaultRadiusKm = const Value.absent(),
-    this.defaultMinutesPerSmall = const Value.absent(),
-    this.defaultMinutesPerLarge = const Value.absent(),
     this.travelFeeEurosPerBracket = const Value.absent(),
     this.bracketKm = const Value.absent(),
     this.themeMode = const Value.absent(),
@@ -663,9 +626,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.markerWaitingColor = const Value.absent(),
     this.markerScheduledColor = const Value.absent(),
     this.markerDoneColor = const Value.absent(),
-    this.markerNoSheepColor = const Value.absent(),
+    this.markerNoAnimalsColor = const Value.absent(),
     this.markerBannedColor = const Value.absent(),
     this.seasonStartedAt = const Value.absent(),
+    this.appAvatarKey = const Value.absent(),
   })  : baseAddressLabel = Value(baseAddressLabel),
         baseLat = Value(baseLat),
         baseLon = Value(baseLon);
@@ -675,8 +639,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     Expression<double>? baseLat,
     Expression<double>? baseLon,
     Expression<int>? defaultRadiusKm,
-    Expression<int>? defaultMinutesPerSmall,
-    Expression<int>? defaultMinutesPerLarge,
     Expression<int>? travelFeeEurosPerBracket,
     Expression<int>? bracketKm,
     Expression<String>? themeMode,
@@ -684,9 +646,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     Expression<String>? markerWaitingColor,
     Expression<String>? markerScheduledColor,
     Expression<String>? markerDoneColor,
-    Expression<String>? markerNoSheepColor,
+    Expression<String>? markerNoAnimalsColor,
     Expression<String>? markerBannedColor,
     Expression<int>? seasonStartedAt,
+    Expression<String>? appAvatarKey,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -694,10 +657,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       if (baseLat != null) 'base_lat': baseLat,
       if (baseLon != null) 'base_lon': baseLon,
       if (defaultRadiusKm != null) 'default_radius_km': defaultRadiusKm,
-      if (defaultMinutesPerSmall != null)
-        'default_minutes_per_small': defaultMinutesPerSmall,
-      if (defaultMinutesPerLarge != null)
-        'default_minutes_per_large': defaultMinutesPerLarge,
       if (travelFeeEurosPerBracket != null)
         'travel_fee_euros_per_bracket': travelFeeEurosPerBracket,
       if (bracketKm != null) 'bracket_km': bracketKm,
@@ -709,10 +668,11 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       if (markerScheduledColor != null)
         'marker_scheduled_color': markerScheduledColor,
       if (markerDoneColor != null) 'marker_done_color': markerDoneColor,
-      if (markerNoSheepColor != null)
-        'marker_no_sheep_color': markerNoSheepColor,
+      if (markerNoAnimalsColor != null)
+        'marker_no_animals_color': markerNoAnimalsColor,
       if (markerBannedColor != null) 'marker_banned_color': markerBannedColor,
       if (seasonStartedAt != null) 'season_started_at': seasonStartedAt,
+      if (appAvatarKey != null) 'app_avatar_key': appAvatarKey,
     });
   }
 
@@ -722,8 +682,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       Value<double>? baseLat,
       Value<double>? baseLon,
       Value<int>? defaultRadiusKm,
-      Value<int>? defaultMinutesPerSmall,
-      Value<int>? defaultMinutesPerLarge,
       Value<int>? travelFeeEurosPerBracket,
       Value<int>? bracketKm,
       Value<String>? themeMode,
@@ -731,19 +689,16 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       Value<String>? markerWaitingColor,
       Value<String>? markerScheduledColor,
       Value<String>? markerDoneColor,
-      Value<String>? markerNoSheepColor,
+      Value<String>? markerNoAnimalsColor,
       Value<String>? markerBannedColor,
-      Value<int>? seasonStartedAt}) {
+      Value<int>? seasonStartedAt,
+      Value<String?>? appAvatarKey}) {
     return SettingsTableCompanion(
       id: id ?? this.id,
       baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
       baseLat: baseLat ?? this.baseLat,
       baseLon: baseLon ?? this.baseLon,
       defaultRadiusKm: defaultRadiusKm ?? this.defaultRadiusKm,
-      defaultMinutesPerSmall:
-          defaultMinutesPerSmall ?? this.defaultMinutesPerSmall,
-      defaultMinutesPerLarge:
-          defaultMinutesPerLarge ?? this.defaultMinutesPerLarge,
       travelFeeEurosPerBracket:
           travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
       bracketKm: bracketKm ?? this.bracketKm,
@@ -752,9 +707,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       markerWaitingColor: markerWaitingColor ?? this.markerWaitingColor,
       markerScheduledColor: markerScheduledColor ?? this.markerScheduledColor,
       markerDoneColor: markerDoneColor ?? this.markerDoneColor,
-      markerNoSheepColor: markerNoSheepColor ?? this.markerNoSheepColor,
+      markerNoAnimalsColor: markerNoAnimalsColor ?? this.markerNoAnimalsColor,
       markerBannedColor: markerBannedColor ?? this.markerBannedColor,
       seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
+      appAvatarKey: appAvatarKey ?? this.appAvatarKey,
     );
   }
 
@@ -775,14 +731,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     }
     if (defaultRadiusKm.present) {
       map['default_radius_km'] = Variable<int>(defaultRadiusKm.value);
-    }
-    if (defaultMinutesPerSmall.present) {
-      map['default_minutes_per_small'] =
-          Variable<int>(defaultMinutesPerSmall.value);
-    }
-    if (defaultMinutesPerLarge.present) {
-      map['default_minutes_per_large'] =
-          Variable<int>(defaultMinutesPerLarge.value);
     }
     if (travelFeeEurosPerBracket.present) {
       map['travel_fee_euros_per_bracket'] =
@@ -807,14 +755,18 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     if (markerDoneColor.present) {
       map['marker_done_color'] = Variable<String>(markerDoneColor.value);
     }
-    if (markerNoSheepColor.present) {
-      map['marker_no_sheep_color'] = Variable<String>(markerNoSheepColor.value);
+    if (markerNoAnimalsColor.present) {
+      map['marker_no_animals_color'] =
+          Variable<String>(markerNoAnimalsColor.value);
     }
     if (markerBannedColor.present) {
       map['marker_banned_color'] = Variable<String>(markerBannedColor.value);
     }
     if (seasonStartedAt.present) {
       map['season_started_at'] = Variable<int>(seasonStartedAt.value);
+    }
+    if (appAvatarKey.present) {
+      map['app_avatar_key'] = Variable<String>(appAvatarKey.value);
     }
     return map;
   }
@@ -827,8 +779,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
           ..write('baseLat: $baseLat, ')
           ..write('baseLon: $baseLon, ')
           ..write('defaultRadiusKm: $defaultRadiusKm, ')
-          ..write('defaultMinutesPerSmall: $defaultMinutesPerSmall, ')
-          ..write('defaultMinutesPerLarge: $defaultMinutesPerLarge, ')
           ..write('travelFeeEurosPerBracket: $travelFeeEurosPerBracket, ')
           ..write('bracketKm: $bracketKm, ')
           ..write('themeMode: $themeMode, ')
@@ -836,9 +786,10 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
           ..write('markerWaitingColor: $markerWaitingColor, ')
           ..write('markerScheduledColor: $markerScheduledColor, ')
           ..write('markerDoneColor: $markerDoneColor, ')
-          ..write('markerNoSheepColor: $markerNoSheepColor, ')
+          ..write('markerNoAnimalsColor: $markerNoAnimalsColor, ')
           ..write('markerBannedColor: $markerBannedColor, ')
-          ..write('seasonStartedAt: $seasonStartedAt')
+          ..write('seasonStartedAt: $seasonStartedAt, ')
+          ..write('appAvatarKey: $appAvatarKey')
           ..write(')'))
         .toString();
   }
@@ -898,22 +849,14 @@ class $ClientsTableTable extends ClientsTable
   late final GeneratedColumn<double> lon = GeneratedColumn<double>(
       'lon', aliasedName, false,
       type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _sheepCountSmallMeta =
-      const VerificationMeta('sheepCountSmall');
   @override
-  late final GeneratedColumn<int> sheepCountSmall = GeneratedColumn<int>(
-      'sheep_count_small', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(0));
-  static const VerificationMeta _sheepCountLargeMeta =
-      const VerificationMeta('sheepCountLarge');
-  @override
-  late final GeneratedColumn<int> sheepCountLarge = GeneratedColumn<int>(
-      'sheep_count_large', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(0));
+  late final GeneratedColumnWithTypeConverter<List<AnimalCount>, String>
+      animals = GeneratedColumn<String>('animals', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: const Constant('[]'))
+          .withConverter<List<AnimalCount>>(
+              $ClientsTableTable.$converteranimals);
   static const VerificationMeta _markerColorHexMeta =
       const VerificationMeta('markerColorHex');
   @override
@@ -978,8 +921,7 @@ class $ClientsTableTable extends ClientsTable
         city,
         lat,
         lon,
-        sheepCountSmall,
-        sheepCountLarge,
+        animals,
         markerColorHex,
         isWaiting,
         lastShearingDate,
@@ -1038,18 +980,6 @@ class $ClientsTableTable extends ClientsTable
           _lonMeta, lon.isAcceptableOrUnknown(data['lon']!, _lonMeta));
     } else if (isInserting) {
       context.missing(_lonMeta);
-    }
-    if (data.containsKey('sheep_count_small')) {
-      context.handle(
-          _sheepCountSmallMeta,
-          sheepCountSmall.isAcceptableOrUnknown(
-              data['sheep_count_small']!, _sheepCountSmallMeta));
-    }
-    if (data.containsKey('sheep_count_large')) {
-      context.handle(
-          _sheepCountLargeMeta,
-          sheepCountLarge.isAcceptableOrUnknown(
-              data['sheep_count_large']!, _sheepCountLargeMeta));
     }
     if (data.containsKey('marker_color_hex')) {
       context.handle(
@@ -1115,10 +1045,9 @@ class $ClientsTableTable extends ClientsTable
           .read(DriftSqlType.double, data['${effectivePrefix}lat'])!,
       lon: attachedDatabase.typeMapping
           .read(DriftSqlType.double, data['${effectivePrefix}lon'])!,
-      sheepCountSmall: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sheep_count_small'])!,
-      sheepCountLarge: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sheep_count_large'])!,
+      animals: $ClientsTableTable.$converteranimals.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}animals'])!),
       markerColorHex: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}marker_color_hex']),
       isWaiting: attachedDatabase.typeMapping
@@ -1144,6 +1073,8 @@ class $ClientsTableTable extends ClientsTable
 
   static TypeConverter<List<String>, String> $converterphones =
       const PhoneListConverter();
+  static TypeConverter<List<AnimalCount>, String> $converteranimals =
+      const AnimalCountListConverter();
 }
 
 class ClientRow extends DataClass implements Insertable<ClientRow> {
@@ -1155,8 +1086,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
   final String city;
   final double lat;
   final double lon;
-  final int sheepCountSmall;
-  final int sheepCountLarge;
+  final List<AnimalCount> animals;
   final String? markerColorHex;
   final bool isWaiting;
   final int? lastShearingDate;
@@ -1173,8 +1103,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       required this.city,
       required this.lat,
       required this.lon,
-      required this.sheepCountSmall,
-      required this.sheepCountLarge,
+      required this.animals,
       this.markerColorHex,
       required this.isWaiting,
       this.lastShearingDate,
@@ -1196,8 +1125,10 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
     map['city'] = Variable<String>(city);
     map['lat'] = Variable<double>(lat);
     map['lon'] = Variable<double>(lon);
-    map['sheep_count_small'] = Variable<int>(sheepCountSmall);
-    map['sheep_count_large'] = Variable<int>(sheepCountLarge);
+    {
+      map['animals'] =
+          Variable<String>($ClientsTableTable.$converteranimals.toSql(animals));
+    }
     if (!nullToAbsent || markerColorHex != null) {
       map['marker_color_hex'] = Variable<String>(markerColorHex);
     }
@@ -1222,8 +1153,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       city: Value(city),
       lat: Value(lat),
       lon: Value(lon),
-      sheepCountSmall: Value(sheepCountSmall),
-      sheepCountLarge: Value(sheepCountLarge),
+      animals: Value(animals),
       markerColorHex: markerColorHex == null && nullToAbsent
           ? const Value.absent()
           : Value(markerColorHex),
@@ -1250,8 +1180,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       city: serializer.fromJson<String>(json['city']),
       lat: serializer.fromJson<double>(json['lat']),
       lon: serializer.fromJson<double>(json['lon']),
-      sheepCountSmall: serializer.fromJson<int>(json['sheepCountSmall']),
-      sheepCountLarge: serializer.fromJson<int>(json['sheepCountLarge']),
+      animals: serializer.fromJson<List<AnimalCount>>(json['animals']),
       markerColorHex: serializer.fromJson<String?>(json['markerColorHex']),
       isWaiting: serializer.fromJson<bool>(json['isWaiting']),
       lastShearingDate: serializer.fromJson<int?>(json['lastShearingDate']),
@@ -1274,8 +1203,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       'city': serializer.toJson<String>(city),
       'lat': serializer.toJson<double>(lat),
       'lon': serializer.toJson<double>(lon),
-      'sheepCountSmall': serializer.toJson<int>(sheepCountSmall),
-      'sheepCountLarge': serializer.toJson<int>(sheepCountLarge),
+      'animals': serializer.toJson<List<AnimalCount>>(animals),
       'markerColorHex': serializer.toJson<String?>(markerColorHex),
       'isWaiting': serializer.toJson<bool>(isWaiting),
       'lastShearingDate': serializer.toJson<int?>(lastShearingDate),
@@ -1295,8 +1223,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           String? city,
           double? lat,
           double? lon,
-          int? sheepCountSmall,
-          int? sheepCountLarge,
+          List<AnimalCount>? animals,
           Value<String?> markerColorHex = const Value.absent(),
           bool? isWaiting,
           Value<int?> lastShearingDate = const Value.absent(),
@@ -1313,8 +1240,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
         city: city ?? this.city,
         lat: lat ?? this.lat,
         lon: lon ?? this.lon,
-        sheepCountSmall: sheepCountSmall ?? this.sheepCountSmall,
-        sheepCountLarge: sheepCountLarge ?? this.sheepCountLarge,
+        animals: animals ?? this.animals,
         markerColorHex:
             markerColorHex.present ? markerColorHex.value : this.markerColorHex,
         isWaiting: isWaiting ?? this.isWaiting,
@@ -1339,12 +1265,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       city: data.city.present ? data.city.value : this.city,
       lat: data.lat.present ? data.lat.value : this.lat,
       lon: data.lon.present ? data.lon.value : this.lon,
-      sheepCountSmall: data.sheepCountSmall.present
-          ? data.sheepCountSmall.value
-          : this.sheepCountSmall,
-      sheepCountLarge: data.sheepCountLarge.present
-          ? data.sheepCountLarge.value
-          : this.sheepCountLarge,
+      animals: data.animals.present ? data.animals.value : this.animals,
       markerColorHex: data.markerColorHex.present
           ? data.markerColorHex.value
           : this.markerColorHex,
@@ -1372,8 +1293,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           ..write('city: $city, ')
           ..write('lat: $lat, ')
           ..write('lon: $lon, ')
-          ..write('sheepCountSmall: $sheepCountSmall, ')
-          ..write('sheepCountLarge: $sheepCountLarge, ')
+          ..write('animals: $animals, ')
           ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
           ..write('lastShearingDate: $lastShearingDate, ')
@@ -1395,8 +1315,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       city,
       lat,
       lon,
-      sheepCountSmall,
-      sheepCountLarge,
+      animals,
       markerColorHex,
       isWaiting,
       lastShearingDate,
@@ -1416,8 +1335,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           other.city == this.city &&
           other.lat == this.lat &&
           other.lon == this.lon &&
-          other.sheepCountSmall == this.sheepCountSmall &&
-          other.sheepCountLarge == this.sheepCountLarge &&
+          other.animals == this.animals &&
           other.markerColorHex == this.markerColorHex &&
           other.isWaiting == this.isWaiting &&
           other.lastShearingDate == this.lastShearingDate &&
@@ -1436,8 +1354,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   final Value<String> city;
   final Value<double> lat;
   final Value<double> lon;
-  final Value<int> sheepCountSmall;
-  final Value<int> sheepCountLarge;
+  final Value<List<AnimalCount>> animals;
   final Value<String?> markerColorHex;
   final Value<bool> isWaiting;
   final Value<int?> lastShearingDate;
@@ -1454,8 +1371,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     this.city = const Value.absent(),
     this.lat = const Value.absent(),
     this.lon = const Value.absent(),
-    this.sheepCountSmall = const Value.absent(),
-    this.sheepCountLarge = const Value.absent(),
+    this.animals = const Value.absent(),
     this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
     this.lastShearingDate = const Value.absent(),
@@ -1473,8 +1389,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     required String city,
     required double lat,
     required double lon,
-    this.sheepCountSmall = const Value.absent(),
-    this.sheepCountLarge = const Value.absent(),
+    this.animals = const Value.absent(),
     this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
     this.lastShearingDate = const Value.absent(),
@@ -1499,8 +1414,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     Expression<String>? city,
     Expression<double>? lat,
     Expression<double>? lon,
-    Expression<int>? sheepCountSmall,
-    Expression<int>? sheepCountLarge,
+    Expression<String>? animals,
     Expression<String>? markerColorHex,
     Expression<bool>? isWaiting,
     Expression<int>? lastShearingDate,
@@ -1518,8 +1432,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       if (city != null) 'city': city,
       if (lat != null) 'lat': lat,
       if (lon != null) 'lon': lon,
-      if (sheepCountSmall != null) 'sheep_count_small': sheepCountSmall,
-      if (sheepCountLarge != null) 'sheep_count_large': sheepCountLarge,
+      if (animals != null) 'animals': animals,
       if (markerColorHex != null) 'marker_color_hex': markerColorHex,
       if (isWaiting != null) 'is_waiting': isWaiting,
       if (lastShearingDate != null) 'last_shearing_date': lastShearingDate,
@@ -1540,8 +1453,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       Value<String>? city,
       Value<double>? lat,
       Value<double>? lon,
-      Value<int>? sheepCountSmall,
-      Value<int>? sheepCountLarge,
+      Value<List<AnimalCount>>? animals,
       Value<String?>? markerColorHex,
       Value<bool>? isWaiting,
       Value<int?>? lastShearingDate,
@@ -1558,8 +1470,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       city: city ?? this.city,
       lat: lat ?? this.lat,
       lon: lon ?? this.lon,
-      sheepCountSmall: sheepCountSmall ?? this.sheepCountSmall,
-      sheepCountLarge: sheepCountLarge ?? this.sheepCountLarge,
+      animals: animals ?? this.animals,
       markerColorHex: markerColorHex ?? this.markerColorHex,
       isWaiting: isWaiting ?? this.isWaiting,
       lastShearingDate: lastShearingDate ?? this.lastShearingDate,
@@ -1599,11 +1510,9 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     if (lon.present) {
       map['lon'] = Variable<double>(lon.value);
     }
-    if (sheepCountSmall.present) {
-      map['sheep_count_small'] = Variable<int>(sheepCountSmall.value);
-    }
-    if (sheepCountLarge.present) {
-      map['sheep_count_large'] = Variable<int>(sheepCountLarge.value);
+    if (animals.present) {
+      map['animals'] = Variable<String>(
+          $ClientsTableTable.$converteranimals.toSql(animals.value));
     }
     if (markerColorHex.present) {
       map['marker_color_hex'] = Variable<String>(markerColorHex.value);
@@ -1641,8 +1550,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
           ..write('city: $city, ')
           ..write('lat: $lat, ')
           ..write('lon: $lon, ')
-          ..write('sheepCountSmall: $sheepCountSmall, ')
-          ..write('sheepCountLarge: $sheepCountLarge, ')
+          ..write('animals: $animals, ')
           ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
           ..write('lastShearingDate: $lastShearingDate, ')
@@ -1768,7 +1676,6 @@ class $DistanceMatrixTableTable extends DistanceMatrixTable
 
 class DistanceMatrixRow extends DataClass
     implements Insertable<DistanceMatrixRow> {
-  /// 0 = base, otherwise client.id
   final int fromId;
   final int toId;
   final int distanceMeters;
@@ -1973,6 +1880,711 @@ class DistanceMatrixTableCompanion extends UpdateCompanion<DistanceMatrixRow> {
           ..write('durationSeconds: $durationSeconds, ')
           ..write('computedAt: $computedAt, ')
           ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SpeciesTableTable extends SpeciesTable
+    with TableInfo<$SpeciesTableTable, SpeciesRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SpeciesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _iconKeyMeta =
+      const VerificationMeta('iconKey');
+  @override
+  late final GeneratedColumn<String> iconKey = GeneratedColumn<String>(
+      'icon_key', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _archivedAtMeta =
+      const VerificationMeta('archivedAt');
+  @override
+  late final GeneratedColumn<int> archivedAt = GeneratedColumn<int>(
+      'archived_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, name, iconKey, archivedAt, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'species';
+  @override
+  VerificationContext validateIntegrity(Insertable<SpeciesRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('icon_key')) {
+      context.handle(_iconKeyMeta,
+          iconKey.isAcceptableOrUnknown(data['icon_key']!, _iconKeyMeta));
+    }
+    if (data.containsKey('archived_at')) {
+      context.handle(
+          _archivedAtMeta,
+          archivedAt.isAcceptableOrUnknown(
+              data['archived_at']!, _archivedAtMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SpeciesRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SpeciesRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      iconKey: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}icon_key']),
+      archivedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}archived_at']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $SpeciesTableTable createAlias(String alias) {
+    return $SpeciesTableTable(attachedDatabase, alias);
+  }
+}
+
+class SpeciesRow extends DataClass implements Insertable<SpeciesRow> {
+  final int id;
+  final String name;
+  final String? iconKey;
+  final int? archivedAt;
+  final int createdAt;
+  const SpeciesRow(
+      {required this.id,
+      required this.name,
+      this.iconKey,
+      this.archivedAt,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || iconKey != null) {
+      map['icon_key'] = Variable<String>(iconKey);
+    }
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<int>(archivedAt);
+    }
+    map['created_at'] = Variable<int>(createdAt);
+    return map;
+  }
+
+  SpeciesTableCompanion toCompanion(bool nullToAbsent) {
+    return SpeciesTableCompanion(
+      id: Value(id),
+      name: Value(name),
+      iconKey: iconKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconKey),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SpeciesRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SpeciesRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      iconKey: serializer.fromJson<String?>(json['iconKey']),
+      archivedAt: serializer.fromJson<int?>(json['archivedAt']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'iconKey': serializer.toJson<String?>(iconKey),
+      'archivedAt': serializer.toJson<int?>(archivedAt),
+      'createdAt': serializer.toJson<int>(createdAt),
+    };
+  }
+
+  SpeciesRow copyWith(
+          {int? id,
+          String? name,
+          Value<String?> iconKey = const Value.absent(),
+          Value<int?> archivedAt = const Value.absent(),
+          int? createdAt}) =>
+      SpeciesRow(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        iconKey: iconKey.present ? iconKey.value : this.iconKey,
+        archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  SpeciesRow copyWithCompanion(SpeciesTableCompanion data) {
+    return SpeciesRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      iconKey: data.iconKey.present ? data.iconKey.value : this.iconKey,
+      archivedAt:
+          data.archivedAt.present ? data.archivedAt.value : this.archivedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SpeciesRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('iconKey: $iconKey, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, name, iconKey, archivedAt, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SpeciesRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.iconKey == this.iconKey &&
+          other.archivedAt == this.archivedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class SpeciesTableCompanion extends UpdateCompanion<SpeciesRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String?> iconKey;
+  final Value<int?> archivedAt;
+  final Value<int> createdAt;
+  const SpeciesTableCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.iconKey = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  SpeciesTableCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.iconKey = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    required int createdAt,
+  })  : name = Value(name),
+        createdAt = Value(createdAt);
+  static Insertable<SpeciesRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? iconKey,
+    Expression<int>? archivedAt,
+    Expression<int>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (iconKey != null) 'icon_key': iconKey,
+      if (archivedAt != null) 'archived_at': archivedAt,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  SpeciesTableCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? name,
+      Value<String?>? iconKey,
+      Value<int?>? archivedAt,
+      Value<int>? createdAt}) {
+    return SpeciesTableCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      iconKey: iconKey ?? this.iconKey,
+      archivedAt: archivedAt ?? this.archivedAt,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (iconKey.present) {
+      map['icon_key'] = Variable<String>(iconKey.value);
+    }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<int>(archivedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SpeciesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('iconKey: $iconKey, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AnimalCategoriesTableTable extends AnimalCategoriesTable
+    with TableInfo<$AnimalCategoriesTableTable, AnimalCategoryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AnimalCategoriesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _speciesIdMeta =
+      const VerificationMeta('speciesId');
+  @override
+  late final GeneratedColumn<int> speciesId = GeneratedColumn<int>(
+      'species_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES species (id) ON DELETE CASCADE'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _defaultMinutesMeta =
+      const VerificationMeta('defaultMinutes');
+  @override
+  late final GeneratedColumn<int> defaultMinutes = GeneratedColumn<int>(
+      'default_minutes', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _defaultPriceCentsMeta =
+      const VerificationMeta('defaultPriceCents');
+  @override
+  late final GeneratedColumn<int> defaultPriceCents = GeneratedColumn<int>(
+      'default_price_cents', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _archivedAtMeta =
+      const VerificationMeta('archivedAt');
+  @override
+  late final GeneratedColumn<int> archivedAt = GeneratedColumn<int>(
+      'archived_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        speciesId,
+        name,
+        defaultMinutes,
+        defaultPriceCents,
+        archivedAt,
+        createdAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'animal_categories';
+  @override
+  VerificationContext validateIntegrity(Insertable<AnimalCategoryRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('species_id')) {
+      context.handle(_speciesIdMeta,
+          speciesId.isAcceptableOrUnknown(data['species_id']!, _speciesIdMeta));
+    } else if (isInserting) {
+      context.missing(_speciesIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('default_minutes')) {
+      context.handle(
+          _defaultMinutesMeta,
+          defaultMinutes.isAcceptableOrUnknown(
+              data['default_minutes']!, _defaultMinutesMeta));
+    }
+    if (data.containsKey('default_price_cents')) {
+      context.handle(
+          _defaultPriceCentsMeta,
+          defaultPriceCents.isAcceptableOrUnknown(
+              data['default_price_cents']!, _defaultPriceCentsMeta));
+    }
+    if (data.containsKey('archived_at')) {
+      context.handle(
+          _archivedAtMeta,
+          archivedAt.isAcceptableOrUnknown(
+              data['archived_at']!, _archivedAtMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AnimalCategoryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AnimalCategoryRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      speciesId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}species_id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      defaultMinutes: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}default_minutes']),
+      defaultPriceCents: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}default_price_cents']),
+      archivedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}archived_at']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $AnimalCategoriesTableTable createAlias(String alias) {
+    return $AnimalCategoriesTableTable(attachedDatabase, alias);
+  }
+}
+
+class AnimalCategoryRow extends DataClass
+    implements Insertable<AnimalCategoryRow> {
+  final int id;
+  final int speciesId;
+  final String name;
+  final int? defaultMinutes;
+  final int? defaultPriceCents;
+  final int? archivedAt;
+  final int createdAt;
+  const AnimalCategoryRow(
+      {required this.id,
+      required this.speciesId,
+      required this.name,
+      this.defaultMinutes,
+      this.defaultPriceCents,
+      this.archivedAt,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['species_id'] = Variable<int>(speciesId);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || defaultMinutes != null) {
+      map['default_minutes'] = Variable<int>(defaultMinutes);
+    }
+    if (!nullToAbsent || defaultPriceCents != null) {
+      map['default_price_cents'] = Variable<int>(defaultPriceCents);
+    }
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<int>(archivedAt);
+    }
+    map['created_at'] = Variable<int>(createdAt);
+    return map;
+  }
+
+  AnimalCategoriesTableCompanion toCompanion(bool nullToAbsent) {
+    return AnimalCategoriesTableCompanion(
+      id: Value(id),
+      speciesId: Value(speciesId),
+      name: Value(name),
+      defaultMinutes: defaultMinutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultMinutes),
+      defaultPriceCents: defaultPriceCents == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultPriceCents),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory AnimalCategoryRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AnimalCategoryRow(
+      id: serializer.fromJson<int>(json['id']),
+      speciesId: serializer.fromJson<int>(json['speciesId']),
+      name: serializer.fromJson<String>(json['name']),
+      defaultMinutes: serializer.fromJson<int?>(json['defaultMinutes']),
+      defaultPriceCents: serializer.fromJson<int?>(json['defaultPriceCents']),
+      archivedAt: serializer.fromJson<int?>(json['archivedAt']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'speciesId': serializer.toJson<int>(speciesId),
+      'name': serializer.toJson<String>(name),
+      'defaultMinutes': serializer.toJson<int?>(defaultMinutes),
+      'defaultPriceCents': serializer.toJson<int?>(defaultPriceCents),
+      'archivedAt': serializer.toJson<int?>(archivedAt),
+      'createdAt': serializer.toJson<int>(createdAt),
+    };
+  }
+
+  AnimalCategoryRow copyWith(
+          {int? id,
+          int? speciesId,
+          String? name,
+          Value<int?> defaultMinutes = const Value.absent(),
+          Value<int?> defaultPriceCents = const Value.absent(),
+          Value<int?> archivedAt = const Value.absent(),
+          int? createdAt}) =>
+      AnimalCategoryRow(
+        id: id ?? this.id,
+        speciesId: speciesId ?? this.speciesId,
+        name: name ?? this.name,
+        defaultMinutes:
+            defaultMinutes.present ? defaultMinutes.value : this.defaultMinutes,
+        defaultPriceCents: defaultPriceCents.present
+            ? defaultPriceCents.value
+            : this.defaultPriceCents,
+        archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  AnimalCategoryRow copyWithCompanion(AnimalCategoriesTableCompanion data) {
+    return AnimalCategoryRow(
+      id: data.id.present ? data.id.value : this.id,
+      speciesId: data.speciesId.present ? data.speciesId.value : this.speciesId,
+      name: data.name.present ? data.name.value : this.name,
+      defaultMinutes: data.defaultMinutes.present
+          ? data.defaultMinutes.value
+          : this.defaultMinutes,
+      defaultPriceCents: data.defaultPriceCents.present
+          ? data.defaultPriceCents.value
+          : this.defaultPriceCents,
+      archivedAt:
+          data.archivedAt.present ? data.archivedAt.value : this.archivedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnimalCategoryRow(')
+          ..write('id: $id, ')
+          ..write('speciesId: $speciesId, ')
+          ..write('name: $name, ')
+          ..write('defaultMinutes: $defaultMinutes, ')
+          ..write('defaultPriceCents: $defaultPriceCents, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, speciesId, name, defaultMinutes,
+      defaultPriceCents, archivedAt, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AnimalCategoryRow &&
+          other.id == this.id &&
+          other.speciesId == this.speciesId &&
+          other.name == this.name &&
+          other.defaultMinutes == this.defaultMinutes &&
+          other.defaultPriceCents == this.defaultPriceCents &&
+          other.archivedAt == this.archivedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class AnimalCategoriesTableCompanion
+    extends UpdateCompanion<AnimalCategoryRow> {
+  final Value<int> id;
+  final Value<int> speciesId;
+  final Value<String> name;
+  final Value<int?> defaultMinutes;
+  final Value<int?> defaultPriceCents;
+  final Value<int?> archivedAt;
+  final Value<int> createdAt;
+  const AnimalCategoriesTableCompanion({
+    this.id = const Value.absent(),
+    this.speciesId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.defaultMinutes = const Value.absent(),
+    this.defaultPriceCents = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  AnimalCategoriesTableCompanion.insert({
+    this.id = const Value.absent(),
+    required int speciesId,
+    required String name,
+    this.defaultMinutes = const Value.absent(),
+    this.defaultPriceCents = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    required int createdAt,
+  })  : speciesId = Value(speciesId),
+        name = Value(name),
+        createdAt = Value(createdAt);
+  static Insertable<AnimalCategoryRow> custom({
+    Expression<int>? id,
+    Expression<int>? speciesId,
+    Expression<String>? name,
+    Expression<int>? defaultMinutes,
+    Expression<int>? defaultPriceCents,
+    Expression<int>? archivedAt,
+    Expression<int>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (speciesId != null) 'species_id': speciesId,
+      if (name != null) 'name': name,
+      if (defaultMinutes != null) 'default_minutes': defaultMinutes,
+      if (defaultPriceCents != null) 'default_price_cents': defaultPriceCents,
+      if (archivedAt != null) 'archived_at': archivedAt,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  AnimalCategoriesTableCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? speciesId,
+      Value<String>? name,
+      Value<int?>? defaultMinutes,
+      Value<int?>? defaultPriceCents,
+      Value<int?>? archivedAt,
+      Value<int>? createdAt}) {
+    return AnimalCategoriesTableCompanion(
+      id: id ?? this.id,
+      speciesId: speciesId ?? this.speciesId,
+      name: name ?? this.name,
+      defaultMinutes: defaultMinutes ?? this.defaultMinutes,
+      defaultPriceCents: defaultPriceCents ?? this.defaultPriceCents,
+      archivedAt: archivedAt ?? this.archivedAt,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (speciesId.present) {
+      map['species_id'] = Variable<int>(speciesId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (defaultMinutes.present) {
+      map['default_minutes'] = Variable<int>(defaultMinutes.value);
+    }
+    if (defaultPriceCents.present) {
+      map['default_price_cents'] = Variable<int>(defaultPriceCents.value);
+    }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<int>(archivedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AnimalCategoriesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('speciesId: $speciesId, ')
+          ..write('name: $name, ')
+          ..write('defaultMinutes: $defaultMinutes, ')
+          ..write('defaultPriceCents: $defaultPriceCents, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -2563,50 +3175,22 @@ class $TourStopsTableTable extends TourStopsTable
   late final GeneratedColumn<int> estimatedDepartureMinutes =
       GeneratedColumn<int>('estimated_departure_minutes', aliasedName, false,
           type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _plannedSmallMeta =
-      const VerificationMeta('plannedSmall');
   @override
-  late final GeneratedColumn<int> plannedSmall = GeneratedColumn<int>(
-      'planned_small', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(0));
-  static const VerificationMeta _plannedLargeMeta =
-      const VerificationMeta('plannedLarge');
+  late final GeneratedColumnWithTypeConverter<List<TourStopAnimal>, String>
+      plannedAnimals = GeneratedColumn<String>(
+              'planned_animals', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: const Constant('[]'))
+          .withConverter<List<TourStopAnimal>>(
+              $TourStopsTableTable.$converterplannedAnimals);
   @override
-  late final GeneratedColumn<int> plannedLarge = GeneratedColumn<int>(
-      'planned_large', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(0));
-  static const VerificationMeta _minutesPerSmallSnapshotMeta =
-      const VerificationMeta('minutesPerSmallSnapshot');
-  @override
-  late final GeneratedColumn<int> minutesPerSmallSnapshot =
-      GeneratedColumn<int>('minutes_per_small_snapshot', aliasedName, false,
-          type: DriftSqlType.int,
-          requiredDuringInsert: false,
-          defaultValue: const Constant(0));
-  static const VerificationMeta _minutesPerLargeSnapshotMeta =
-      const VerificationMeta('minutesPerLargeSnapshot');
-  @override
-  late final GeneratedColumn<int> minutesPerLargeSnapshot =
-      GeneratedColumn<int>('minutes_per_large_snapshot', aliasedName, false,
-          type: DriftSqlType.int,
-          requiredDuringInsert: false,
-          defaultValue: const Constant(0));
-  static const VerificationMeta _actualSmallMeta =
-      const VerificationMeta('actualSmall');
-  @override
-  late final GeneratedColumn<int> actualSmall = GeneratedColumn<int>(
-      'actual_small', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _actualLargeMeta =
-      const VerificationMeta('actualLarge');
-  @override
-  late final GeneratedColumn<int> actualLarge = GeneratedColumn<int>(
-      'actual_large', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
+  late final GeneratedColumnWithTypeConverter<List<TourStopAnimal>?, String>
+      actualAnimals = GeneratedColumn<String>(
+              'actual_animals', aliasedName, true,
+              type: DriftSqlType.string, requiredDuringInsert: false)
+          .withConverter<List<TourStopAnimal>?>(
+              $TourStopsTableTable.$converteractualAnimalsn);
   static const VerificationMeta _interventionNoteMeta =
       const VerificationMeta('interventionNote');
   @override
@@ -2628,12 +3212,8 @@ class $TourStopsTableTable extends TourStopsTable
         orderIndex,
         estimatedArrivalMinutes,
         estimatedDepartureMinutes,
-        plannedSmall,
-        plannedLarge,
-        minutesPerSmallSnapshot,
-        minutesPerLargeSnapshot,
-        actualSmall,
-        actualLarge,
+        plannedAnimals,
+        actualAnimals,
         interventionNote,
         feeShareCents
       ];
@@ -2694,44 +3274,6 @@ class $TourStopsTableTable extends TourStopsTable
     } else if (isInserting) {
       context.missing(_estimatedDepartureMinutesMeta);
     }
-    if (data.containsKey('planned_small')) {
-      context.handle(
-          _plannedSmallMeta,
-          plannedSmall.isAcceptableOrUnknown(
-              data['planned_small']!, _plannedSmallMeta));
-    }
-    if (data.containsKey('planned_large')) {
-      context.handle(
-          _plannedLargeMeta,
-          plannedLarge.isAcceptableOrUnknown(
-              data['planned_large']!, _plannedLargeMeta));
-    }
-    if (data.containsKey('minutes_per_small_snapshot')) {
-      context.handle(
-          _minutesPerSmallSnapshotMeta,
-          minutesPerSmallSnapshot.isAcceptableOrUnknown(
-              data['minutes_per_small_snapshot']!,
-              _minutesPerSmallSnapshotMeta));
-    }
-    if (data.containsKey('minutes_per_large_snapshot')) {
-      context.handle(
-          _minutesPerLargeSnapshotMeta,
-          minutesPerLargeSnapshot.isAcceptableOrUnknown(
-              data['minutes_per_large_snapshot']!,
-              _minutesPerLargeSnapshotMeta));
-    }
-    if (data.containsKey('actual_small')) {
-      context.handle(
-          _actualSmallMeta,
-          actualSmall.isAcceptableOrUnknown(
-              data['actual_small']!, _actualSmallMeta));
-    }
-    if (data.containsKey('actual_large')) {
-      context.handle(
-          _actualLargeMeta,
-          actualLarge.isAcceptableOrUnknown(
-              data['actual_large']!, _actualLargeMeta));
-    }
     if (data.containsKey('intervention_note')) {
       context.handle(
           _interventionNoteMeta,
@@ -2771,20 +3313,12 @@ class $TourStopsTableTable extends TourStopsTable
       estimatedDepartureMinutes: attachedDatabase.typeMapping.read(
           DriftSqlType.int,
           data['${effectivePrefix}estimated_departure_minutes'])!,
-      plannedSmall: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}planned_small'])!,
-      plannedLarge: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}planned_large'])!,
-      minutesPerSmallSnapshot: attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
-          data['${effectivePrefix}minutes_per_small_snapshot'])!,
-      minutesPerLargeSnapshot: attachedDatabase.typeMapping.read(
-          DriftSqlType.int,
-          data['${effectivePrefix}minutes_per_large_snapshot'])!,
-      actualSmall: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}actual_small']),
-      actualLarge: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}actual_large']),
+      plannedAnimals: $TourStopsTableTable.$converterplannedAnimals.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}planned_animals'])!),
+      actualAnimals: $TourStopsTableTable.$converteractualAnimalsn.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}actual_animals'])),
       interventionNote: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}intervention_note']),
       feeShareCents: attachedDatabase.typeMapping
@@ -2796,6 +3330,14 @@ class $TourStopsTableTable extends TourStopsTable
   $TourStopsTableTable createAlias(String alias) {
     return $TourStopsTableTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<List<TourStopAnimal>, String> $converterplannedAnimals =
+      const TourStopAnimalListConverter();
+  static TypeConverter<List<TourStopAnimal>, String> $converteractualAnimals =
+      const TourStopAnimalListConverter();
+  static TypeConverter<List<TourStopAnimal>?, String?>
+      $converteractualAnimalsn =
+      NullAwareTypeConverter.wrap($converteractualAnimals);
 }
 
 class TourStopRow extends DataClass implements Insertable<TourStopRow> {
@@ -2806,12 +3348,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
   final int orderIndex;
   final int estimatedArrivalMinutes;
   final int estimatedDepartureMinutes;
-  final int plannedSmall;
-  final int plannedLarge;
-  final int minutesPerSmallSnapshot;
-  final int minutesPerLargeSnapshot;
-  final int? actualSmall;
-  final int? actualLarge;
+  final List<TourStopAnimal> plannedAnimals;
+  final List<TourStopAnimal>? actualAnimals;
   final String? interventionNote;
   final int feeShareCents;
   const TourStopRow(
@@ -2822,12 +3360,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       required this.orderIndex,
       required this.estimatedArrivalMinutes,
       required this.estimatedDepartureMinutes,
-      required this.plannedSmall,
-      required this.plannedLarge,
-      required this.minutesPerSmallSnapshot,
-      required this.minutesPerLargeSnapshot,
-      this.actualSmall,
-      this.actualLarge,
+      required this.plannedAnimals,
+      this.actualAnimals,
       this.interventionNote,
       required this.feeShareCents});
   @override
@@ -2843,15 +3377,13 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
     map['estimated_arrival_minutes'] = Variable<int>(estimatedArrivalMinutes);
     map['estimated_departure_minutes'] =
         Variable<int>(estimatedDepartureMinutes);
-    map['planned_small'] = Variable<int>(plannedSmall);
-    map['planned_large'] = Variable<int>(plannedLarge);
-    map['minutes_per_small_snapshot'] = Variable<int>(minutesPerSmallSnapshot);
-    map['minutes_per_large_snapshot'] = Variable<int>(minutesPerLargeSnapshot);
-    if (!nullToAbsent || actualSmall != null) {
-      map['actual_small'] = Variable<int>(actualSmall);
+    {
+      map['planned_animals'] = Variable<String>(
+          $TourStopsTableTable.$converterplannedAnimals.toSql(plannedAnimals));
     }
-    if (!nullToAbsent || actualLarge != null) {
-      map['actual_large'] = Variable<int>(actualLarge);
+    if (!nullToAbsent || actualAnimals != null) {
+      map['actual_animals'] = Variable<String>(
+          $TourStopsTableTable.$converteractualAnimalsn.toSql(actualAnimals));
     }
     if (!nullToAbsent || interventionNote != null) {
       map['intervention_note'] = Variable<String>(interventionNote);
@@ -2871,16 +3403,10 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       orderIndex: Value(orderIndex),
       estimatedArrivalMinutes: Value(estimatedArrivalMinutes),
       estimatedDepartureMinutes: Value(estimatedDepartureMinutes),
-      plannedSmall: Value(plannedSmall),
-      plannedLarge: Value(plannedLarge),
-      minutesPerSmallSnapshot: Value(minutesPerSmallSnapshot),
-      minutesPerLargeSnapshot: Value(minutesPerLargeSnapshot),
-      actualSmall: actualSmall == null && nullToAbsent
+      plannedAnimals: Value(plannedAnimals),
+      actualAnimals: actualAnimals == null && nullToAbsent
           ? const Value.absent()
-          : Value(actualSmall),
-      actualLarge: actualLarge == null && nullToAbsent
-          ? const Value.absent()
-          : Value(actualLarge),
+          : Value(actualAnimals),
       interventionNote: interventionNote == null && nullToAbsent
           ? const Value.absent()
           : Value(interventionNote),
@@ -2902,14 +3428,10 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           serializer.fromJson<int>(json['estimatedArrivalMinutes']),
       estimatedDepartureMinutes:
           serializer.fromJson<int>(json['estimatedDepartureMinutes']),
-      plannedSmall: serializer.fromJson<int>(json['plannedSmall']),
-      plannedLarge: serializer.fromJson<int>(json['plannedLarge']),
-      minutesPerSmallSnapshot:
-          serializer.fromJson<int>(json['minutesPerSmallSnapshot']),
-      minutesPerLargeSnapshot:
-          serializer.fromJson<int>(json['minutesPerLargeSnapshot']),
-      actualSmall: serializer.fromJson<int?>(json['actualSmall']),
-      actualLarge: serializer.fromJson<int?>(json['actualLarge']),
+      plannedAnimals:
+          serializer.fromJson<List<TourStopAnimal>>(json['plannedAnimals']),
+      actualAnimals:
+          serializer.fromJson<List<TourStopAnimal>?>(json['actualAnimals']),
       interventionNote: serializer.fromJson<String?>(json['interventionNote']),
       feeShareCents: serializer.fromJson<int>(json['feeShareCents']),
     );
@@ -2927,14 +3449,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           serializer.toJson<int>(estimatedArrivalMinutes),
       'estimatedDepartureMinutes':
           serializer.toJson<int>(estimatedDepartureMinutes),
-      'plannedSmall': serializer.toJson<int>(plannedSmall),
-      'plannedLarge': serializer.toJson<int>(plannedLarge),
-      'minutesPerSmallSnapshot':
-          serializer.toJson<int>(minutesPerSmallSnapshot),
-      'minutesPerLargeSnapshot':
-          serializer.toJson<int>(minutesPerLargeSnapshot),
-      'actualSmall': serializer.toJson<int?>(actualSmall),
-      'actualLarge': serializer.toJson<int?>(actualLarge),
+      'plannedAnimals': serializer.toJson<List<TourStopAnimal>>(plannedAnimals),
+      'actualAnimals': serializer.toJson<List<TourStopAnimal>?>(actualAnimals),
       'interventionNote': serializer.toJson<String?>(interventionNote),
       'feeShareCents': serializer.toJson<int>(feeShareCents),
     };
@@ -2948,12 +3464,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           int? orderIndex,
           int? estimatedArrivalMinutes,
           int? estimatedDepartureMinutes,
-          int? plannedSmall,
-          int? plannedLarge,
-          int? minutesPerSmallSnapshot,
-          int? minutesPerLargeSnapshot,
-          Value<int?> actualSmall = const Value.absent(),
-          Value<int?> actualLarge = const Value.absent(),
+          List<TourStopAnimal>? plannedAnimals,
+          Value<List<TourStopAnimal>?> actualAnimals = const Value.absent(),
           Value<String?> interventionNote = const Value.absent(),
           int? feeShareCents}) =>
       TourStopRow(
@@ -2966,14 +3478,9 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
             estimatedArrivalMinutes ?? this.estimatedArrivalMinutes,
         estimatedDepartureMinutes:
             estimatedDepartureMinutes ?? this.estimatedDepartureMinutes,
-        plannedSmall: plannedSmall ?? this.plannedSmall,
-        plannedLarge: plannedLarge ?? this.plannedLarge,
-        minutesPerSmallSnapshot:
-            minutesPerSmallSnapshot ?? this.minutesPerSmallSnapshot,
-        minutesPerLargeSnapshot:
-            minutesPerLargeSnapshot ?? this.minutesPerLargeSnapshot,
-        actualSmall: actualSmall.present ? actualSmall.value : this.actualSmall,
-        actualLarge: actualLarge.present ? actualLarge.value : this.actualLarge,
+        plannedAnimals: plannedAnimals ?? this.plannedAnimals,
+        actualAnimals:
+            actualAnimals.present ? actualAnimals.value : this.actualAnimals,
         interventionNote: interventionNote.present
             ? interventionNote.value
             : this.interventionNote,
@@ -2995,22 +3502,12 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       estimatedDepartureMinutes: data.estimatedDepartureMinutes.present
           ? data.estimatedDepartureMinutes.value
           : this.estimatedDepartureMinutes,
-      plannedSmall: data.plannedSmall.present
-          ? data.plannedSmall.value
-          : this.plannedSmall,
-      plannedLarge: data.plannedLarge.present
-          ? data.plannedLarge.value
-          : this.plannedLarge,
-      minutesPerSmallSnapshot: data.minutesPerSmallSnapshot.present
-          ? data.minutesPerSmallSnapshot.value
-          : this.minutesPerSmallSnapshot,
-      minutesPerLargeSnapshot: data.minutesPerLargeSnapshot.present
-          ? data.minutesPerLargeSnapshot.value
-          : this.minutesPerLargeSnapshot,
-      actualSmall:
-          data.actualSmall.present ? data.actualSmall.value : this.actualSmall,
-      actualLarge:
-          data.actualLarge.present ? data.actualLarge.value : this.actualLarge,
+      plannedAnimals: data.plannedAnimals.present
+          ? data.plannedAnimals.value
+          : this.plannedAnimals,
+      actualAnimals: data.actualAnimals.present
+          ? data.actualAnimals.value
+          : this.actualAnimals,
       interventionNote: data.interventionNote.present
           ? data.interventionNote.value
           : this.interventionNote,
@@ -3030,12 +3527,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           ..write('orderIndex: $orderIndex, ')
           ..write('estimatedArrivalMinutes: $estimatedArrivalMinutes, ')
           ..write('estimatedDepartureMinutes: $estimatedDepartureMinutes, ')
-          ..write('plannedSmall: $plannedSmall, ')
-          ..write('plannedLarge: $plannedLarge, ')
-          ..write('minutesPerSmallSnapshot: $minutesPerSmallSnapshot, ')
-          ..write('minutesPerLargeSnapshot: $minutesPerLargeSnapshot, ')
-          ..write('actualSmall: $actualSmall, ')
-          ..write('actualLarge: $actualLarge, ')
+          ..write('plannedAnimals: $plannedAnimals, ')
+          ..write('actualAnimals: $actualAnimals, ')
           ..write('interventionNote: $interventionNote, ')
           ..write('feeShareCents: $feeShareCents')
           ..write(')'))
@@ -3051,12 +3544,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       orderIndex,
       estimatedArrivalMinutes,
       estimatedDepartureMinutes,
-      plannedSmall,
-      plannedLarge,
-      minutesPerSmallSnapshot,
-      minutesPerLargeSnapshot,
-      actualSmall,
-      actualLarge,
+      plannedAnimals,
+      actualAnimals,
       interventionNote,
       feeShareCents);
   @override
@@ -3070,12 +3559,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           other.orderIndex == this.orderIndex &&
           other.estimatedArrivalMinutes == this.estimatedArrivalMinutes &&
           other.estimatedDepartureMinutes == this.estimatedDepartureMinutes &&
-          other.plannedSmall == this.plannedSmall &&
-          other.plannedLarge == this.plannedLarge &&
-          other.minutesPerSmallSnapshot == this.minutesPerSmallSnapshot &&
-          other.minutesPerLargeSnapshot == this.minutesPerLargeSnapshot &&
-          other.actualSmall == this.actualSmall &&
-          other.actualLarge == this.actualLarge &&
+          other.plannedAnimals == this.plannedAnimals &&
+          other.actualAnimals == this.actualAnimals &&
           other.interventionNote == this.interventionNote &&
           other.feeShareCents == this.feeShareCents);
 }
@@ -3088,12 +3573,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
   final Value<int> orderIndex;
   final Value<int> estimatedArrivalMinutes;
   final Value<int> estimatedDepartureMinutes;
-  final Value<int> plannedSmall;
-  final Value<int> plannedLarge;
-  final Value<int> minutesPerSmallSnapshot;
-  final Value<int> minutesPerLargeSnapshot;
-  final Value<int?> actualSmall;
-  final Value<int?> actualLarge;
+  final Value<List<TourStopAnimal>> plannedAnimals;
+  final Value<List<TourStopAnimal>?> actualAnimals;
   final Value<String?> interventionNote;
   final Value<int> feeShareCents;
   const TourStopsTableCompanion({
@@ -3104,12 +3585,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
     this.orderIndex = const Value.absent(),
     this.estimatedArrivalMinutes = const Value.absent(),
     this.estimatedDepartureMinutes = const Value.absent(),
-    this.plannedSmall = const Value.absent(),
-    this.plannedLarge = const Value.absent(),
-    this.minutesPerSmallSnapshot = const Value.absent(),
-    this.minutesPerLargeSnapshot = const Value.absent(),
-    this.actualSmall = const Value.absent(),
-    this.actualLarge = const Value.absent(),
+    this.plannedAnimals = const Value.absent(),
+    this.actualAnimals = const Value.absent(),
     this.interventionNote = const Value.absent(),
     this.feeShareCents = const Value.absent(),
   });
@@ -3121,12 +3598,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
     required int orderIndex,
     required int estimatedArrivalMinutes,
     required int estimatedDepartureMinutes,
-    this.plannedSmall = const Value.absent(),
-    this.plannedLarge = const Value.absent(),
-    this.minutesPerSmallSnapshot = const Value.absent(),
-    this.minutesPerLargeSnapshot = const Value.absent(),
-    this.actualSmall = const Value.absent(),
-    this.actualLarge = const Value.absent(),
+    this.plannedAnimals = const Value.absent(),
+    this.actualAnimals = const Value.absent(),
     this.interventionNote = const Value.absent(),
     required int feeShareCents,
   })  : tourId = Value(tourId),
@@ -3143,12 +3616,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
     Expression<int>? orderIndex,
     Expression<int>? estimatedArrivalMinutes,
     Expression<int>? estimatedDepartureMinutes,
-    Expression<int>? plannedSmall,
-    Expression<int>? plannedLarge,
-    Expression<int>? minutesPerSmallSnapshot,
-    Expression<int>? minutesPerLargeSnapshot,
-    Expression<int>? actualSmall,
-    Expression<int>? actualLarge,
+    Expression<String>? plannedAnimals,
+    Expression<String>? actualAnimals,
     Expression<String>? interventionNote,
     Expression<int>? feeShareCents,
   }) {
@@ -3163,14 +3632,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
         'estimated_arrival_minutes': estimatedArrivalMinutes,
       if (estimatedDepartureMinutes != null)
         'estimated_departure_minutes': estimatedDepartureMinutes,
-      if (plannedSmall != null) 'planned_small': plannedSmall,
-      if (plannedLarge != null) 'planned_large': plannedLarge,
-      if (minutesPerSmallSnapshot != null)
-        'minutes_per_small_snapshot': minutesPerSmallSnapshot,
-      if (minutesPerLargeSnapshot != null)
-        'minutes_per_large_snapshot': minutesPerLargeSnapshot,
-      if (actualSmall != null) 'actual_small': actualSmall,
-      if (actualLarge != null) 'actual_large': actualLarge,
+      if (plannedAnimals != null) 'planned_animals': plannedAnimals,
+      if (actualAnimals != null) 'actual_animals': actualAnimals,
       if (interventionNote != null) 'intervention_note': interventionNote,
       if (feeShareCents != null) 'fee_share_cents': feeShareCents,
     });
@@ -3184,12 +3647,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
       Value<int>? orderIndex,
       Value<int>? estimatedArrivalMinutes,
       Value<int>? estimatedDepartureMinutes,
-      Value<int>? plannedSmall,
-      Value<int>? plannedLarge,
-      Value<int>? minutesPerSmallSnapshot,
-      Value<int>? minutesPerLargeSnapshot,
-      Value<int?>? actualSmall,
-      Value<int?>? actualLarge,
+      Value<List<TourStopAnimal>>? plannedAnimals,
+      Value<List<TourStopAnimal>?>? actualAnimals,
       Value<String?>? interventionNote,
       Value<int>? feeShareCents}) {
     return TourStopsTableCompanion(
@@ -3202,14 +3661,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
           estimatedArrivalMinutes ?? this.estimatedArrivalMinutes,
       estimatedDepartureMinutes:
           estimatedDepartureMinutes ?? this.estimatedDepartureMinutes,
-      plannedSmall: plannedSmall ?? this.plannedSmall,
-      plannedLarge: plannedLarge ?? this.plannedLarge,
-      minutesPerSmallSnapshot:
-          minutesPerSmallSnapshot ?? this.minutesPerSmallSnapshot,
-      minutesPerLargeSnapshot:
-          minutesPerLargeSnapshot ?? this.minutesPerLargeSnapshot,
-      actualSmall: actualSmall ?? this.actualSmall,
-      actualLarge: actualLarge ?? this.actualLarge,
+      plannedAnimals: plannedAnimals ?? this.plannedAnimals,
+      actualAnimals: actualAnimals ?? this.actualAnimals,
       interventionNote: interventionNote ?? this.interventionNote,
       feeShareCents: feeShareCents ?? this.feeShareCents,
     );
@@ -3241,25 +3694,15 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
       map['estimated_departure_minutes'] =
           Variable<int>(estimatedDepartureMinutes.value);
     }
-    if (plannedSmall.present) {
-      map['planned_small'] = Variable<int>(plannedSmall.value);
+    if (plannedAnimals.present) {
+      map['planned_animals'] = Variable<String>($TourStopsTableTable
+          .$converterplannedAnimals
+          .toSql(plannedAnimals.value));
     }
-    if (plannedLarge.present) {
-      map['planned_large'] = Variable<int>(plannedLarge.value);
-    }
-    if (minutesPerSmallSnapshot.present) {
-      map['minutes_per_small_snapshot'] =
-          Variable<int>(minutesPerSmallSnapshot.value);
-    }
-    if (minutesPerLargeSnapshot.present) {
-      map['minutes_per_large_snapshot'] =
-          Variable<int>(minutesPerLargeSnapshot.value);
-    }
-    if (actualSmall.present) {
-      map['actual_small'] = Variable<int>(actualSmall.value);
-    }
-    if (actualLarge.present) {
-      map['actual_large'] = Variable<int>(actualLarge.value);
+    if (actualAnimals.present) {
+      map['actual_animals'] = Variable<String>($TourStopsTableTable
+          .$converteractualAnimalsn
+          .toSql(actualAnimals.value));
     }
     if (interventionNote.present) {
       map['intervention_note'] = Variable<String>(interventionNote.value);
@@ -3280,12 +3723,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
           ..write('orderIndex: $orderIndex, ')
           ..write('estimatedArrivalMinutes: $estimatedArrivalMinutes, ')
           ..write('estimatedDepartureMinutes: $estimatedDepartureMinutes, ')
-          ..write('plannedSmall: $plannedSmall, ')
-          ..write('plannedLarge: $plannedLarge, ')
-          ..write('minutesPerSmallSnapshot: $minutesPerSmallSnapshot, ')
-          ..write('minutesPerLargeSnapshot: $minutesPerLargeSnapshot, ')
-          ..write('actualSmall: $actualSmall, ')
-          ..write('actualLarge: $actualLarge, ')
+          ..write('plannedAnimals: $plannedAnimals, ')
+          ..write('actualAnimals: $actualAnimals, ')
           ..write('interventionNote: $interventionNote, ')
           ..write('feeShareCents: $feeShareCents')
           ..write(')'))
@@ -3322,22 +3761,14 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
   late final GeneratedColumn<int> date = GeneratedColumn<int>(
       'date', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
-  static const VerificationMeta _sheepCountSmallMeta =
-      const VerificationMeta('sheepCountSmall');
   @override
-  late final GeneratedColumn<int> sheepCountSmall = GeneratedColumn<int>(
-      'sheep_count_small', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(0));
-  static const VerificationMeta _sheepCountLargeMeta =
-      const VerificationMeta('sheepCountLarge');
-  @override
-  late final GeneratedColumn<int> sheepCountLarge = GeneratedColumn<int>(
-      'sheep_count_large', aliasedName, false,
-      type: DriftSqlType.int,
-      requiredDuringInsert: false,
-      defaultValue: const Constant(0));
+  late final GeneratedColumnWithTypeConverter<List<TourStopAnimal>, String>
+      animals = GeneratedColumn<String>('animals', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: const Constant('[]'))
+          .withConverter<List<TourStopAnimal>>(
+              $ManualHistoryEntriesTableTable.$converteranimals);
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -3356,16 +3787,8 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
       'updated_at', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [
-        id,
-        clientId,
-        date,
-        sheepCountSmall,
-        sheepCountLarge,
-        note,
-        createdAt,
-        updatedAt
-      ];
+  List<GeneratedColumn> get $columns =>
+      [id, clientId, date, animals, note, createdAt, updatedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3391,18 +3814,6 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
           _dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
     } else if (isInserting) {
       context.missing(_dateMeta);
-    }
-    if (data.containsKey('sheep_count_small')) {
-      context.handle(
-          _sheepCountSmallMeta,
-          sheepCountSmall.isAcceptableOrUnknown(
-              data['sheep_count_small']!, _sheepCountSmallMeta));
-    }
-    if (data.containsKey('sheep_count_large')) {
-      context.handle(
-          _sheepCountLargeMeta,
-          sheepCountLarge.isAcceptableOrUnknown(
-              data['sheep_count_large']!, _sheepCountLargeMeta));
     }
     if (data.containsKey('note')) {
       context.handle(
@@ -3435,10 +3846,9 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
           .read(DriftSqlType.int, data['${effectivePrefix}client_id'])!,
       date: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}date'])!,
-      sheepCountSmall: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sheep_count_small'])!,
-      sheepCountLarge: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}sheep_count_large'])!,
+      animals: $ManualHistoryEntriesTableTable.$converteranimals.fromSql(
+          attachedDatabase.typeMapping
+              .read(DriftSqlType.string, data['${effectivePrefix}animals'])!),
       note: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}note']),
       createdAt: attachedDatabase.typeMapping
@@ -3452,6 +3862,9 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
   $ManualHistoryEntriesTableTable createAlias(String alias) {
     return $ManualHistoryEntriesTableTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<List<TourStopAnimal>, String> $converteranimals =
+      const TourStopAnimalListConverter();
 }
 
 class ManualHistoryEntryRow extends DataClass
@@ -3459,8 +3872,7 @@ class ManualHistoryEntryRow extends DataClass
   final int id;
   final int clientId;
   final int date;
-  final int sheepCountSmall;
-  final int sheepCountLarge;
+  final List<TourStopAnimal> animals;
   final String? note;
   final int createdAt;
   final int updatedAt;
@@ -3468,8 +3880,7 @@ class ManualHistoryEntryRow extends DataClass
       {required this.id,
       required this.clientId,
       required this.date,
-      required this.sheepCountSmall,
-      required this.sheepCountLarge,
+      required this.animals,
       this.note,
       required this.createdAt,
       required this.updatedAt});
@@ -3479,8 +3890,10 @@ class ManualHistoryEntryRow extends DataClass
     map['id'] = Variable<int>(id);
     map['client_id'] = Variable<int>(clientId);
     map['date'] = Variable<int>(date);
-    map['sheep_count_small'] = Variable<int>(sheepCountSmall);
-    map['sheep_count_large'] = Variable<int>(sheepCountLarge);
+    {
+      map['animals'] = Variable<String>(
+          $ManualHistoryEntriesTableTable.$converteranimals.toSql(animals));
+    }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
     }
@@ -3494,8 +3907,7 @@ class ManualHistoryEntryRow extends DataClass
       id: Value(id),
       clientId: Value(clientId),
       date: Value(date),
-      sheepCountSmall: Value(sheepCountSmall),
-      sheepCountLarge: Value(sheepCountLarge),
+      animals: Value(animals),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -3509,8 +3921,7 @@ class ManualHistoryEntryRow extends DataClass
       id: serializer.fromJson<int>(json['id']),
       clientId: serializer.fromJson<int>(json['clientId']),
       date: serializer.fromJson<int>(json['date']),
-      sheepCountSmall: serializer.fromJson<int>(json['sheepCountSmall']),
-      sheepCountLarge: serializer.fromJson<int>(json['sheepCountLarge']),
+      animals: serializer.fromJson<List<TourStopAnimal>>(json['animals']),
       note: serializer.fromJson<String?>(json['note']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
@@ -3523,8 +3934,7 @@ class ManualHistoryEntryRow extends DataClass
       'id': serializer.toJson<int>(id),
       'clientId': serializer.toJson<int>(clientId),
       'date': serializer.toJson<int>(date),
-      'sheepCountSmall': serializer.toJson<int>(sheepCountSmall),
-      'sheepCountLarge': serializer.toJson<int>(sheepCountLarge),
+      'animals': serializer.toJson<List<TourStopAnimal>>(animals),
       'note': serializer.toJson<String?>(note),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
@@ -3535,8 +3945,7 @@ class ManualHistoryEntryRow extends DataClass
           {int? id,
           int? clientId,
           int? date,
-          int? sheepCountSmall,
-          int? sheepCountLarge,
+          List<TourStopAnimal>? animals,
           Value<String?> note = const Value.absent(),
           int? createdAt,
           int? updatedAt}) =>
@@ -3544,8 +3953,7 @@ class ManualHistoryEntryRow extends DataClass
         id: id ?? this.id,
         clientId: clientId ?? this.clientId,
         date: date ?? this.date,
-        sheepCountSmall: sheepCountSmall ?? this.sheepCountSmall,
-        sheepCountLarge: sheepCountLarge ?? this.sheepCountLarge,
+        animals: animals ?? this.animals,
         note: note.present ? note.value : this.note,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
@@ -3556,12 +3964,7 @@ class ManualHistoryEntryRow extends DataClass
       id: data.id.present ? data.id.value : this.id,
       clientId: data.clientId.present ? data.clientId.value : this.clientId,
       date: data.date.present ? data.date.value : this.date,
-      sheepCountSmall: data.sheepCountSmall.present
-          ? data.sheepCountSmall.value
-          : this.sheepCountSmall,
-      sheepCountLarge: data.sheepCountLarge.present
-          ? data.sheepCountLarge.value
-          : this.sheepCountLarge,
+      animals: data.animals.present ? data.animals.value : this.animals,
       note: data.note.present ? data.note.value : this.note,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -3574,8 +3977,7 @@ class ManualHistoryEntryRow extends DataClass
           ..write('id: $id, ')
           ..write('clientId: $clientId, ')
           ..write('date: $date, ')
-          ..write('sheepCountSmall: $sheepCountSmall, ')
-          ..write('sheepCountLarge: $sheepCountLarge, ')
+          ..write('animals: $animals, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -3584,8 +3986,8 @@ class ManualHistoryEntryRow extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, clientId, date, sheepCountSmall,
-      sheepCountLarge, note, createdAt, updatedAt);
+  int get hashCode =>
+      Object.hash(id, clientId, date, animals, note, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3593,8 +3995,7 @@ class ManualHistoryEntryRow extends DataClass
           other.id == this.id &&
           other.clientId == this.clientId &&
           other.date == this.date &&
-          other.sheepCountSmall == this.sheepCountSmall &&
-          other.sheepCountLarge == this.sheepCountLarge &&
+          other.animals == this.animals &&
           other.note == this.note &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -3605,8 +4006,7 @@ class ManualHistoryEntriesTableCompanion
   final Value<int> id;
   final Value<int> clientId;
   final Value<int> date;
-  final Value<int> sheepCountSmall;
-  final Value<int> sheepCountLarge;
+  final Value<List<TourStopAnimal>> animals;
   final Value<String?> note;
   final Value<int> createdAt;
   final Value<int> updatedAt;
@@ -3614,8 +4014,7 @@ class ManualHistoryEntriesTableCompanion
     this.id = const Value.absent(),
     this.clientId = const Value.absent(),
     this.date = const Value.absent(),
-    this.sheepCountSmall = const Value.absent(),
-    this.sheepCountLarge = const Value.absent(),
+    this.animals = const Value.absent(),
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -3624,8 +4023,7 @@ class ManualHistoryEntriesTableCompanion
     this.id = const Value.absent(),
     required int clientId,
     required int date,
-    this.sheepCountSmall = const Value.absent(),
-    this.sheepCountLarge = const Value.absent(),
+    this.animals = const Value.absent(),
     this.note = const Value.absent(),
     required int createdAt,
     required int updatedAt,
@@ -3637,8 +4035,7 @@ class ManualHistoryEntriesTableCompanion
     Expression<int>? id,
     Expression<int>? clientId,
     Expression<int>? date,
-    Expression<int>? sheepCountSmall,
-    Expression<int>? sheepCountLarge,
+    Expression<String>? animals,
     Expression<String>? note,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
@@ -3647,8 +4044,7 @@ class ManualHistoryEntriesTableCompanion
       if (id != null) 'id': id,
       if (clientId != null) 'client_id': clientId,
       if (date != null) 'date': date,
-      if (sheepCountSmall != null) 'sheep_count_small': sheepCountSmall,
-      if (sheepCountLarge != null) 'sheep_count_large': sheepCountLarge,
+      if (animals != null) 'animals': animals,
       if (note != null) 'note': note,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -3659,8 +4055,7 @@ class ManualHistoryEntriesTableCompanion
       {Value<int>? id,
       Value<int>? clientId,
       Value<int>? date,
-      Value<int>? sheepCountSmall,
-      Value<int>? sheepCountLarge,
+      Value<List<TourStopAnimal>>? animals,
       Value<String?>? note,
       Value<int>? createdAt,
       Value<int>? updatedAt}) {
@@ -3668,8 +4063,7 @@ class ManualHistoryEntriesTableCompanion
       id: id ?? this.id,
       clientId: clientId ?? this.clientId,
       date: date ?? this.date,
-      sheepCountSmall: sheepCountSmall ?? this.sheepCountSmall,
-      sheepCountLarge: sheepCountLarge ?? this.sheepCountLarge,
+      animals: animals ?? this.animals,
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -3688,11 +4082,10 @@ class ManualHistoryEntriesTableCompanion
     if (date.present) {
       map['date'] = Variable<int>(date.value);
     }
-    if (sheepCountSmall.present) {
-      map['sheep_count_small'] = Variable<int>(sheepCountSmall.value);
-    }
-    if (sheepCountLarge.present) {
-      map['sheep_count_large'] = Variable<int>(sheepCountLarge.value);
+    if (animals.present) {
+      map['animals'] = Variable<String>($ManualHistoryEntriesTableTable
+          .$converteranimals
+          .toSql(animals.value));
     }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
@@ -3712,8 +4105,7 @@ class ManualHistoryEntriesTableCompanion
           ..write('id: $id, ')
           ..write('clientId: $clientId, ')
           ..write('date: $date, ')
-          ..write('sheepCountSmall: $sheepCountSmall, ')
-          ..write('sheepCountLarge: $sheepCountLarge, ')
+          ..write('animals: $animals, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -3729,6 +4121,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ClientsTableTable clientsTable = $ClientsTableTable(this);
   late final $DistanceMatrixTableTable distanceMatrixTable =
       $DistanceMatrixTableTable(this);
+  late final $SpeciesTableTable speciesTable = $SpeciesTableTable(this);
+  late final $AnimalCategoriesTableTable animalCategoriesTable =
+      $AnimalCategoriesTableTable(this);
   late final $ToursTableTable toursTable = $ToursTableTable(this);
   late final $TourStopsTableTable tourStopsTable = $TourStopsTableTable(this);
   late final $ManualHistoryEntriesTableTable manualHistoryEntriesTable =
@@ -3741,6 +4136,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         settingsTable,
         clientsTable,
         distanceMatrixTable,
+        speciesTable,
+        animalCategoriesTable,
         toursTable,
         tourStopsTable,
         manualHistoryEntriesTable
@@ -3748,6 +4145,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
         [
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('species',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('animal_categories', kind: UpdateKind.delete),
+            ],
+          ),
           WritePropagation(
             on: TableUpdateQuery.onTableName('tours',
                 limitUpdateKind: UpdateKind.delete),
@@ -3780,8 +4184,6 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   required double baseLat,
   required double baseLon,
   Value<int> defaultRadiusKm,
-  Value<int> defaultMinutesPerSmall,
-  Value<int> defaultMinutesPerLarge,
   Value<int> travelFeeEurosPerBracket,
   Value<int> bracketKm,
   Value<String> themeMode,
@@ -3789,9 +4191,10 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   Value<String> markerWaitingColor,
   Value<String> markerScheduledColor,
   Value<String> markerDoneColor,
-  Value<String> markerNoSheepColor,
+  Value<String> markerNoAnimalsColor,
   Value<String> markerBannedColor,
   Value<int> seasonStartedAt,
+  Value<String?> appAvatarKey,
 });
 typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
     Function({
@@ -3800,8 +4203,6 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<double> baseLat,
   Value<double> baseLon,
   Value<int> defaultRadiusKm,
-  Value<int> defaultMinutesPerSmall,
-  Value<int> defaultMinutesPerLarge,
   Value<int> travelFeeEurosPerBracket,
   Value<int> bracketKm,
   Value<String> themeMode,
@@ -3809,9 +4210,10 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<String> markerWaitingColor,
   Value<String> markerScheduledColor,
   Value<String> markerDoneColor,
-  Value<String> markerNoSheepColor,
+  Value<String> markerNoAnimalsColor,
   Value<String> markerBannedColor,
   Value<int> seasonStartedAt,
+  Value<String?> appAvatarKey,
 });
 
 class $$SettingsTableTableFilterComposer
@@ -3840,14 +4242,6 @@ class $$SettingsTableTableFilterComposer
       column: $table.defaultRadiusKm,
       builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get defaultMinutesPerSmall => $composableBuilder(
-      column: $table.defaultMinutesPerSmall,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get defaultMinutesPerLarge => $composableBuilder(
-      column: $table.defaultMinutesPerLarge,
-      builder: (column) => ColumnFilters(column));
-
   ColumnFilters<int> get travelFeeEurosPerBracket => $composableBuilder(
       column: $table.travelFeeEurosPerBracket,
       builder: (column) => ColumnFilters(column));
@@ -3874,8 +4268,8 @@ class $$SettingsTableTableFilterComposer
       column: $table.markerDoneColor,
       builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<String> get markerNoSheepColor => $composableBuilder(
-      column: $table.markerNoSheepColor,
+  ColumnFilters<String> get markerNoAnimalsColor => $composableBuilder(
+      column: $table.markerNoAnimalsColor,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get markerBannedColor => $composableBuilder(
@@ -3885,6 +4279,9 @@ class $$SettingsTableTableFilterComposer
   ColumnFilters<int> get seasonStartedAt => $composableBuilder(
       column: $table.seasonStartedAt,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get appAvatarKey => $composableBuilder(
+      column: $table.appAvatarKey, builder: (column) => ColumnFilters(column));
 }
 
 class $$SettingsTableTableOrderingComposer
@@ -3913,14 +4310,6 @@ class $$SettingsTableTableOrderingComposer
       column: $table.defaultRadiusKm,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get defaultMinutesPerSmall => $composableBuilder(
-      column: $table.defaultMinutesPerSmall,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get defaultMinutesPerLarge => $composableBuilder(
-      column: $table.defaultMinutesPerLarge,
-      builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<int> get travelFeeEurosPerBracket => $composableBuilder(
       column: $table.travelFeeEurosPerBracket,
       builder: (column) => ColumnOrderings(column));
@@ -3947,8 +4336,8 @@ class $$SettingsTableTableOrderingComposer
       column: $table.markerDoneColor,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<String> get markerNoSheepColor => $composableBuilder(
-      column: $table.markerNoSheepColor,
+  ColumnOrderings<String> get markerNoAnimalsColor => $composableBuilder(
+      column: $table.markerNoAnimalsColor,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get markerBannedColor => $composableBuilder(
@@ -3957,6 +4346,10 @@ class $$SettingsTableTableOrderingComposer
 
   ColumnOrderings<int> get seasonStartedAt => $composableBuilder(
       column: $table.seasonStartedAt,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get appAvatarKey => $composableBuilder(
+      column: $table.appAvatarKey,
       builder: (column) => ColumnOrderings(column));
 }
 
@@ -3984,12 +4377,6 @@ class $$SettingsTableTableAnnotationComposer
   GeneratedColumn<int> get defaultRadiusKm => $composableBuilder(
       column: $table.defaultRadiusKm, builder: (column) => column);
 
-  GeneratedColumn<int> get defaultMinutesPerSmall => $composableBuilder(
-      column: $table.defaultMinutesPerSmall, builder: (column) => column);
-
-  GeneratedColumn<int> get defaultMinutesPerLarge => $composableBuilder(
-      column: $table.defaultMinutesPerLarge, builder: (column) => column);
-
   GeneratedColumn<int> get travelFeeEurosPerBracket => $composableBuilder(
       column: $table.travelFeeEurosPerBracket, builder: (column) => column);
 
@@ -4011,14 +4398,17 @@ class $$SettingsTableTableAnnotationComposer
   GeneratedColumn<String> get markerDoneColor => $composableBuilder(
       column: $table.markerDoneColor, builder: (column) => column);
 
-  GeneratedColumn<String> get markerNoSheepColor => $composableBuilder(
-      column: $table.markerNoSheepColor, builder: (column) => column);
+  GeneratedColumn<String> get markerNoAnimalsColor => $composableBuilder(
+      column: $table.markerNoAnimalsColor, builder: (column) => column);
 
   GeneratedColumn<String> get markerBannedColor => $composableBuilder(
       column: $table.markerBannedColor, builder: (column) => column);
 
   GeneratedColumn<int> get seasonStartedAt => $composableBuilder(
       column: $table.seasonStartedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get appAvatarKey => $composableBuilder(
+      column: $table.appAvatarKey, builder: (column) => column);
 }
 
 class $$SettingsTableTableTableManager extends RootTableManager<
@@ -4052,8 +4442,6 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<double> baseLat = const Value.absent(),
             Value<double> baseLon = const Value.absent(),
             Value<int> defaultRadiusKm = const Value.absent(),
-            Value<int> defaultMinutesPerSmall = const Value.absent(),
-            Value<int> defaultMinutesPerLarge = const Value.absent(),
             Value<int> travelFeeEurosPerBracket = const Value.absent(),
             Value<int> bracketKm = const Value.absent(),
             Value<String> themeMode = const Value.absent(),
@@ -4061,9 +4449,10 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> markerWaitingColor = const Value.absent(),
             Value<String> markerScheduledColor = const Value.absent(),
             Value<String> markerDoneColor = const Value.absent(),
-            Value<String> markerNoSheepColor = const Value.absent(),
+            Value<String> markerNoAnimalsColor = const Value.absent(),
             Value<String> markerBannedColor = const Value.absent(),
             Value<int> seasonStartedAt = const Value.absent(),
+            Value<String?> appAvatarKey = const Value.absent(),
           }) =>
               SettingsTableCompanion(
             id: id,
@@ -4071,8 +4460,6 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             baseLat: baseLat,
             baseLon: baseLon,
             defaultRadiusKm: defaultRadiusKm,
-            defaultMinutesPerSmall: defaultMinutesPerSmall,
-            defaultMinutesPerLarge: defaultMinutesPerLarge,
             travelFeeEurosPerBracket: travelFeeEurosPerBracket,
             bracketKm: bracketKm,
             themeMode: themeMode,
@@ -4080,9 +4467,10 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             markerWaitingColor: markerWaitingColor,
             markerScheduledColor: markerScheduledColor,
             markerDoneColor: markerDoneColor,
-            markerNoSheepColor: markerNoSheepColor,
+            markerNoAnimalsColor: markerNoAnimalsColor,
             markerBannedColor: markerBannedColor,
             seasonStartedAt: seasonStartedAt,
+            appAvatarKey: appAvatarKey,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -4090,8 +4478,6 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             required double baseLat,
             required double baseLon,
             Value<int> defaultRadiusKm = const Value.absent(),
-            Value<int> defaultMinutesPerSmall = const Value.absent(),
-            Value<int> defaultMinutesPerLarge = const Value.absent(),
             Value<int> travelFeeEurosPerBracket = const Value.absent(),
             Value<int> bracketKm = const Value.absent(),
             Value<String> themeMode = const Value.absent(),
@@ -4099,9 +4485,10 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> markerWaitingColor = const Value.absent(),
             Value<String> markerScheduledColor = const Value.absent(),
             Value<String> markerDoneColor = const Value.absent(),
-            Value<String> markerNoSheepColor = const Value.absent(),
+            Value<String> markerNoAnimalsColor = const Value.absent(),
             Value<String> markerBannedColor = const Value.absent(),
             Value<int> seasonStartedAt = const Value.absent(),
+            Value<String?> appAvatarKey = const Value.absent(),
           }) =>
               SettingsTableCompanion.insert(
             id: id,
@@ -4109,8 +4496,6 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             baseLat: baseLat,
             baseLon: baseLon,
             defaultRadiusKm: defaultRadiusKm,
-            defaultMinutesPerSmall: defaultMinutesPerSmall,
-            defaultMinutesPerLarge: defaultMinutesPerLarge,
             travelFeeEurosPerBracket: travelFeeEurosPerBracket,
             bracketKm: bracketKm,
             themeMode: themeMode,
@@ -4118,9 +4503,10 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             markerWaitingColor: markerWaitingColor,
             markerScheduledColor: markerScheduledColor,
             markerDoneColor: markerDoneColor,
-            markerNoSheepColor: markerNoSheepColor,
+            markerNoAnimalsColor: markerNoAnimalsColor,
             markerBannedColor: markerBannedColor,
             seasonStartedAt: seasonStartedAt,
+            appAvatarKey: appAvatarKey,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -4154,8 +4540,7 @@ typedef $$ClientsTableTableCreateCompanionBuilder = ClientsTableCompanion
   required String city,
   required double lat,
   required double lon,
-  Value<int> sheepCountSmall,
-  Value<int> sheepCountLarge,
+  Value<List<AnimalCount>> animals,
   Value<String?> markerColorHex,
   Value<bool> isWaiting,
   Value<int?> lastShearingDate,
@@ -4174,8 +4559,7 @@ typedef $$ClientsTableTableUpdateCompanionBuilder = ClientsTableCompanion
   Value<String> city,
   Value<double> lat,
   Value<double> lon,
-  Value<int> sheepCountSmall,
-  Value<int> sheepCountLarge,
+  Value<List<AnimalCount>> animals,
   Value<String?> markerColorHex,
   Value<bool> isWaiting,
   Value<int?> lastShearingDate,
@@ -4259,13 +4643,10 @@ class $$ClientsTableTableFilterComposer
   ColumnFilters<double> get lon => $composableBuilder(
       column: $table.lon, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get sheepCountSmall => $composableBuilder(
-      column: $table.sheepCountSmall,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get sheepCountLarge => $composableBuilder(
-      column: $table.sheepCountLarge,
-      builder: (column) => ColumnFilters(column));
+  ColumnWithTypeConverterFilters<List<AnimalCount>, List<AnimalCount>, String>
+      get animals => $composableBuilder(
+          column: $table.animals,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<String> get markerColorHex => $composableBuilder(
       column: $table.markerColorHex,
@@ -4371,13 +4752,8 @@ class $$ClientsTableTableOrderingComposer
   ColumnOrderings<double> get lon => $composableBuilder(
       column: $table.lon, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get sheepCountSmall => $composableBuilder(
-      column: $table.sheepCountSmall,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get sheepCountLarge => $composableBuilder(
-      column: $table.sheepCountLarge,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get animals => $composableBuilder(
+      column: $table.animals, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get markerColorHex => $composableBuilder(
       column: $table.markerColorHex,
@@ -4437,11 +4813,8 @@ class $$ClientsTableTableAnnotationComposer
   GeneratedColumn<double> get lon =>
       $composableBuilder(column: $table.lon, builder: (column) => column);
 
-  GeneratedColumn<int> get sheepCountSmall => $composableBuilder(
-      column: $table.sheepCountSmall, builder: (column) => column);
-
-  GeneratedColumn<int> get sheepCountLarge => $composableBuilder(
-      column: $table.sheepCountLarge, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<List<AnimalCount>, String> get animals =>
+      $composableBuilder(column: $table.animals, builder: (column) => column);
 
   GeneratedColumn<String> get markerColorHex => $composableBuilder(
       column: $table.markerColorHex, builder: (column) => column);
@@ -4542,8 +4915,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             Value<String> city = const Value.absent(),
             Value<double> lat = const Value.absent(),
             Value<double> lon = const Value.absent(),
-            Value<int> sheepCountSmall = const Value.absent(),
-            Value<int> sheepCountLarge = const Value.absent(),
+            Value<List<AnimalCount>> animals = const Value.absent(),
             Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
             Value<int?> lastShearingDate = const Value.absent(),
@@ -4561,8 +4933,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             city: city,
             lat: lat,
             lon: lon,
-            sheepCountSmall: sheepCountSmall,
-            sheepCountLarge: sheepCountLarge,
+            animals: animals,
             markerColorHex: markerColorHex,
             isWaiting: isWaiting,
             lastShearingDate: lastShearingDate,
@@ -4580,8 +4951,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             required String city,
             required double lat,
             required double lon,
-            Value<int> sheepCountSmall = const Value.absent(),
-            Value<int> sheepCountLarge = const Value.absent(),
+            Value<List<AnimalCount>> animals = const Value.absent(),
             Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
             Value<int?> lastShearingDate = const Value.absent(),
@@ -4599,8 +4969,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             city: city,
             lat: lat,
             lon: lon,
-            sheepCountSmall: sheepCountSmall,
-            sheepCountLarge: sheepCountLarge,
+            animals: animals,
             markerColorHex: markerColorHex,
             isWaiting: isWaiting,
             lastShearingDate: lastShearingDate,
@@ -4855,6 +5224,574 @@ typedef $$DistanceMatrixTableTableProcessedTableManager = ProcessedTableManager<
     ),
     DistanceMatrixRow,
     PrefetchHooks Function()>;
+typedef $$SpeciesTableTableCreateCompanionBuilder = SpeciesTableCompanion
+    Function({
+  Value<int> id,
+  required String name,
+  Value<String?> iconKey,
+  Value<int?> archivedAt,
+  required int createdAt,
+});
+typedef $$SpeciesTableTableUpdateCompanionBuilder = SpeciesTableCompanion
+    Function({
+  Value<int> id,
+  Value<String> name,
+  Value<String?> iconKey,
+  Value<int?> archivedAt,
+  Value<int> createdAt,
+});
+
+final class $$SpeciesTableTableReferences
+    extends BaseReferences<_$AppDatabase, $SpeciesTableTable, SpeciesRow> {
+  $$SpeciesTableTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$AnimalCategoriesTableTable,
+      List<AnimalCategoryRow>> _animalCategoriesTableRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.animalCategoriesTable,
+          aliasName: $_aliasNameGenerator(
+              db.speciesTable.id, db.animalCategoriesTable.speciesId));
+
+  $$AnimalCategoriesTableTableProcessedTableManager
+      get animalCategoriesTableRefs {
+    final manager = $$AnimalCategoriesTableTableTableManager(
+            $_db, $_db.animalCategoriesTable)
+        .filter((f) => f.speciesId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_animalCategoriesTableRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$SpeciesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $SpeciesTableTable> {
+  $$SpeciesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get iconKey => $composableBuilder(
+      column: $table.iconKey, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get archivedAt => $composableBuilder(
+      column: $table.archivedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  Expression<bool> animalCategoriesTableRefs(
+      Expression<bool> Function($$AnimalCategoriesTableTableFilterComposer f)
+          f) {
+    final $$AnimalCategoriesTableTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.animalCategoriesTable,
+            getReferencedColumn: (t) => t.speciesId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AnimalCategoriesTableTableFilterComposer(
+                  $db: $db,
+                  $table: $db.animalCategoriesTable,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$SpeciesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $SpeciesTableTable> {
+  $$SpeciesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get iconKey => $composableBuilder(
+      column: $table.iconKey, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get archivedAt => $composableBuilder(
+      column: $table.archivedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$SpeciesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SpeciesTableTable> {
+  $$SpeciesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get iconKey =>
+      $composableBuilder(column: $table.iconKey, builder: (column) => column);
+
+  GeneratedColumn<int> get archivedAt => $composableBuilder(
+      column: $table.archivedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  Expression<T> animalCategoriesTableRefs<T extends Object>(
+      Expression<T> Function($$AnimalCategoriesTableTableAnnotationComposer a)
+          f) {
+    final $$AnimalCategoriesTableTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.animalCategoriesTable,
+            getReferencedColumn: (t) => t.speciesId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AnimalCategoriesTableTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.animalCategoriesTable,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$SpeciesTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SpeciesTableTable,
+    SpeciesRow,
+    $$SpeciesTableTableFilterComposer,
+    $$SpeciesTableTableOrderingComposer,
+    $$SpeciesTableTableAnnotationComposer,
+    $$SpeciesTableTableCreateCompanionBuilder,
+    $$SpeciesTableTableUpdateCompanionBuilder,
+    (SpeciesRow, $$SpeciesTableTableReferences),
+    SpeciesRow,
+    PrefetchHooks Function({bool animalCategoriesTableRefs})> {
+  $$SpeciesTableTableTableManager(_$AppDatabase db, $SpeciesTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SpeciesTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SpeciesTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SpeciesTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String?> iconKey = const Value.absent(),
+            Value<int?> archivedAt = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+          }) =>
+              SpeciesTableCompanion(
+            id: id,
+            name: name,
+            iconKey: iconKey,
+            archivedAt: archivedAt,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String name,
+            Value<String?> iconKey = const Value.absent(),
+            Value<int?> archivedAt = const Value.absent(),
+            required int createdAt,
+          }) =>
+              SpeciesTableCompanion.insert(
+            id: id,
+            name: name,
+            iconKey: iconKey,
+            archivedAt: archivedAt,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$SpeciesTableTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({animalCategoriesTableRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (animalCategoriesTableRefs) db.animalCategoriesTable
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (animalCategoriesTableRefs)
+                    await $_getPrefetchedData<SpeciesRow, $SpeciesTableTable, AnimalCategoryRow>(
+                        currentTable: table,
+                        referencedTable: $$SpeciesTableTableReferences
+                            ._animalCategoriesTableRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SpeciesTableTableReferences(db, table, p0)
+                                .animalCategoriesTableRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.speciesId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$SpeciesTableTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SpeciesTableTable,
+    SpeciesRow,
+    $$SpeciesTableTableFilterComposer,
+    $$SpeciesTableTableOrderingComposer,
+    $$SpeciesTableTableAnnotationComposer,
+    $$SpeciesTableTableCreateCompanionBuilder,
+    $$SpeciesTableTableUpdateCompanionBuilder,
+    (SpeciesRow, $$SpeciesTableTableReferences),
+    SpeciesRow,
+    PrefetchHooks Function({bool animalCategoriesTableRefs})>;
+typedef $$AnimalCategoriesTableTableCreateCompanionBuilder
+    = AnimalCategoriesTableCompanion Function({
+  Value<int> id,
+  required int speciesId,
+  required String name,
+  Value<int?> defaultMinutes,
+  Value<int?> defaultPriceCents,
+  Value<int?> archivedAt,
+  required int createdAt,
+});
+typedef $$AnimalCategoriesTableTableUpdateCompanionBuilder
+    = AnimalCategoriesTableCompanion Function({
+  Value<int> id,
+  Value<int> speciesId,
+  Value<String> name,
+  Value<int?> defaultMinutes,
+  Value<int?> defaultPriceCents,
+  Value<int?> archivedAt,
+  Value<int> createdAt,
+});
+
+final class $$AnimalCategoriesTableTableReferences extends BaseReferences<
+    _$AppDatabase, $AnimalCategoriesTableTable, AnimalCategoryRow> {
+  $$AnimalCategoriesTableTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $SpeciesTableTable _speciesIdTable(_$AppDatabase db) =>
+      db.speciesTable.createAlias($_aliasNameGenerator(
+          db.animalCategoriesTable.speciesId, db.speciesTable.id));
+
+  $$SpeciesTableTableProcessedTableManager get speciesId {
+    final $_column = $_itemColumn<int>('species_id')!;
+
+    final manager = $$SpeciesTableTableTableManager($_db, $_db.speciesTable)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_speciesIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$AnimalCategoriesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $AnimalCategoriesTableTable> {
+  $$AnimalCategoriesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get defaultMinutes => $composableBuilder(
+      column: $table.defaultMinutes,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get defaultPriceCents => $composableBuilder(
+      column: $table.defaultPriceCents,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get archivedAt => $composableBuilder(
+      column: $table.archivedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  $$SpeciesTableTableFilterComposer get speciesId {
+    final $$SpeciesTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.speciesId,
+        referencedTable: $db.speciesTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SpeciesTableTableFilterComposer(
+              $db: $db,
+              $table: $db.speciesTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AnimalCategoriesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $AnimalCategoriesTableTable> {
+  $$AnimalCategoriesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get defaultMinutes => $composableBuilder(
+      column: $table.defaultMinutes,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get defaultPriceCents => $composableBuilder(
+      column: $table.defaultPriceCents,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get archivedAt => $composableBuilder(
+      column: $table.archivedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  $$SpeciesTableTableOrderingComposer get speciesId {
+    final $$SpeciesTableTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.speciesId,
+        referencedTable: $db.speciesTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SpeciesTableTableOrderingComposer(
+              $db: $db,
+              $table: $db.speciesTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AnimalCategoriesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AnimalCategoriesTableTable> {
+  $$AnimalCategoriesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get defaultMinutes => $composableBuilder(
+      column: $table.defaultMinutes, builder: (column) => column);
+
+  GeneratedColumn<int> get defaultPriceCents => $composableBuilder(
+      column: $table.defaultPriceCents, builder: (column) => column);
+
+  GeneratedColumn<int> get archivedAt => $composableBuilder(
+      column: $table.archivedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$SpeciesTableTableAnnotationComposer get speciesId {
+    final $$SpeciesTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.speciesId,
+        referencedTable: $db.speciesTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SpeciesTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.speciesTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$AnimalCategoriesTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $AnimalCategoriesTableTable,
+    AnimalCategoryRow,
+    $$AnimalCategoriesTableTableFilterComposer,
+    $$AnimalCategoriesTableTableOrderingComposer,
+    $$AnimalCategoriesTableTableAnnotationComposer,
+    $$AnimalCategoriesTableTableCreateCompanionBuilder,
+    $$AnimalCategoriesTableTableUpdateCompanionBuilder,
+    (AnimalCategoryRow, $$AnimalCategoriesTableTableReferences),
+    AnimalCategoryRow,
+    PrefetchHooks Function({bool speciesId})> {
+  $$AnimalCategoriesTableTableTableManager(
+      _$AppDatabase db, $AnimalCategoriesTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AnimalCategoriesTableTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AnimalCategoriesTableTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AnimalCategoriesTableTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> speciesId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int?> defaultMinutes = const Value.absent(),
+            Value<int?> defaultPriceCents = const Value.absent(),
+            Value<int?> archivedAt = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+          }) =>
+              AnimalCategoriesTableCompanion(
+            id: id,
+            speciesId: speciesId,
+            name: name,
+            defaultMinutes: defaultMinutes,
+            defaultPriceCents: defaultPriceCents,
+            archivedAt: archivedAt,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int speciesId,
+            required String name,
+            Value<int?> defaultMinutes = const Value.absent(),
+            Value<int?> defaultPriceCents = const Value.absent(),
+            Value<int?> archivedAt = const Value.absent(),
+            required int createdAt,
+          }) =>
+              AnimalCategoriesTableCompanion.insert(
+            id: id,
+            speciesId: speciesId,
+            name: name,
+            defaultMinutes: defaultMinutes,
+            defaultPriceCents: defaultPriceCents,
+            archivedAt: archivedAt,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$AnimalCategoriesTableTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({speciesId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (speciesId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.speciesId,
+                    referencedTable: $$AnimalCategoriesTableTableReferences
+                        ._speciesIdTable(db),
+                    referencedColumn: $$AnimalCategoriesTableTableReferences
+                        ._speciesIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$AnimalCategoriesTableTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $AnimalCategoriesTableTable,
+        AnimalCategoryRow,
+        $$AnimalCategoriesTableTableFilterComposer,
+        $$AnimalCategoriesTableTableOrderingComposer,
+        $$AnimalCategoriesTableTableAnnotationComposer,
+        $$AnimalCategoriesTableTableCreateCompanionBuilder,
+        $$AnimalCategoriesTableTableUpdateCompanionBuilder,
+        (AnimalCategoryRow, $$AnimalCategoriesTableTableReferences),
+        AnimalCategoryRow,
+        PrefetchHooks Function({bool speciesId})>;
 typedef $$ToursTableTableCreateCompanionBuilder = ToursTableCompanion Function({
   Value<int> id,
   required int plannedDate,
@@ -5196,12 +6133,8 @@ typedef $$TourStopsTableTableCreateCompanionBuilder = TourStopsTableCompanion
   required int orderIndex,
   required int estimatedArrivalMinutes,
   required int estimatedDepartureMinutes,
-  Value<int> plannedSmall,
-  Value<int> plannedLarge,
-  Value<int> minutesPerSmallSnapshot,
-  Value<int> minutesPerLargeSnapshot,
-  Value<int?> actualSmall,
-  Value<int?> actualLarge,
+  Value<List<TourStopAnimal>> plannedAnimals,
+  Value<List<TourStopAnimal>?> actualAnimals,
   Value<String?> interventionNote,
   required int feeShareCents,
 });
@@ -5214,12 +6147,8 @@ typedef $$TourStopsTableTableUpdateCompanionBuilder = TourStopsTableCompanion
   Value<int> orderIndex,
   Value<int> estimatedArrivalMinutes,
   Value<int> estimatedDepartureMinutes,
-  Value<int> plannedSmall,
-  Value<int> plannedLarge,
-  Value<int> minutesPerSmallSnapshot,
-  Value<int> minutesPerLargeSnapshot,
-  Value<int?> actualSmall,
-  Value<int?> actualLarge,
+  Value<List<TourStopAnimal>> plannedAnimals,
+  Value<List<TourStopAnimal>?> actualAnimals,
   Value<String?> interventionNote,
   Value<int> feeShareCents,
 });
@@ -5287,25 +6216,17 @@ class $$TourStopsTableTableFilterComposer
       column: $table.estimatedDepartureMinutes,
       builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get plannedSmall => $composableBuilder(
-      column: $table.plannedSmall, builder: (column) => ColumnFilters(column));
+  ColumnWithTypeConverterFilters<List<TourStopAnimal>, List<TourStopAnimal>,
+          String>
+      get plannedAnimals => $composableBuilder(
+          column: $table.plannedAnimals,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 
-  ColumnFilters<int> get plannedLarge => $composableBuilder(
-      column: $table.plannedLarge, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get minutesPerSmallSnapshot => $composableBuilder(
-      column: $table.minutesPerSmallSnapshot,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get minutesPerLargeSnapshot => $composableBuilder(
-      column: $table.minutesPerLargeSnapshot,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get actualSmall => $composableBuilder(
-      column: $table.actualSmall, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get actualLarge => $composableBuilder(
-      column: $table.actualLarge, builder: (column) => ColumnFilters(column));
+  ColumnWithTypeConverterFilters<List<TourStopAnimal>?, List<TourStopAnimal>,
+          String>
+      get actualAnimals => $composableBuilder(
+          column: $table.actualAnimals,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<String> get interventionNote => $composableBuilder(
       column: $table.interventionNote,
@@ -5382,27 +6303,13 @@ class $$TourStopsTableTableOrderingComposer
       column: $table.estimatedDepartureMinutes,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get plannedSmall => $composableBuilder(
-      column: $table.plannedSmall,
+  ColumnOrderings<String> get plannedAnimals => $composableBuilder(
+      column: $table.plannedAnimals,
       builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get plannedLarge => $composableBuilder(
-      column: $table.plannedLarge,
+  ColumnOrderings<String> get actualAnimals => $composableBuilder(
+      column: $table.actualAnimals,
       builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get minutesPerSmallSnapshot => $composableBuilder(
-      column: $table.minutesPerSmallSnapshot,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get minutesPerLargeSnapshot => $composableBuilder(
-      column: $table.minutesPerLargeSnapshot,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get actualSmall => $composableBuilder(
-      column: $table.actualSmall, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get actualLarge => $composableBuilder(
-      column: $table.actualLarge, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get interventionNote => $composableBuilder(
       column: $table.interventionNote,
@@ -5477,23 +6384,13 @@ class $$TourStopsTableTableAnnotationComposer
   GeneratedColumn<int> get estimatedDepartureMinutes => $composableBuilder(
       column: $table.estimatedDepartureMinutes, builder: (column) => column);
 
-  GeneratedColumn<int> get plannedSmall => $composableBuilder(
-      column: $table.plannedSmall, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<List<TourStopAnimal>, String>
+      get plannedAnimals => $composableBuilder(
+          column: $table.plannedAnimals, builder: (column) => column);
 
-  GeneratedColumn<int> get plannedLarge => $composableBuilder(
-      column: $table.plannedLarge, builder: (column) => column);
-
-  GeneratedColumn<int> get minutesPerSmallSnapshot => $composableBuilder(
-      column: $table.minutesPerSmallSnapshot, builder: (column) => column);
-
-  GeneratedColumn<int> get minutesPerLargeSnapshot => $composableBuilder(
-      column: $table.minutesPerLargeSnapshot, builder: (column) => column);
-
-  GeneratedColumn<int> get actualSmall => $composableBuilder(
-      column: $table.actualSmall, builder: (column) => column);
-
-  GeneratedColumn<int> get actualLarge => $composableBuilder(
-      column: $table.actualLarge, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<List<TourStopAnimal>?, String>
+      get actualAnimals => $composableBuilder(
+          column: $table.actualAnimals, builder: (column) => column);
 
   GeneratedColumn<String> get interventionNote => $composableBuilder(
       column: $table.interventionNote, builder: (column) => column);
@@ -5573,12 +6470,8 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             Value<int> orderIndex = const Value.absent(),
             Value<int> estimatedArrivalMinutes = const Value.absent(),
             Value<int> estimatedDepartureMinutes = const Value.absent(),
-            Value<int> plannedSmall = const Value.absent(),
-            Value<int> plannedLarge = const Value.absent(),
-            Value<int> minutesPerSmallSnapshot = const Value.absent(),
-            Value<int> minutesPerLargeSnapshot = const Value.absent(),
-            Value<int?> actualSmall = const Value.absent(),
-            Value<int?> actualLarge = const Value.absent(),
+            Value<List<TourStopAnimal>> plannedAnimals = const Value.absent(),
+            Value<List<TourStopAnimal>?> actualAnimals = const Value.absent(),
             Value<String?> interventionNote = const Value.absent(),
             Value<int> feeShareCents = const Value.absent(),
           }) =>
@@ -5590,12 +6483,8 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             orderIndex: orderIndex,
             estimatedArrivalMinutes: estimatedArrivalMinutes,
             estimatedDepartureMinutes: estimatedDepartureMinutes,
-            plannedSmall: plannedSmall,
-            plannedLarge: plannedLarge,
-            minutesPerSmallSnapshot: minutesPerSmallSnapshot,
-            minutesPerLargeSnapshot: minutesPerLargeSnapshot,
-            actualSmall: actualSmall,
-            actualLarge: actualLarge,
+            plannedAnimals: plannedAnimals,
+            actualAnimals: actualAnimals,
             interventionNote: interventionNote,
             feeShareCents: feeShareCents,
           ),
@@ -5607,12 +6496,8 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             required int orderIndex,
             required int estimatedArrivalMinutes,
             required int estimatedDepartureMinutes,
-            Value<int> plannedSmall = const Value.absent(),
-            Value<int> plannedLarge = const Value.absent(),
-            Value<int> minutesPerSmallSnapshot = const Value.absent(),
-            Value<int> minutesPerLargeSnapshot = const Value.absent(),
-            Value<int?> actualSmall = const Value.absent(),
-            Value<int?> actualLarge = const Value.absent(),
+            Value<List<TourStopAnimal>> plannedAnimals = const Value.absent(),
+            Value<List<TourStopAnimal>?> actualAnimals = const Value.absent(),
             Value<String?> interventionNote = const Value.absent(),
             required int feeShareCents,
           }) =>
@@ -5624,12 +6509,8 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             orderIndex: orderIndex,
             estimatedArrivalMinutes: estimatedArrivalMinutes,
             estimatedDepartureMinutes: estimatedDepartureMinutes,
-            plannedSmall: plannedSmall,
-            plannedLarge: plannedLarge,
-            minutesPerSmallSnapshot: minutesPerSmallSnapshot,
-            minutesPerLargeSnapshot: minutesPerLargeSnapshot,
-            actualSmall: actualSmall,
-            actualLarge: actualLarge,
+            plannedAnimals: plannedAnimals,
+            actualAnimals: actualAnimals,
             interventionNote: interventionNote,
             feeShareCents: feeShareCents,
           ),
@@ -5704,8 +6585,7 @@ typedef $$ManualHistoryEntriesTableTableCreateCompanionBuilder
   Value<int> id,
   required int clientId,
   required int date,
-  Value<int> sheepCountSmall,
-  Value<int> sheepCountLarge,
+  Value<List<TourStopAnimal>> animals,
   Value<String?> note,
   required int createdAt,
   required int updatedAt,
@@ -5715,8 +6595,7 @@ typedef $$ManualHistoryEntriesTableTableUpdateCompanionBuilder
   Value<int> id,
   Value<int> clientId,
   Value<int> date,
-  Value<int> sheepCountSmall,
-  Value<int> sheepCountLarge,
+  Value<List<TourStopAnimal>> animals,
   Value<String?> note,
   Value<int> createdAt,
   Value<int> updatedAt,
@@ -5758,13 +6637,11 @@ class $$ManualHistoryEntriesTableTableFilterComposer
   ColumnFilters<int> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get sheepCountSmall => $composableBuilder(
-      column: $table.sheepCountSmall,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get sheepCountLarge => $composableBuilder(
-      column: $table.sheepCountLarge,
-      builder: (column) => ColumnFilters(column));
+  ColumnWithTypeConverterFilters<List<TourStopAnimal>, List<TourStopAnimal>,
+          String>
+      get animals => $composableBuilder(
+          column: $table.animals,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<String> get note => $composableBuilder(
       column: $table.note, builder: (column) => ColumnFilters(column));
@@ -5811,13 +6688,8 @@ class $$ManualHistoryEntriesTableTableOrderingComposer
   ColumnOrderings<int> get date => $composableBuilder(
       column: $table.date, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get sheepCountSmall => $composableBuilder(
-      column: $table.sheepCountSmall,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get sheepCountLarge => $composableBuilder(
-      column: $table.sheepCountLarge,
-      builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get animals => $composableBuilder(
+      column: $table.animals, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get note => $composableBuilder(
       column: $table.note, builder: (column) => ColumnOrderings(column));
@@ -5864,11 +6736,8 @@ class $$ManualHistoryEntriesTableTableAnnotationComposer
   GeneratedColumn<int> get date =>
       $composableBuilder(column: $table.date, builder: (column) => column);
 
-  GeneratedColumn<int> get sheepCountSmall => $composableBuilder(
-      column: $table.sheepCountSmall, builder: (column) => column);
-
-  GeneratedColumn<int> get sheepCountLarge => $composableBuilder(
-      column: $table.sheepCountLarge, builder: (column) => column);
+  GeneratedColumnWithTypeConverter<List<TourStopAnimal>, String> get animals =>
+      $composableBuilder(column: $table.animals, builder: (column) => column);
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
@@ -5930,8 +6799,7 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<int> clientId = const Value.absent(),
             Value<int> date = const Value.absent(),
-            Value<int> sheepCountSmall = const Value.absent(),
-            Value<int> sheepCountLarge = const Value.absent(),
+            Value<List<TourStopAnimal>> animals = const Value.absent(),
             Value<String?> note = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
@@ -5940,8 +6808,7 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             id: id,
             clientId: clientId,
             date: date,
-            sheepCountSmall: sheepCountSmall,
-            sheepCountLarge: sheepCountLarge,
+            animals: animals,
             note: note,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -5950,8 +6817,7 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             required int clientId,
             required int date,
-            Value<int> sheepCountSmall = const Value.absent(),
-            Value<int> sheepCountLarge = const Value.absent(),
+            Value<List<TourStopAnimal>> animals = const Value.absent(),
             Value<String?> note = const Value.absent(),
             required int createdAt,
             required int updatedAt,
@@ -5960,8 +6826,7 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             id: id,
             clientId: clientId,
             date: date,
-            sheepCountSmall: sheepCountSmall,
-            sheepCountLarge: sheepCountLarge,
+            animals: animals,
             note: note,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -6034,6 +6899,10 @@ class $AppDatabaseManager {
       $$ClientsTableTableTableManager(_db, _db.clientsTable);
   $$DistanceMatrixTableTableTableManager get distanceMatrixTable =>
       $$DistanceMatrixTableTableTableManager(_db, _db.distanceMatrixTable);
+  $$SpeciesTableTableTableManager get speciesTable =>
+      $$SpeciesTableTableTableManager(_db, _db.speciesTable);
+  $$AnimalCategoriesTableTableTableManager get animalCategoriesTable =>
+      $$AnimalCategoriesTableTableTableManager(_db, _db.animalCategoriesTable);
   $$ToursTableTableTableManager get toursTable =>
       $$ToursTableTableTableManager(_db, _db.toursTable);
   $$TourStopsTableTableTableManager get tourStopsTable =>

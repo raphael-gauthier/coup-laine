@@ -1,21 +1,18 @@
 import 'package:drift/drift.dart';
+import 'animal_count_list_converter.dart';
 import 'phone_list_converter.dart';
+import 'tour_stop_animal_list_converter.dart';
 
 @DataClassName('SettingsRow')
 class SettingsTable extends Table {
   @override
   String get tableName => 'settings';
 
-  // ignore: recursive_getters
   IntColumn get id => integer().check(id.equals(1))();
   TextColumn get baseAddressLabel => text()();
   RealColumn get baseLat => real()();
   RealColumn get baseLon => real()();
   IntColumn get defaultRadiusKm => integer().withDefault(const Constant(15))();
-  IntColumn get defaultMinutesPerSmall =>
-      integer().withDefault(const Constant(8))();
-  IntColumn get defaultMinutesPerLarge =>
-      integer().withDefault(const Constant(25))();
   IntColumn get travelFeeEurosPerBracket =>
       integer().withDefault(const Constant(8))();
   IntColumn get bracketKm => integer().withDefault(const Constant(10))();
@@ -28,11 +25,12 @@ class SettingsTable extends Table {
       text().withDefault(const Constant('#65A30D'))();
   TextColumn get markerDoneColor =>
       text().withDefault(const Constant('#166534'))();
-  TextColumn get markerNoSheepColor =>
+  TextColumn get markerNoAnimalsColor =>
       text().withDefault(const Constant('#1F2937'))();
   TextColumn get markerBannedColor =>
       text().withDefault(const Constant('#B91C1C'))();
   IntColumn get seasonStartedAt => integer().withDefault(const Constant(0))();
+  TextColumn get appAvatarKey => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -53,8 +51,9 @@ class ClientsTable extends Table {
   TextColumn get city => text()();
   RealColumn get lat => real()();
   RealColumn get lon => real()();
-  IntColumn get sheepCountSmall => integer().withDefault(const Constant(0))();
-  IntColumn get sheepCountLarge => integer().withDefault(const Constant(0))();
+  TextColumn get animals => text()
+      .map(const AnimalCountListConverter())
+      .withDefault(const Constant('[]'))();
   TextColumn get markerColorHex => text().nullable()();
   BoolColumn get isWaiting => boolean().withDefault(const Constant(false))();
   IntColumn get lastShearingDate => integer().nullable()();
@@ -70,7 +69,6 @@ class DistanceMatrixTable extends Table {
   @override
   String get tableName => 'distance_matrix';
 
-  /// 0 = base, otherwise client.id
   IntColumn get fromId => integer()();
   IntColumn get toId => integer()();
   IntColumn get distanceMeters => integer()();
@@ -81,6 +79,33 @@ class DistanceMatrixTable extends Table {
   Set<Column<Object>> get primaryKey => {fromId, toId};
 }
 
+@DataClassName('SpeciesRow')
+class SpeciesTable extends Table {
+  @override
+  String get tableName => 'species';
+
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get iconKey => text().nullable()();
+  IntColumn get archivedAt => integer().nullable()();
+  IntColumn get createdAt => integer()();
+}
+
+@DataClassName('AnimalCategoryRow')
+class AnimalCategoriesTable extends Table {
+  @override
+  String get tableName => 'animal_categories';
+
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get speciesId => integer()
+      .references(SpeciesTable, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  IntColumn get defaultMinutes => integer().nullable()();
+  IntColumn get defaultPriceCents => integer().nullable()();
+  IntColumn get archivedAt => integer().nullable()();
+  IntColumn get createdAt => integer()();
+}
+
 @DataClassName('TourRow')
 class ToursTable extends Table {
   @override
@@ -89,7 +114,7 @@ class ToursTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get plannedDate => integer()();
   IntColumn get startTimeMinutes => integer()();
-  TextColumn get status => text()(); // 'planned' | 'completed'
+  TextColumn get status => text()();
   IntColumn get totalDistanceMeters => integer()();
   IntColumn get totalDriveSeconds => integer()();
   IntColumn get totalTravelFeeCents => integer()();
@@ -113,14 +138,12 @@ class TourStopsTable extends Table {
   IntColumn get orderIndex => integer()();
   IntColumn get estimatedArrivalMinutes => integer()();
   IntColumn get estimatedDepartureMinutes => integer()();
-  IntColumn get plannedSmall => integer().withDefault(const Constant(0))();
-  IntColumn get plannedLarge => integer().withDefault(const Constant(0))();
-  IntColumn get minutesPerSmallSnapshot =>
-      integer().withDefault(const Constant(0))();
-  IntColumn get minutesPerLargeSnapshot =>
-      integer().withDefault(const Constant(0))();
-  IntColumn get actualSmall => integer().nullable()();
-  IntColumn get actualLarge => integer().nullable()();
+  TextColumn get plannedAnimals => text()
+      .map(const TourStopAnimalListConverter())
+      .withDefault(const Constant('[]'))();
+  TextColumn get actualAnimals => text()
+      .map(const TourStopAnimalListConverter())
+      .nullable()();
   TextColumn get interventionNote => text().nullable()();
   IntColumn get feeShareCents => integer()();
 }
@@ -133,10 +156,11 @@ class ManualHistoryEntriesTable extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get clientId => integer()
       .references(ClientsTable, #id, onDelete: KeyAction.cascade)();
-  IntColumn get date => integer()(); // epoch days, like tours.plannedDate
-  IntColumn get sheepCountSmall => integer().withDefault(const Constant(0))();
-  IntColumn get sheepCountLarge => integer().withDefault(const Constant(0))();
+  IntColumn get date => integer()();
+  TextColumn get animals => text()
+      .map(const TourStopAnimalListConverter())
+      .withDefault(const Constant('[]'))();
   TextColumn get note => text().nullable()();
-  IntColumn get createdAt => integer()(); // epoch ms
-  IntColumn get updatedAt => integer()(); // epoch ms
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
 }
