@@ -196,5 +196,7 @@
   "optimizedConfigEmptyBody": "Every waiting client needs distance recomputation. Run sync from Settings.",
   "tourDraftEditSelection": "Edit",
   "tourDraftEditSelectionSheetTitle": "Edit selection",
-  "tourDraftEditSelectionValidate": "Confirm"
+  "tourDraftEditSelectionValidate": "Confirm",
+  "tourEditTitle": "Edit tour",
+  "tourDetailEdit": "Edit"
 }

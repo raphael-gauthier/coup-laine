@@ -196,5 +196,7 @@
   "optimizedConfigEmptyBody": "Tous les clients en attente nécessitent un recalcul de distance. Lancez la synchronisation depuis les Paramètres.",
   "tourDraftEditSelection": "Modifier",
   "tourDraftEditSelectionSheetTitle": "Modifier la sélection",
-  "tourDraftEditSelectionValidate": "Valider"
+  "tourDraftEditSelectionValidate": "Valider",
+  "tourEditTitle": "Modifier la tournée",
+  "tourDetailEdit": "Modifier"
 }
