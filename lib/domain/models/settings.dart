@@ -6,8 +6,6 @@ class Settings {
   final Coordinates baseCoordinates;
   final String baseAddressLabel;
   final int defaultRadiusKm;
-  final int defaultMinutesPerSmall;
-  final int defaultMinutesPerLarge;
   final int travelFeeEurosPerBracket;
   final int bracketKm;
   final ThemeModePreference themeMode;
@@ -15,17 +13,16 @@ class Settings {
   final String markerWaitingColor;
   final String markerScheduledColor;
   final String markerDoneColor;
-  final String markerNoSheepColor;
+  final String markerNoAnimalsColor;
   final String markerBannedColor;
   final DateTime seasonStartedAt;
+  final String? appAvatarKey;
 
   const Settings({
     required this.baseCoordinates,
     required this.baseAddressLabel,
     required this.seasonStartedAt,
     this.defaultRadiusKm = 15,
-    this.defaultMinutesPerSmall = 8,
-    this.defaultMinutesPerLarge = 25,
     this.travelFeeEurosPerBracket = 8,
     this.bracketKm = 10,
     this.themeMode = ThemeModePreference.system,
@@ -33,16 +30,15 @@ class Settings {
     this.markerWaitingColor = '#EAB308',
     this.markerScheduledColor = '#65A30D',
     this.markerDoneColor = '#166534',
-    this.markerNoSheepColor = '#1F2937',
+    this.markerNoAnimalsColor = '#1F2937',
     this.markerBannedColor = '#B91C1C',
+    this.appAvatarKey,
   });
 
   Settings copyWith({
     Coordinates? baseCoordinates,
     String? baseAddressLabel,
     int? defaultRadiusKm,
-    int? defaultMinutesPerSmall,
-    int? defaultMinutesPerLarge,
     int? travelFeeEurosPerBracket,
     int? bracketKm,
     ThemeModePreference? themeMode,
@@ -50,18 +46,15 @@ class Settings {
     String? markerWaitingColor,
     String? markerScheduledColor,
     String? markerDoneColor,
-    String? markerNoSheepColor,
+    String? markerNoAnimalsColor,
     String? markerBannedColor,
     DateTime? seasonStartedAt,
+    String? appAvatarKey,
   }) =>
       Settings(
         baseCoordinates: baseCoordinates ?? this.baseCoordinates,
         baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
         defaultRadiusKm: defaultRadiusKm ?? this.defaultRadiusKm,
-        defaultMinutesPerSmall:
-            defaultMinutesPerSmall ?? this.defaultMinutesPerSmall,
-        defaultMinutesPerLarge:
-            defaultMinutesPerLarge ?? this.defaultMinutesPerLarge,
         travelFeeEurosPerBracket:
             travelFeeEurosPerBracket ?? this.travelFeeEurosPerBracket,
         bracketKm: bracketKm ?? this.bracketKm,
@@ -71,8 +64,10 @@ class Settings {
         markerScheduledColor:
             markerScheduledColor ?? this.markerScheduledColor,
         markerDoneColor: markerDoneColor ?? this.markerDoneColor,
-        markerNoSheepColor: markerNoSheepColor ?? this.markerNoSheepColor,
+        markerNoAnimalsColor:
+            markerNoAnimalsColor ?? this.markerNoAnimalsColor,
         markerBannedColor: markerBannedColor ?? this.markerBannedColor,
         seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
+        appAvatarKey: appAvatarKey ?? this.appAvatarKey,
       );
 }
