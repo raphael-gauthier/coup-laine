@@ -121,3 +121,19 @@ class TourStopsTable extends Table {
   TextColumn get interventionNote => text().nullable()();
   IntColumn get feeShareCents => integer()();
 }
+
+@DataClassName('ManualHistoryEntryRow')
+class ManualHistoryEntriesTable extends Table {
+  @override
+  String get tableName => 'manual_history_entries';
+
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get clientId => integer()
+      .references(ClientsTable, #id, onDelete: KeyAction.cascade)();
+  IntColumn get date => integer()(); // epoch days, like tours.plannedDate
+  IntColumn get small => integer().withDefault(const Constant(0))();
+  IntColumn get large => integer().withDefault(const Constant(0))();
+  TextColumn get note => text().nullable()();
+  IntColumn get createdAt => integer()(); // epoch ms
+  IntColumn get updatedAt => integer()(); // epoch ms
+}

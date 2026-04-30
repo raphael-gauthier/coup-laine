@@ -3290,6 +3290,417 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
   }
 }
 
+class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
+    with TableInfo<$ManualHistoryEntriesTableTable, ManualHistoryEntryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ManualHistoryEntriesTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _clientIdMeta =
+      const VerificationMeta('clientId');
+  @override
+  late final GeneratedColumn<int> clientId = GeneratedColumn<int>(
+      'client_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES clients (id) ON DELETE CASCADE'));
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<int> date = GeneratedColumn<int>(
+      'date', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _smallMeta = const VerificationMeta('small');
+  @override
+  late final GeneratedColumn<int> small = GeneratedColumn<int>(
+      'small', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _largeMeta = const VerificationMeta('large');
+  @override
+  late final GeneratedColumn<int> large = GeneratedColumn<int>(
+      'large', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+      'note', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<int> updatedAt = GeneratedColumn<int>(
+      'updated_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, clientId, date, small, large, note, createdAt, updatedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'manual_history_entries';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<ManualHistoryEntryRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('client_id')) {
+      context.handle(_clientIdMeta,
+          clientId.isAcceptableOrUnknown(data['client_id']!, _clientIdMeta));
+    } else if (isInserting) {
+      context.missing(_clientIdMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+          _dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('small')) {
+      context.handle(
+          _smallMeta, small.isAcceptableOrUnknown(data['small']!, _smallMeta));
+    }
+    if (data.containsKey('large')) {
+      context.handle(
+          _largeMeta, large.isAcceptableOrUnknown(data['large']!, _largeMeta));
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+          _noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ManualHistoryEntryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ManualHistoryEntryRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      clientId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}client_id'])!,
+      date: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}date'])!,
+      small: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}small'])!,
+      large: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}large'])!,
+      note: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}note']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}updated_at'])!,
+    );
+  }
+
+  @override
+  $ManualHistoryEntriesTableTable createAlias(String alias) {
+    return $ManualHistoryEntriesTableTable(attachedDatabase, alias);
+  }
+}
+
+class ManualHistoryEntryRow extends DataClass
+    implements Insertable<ManualHistoryEntryRow> {
+  final int id;
+  final int clientId;
+  final int date;
+  final int small;
+  final int large;
+  final String? note;
+  final int createdAt;
+  final int updatedAt;
+  const ManualHistoryEntryRow(
+      {required this.id,
+      required this.clientId,
+      required this.date,
+      required this.small,
+      required this.large,
+      this.note,
+      required this.createdAt,
+      required this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['client_id'] = Variable<int>(clientId);
+    map['date'] = Variable<int>(date);
+    map['small'] = Variable<int>(small);
+    map['large'] = Variable<int>(large);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at'] = Variable<int>(createdAt);
+    map['updated_at'] = Variable<int>(updatedAt);
+    return map;
+  }
+
+  ManualHistoryEntriesTableCompanion toCompanion(bool nullToAbsent) {
+    return ManualHistoryEntriesTableCompanion(
+      id: Value(id),
+      clientId: Value(clientId),
+      date: Value(date),
+      small: Value(small),
+      large: Value(large),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory ManualHistoryEntryRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ManualHistoryEntryRow(
+      id: serializer.fromJson<int>(json['id']),
+      clientId: serializer.fromJson<int>(json['clientId']),
+      date: serializer.fromJson<int>(json['date']),
+      small: serializer.fromJson<int>(json['small']),
+      large: serializer.fromJson<int>(json['large']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+      updatedAt: serializer.fromJson<int>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'clientId': serializer.toJson<int>(clientId),
+      'date': serializer.toJson<int>(date),
+      'small': serializer.toJson<int>(small),
+      'large': serializer.toJson<int>(large),
+      'note': serializer.toJson<String?>(note),
+      'createdAt': serializer.toJson<int>(createdAt),
+      'updatedAt': serializer.toJson<int>(updatedAt),
+    };
+  }
+
+  ManualHistoryEntryRow copyWith(
+          {int? id,
+          int? clientId,
+          int? date,
+          int? small,
+          int? large,
+          Value<String?> note = const Value.absent(),
+          int? createdAt,
+          int? updatedAt}) =>
+      ManualHistoryEntryRow(
+        id: id ?? this.id,
+        clientId: clientId ?? this.clientId,
+        date: date ?? this.date,
+        small: small ?? this.small,
+        large: large ?? this.large,
+        note: note.present ? note.value : this.note,
+        createdAt: createdAt ?? this.createdAt,
+        updatedAt: updatedAt ?? this.updatedAt,
+      );
+  ManualHistoryEntryRow copyWithCompanion(
+      ManualHistoryEntriesTableCompanion data) {
+    return ManualHistoryEntryRow(
+      id: data.id.present ? data.id.value : this.id,
+      clientId: data.clientId.present ? data.clientId.value : this.clientId,
+      date: data.date.present ? data.date.value : this.date,
+      small: data.small.present ? data.small.value : this.small,
+      large: data.large.present ? data.large.value : this.large,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ManualHistoryEntryRow(')
+          ..write('id: $id, ')
+          ..write('clientId: $clientId, ')
+          ..write('date: $date, ')
+          ..write('small: $small, ')
+          ..write('large: $large, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, clientId, date, small, large, note, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ManualHistoryEntryRow &&
+          other.id == this.id &&
+          other.clientId == this.clientId &&
+          other.date == this.date &&
+          other.small == this.small &&
+          other.large == this.large &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ManualHistoryEntriesTableCompanion
+    extends UpdateCompanion<ManualHistoryEntryRow> {
+  final Value<int> id;
+  final Value<int> clientId;
+  final Value<int> date;
+  final Value<int> small;
+  final Value<int> large;
+  final Value<String?> note;
+  final Value<int> createdAt;
+  final Value<int> updatedAt;
+  const ManualHistoryEntriesTableCompanion({
+    this.id = const Value.absent(),
+    this.clientId = const Value.absent(),
+    this.date = const Value.absent(),
+    this.small = const Value.absent(),
+    this.large = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  ManualHistoryEntriesTableCompanion.insert({
+    this.id = const Value.absent(),
+    required int clientId,
+    required int date,
+    this.small = const Value.absent(),
+    this.large = const Value.absent(),
+    this.note = const Value.absent(),
+    required int createdAt,
+    required int updatedAt,
+  })  : clientId = Value(clientId),
+        date = Value(date),
+        createdAt = Value(createdAt),
+        updatedAt = Value(updatedAt);
+  static Insertable<ManualHistoryEntryRow> custom({
+    Expression<int>? id,
+    Expression<int>? clientId,
+    Expression<int>? date,
+    Expression<int>? small,
+    Expression<int>? large,
+    Expression<String>? note,
+    Expression<int>? createdAt,
+    Expression<int>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (clientId != null) 'client_id': clientId,
+      if (date != null) 'date': date,
+      if (small != null) 'small': small,
+      if (large != null) 'large': large,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  ManualHistoryEntriesTableCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? clientId,
+      Value<int>? date,
+      Value<int>? small,
+      Value<int>? large,
+      Value<String?>? note,
+      Value<int>? createdAt,
+      Value<int>? updatedAt}) {
+    return ManualHistoryEntriesTableCompanion(
+      id: id ?? this.id,
+      clientId: clientId ?? this.clientId,
+      date: date ?? this.date,
+      small: small ?? this.small,
+      large: large ?? this.large,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (clientId.present) {
+      map['client_id'] = Variable<int>(clientId.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<int>(date.value);
+    }
+    if (small.present) {
+      map['small'] = Variable<int>(small.value);
+    }
+    if (large.present) {
+      map['large'] = Variable<int>(large.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<int>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ManualHistoryEntriesTableCompanion(')
+          ..write('id: $id, ')
+          ..write('clientId: $clientId, ')
+          ..write('date: $date, ')
+          ..write('small: $small, ')
+          ..write('large: $large, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3299,6 +3710,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $DistanceMatrixTableTable(this);
   late final $ToursTableTable toursTable = $ToursTableTable(this);
   late final $TourStopsTableTable tourStopsTable = $TourStopsTableTable(this);
+  late final $ManualHistoryEntriesTableTable manualHistoryEntriesTable =
+      $ManualHistoryEntriesTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3308,7 +3721,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         clientsTable,
         distanceMatrixTable,
         toursTable,
-        tourStopsTable
+        tourStopsTable,
+        manualHistoryEntriesTable
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -3325,6 +3739,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('tour_stops', kind: UpdateKind.update),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('clients',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('manual_history_entries', kind: UpdateKind.delete),
             ],
           ),
         ],
@@ -3761,6 +4182,25 @@ final class $$ClientsTableTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$ManualHistoryEntriesTableTable,
+      List<ManualHistoryEntryRow>> _manualHistoryEntriesTableRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.manualHistoryEntriesTable,
+          aliasName: $_aliasNameGenerator(
+              db.clientsTable.id, db.manualHistoryEntriesTable.clientId));
+
+  $$ManualHistoryEntriesTableTableProcessedTableManager
+      get manualHistoryEntriesTableRefs {
+    final manager = $$ManualHistoryEntriesTableTableTableManager(
+            $_db, $_db.manualHistoryEntriesTable)
+        .filter((f) => f.clientId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult
+        .readTableOrNull(_manualHistoryEntriesTableRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$ClientsTableTableFilterComposer
@@ -3846,6 +4286,30 @@ class $$ClientsTableTableFilterComposer
               $removeJoinBuilderFromRootComposer:
                   $removeJoinBuilderFromRootComposer,
             ));
+    return f(composer);
+  }
+
+  Expression<bool> manualHistoryEntriesTableRefs(
+      Expression<bool> Function(
+              $$ManualHistoryEntriesTableTableFilterComposer f)
+          f) {
+    final $$ManualHistoryEntriesTableTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.manualHistoryEntriesTable,
+            getReferencedColumn: (t) => t.clientId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$ManualHistoryEntriesTableTableFilterComposer(
+                  $db: $db,
+                  $table: $db.manualHistoryEntriesTable,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
     return f(composer);
   }
 }
@@ -3997,6 +4461,30 @@ class $$ClientsTableTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> manualHistoryEntriesTableRefs<T extends Object>(
+      Expression<T> Function(
+              $$ManualHistoryEntriesTableTableAnnotationComposer a)
+          f) {
+    final $$ManualHistoryEntriesTableTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.manualHistoryEntriesTable,
+            getReferencedColumn: (t) => t.clientId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$ManualHistoryEntriesTableTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.manualHistoryEntriesTable,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$ClientsTableTableTableManager extends RootTableManager<
@@ -4010,7 +4498,8 @@ class $$ClientsTableTableTableManager extends RootTableManager<
     $$ClientsTableTableUpdateCompanionBuilder,
     (ClientRow, $$ClientsTableTableReferences),
     ClientRow,
-    PrefetchHooks Function({bool tourStopsTableRefs})> {
+    PrefetchHooks Function(
+        {bool tourStopsTableRefs, bool manualHistoryEntriesTableRefs})> {
   $$ClientsTableTableTableManager(_$AppDatabase db, $ClientsTableTable table)
       : super(TableManagerState(
           db: db,
@@ -4103,11 +4592,14 @@ class $$ClientsTableTableTableManager extends RootTableManager<
                     $$ClientsTableTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({tourStopsTableRefs = false}) {
+          prefetchHooksCallback: (
+              {tourStopsTableRefs = false,
+              manualHistoryEntriesTableRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
-                if (tourStopsTableRefs) db.tourStopsTable
+                if (tourStopsTableRefs) db.tourStopsTable,
+                if (manualHistoryEntriesTableRefs) db.manualHistoryEntriesTable
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -4121,6 +4613,19 @@ class $$ClientsTableTableTableManager extends RootTableManager<
                         managerFromTypedResult: (p0) =>
                             $$ClientsTableTableReferences(db, table, p0)
                                 .tourStopsTableRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.clientId == item.id),
+                        typedResults: items),
+                  if (manualHistoryEntriesTableRefs)
+                    await $_getPrefetchedData<ClientRow, $ClientsTableTable,
+                            ManualHistoryEntryRow>(
+                        currentTable: table,
+                        referencedTable: $$ClientsTableTableReferences
+                            ._manualHistoryEntriesTableRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ClientsTableTableReferences(db, table, p0)
+                                .manualHistoryEntriesTableRefs,
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.clientId == item.id),
@@ -4143,7 +4648,8 @@ typedef $$ClientsTableTableProcessedTableManager = ProcessedTableManager<
     $$ClientsTableTableUpdateCompanionBuilder,
     (ClientRow, $$ClientsTableTableReferences),
     ClientRow,
-    PrefetchHooks Function({bool tourStopsTableRefs})>;
+    PrefetchHooks Function(
+        {bool tourStopsTableRefs, bool manualHistoryEntriesTableRefs})>;
 typedef $$DistanceMatrixTableTableCreateCompanionBuilder
     = DistanceMatrixTableCompanion Function({
   required int fromId,
@@ -5170,6 +5676,327 @@ typedef $$TourStopsTableTableProcessedTableManager = ProcessedTableManager<
     (TourStopRow, $$TourStopsTableTableReferences),
     TourStopRow,
     PrefetchHooks Function({bool tourId, bool clientId})>;
+typedef $$ManualHistoryEntriesTableTableCreateCompanionBuilder
+    = ManualHistoryEntriesTableCompanion Function({
+  Value<int> id,
+  required int clientId,
+  required int date,
+  Value<int> small,
+  Value<int> large,
+  Value<String?> note,
+  required int createdAt,
+  required int updatedAt,
+});
+typedef $$ManualHistoryEntriesTableTableUpdateCompanionBuilder
+    = ManualHistoryEntriesTableCompanion Function({
+  Value<int> id,
+  Value<int> clientId,
+  Value<int> date,
+  Value<int> small,
+  Value<int> large,
+  Value<String?> note,
+  Value<int> createdAt,
+  Value<int> updatedAt,
+});
+
+final class $$ManualHistoryEntriesTableTableReferences extends BaseReferences<
+    _$AppDatabase, $ManualHistoryEntriesTableTable, ManualHistoryEntryRow> {
+  $$ManualHistoryEntriesTableTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $ClientsTableTable _clientIdTable(_$AppDatabase db) =>
+      db.clientsTable.createAlias($_aliasNameGenerator(
+          db.manualHistoryEntriesTable.clientId, db.clientsTable.id));
+
+  $$ClientsTableTableProcessedTableManager get clientId {
+    final $_column = $_itemColumn<int>('client_id')!;
+
+    final manager = $$ClientsTableTableTableManager($_db, $_db.clientsTable)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_clientIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$ManualHistoryEntriesTableTableFilterComposer
+    extends Composer<_$AppDatabase, $ManualHistoryEntriesTableTable> {
+  $$ManualHistoryEntriesTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get small => $composableBuilder(
+      column: $table.small, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get large => $composableBuilder(
+      column: $table.large, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+
+  $$ClientsTableTableFilterComposer get clientId {
+    final $$ClientsTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.clientId,
+        referencedTable: $db.clientsTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ClientsTableTableFilterComposer(
+              $db: $db,
+              $table: $db.clientsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ManualHistoryEntriesTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $ManualHistoryEntriesTableTable> {
+  $$ManualHistoryEntriesTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get small => $composableBuilder(
+      column: $table.small, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get large => $composableBuilder(
+      column: $table.large, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+
+  $$ClientsTableTableOrderingComposer get clientId {
+    final $$ClientsTableTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.clientId,
+        referencedTable: $db.clientsTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ClientsTableTableOrderingComposer(
+              $db: $db,
+              $table: $db.clientsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ManualHistoryEntriesTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ManualHistoryEntriesTableTable> {
+  $$ManualHistoryEntriesTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<int> get small =>
+      $composableBuilder(column: $table.small, builder: (column) => column);
+
+  GeneratedColumn<int> get large =>
+      $composableBuilder(column: $table.large, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<int> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$ClientsTableTableAnnotationComposer get clientId {
+    final $$ClientsTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.clientId,
+        referencedTable: $db.clientsTable,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ClientsTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.clientsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ManualHistoryEntriesTableTable,
+    ManualHistoryEntryRow,
+    $$ManualHistoryEntriesTableTableFilterComposer,
+    $$ManualHistoryEntriesTableTableOrderingComposer,
+    $$ManualHistoryEntriesTableTableAnnotationComposer,
+    $$ManualHistoryEntriesTableTableCreateCompanionBuilder,
+    $$ManualHistoryEntriesTableTableUpdateCompanionBuilder,
+    (ManualHistoryEntryRow, $$ManualHistoryEntriesTableTableReferences),
+    ManualHistoryEntryRow,
+    PrefetchHooks Function({bool clientId})> {
+  $$ManualHistoryEntriesTableTableTableManager(
+      _$AppDatabase db, $ManualHistoryEntriesTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ManualHistoryEntriesTableTableFilterComposer(
+                  $db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ManualHistoryEntriesTableTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ManualHistoryEntriesTableTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> clientId = const Value.absent(),
+            Value<int> date = const Value.absent(),
+            Value<int> small = const Value.absent(),
+            Value<int> large = const Value.absent(),
+            Value<String?> note = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+            Value<int> updatedAt = const Value.absent(),
+          }) =>
+              ManualHistoryEntriesTableCompanion(
+            id: id,
+            clientId: clientId,
+            date: date,
+            small: small,
+            large: large,
+            note: note,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int clientId,
+            required int date,
+            Value<int> small = const Value.absent(),
+            Value<int> large = const Value.absent(),
+            Value<String?> note = const Value.absent(),
+            required int createdAt,
+            required int updatedAt,
+          }) =>
+              ManualHistoryEntriesTableCompanion.insert(
+            id: id,
+            clientId: clientId,
+            date: date,
+            small: small,
+            large: large,
+            note: note,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$ManualHistoryEntriesTableTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({clientId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (clientId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.clientId,
+                    referencedTable: $$ManualHistoryEntriesTableTableReferences
+                        ._clientIdTable(db),
+                    referencedColumn: $$ManualHistoryEntriesTableTableReferences
+                        ._clientIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$ManualHistoryEntriesTableTableProcessedTableManager
+    = ProcessedTableManager<
+        _$AppDatabase,
+        $ManualHistoryEntriesTableTable,
+        ManualHistoryEntryRow,
+        $$ManualHistoryEntriesTableTableFilterComposer,
+        $$ManualHistoryEntriesTableTableOrderingComposer,
+        $$ManualHistoryEntriesTableTableAnnotationComposer,
+        $$ManualHistoryEntriesTableTableCreateCompanionBuilder,
+        $$ManualHistoryEntriesTableTableUpdateCompanionBuilder,
+        (ManualHistoryEntryRow, $$ManualHistoryEntriesTableTableReferences),
+        ManualHistoryEntryRow,
+        PrefetchHooks Function({bool clientId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5184,4 +6011,7 @@ class $AppDatabaseManager {
       $$ToursTableTableTableManager(_db, _db.toursTable);
   $$TourStopsTableTableTableManager get tourStopsTable =>
       $$TourStopsTableTableTableManager(_db, _db.tourStopsTable);
+  $$ManualHistoryEntriesTableTableTableManager get manualHistoryEntriesTable =>
+      $$ManualHistoryEntriesTableTableTableManager(
+          _db, _db.manualHistoryEntriesTable);
 }
