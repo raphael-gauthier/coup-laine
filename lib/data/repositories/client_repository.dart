@@ -367,6 +367,47 @@ class ClientRepository {
     );
   }
 
+  /// Recomputes the client's denormalized state from the union of
+  /// {tour-stops on completed tours, manual history entries}, picking the
+  /// most recent date and applying its `(small, large, date)`. If no source
+  /// exists, sets `lastShearingDate` to null and leaves the counts as-is
+  /// (we don't snapshot earlier counts to revert to).
+  Future<void> recomputeClientFromHistory(int clientId) async {
+    final list = await listInterventionsForClient(clientId);
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    if (list.isEmpty) {
+      await (_db.update(_db.clientsTable)
+            ..where((t) => t.id.equals(clientId)))
+          .write(
+        ClientsTableCompanion(
+          lastShearingDate: const Value(null),
+          updatedAt: Value(now),
+        ),
+      );
+      return;
+    }
+
+    // listInterventionsForClient is already sorted desc by date.
+    final newest = list.first;
+    final newestMs = DateTime(
+      newest.date.year,
+      newest.date.month,
+      newest.date.day,
+    ).millisecondsSinceEpoch;
+
+    await (_db.update(_db.clientsTable)
+          ..where((t) => t.id.equals(clientId)))
+        .write(
+      ClientsTableCompanion(
+        sheepCountSmall: Value(newest.small),
+        sheepCountLarge: Value(newest.large),
+        lastShearingDate: Value(newestMs),
+        updatedAt: Value(now),
+      ),
+    );
+  }
+
   Future<void> delete(int id) async {
     await (_db.delete(_db.clientsTable)..where((t) => t.id.equals(id))).go();
   }

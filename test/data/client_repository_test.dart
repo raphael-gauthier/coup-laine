@@ -550,4 +550,101 @@ void main() {
       expect(c.sheepCountLarge, 0);
     });
   });
+
+  group('recomputeClientFromHistory', () {
+    test('falls back to a tour-stop after deleting the newest manual entry',
+        () async {
+      final tours = TourRepository(db);
+      final manual = ManualHistoryRepository(db);
+      final cId = await repo.insert(
+        _newClient(sheepCountSmall: 0, sheepCountLarge: 0),
+      );
+
+      // Tour completed on 2025-05-01 with actuals (small=5, large=0).
+      final tourId = await tours.plan(TourDraft(
+        plannedDate: DateTime(2025, 5, 1),
+        startTimeMinutes: 480,
+        totalDistanceMeters: 0,
+        totalDriveSeconds: 0,
+        totalTravelFeeCents: 0,
+        stops: [
+          TourStopDraft(
+            clientId: cId,
+            clientNameSnapshot: 'C',
+            orderIndex: 0,
+            estimatedArrivalMinutes: 480,
+            estimatedDepartureMinutes: 580,
+            plannedSmall: 5,
+            plannedLarge: 0,
+            minutesPerSmallSnapshot: 8,
+            minutesPerLargeSnapshot: 25,
+            feeShareCents: 0,
+          ),
+        ],
+      ));
+      await tours.markCompleted(tourId, {
+        (await tours.findById(tourId))!.stops.first.id: (
+          actualSmall: 5,
+          actualLarge: 0,
+          note: null,
+        ),
+      });
+      // Sanity: client now has the tour's actuals.
+      expect((await repo.findById(cId))!.sheepCountSmall, 5);
+
+      // Newer manual entry: 2026-05-01, small=8, large=2.
+      final manualId = await manual.insert(
+        clientId: cId,
+        date: DateTime(2026, 5, 1),
+        small: 8,
+        large: 2,
+      );
+      await repo.applyManualEntryToClient(
+        cId,
+        date: DateTime(2026, 5, 1),
+        small: 8,
+        large: 2,
+      );
+      expect((await repo.findById(cId))!.sheepCountSmall, 8);
+
+      // Delete the manual entry, then recompute → falls back to the tour.
+      await manual.delete(manualId);
+      await repo.recomputeClientFromHistory(cId);
+      final c = (await repo.findById(cId))!;
+      expect(c.lastShearingDate, DateTime(2025, 5, 1));
+      expect(c.sheepCountSmall, 5);
+      expect(c.sheepCountLarge, 0);
+    });
+
+    test('no source → lastShearingDate becomes null, counts left as-is',
+        () async {
+      final manual = ManualHistoryRepository(db);
+      final cId = await repo.insert(
+        _newClient(sheepCountSmall: 8, sheepCountLarge: 1),
+      );
+      final id = await manual.insert(
+        clientId: cId,
+        date: DateTime(2026, 5, 1),
+        small: 4,
+        large: 0,
+      );
+      await repo.applyManualEntryToClient(
+        cId,
+        date: DateTime(2026, 5, 1),
+        small: 4,
+        large: 0,
+      );
+      // Sanity: counts now reflect the manual entry.
+      expect((await repo.findById(cId))!.sheepCountSmall, 4);
+
+      await manual.delete(id);
+      await repo.recomputeClientFromHistory(cId);
+
+      final c = (await repo.findById(cId))!;
+      expect(c.lastShearingDate, isNull);
+      // Counts left as-is (no source to restore from).
+      expect(c.sheepCountSmall, 4);
+      expect(c.sheepCountLarge, 0);
+    });
+  });
 }
