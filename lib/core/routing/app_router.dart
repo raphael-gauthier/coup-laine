@@ -149,7 +149,7 @@ class _ShellScaffold extends StatelessWidget {
       body: shell,
       bottomNavigationBar: FBottomNavigationBar(
         index: shell.currentIndex,
-        onChange: (i) => shell.goBranch(i, initialLocation: i == shell.currentIndex),
+        onChange: (i) => shell.goBranch(i, initialLocation: true),
         children: [
           FBottomNavigationBarItem(
             icon: const Icon(FIcons.users),
