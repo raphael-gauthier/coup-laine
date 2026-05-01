@@ -13,6 +13,17 @@ class TourOrderOptimizer {
     if (n <= 1) return const [];
     if (n == 2) return [1];
 
+    // For 2 stops, enumerate both orders explicitly with the full closed-loop
+    // cost (incl. middle segment). The 2-opt delta formula assumes symmetric
+    // matrices; ORS road distances are slightly asymmetric (one-ways, etc.)
+    // which can make 2-opt swap on noise. Brute force is trivial and correct.
+    if (n == 3) {
+      final m = distanceMatrix;
+      final cost12 = m[0][1] + m[1][2] + m[2][0];
+      final cost21 = m[0][2] + m[2][1] + m[1][0];
+      return cost12 <= cost21 ? [1, 2] : [2, 1];
+    }
+
     final seed = _nearestNeighbour(distanceMatrix);
     final improved = _twoOpt(distanceMatrix, seed);
     return improved;
