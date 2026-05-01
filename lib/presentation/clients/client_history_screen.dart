@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -97,7 +98,7 @@ class ClientHistoryScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AppHeader(
-              title: 'Historique de $clientName',
+              title: AppLocalizations.of(context)!.clientHistoryTitleFmt(clientName),
               subtitle: subtitle,
             ),
             // KPI row — shown once kpis are available

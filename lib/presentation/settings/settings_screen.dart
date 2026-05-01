@@ -132,6 +132,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
   }
 
   Future<void> _save() async {
+    final l = AppLocalizations.of(context)!;
     final didBaseChange =
         _draft.baseAddressLabel != widget.initial.baseAddressLabel ||
             _draft.baseCoordinates != widget.initial.baseCoordinates;
@@ -166,7 +167,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
       }
     }
     if (!mounted) return;
-    showFToast(context: context, title: const Text('Enregistré'));
+    showFToast(context: context, title: Text(l.commonSaved));
   }
 
   @override

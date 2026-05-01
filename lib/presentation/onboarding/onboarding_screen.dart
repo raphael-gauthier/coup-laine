@@ -143,7 +143,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     if (_step == 2) {
       return AppActionBar(
         primary: AppPrimaryButton(
-          label: 'Démarrer',
+          label: l.onboardingStep3CtaStart,
           prefixIcon: FIcons.check,
           onPress: _saving ? null : _confirm,
           loading: _saving,
@@ -308,6 +308,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildStep3(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final theme = context.theme;
     final city = _picked?.label ?? '';
     final speciesCount =
@@ -319,28 +320,28 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Tu es prêt !',
+              l.onboardingStep3Title,
               style: theme.typography.xl3
                   .copyWith(color: theme.colors.foreground),
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Tu vas gérer $speciesCount espèce(s) depuis $city.',
+              l.onboardingStep3RecapFmt(speciesCount, city),
               style: theme.typography.md
                   .copyWith(color: theme.colors.mutedForeground),
             ),
             const SizedBox(height: AppSpacing.xl),
             AppSectionCard(
               icon: FIcons.userPlus,
-              title: 'Premiers pas',
+              title: l.onboardingStep3SectionTitle,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: const [
-                  Text('• Ajouter ton premier client'),
-                  SizedBox(height: AppSpacing.xs),
-                  Text('• Planifier ta première tournée'),
-                  SizedBox(height: AppSpacing.xs),
-                  Text('• Ouvrir le catalogue de prestations'),
+                children: [
+                  Text(l.onboardingStep3Tip1),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(l.onboardingStep3Tip2),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(l.onboardingStep3Tip3),
                 ],
               ),
             ),

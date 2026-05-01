@@ -344,10 +344,9 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
                         : () async {
                             final ok = await showDestructiveConfirm(
                               context,
-                              title: 'Valider la tournée ?',
-                              body:
-                                  'Tu pourras encore éditer les prestations et compteurs animaux après.',
-                              cancelLabel: 'Annuler',
+                              title: l.tourCompletionConfirmTitle,
+                              body: l.tourCompletionConfirmBody,
+                              cancelLabel: l.commonCancel,
                               confirmLabel: 'Valider',
                             );
                             if (ok && context.mounted) {

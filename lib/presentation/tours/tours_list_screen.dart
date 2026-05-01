@@ -64,7 +64,7 @@ class ToursListScreen extends ConsumerWidget {
                           actions: [
                             AppHeaderAction(
                               icon: FIcons.listFilter,
-                              label: 'Filtrer',
+                              label: l.commonFilter,
                               onPress: () =>
                                   _TourStatusFilterButton.openFilterDialog(
                                       context, ref, l),
@@ -292,7 +292,7 @@ class _NewTourFab extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     return AppFAB(
       icon: FIcons.plus,
-      label: 'Tournée',
+      label: l.newTourFabLabel,
       extended: true,
       onPress: () => _showCreateSheet(context, l),
     );

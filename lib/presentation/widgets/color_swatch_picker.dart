@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 
 import '../../core/design_tokens.dart';
+import '../../l10n/app_localizations.dart';
 
 /// 16 predefined color swatches used everywhere a marker color is picked.
 const List<Color> kColorSwatchPalette = <Color>[
@@ -79,29 +80,32 @@ Future<Color?> showColorSwatchPicker({
 }) {
   return showFDialog<Color>(
     context: context,
-    builder: (ctx, style, animation) => FDialog(
-      style: style,
-      animation: animation,
-      title: Text(title),
-      body: SizedBox(
-        width: 280,
-        child: ColorSwatchGrid(
-          current: current,
-          onPicked: (c) => Navigator.of(ctx).pop(c),
+    builder: (ctx, style, animation) {
+      final l = AppLocalizations.of(ctx)!;
+      return FDialog(
+        style: style,
+        animation: animation,
+        title: Text(title),
+        body: SizedBox(
+          width: 280,
+          child: ColorSwatchGrid(
+            current: current,
+            onPicked: (c) => Navigator.of(ctx).pop(c),
+          ),
         ),
-      ),
-      actions: [
-        FButton(
-          variant: FButtonVariant.ghost,
-          onPress: () => Navigator.of(ctx).pop(defaultColor),
-          child: const Text('Réinitialiser'),
-        ),
-        FButton(
-          variant: FButtonVariant.outline,
-          onPress: () => Navigator.of(ctx).pop(),
-          child: const Text('Annuler'),
-        ),
-      ],
-    ),
+        actions: [
+          FButton(
+            variant: FButtonVariant.ghost,
+            onPress: () => Navigator.of(ctx).pop(defaultColor),
+            child: Text(l.commonReset),
+          ),
+          FButton(
+            variant: FButtonVariant.outline,
+            onPress: () => Navigator.of(ctx).pop(),
+            child: Text(l.commonCancel),
+          ),
+        ],
+      );
+    },
   );
 }

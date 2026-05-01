@@ -101,7 +101,7 @@ class ClientsListScreen extends ConsumerWidget {
                 actions: [
                   AppHeaderAction(
                     icon: FIcons.listFilter,
-                    label: 'Filtrer',
+                    label: l.commonFilter,
                     active: hasActiveFilter,
                     onPress: () =>
                         _StatusFilterButton.openFilterDialog(context, ref),
@@ -144,7 +144,7 @@ class ClientsListScreen extends ConsumerWidget {
                             if (context.mounted) {
                               showFToast(
                                 context: context,
-                                title: Text('$fixed client(s) recalculés'),
+                                title: Text(l.clientsRecomputedToastFmt(fixed)),
                               );
                             }
                           },

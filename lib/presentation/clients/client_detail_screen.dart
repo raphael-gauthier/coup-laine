@@ -84,7 +84,7 @@ class ClientDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   primary: AppPrimaryButton(
-                    label: 'Modifier',
+                    label: l.clientDetailEdit,
                     variant: FButtonVariant.outline,
                     onPress: () => context.push('/clients/${client.id}/edit'),
                   ),
@@ -256,7 +256,7 @@ class _Body extends ConsumerWidget {
           if (client.animals.isNotEmpty) ...[
             AppSectionCard(
               icon: FIcons.pawPrint,
-              title: 'Animaux',
+              title: l.clientFormSectionAnimals,
               child: AnimalCountsBadges(
                 counts: client.animals,
                 mode: AnimalCountsBadgesMode.detailed,

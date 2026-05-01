@@ -186,7 +186,7 @@ class _Body extends ConsumerWidget {
           // Résumé prestations
           AppSectionCard(
             icon: FIcons.listChecks,
-            title: 'Résumé prestations',
+            title: l.tourDetailPrestationSummaryTitle,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

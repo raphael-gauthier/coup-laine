@@ -133,7 +133,7 @@ class ClientPinPopup extends ConsumerWidget {
                     size: FButtonSizeVariant.sm,
                     prefix: const Icon(FIcons.compass),
                     onPress: () => _openItinerary(client),
-                    child: const Text('Itinéraire'),
+                    child: Text(l.mapPinPopupItinerary),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.xs),
