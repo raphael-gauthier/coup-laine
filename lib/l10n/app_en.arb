@@ -384,5 +384,10 @@
   "restoreInProgress": "Restoring…",
   "restoreSuccess": "Restore complete",
   "restoreFailedFutureSchema": "This backup was created by a newer version. Please update the app.",
-  "restoreFailedGeneric": "Restore failed."
+  "restoreFailedGeneric": "Restore failed.",
+  "firstSigninTitle": "Existing backups detected",
+  "firstSigninMessage": "This cloud account already has backups. What would you like to do?",
+  "firstSigninKeepLocal": "Keep this device's data",
+  "firstSigninRestoreCloud": "Restore from cloud",
+  "firstSigninInitialBackup": "Initial backup completed"
 }

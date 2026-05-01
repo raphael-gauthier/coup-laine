@@ -384,5 +384,10 @@
   "restoreInProgress": "Restauration en cours…",
   "restoreSuccess": "Restauration terminée",
   "restoreFailedFutureSchema": "Cette sauvegarde a été créée par une version plus récente. Mettez à jour l'app.",
-  "restoreFailedGeneric": "Restauration échouée."
+  "restoreFailedGeneric": "Restauration échouée.",
+  "firstSigninTitle": "Sauvegardes existantes détectées",
+  "firstSigninMessage": "Ce compte cloud contient déjà des sauvegardes. Que souhaitez-vous faire ?",
+  "firstSigninKeepLocal": "Garder les données de cet appareil",
+  "firstSigninRestoreCloud": "Restaurer depuis le cloud",
+  "firstSigninInitialBackup": "Sauvegarde initiale effectuée"
 }
