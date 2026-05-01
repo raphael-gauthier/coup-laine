@@ -319,31 +319,38 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         top: AppSpacing.md,
                         left: AppSpacing.md,
                         right: AppSpacing.md,
-                        child: Row(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: _SearchOverlay(
-                                controller: _searchCtrl,
-                                onChanged: _onSearchChanged,
-                                clients: clients,
-                                onPicked: _flyTo,
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Column(
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _MapIconButton(
-                                  icon: FIcons.layers,
-                                  onPress: () => _openLayersPanel(context, settings),
+                                Expanded(
+                                  child: _SearchOverlay(
+                                    controller: _searchCtrl,
+                                    onChanged: _onSearchChanged,
+                                    clients: clients,
+                                    onPicked: _flyTo,
+                                  ),
                                 ),
-                                const SizedBox(height: AppSpacing.sm),
-                                _MapIconButton(
-                                  icon: FIcons.locate,
-                                  onPress: () => _recenterOnVisible(visibleClients, settings),
+                                const SizedBox(width: AppSpacing.sm),
+                                Column(
+                                  children: [
+                                    _MapIconButton(
+                                      icon: FIcons.layers,
+                                      onPress: () => _openLayersPanel(context, settings),
+                                    ),
+                                    const SizedBox(height: AppSpacing.sm),
+                                    _MapIconButton(
+                                      icon: FIcons.locate,
+                                      onPress: () => _recenterOnVisible(visibleClients, settings),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
+                            const SizedBox(height: AppSpacing.sm),
+                            _StatusChipsRow(clients: clients, settings: settings),
                           ],
                         ),
                       ),
@@ -609,6 +616,150 @@ class _LayerToggleRow extends StatelessWidget {
             child: Text(label, style: theme.typography.md),
           ),
           FSwitch(value: isOn, onChange: onChanged),
+        ],
+      ),
+    );
+  }
+}
+
+/// Floating row of status chips above the map. Shows a compact count per
+/// status (only statuses with ≥1 client are rendered). Tapping a chip
+/// toggles it in `mapVisibleStatusesProvider` — the marker layer filters
+/// accordingly.
+class _StatusChipsRow extends ConsumerWidget {
+  final List<(Client, ClientStatus)> clients;
+  final Settings settings;
+  const _StatusChipsRow({required this.clients, required this.settings});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final visible = ref.watch(mapVisibleStatusesProvider);
+
+    final counts = <ClientStatus, int>{
+      for (final s in ClientStatus.values) s: 0,
+    };
+    for (final r in clients) {
+      counts[r.$2] = (counts[r.$2] ?? 0) + 1;
+    }
+
+    final entries = ClientStatus.values
+        .where((s) => (counts[s] ?? 0) > 0)
+        .toList();
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final s in entries)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.xs),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  final next = {...visible};
+                  if (next.contains(s)) {
+                    next.remove(s);
+                  } else {
+                    next.add(s);
+                  }
+                  ref.read(mapVisibleStatusesProvider.notifier).state = next;
+                },
+                child: _StatusChip(
+                  status: s,
+                  count: counts[s]!,
+                  active: visible.contains(s),
+                  label: _statusLabelForChip(l, s),
+                  color: _statusColor(s, settings),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Color _statusColor(ClientStatus s, Settings settings) {
+    final hex = switch (s) {
+      ClientStatus.defaultStatus => settings.markerDefaultColor,
+      ClientStatus.waiting => settings.markerWaitingColor,
+      ClientStatus.scheduled => settings.markerScheduledColor,
+      ClientStatus.done => settings.markerDoneColor,
+      ClientStatus.noAnimals => settings.markerNoAnimalsColor,
+      ClientStatus.banned => settings.markerBannedColor,
+    };
+    final cleaned = hex.replaceAll('#', '');
+    return Color(int.parse(cleaned, radix: 16) | 0xFF000000);
+  }
+}
+
+String _statusLabelForChip(AppLocalizations l, ClientStatus s) => switch (s) {
+      ClientStatus.defaultStatus => l.clientStatusDefault,
+      ClientStatus.waiting => l.clientStatusWaiting,
+      ClientStatus.scheduled => l.clientStatusScheduled,
+      ClientStatus.done => l.clientStatusDone,
+      ClientStatus.noAnimals => l.clientStatusNoAnimals,
+      ClientStatus.banned => l.clientStatusBanned,
+    };
+
+class _StatusChip extends StatelessWidget {
+  final ClientStatus status;
+  final int count;
+  final bool active;
+  final String label;
+  final Color color;
+
+  const _StatusChip({
+    required this.status,
+    required this.count,
+    required this.active,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: active ? theme.colors.card : theme.colors.muted,
+        borderRadius: BorderRadius.circular(AppBorderRadius.pill),
+        border: Border.all(
+          color: active ? color : theme.colors.border,
+          width: active ? 1.5 : AppSizes.hairlineBorder,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: active ? color : theme.colors.mutedForeground,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xxs),
+          Text(
+            '$count',
+            style: theme.typography.sm.copyWith(
+              color: active ? theme.colors.foreground : theme.colors.mutedForeground,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.xxs),
+          Text(
+            label,
+            style: theme.typography.xs.copyWith(
+              color: active ? theme.colors.foreground : theme.colors.mutedForeground,
+            ),
+          ),
         ],
       ),
     );
