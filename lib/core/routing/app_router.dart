@@ -12,6 +12,7 @@ import '../../presentation/clients/clients_list_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/settings/settings_screen.dart';
 import '../../presentation/settings/prestation_catalog_screen.dart';
+import '../../presentation/settings/prestation_edit_screen.dart';
 import '../../presentation/settings/species_edit_screen.dart';
 import '../../presentation/settings/species_management_screen.dart';
 import '../../presentation/map/map_screen.dart';
@@ -55,13 +56,13 @@ class AppRouter {
         ),
         GoRoute(
           path: '/settings/prestations/new',
-          builder: (context, state) =>
-              throw UnimplementedError('PrestationEditScreen — T15'),
+          builder: (context, state) => const PrestationEditScreen(),
         ),
         GoRoute(
           path: '/settings/prestations/:id',
-          builder: (context, state) =>
-              throw UnimplementedError('PrestationEditScreen — T15'),
+          builder: (context, state) => PrestationEditScreen(
+            id: int.parse(state.pathParameters['id']!),
+          ),
         ),
         GoRoute(
           path: '/proximity/:pivotId',
