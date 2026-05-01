@@ -1,33 +1,56 @@
 // lib/presentation/map/client_pin_popup.dart
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
+import '../../domain/use_cases/client_status.dart';
+import '../../l10n/app_localizations.dart';
+import '../../state/providers.dart';
 import '../clients/client_actions.dart';
 import '../widgets/animal_counts_badges.dart';
+import '../widgets/app_badge.dart';
 
-class ClientPinPopup extends StatelessWidget {
+class ClientPinPopup extends ConsumerWidget {
   final Client client;
+  final ClientStatus status;
   final VoidCallback onOpenDetail;
 
   const ClientPinPopup({
     super.key,
     required this.client,
+    required this.status,
     required this.onOpenDetail,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
+    final l = AppLocalizations.of(context)!;
     final principalPhone = client.principalPhone;
     final hasPhone = principalPhone != null;
+    final distanceAsync = ref.watch(clientDistanceFromBaseProvider(client.id));
+
+    final lastInterventionLabel = client.lastShearingDate == null
+        ? l.clientsLastShearingNever
+        : l.clientsLastShearingFmt(
+            DateFormat('d MMM yyyy', 'fr').format(client.lastShearingDate!),
+          );
+
+    final addressLine = StringBuffer('${client.postcode} ${client.city}');
+    final distanceMeters = distanceAsync.asData?.value;
+    if (distanceMeters != null && distanceMeters > 0) {
+      final km = (distanceMeters / 1000).round();
+      addressLine.write(' · $km km');
+    }
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onOpenDetail,
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 260, minWidth: 200),
+        constraints: const BoxConstraints(maxWidth: 280, minWidth: 220),
         decoration: BoxDecoration(
           color: theme.colors.card,
           borderRadius: BorderRadius.circular(AppBorderRadius.md),
@@ -50,11 +73,20 @@ class ClientPinPopup extends StatelessWidget {
                 Expanded(
                   child: Text(
                     client.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: theme.typography.md.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
+                const SizedBox(width: AppSpacing.xs),
+                AppBadge.fromStatus(
+                  context,
+                  status: status,
+                  label: _statusLabel(l, status),
+                ),
+                const SizedBox(width: AppSpacing.xxs),
                 Icon(
                   FIcons.chevronRight,
                   size: 18,
@@ -62,18 +94,35 @@ class ClientPinPopup extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.hairline),
+            const SizedBox(height: AppSpacing.xxs),
             Text(
-              client.city,
+              addressLine.toString(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: theme.typography.sm.copyWith(
                 color: theme.colors.mutedForeground,
               ),
             ),
-            AnimalCountsBadges(
-              counts: client.animals,
-              mode: AnimalCountsBadgesMode.compact,
-              style: theme.typography.sm.copyWith(
-                color: theme.colors.mutedForeground,
+            if (client.animals.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xxs),
+                child: AnimalCountsBadges(
+                  counts: client.animals,
+                  mode: AnimalCountsBadgesMode.compact,
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.foreground,
+                  ),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xxs),
+              child: Text(
+                lastInterventionLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.typography.sm.copyWith(
+                  color: theme.colors.mutedForeground,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -84,8 +133,9 @@ class ClientPinPopup extends StatelessWidget {
                     variant: FButtonVariant.outline,
                     size: FButtonSizeVariant.sm,
                     prefix: const Icon(FIcons.phone),
-                    onPress:
-                        hasPhone ? () => callPhone(context, principalPhone) : null,
+                    onPress: hasPhone
+                        ? () => callPhone(context, principalPhone)
+                        : null,
                     child: const Text('Appeler'),
                   ),
                 ),
@@ -95,8 +145,9 @@ class ClientPinPopup extends StatelessWidget {
                     variant: FButtonVariant.outline,
                     size: FButtonSizeVariant.sm,
                     prefix: const Icon(FIcons.messageCircle),
-                    onPress:
-                        hasPhone ? () => sendSms(context, principalPhone) : null,
+                    onPress: hasPhone
+                        ? () => sendSms(context, principalPhone)
+                        : null,
                     child: const Text('SMS'),
                   ),
                 ),
@@ -107,4 +158,13 @@ class ClientPinPopup extends StatelessWidget {
       ),
     );
   }
+
+  String _statusLabel(AppLocalizations l, ClientStatus s) => switch (s) {
+        ClientStatus.defaultStatus => l.clientStatusDefault,
+        ClientStatus.waiting => l.clientStatusWaiting,
+        ClientStatus.scheduled => l.clientStatusScheduled,
+        ClientStatus.done => l.clientStatusDone,
+        ClientStatus.noAnimals => l.clientStatusNoAnimals,
+        ClientStatus.banned => l.clientStatusBanned,
+      };
 }

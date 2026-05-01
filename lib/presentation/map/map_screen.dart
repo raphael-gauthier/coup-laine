@@ -295,11 +295,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                     selectedClient.$1.coordinates.lat,
                                     selectedClient.$1.coordinates.lon,
                                   ),
-                                  width: 280,
-                                  height: 140,
-                                  alignment: const Alignment(0, -1.6),
+                                  width: 300,
+                                  height: 200,
+                                  alignment: const Alignment(0, -1.4),
                                   child: ClientPinPopup(
                                     client: selectedClient.$1,
+                                    status: selectedClient.$2,
                                     onOpenDetail: () {
                                       ref.read(mapSelectedClientIdProvider.notifier).state = null;
                                       context.push('/clients/${selectedClient.$1.id}');

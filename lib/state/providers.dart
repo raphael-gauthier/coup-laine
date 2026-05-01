@@ -179,6 +179,16 @@ final tourByIdProvider =
   return ref.watch(tourRepositoryProvider).findById(id);
 });
 
+/// Distance in meters from the base (id 0) to a given client. Returns null
+/// if the matrix entry is missing (e.g., client added but distance not yet
+/// recomputed).
+final clientDistanceFromBaseProvider =
+    FutureProvider.autoDispose.family<int?, int>((ref, clientId) {
+  return ref
+      .watch(distanceMatrixRepositoryProvider)
+      .distanceMeters(from: 0, to: clientId);
+});
+
 /// Computes the set of waiting client ids that are routing-close to any of
 /// the anchor client ids passed via [key]. The key is a sorted, comma-joined
 /// string of anchor ids — Sets / Lists in Dart have identity equality, which
