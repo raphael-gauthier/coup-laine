@@ -1,22 +1,18 @@
 // lib/core/theme/app_themes.dart
+//
+// Construit FThemeData v3 Modern Craft via le factory FThemeData. On
+// reconstruit chaque widget style avec notre palette (cuivre + vert forêt)
+// pour éviter que les styles capturés par Forui restent sur la palette
+// par défaut.
+//
+// `buttonColors` swap `secondaryForeground` par `foreground` : Forui's
+// outline button utilise `secondaryForeground` comme couleur de label sur
+// un fond `card` (blanc). Notre `secondaryForeground` est clair → label
+// invisible. Ce swap n'affecte que les boutons.
 import 'package:forui/forui.dart';
 
 import 'app_color_scheme.dart';
 import 'app_typography.dart';
-
-// Build the themes via the FThemeData factory (not FThemes.blue + copyWith)
-// so that every widget style — FButton, FAB-via-Material, dialogs, etc. —
-// is constructed with our sage/terracotta palette. copyWith(colors:) only
-// swaps the .colors field; widget styles capture their colors at build time
-// and would have stayed blue.
-//
-// The button styles are built with a tweaked palette where
-// `secondaryForeground` is replaced by `foreground`. forui's outline button
-// uses `colors.secondaryForeground` as its text color on a `colors.card`
-// (white) background — and our terracotta secondaryForeground is white,
-// which makes the label invisible. Only the buttons see the swap; the rest
-// of the theme keeps white-on-terracotta semantics for AppSectionCard
-// icons, FBadge.secondary, etc.
 FThemeData _buildTheme(FColors colors, FTypography baseTypography) {
   final typography = buildAppTypography(baseTypography);
   final style = FStyle.inherit(colors: colors, typography: typography, touch: true);
