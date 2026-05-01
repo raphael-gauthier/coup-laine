@@ -6,10 +6,13 @@ import 'package:forui/forui.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
+import '../../domain/models/animal_count.dart';
 import '../../domain/models/manual_history_entry.dart';
+import '../../domain/models/tour_stop_animal.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart'
     show clientsAsyncProvider, clientNotesMapProvider;
+import '../widgets/animal_counts_editor.dart';
 
 Future<void> showManualHistoryEntrySheet(
   BuildContext context, {
@@ -34,10 +37,10 @@ class _Sheet extends ConsumerStatefulWidget {
 
 class _SheetState extends ConsumerState<_Sheet> {
   late DateTime? _date = widget.existing?.date;
-  late final TextEditingController _smallCtrl =
-      TextEditingController(text: '${widget.existing?.small ?? 0}');
-  late final TextEditingController _largeCtrl =
-      TextEditingController(text: '${widget.existing?.large ?? 0}');
+  late List<AnimalCount> _animals = widget.existing?.animals
+          .map((a) => AnimalCount(categoryId: a.categoryId, count: a.count))
+          .toList() ??
+      const <AnimalCount>[];
   late final TextEditingController _noteCtrl =
       TextEditingController(text: widget.existing?.note ?? '');
   bool _saving = false;
@@ -46,8 +49,6 @@ class _SheetState extends ConsumerState<_Sheet> {
 
   @override
   void dispose() {
-    _smallCtrl.dispose();
-    _largeCtrl.dispose();
     _noteCtrl.dispose();
     super.dispose();
   }
@@ -74,17 +75,27 @@ class _SheetState extends ConsumerState<_Sheet> {
     setState(() => _saving = true);
     final manual = ref.read(manualHistoryRepositoryProvider);
     final clients = ref.read(clientRepositoryProvider);
-    final small = int.tryParse(_smallCtrl.text.trim()) ?? 0;
-    final large = int.tryParse(_largeCtrl.text.trim()) ?? 0;
     final note = _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim();
     final date = _date!;
+
+    final lookup = await ref.read(categoryLookupProvider.future);
+    final tourStopAnimals = <TourStopAnimal>[
+      for (final ac in _animals)
+        if (lookup[ac.categoryId] != null)
+          TourStopAnimal(
+            categoryId: ac.categoryId,
+            count: ac.count,
+            categoryNameSnapshot: lookup[ac.categoryId]!.categoryName,
+            speciesNameSnapshot: lookup[ac.categoryId]!.speciesName,
+            minutesSnapshot: lookup[ac.categoryId]!.minutes,
+          ),
+    ];
 
     if (_isEdit) {
       await manual.update(
         widget.existing!.id,
         date: date,
-        small: small,
-        large: large,
+        animals: tourStopAnimals,
         note: note,
       );
       await clients.recomputeClientFromHistory(widget.clientId);
@@ -92,15 +103,13 @@ class _SheetState extends ConsumerState<_Sheet> {
       await manual.insert(
         clientId: widget.clientId,
         date: date,
-        small: small,
-        large: large,
+        animals: tourStopAnimals,
         note: note,
       );
       await clients.applyManualEntryToClient(
         widget.clientId,
         date: date,
-        small: small,
-        large: large,
+        animals: tourStopAnimals,
       );
     }
 
@@ -187,18 +196,9 @@ class _SheetState extends ConsumerState<_Sheet> {
             onPress: _saving ? null : _pickDate,
           ),
           const SizedBox(height: AppSpacing.sm),
-          FTextField(
-            control: FTextFieldControl.managed(controller: _smallCtrl),
-            label: Text(l.manualEntrySmallLabel),
-            keyboardType: const TextInputType.numberWithOptions(decimal: false),
-            enabled: !_saving,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          FTextField(
-            control: FTextFieldControl.managed(controller: _largeCtrl),
-            label: Text(l.manualEntryLargeLabel),
-            keyboardType: const TextInputType.numberWithOptions(decimal: false),
-            enabled: !_saving,
+          AnimalCountsEditor(
+            value: _animals,
+            onChanged: (next) => setState(() => _animals = next),
           ),
           const SizedBox(height: AppSpacing.sm),
           FTextField(
