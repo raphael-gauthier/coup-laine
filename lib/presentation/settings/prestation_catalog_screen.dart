@@ -10,8 +10,10 @@ import '../../domain/models/prestation.dart';
 import '../../domain/models/species.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
+import '../../state/providers/prestation_kpis.dart';
 import '../widgets/app_fab.dart';
 import '../widgets/app_header.dart';
+import '../widgets/app_kpi_row.dart';
 import '../widgets/app_list_tile.dart';
 import '../widgets/app_stat.dart';
 
@@ -50,6 +52,8 @@ class PrestationCatalogScreen extends ConsumerWidget {
     final species = speciesAsync.value!;
     final allCats = allCatsAsync.value!;
 
+    final kpisAsync = ref.watch(prestationCatalogKpisProvider);
+
     final subtitle =
         '${active.length} active${active.length == 1 ? '' : 's'} · '
         '${archived.length} archivée${archived.length == 1 ? '' : 's'}';
@@ -80,6 +84,39 @@ class PrestationCatalogScreen extends ConsumerWidget {
                 AppHeader(
                   title: l.prestationCatalogTitle,
                   subtitle: subtitle,
+                ),
+                // KpiRow : actives / archivées / revenu mois
+                kpisAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (kpis) {
+                    final theme = context.theme;
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.sm,
+                        AppSpacing.md,
+                        0,
+                      ),
+                      child: AppKpiRow(
+                        cells: [
+                          AppKpiCell(
+                            value: '${kpis.activeCount}',
+                            label: 'actives',
+                          ),
+                          AppKpiCell(
+                            value: '${kpis.archivedCount}',
+                            label: 'archivées',
+                          ),
+                          AppKpiCell(
+                            value: formatEuros(kpis.monthRevenueCents),
+                            label: 'revenu mois',
+                            valueColor: theme.colors.secondary,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
                 Expanded(
                   child: SingleChildScrollView(
