@@ -152,8 +152,8 @@ class _Body extends ConsumerWidget {
             0,
             (sum, s) =>
                 sum +
-                s.planned.fold<int>(
-                    0, (acc, a) => acc + a.count * a.minutesSnapshot));
+                s.plannedPrestations.fold<int>(
+                    0, (acc, a) => acc + a.qty * a.minutesSnapshot));
   }
 }
 
@@ -168,10 +168,11 @@ class _ScheduleRow extends ConsumerWidget {
     final theme = context.theme;
     final note = stop.interventionNote;
     final clientId = stop.clientId;
-    final source = stop.actual ?? stop.planned;
+    final source = stop.actualPrestations ?? stop.plannedPrestations;
     final counts = [
       for (final a in source)
-        AnimalCount(categoryId: a.categoryId, count: a.count),
+        if (a.categoryIdSnapshot != null)
+          AnimalCount(categoryId: a.categoryIdSnapshot!, count: a.qty),
     ];
 
     return FTile(

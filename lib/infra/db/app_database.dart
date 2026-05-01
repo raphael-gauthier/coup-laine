@@ -6,12 +6,10 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../domain/models/animal_count.dart';
-import '../../domain/models/tour_stop_animal.dart';
 import '../../domain/models/tour_stop_prestation.dart';
 import 'animal_count_list_converter.dart';
 import 'phone_list_converter.dart';
 import 'tables.dart';
-import 'tour_stop_animal_list_converter.dart';
 import 'tour_stop_prestation_list_converter.dart';
 
 part 'app_database.g.dart';

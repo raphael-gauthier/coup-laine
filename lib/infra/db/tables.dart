@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'animal_count_list_converter.dart';
 import 'phone_list_converter.dart';
-import 'tour_stop_animal_list_converter.dart';
 import 'tour_stop_prestation_list_converter.dart';
 
 @DataClassName('SettingsRow')
@@ -137,12 +136,6 @@ class TourStopsTable extends Table {
   IntColumn get orderIndex => integer()();
   IntColumn get estimatedArrivalMinutes => integer()();
   IntColumn get estimatedDepartureMinutes => integer()();
-  TextColumn get plannedAnimals => text()
-      .map(const TourStopAnimalListConverter())
-      .withDefault(const Constant('[]'))();
-  TextColumn get actualAnimals => text()
-      .map(const TourStopAnimalListConverter())
-      .nullable()();
   TextColumn get plannedPrestations => text()
       .map(const TourStopPrestationListConverter())
       .withDefault(const Constant('[]'))();
@@ -162,9 +155,6 @@ class ManualHistoryEntriesTable extends Table {
   IntColumn get clientId => integer()
       .references(ClientsTable, #id, onDelete: KeyAction.cascade)();
   IntColumn get date => integer()();
-  TextColumn get animals => text()
-      .map(const TourStopAnimalListConverter())
-      .withDefault(const Constant('[]'))();
   TextColumn get prestations => text()
       .map(const TourStopPrestationListConverter())
       .withDefault(const Constant('[]'))();

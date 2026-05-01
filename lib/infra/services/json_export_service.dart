@@ -7,17 +7,20 @@ import '../../data/repositories/distance_matrix_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/animal_count.dart';
-import '../../domain/models/tour_stop_animal.dart';
+import '../../domain/models/tour_stop_prestation.dart';
 import '../db/app_database.dart';
 
-List<TourStopAnimal> _coerceTourStopAnimals(List raw) => [
+List<TourStopPrestation> _coerceTourStopPrestations(List raw) => [
       for (final e in raw)
-        TourStopAnimal(
-          categoryId: (e as Map<String, dynamic>)['categoryId'] as int,
-          count: e['count'] as int,
-          categoryNameSnapshot: e['categoryNameSnapshot'] as String,
-          speciesNameSnapshot: e['speciesNameSnapshot'] as String,
+        TourStopPrestation(
+          prestationId: (e as Map<String, dynamic>)['prestationId'] as int,
+          qty: e['qty'] as int,
+          nameSnapshot: e['nameSnapshot'] as String,
+          priceCentsSnapshot: e['priceCentsSnapshot'] as int,
           minutesSnapshot: e['minutesSnapshot'] as int,
+          categoryIdSnapshot: e['categoryIdSnapshot'] as int?,
+          categoryNameSnapshot: e['categoryNameSnapshot'] as String?,
+          speciesNameSnapshot: e['speciesNameSnapshot'] as String?,
         ),
     ];
 
@@ -118,11 +121,13 @@ class JsonExportService {
       }
       for (final st in (json['tourStops'] as List)) {
         final row = Map<String, dynamic>.from(st as Map<String, dynamic>);
-        if (row['plannedAnimals'] is List) {
-          row['plannedAnimals'] = _coerceTourStopAnimals(row['plannedAnimals'] as List);
+        if (row['plannedPrestations'] is List) {
+          row['plannedPrestations'] =
+              _coerceTourStopPrestations(row['plannedPrestations'] as List);
         }
-        if (row['actualAnimals'] is List) {
-          row['actualAnimals'] = _coerceTourStopAnimals(row['actualAnimals'] as List);
+        if (row['actualPrestations'] is List) {
+          row['actualPrestations'] =
+              _coerceTourStopPrestations(row['actualPrestations'] as List);
         }
         await database.into(database.tourStopsTable).insert(
               TourStopRow.fromJson(row),
