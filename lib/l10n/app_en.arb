@@ -361,5 +361,28 @@
   "cloudLoginSendButton": "Send link",
   "cloudLoginCheckEmail": "Link sent. Check your inbox and tap the link to sign in.",
   "cloudLoginNoNetwork": "No connection.",
-  "cloudLoginGenericError": "Error. Try again later."
+  "cloudLoginGenericError": "Error. Try again later.",
+  "backupPickerTitle": "Available backups",
+  "backupPickerEmpty": "No backup for this account.",
+  "backupPickerToday": "Today at {time}",
+  "@backupPickerToday": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "backupPickerYesterday": "Yesterday at {time}",
+  "@backupPickerYesterday": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "backupPickerSizeKb": "{kb} KB",
+  "@backupPickerSizeKb": {
+    "placeholders": {"kb": {"type": "int"}}
+  },
+  "restoreConfirmTitleSettings": "Restore this backup?",
+  "restoreConfirmMessageSettings": "This will overwrite all current data on this device. Cannot be undone.",
+  "restoreConfirmTypePromptSettings": "Type RESTORE to confirm",
+  "restoreConfirmConfirmButton": "Restore",
+  "restoreConfirmCancelButton": "Cancel",
+  "restoreInProgress": "Restoring…",
+  "restoreSuccess": "Restore complete",
+  "restoreFailedFutureSchema": "This backup was created by a newer version. Please update the app.",
+  "restoreFailedGeneric": "Restore failed."
 }

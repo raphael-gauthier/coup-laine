@@ -9,6 +9,7 @@ import '../../presentation/clients/client_history_screen.dart';
 import '../../presentation/proximity/proximity_screen.dart';
 import '../../presentation/clients/client_form_screen.dart';
 import '../../presentation/clients/clients_list_screen.dart';
+import '../../presentation/cloud/backup_picker_screen.dart';
 import '../../presentation/cloud/cloud_login_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/settings/settings_screen.dart';
@@ -77,6 +78,18 @@ class AppRouter {
           path: '/settings/cloud-login',
           pageBuilder: (_, state) =>
               _fadeSlidePage(state, const CloudLoginScreen()),
+        ),
+        GoRoute(
+          path: '/settings/backups',
+          pageBuilder: (_, state) =>
+              _fadeSlidePage(state, const BackupPickerScreen()),
+        ),
+        GoRoute(
+          path: '/onboarding/restore-pick',
+          pageBuilder: (_, state) => _fadeSlidePage(
+            state,
+            const BackupPickerScreen(requireTypedConfirmation: false),
+          ),
         ),
         GoRoute(
           path: '/settings/species',

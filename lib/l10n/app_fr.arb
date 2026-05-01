@@ -361,5 +361,28 @@
   "cloudLoginSendButton": "Envoyer le lien",
   "cloudLoginCheckEmail": "Lien envoyé. Vérifiez votre boîte mail puis tapez sur le lien dans cet email.",
   "cloudLoginNoNetwork": "Pas de connexion.",
-  "cloudLoginGenericError": "Erreur. Réessayez plus tard."
+  "cloudLoginGenericError": "Erreur. Réessayez plus tard.",
+  "backupPickerTitle": "Sauvegardes disponibles",
+  "backupPickerEmpty": "Aucune sauvegarde pour ce compte.",
+  "backupPickerToday": "Aujourd'hui à {time}",
+  "@backupPickerToday": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "backupPickerYesterday": "Hier à {time}",
+  "@backupPickerYesterday": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "backupPickerSizeKb": "{kb} ko",
+  "@backupPickerSizeKb": {
+    "placeholders": {"kb": {"type": "int"}}
+  },
+  "restoreConfirmTitleSettings": "Restaurer ce backup ?",
+  "restoreConfirmMessageSettings": "Cela écrasera toutes les données actuelles de cet appareil. Action irréversible.",
+  "restoreConfirmTypePromptSettings": "Tapez RESTAURER pour confirmer",
+  "restoreConfirmConfirmButton": "Restaurer",
+  "restoreConfirmCancelButton": "Annuler",
+  "restoreInProgress": "Restauration en cours…",
+  "restoreSuccess": "Restauration terminée",
+  "restoreFailedFutureSchema": "Cette sauvegarde a été créée par une version plus récente. Mettez à jour l'app.",
+  "restoreFailedGeneric": "Restauration échouée."
 }
