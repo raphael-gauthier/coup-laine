@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart' show Icons, IconButton, showModalBottomSheet;
+import 'package:flutter/material.dart' show showModalBottomSheet;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
@@ -8,6 +8,9 @@ import '../../domain/models/animal_category.dart';
 import '../../domain/models/species.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
+import '../widgets/app_fab.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_list_tile.dart';
 import 'animal_category_form_sheet.dart';
 
 /// Per-species edit screen, route `/settings/species/:id`.
@@ -62,26 +65,56 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
     final l = AppLocalizations.of(context)!;
     return SafeArea(
       child: FScaffold(
-        header: FHeader.nested(title: Text(l.speciesManagementTitle)),
         child: FutureBuilder<_SpeciesEditData>(
           future: _future,
           builder: (context, snap) {
             if (snap.connectionState != ConnectionState.done) {
-              return const Center(child: FCircularProgress());
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppHeader(title: l.speciesManagementTitle),
+                  const Expanded(child: Center(child: FCircularProgress())),
+                ],
+              );
             }
             if (snap.hasError) {
-              return Center(child: Text('${snap.error}'));
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppHeader(title: l.speciesManagementTitle),
+                  Expanded(child: Center(child: Text('${snap.error}'))),
+                ],
+              );
             }
             final data = snap.data!;
             if (data.species == null) {
-              return const Center(child: Text('—'));
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppHeader(title: l.speciesManagementTitle),
+                  const Expanded(child: Center(child: Text('—'))),
+                ],
+              );
             }
-            return _SpeciesEditBody(
-              data: data,
-              onMutated: () {
-                _invalidateUpstream();
-                _reload();
-              },
+            final activeCatCount =
+                data.categories.where((c) => !c.isArchived).length;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppHeader(
+                  title: data.species!.name,
+                  subtitle: '$activeCatCount catégorie${activeCatCount != 1 ? 's' : ''}',
+                ),
+                Expanded(
+                  child: _SpeciesEditBody(
+                    data: data,
+                    onMutated: () {
+                      _invalidateUpstream();
+                      _reload();
+                    },
+                  ),
+                ),
+              ],
             );
           },
         ),
@@ -202,177 +235,102 @@ class _SpeciesEditBodyState extends ConsumerState<_SpeciesEditBody> {
     final canArchiveSpecies =
         species.isArchived || widget.data.activeSpeciesCount > 1;
 
-    return SingleChildScrollView(
-      padding: AppSizes.screenPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            species.name,
-            style: theme.typography.xl2.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colors.foreground,
-            ),
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          padding: AppSizes.screenPadding.copyWith(
+            bottom: AppSizes.screenPadding.bottom + 72, // room for FAB
           ),
-          const SizedBox(height: AppSpacing.md),
-          FTextField(
-            control: FTextFieldControl.managed(
-              controller: _nameCtrl,
-              onChange: (_) {},
-            ),
-            label: Text(l.categoryFormName),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: FButton(
-                  onPress: _saveName,
-                  child: Text(l.categoryFormSave),
+              FTextField(
+                control: FTextFieldControl.managed(
+                  controller: _nameCtrl,
+                  onChange: (_) {},
                 ),
+                label: Text(l.categoryFormName),
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: FButton(
-                  variant: species.isArchived
-                      ? FButtonVariant.outline
-                      : FButtonVariant.destructive,
-                  onPress: canArchiveSpecies ? _toggleArchive : null,
-                  child: Text(
-                    species.isArchived
-                        ? l.speciesManagementUnarchive
-                        : l.speciesManagementArchive,
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: FButton(
+                      onPress: _saveName,
+                      child: Text(l.categoryFormSave),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: FButton(
+                      variant: species.isArchived
+                          ? FButtonVariant.outline
+                          : FButtonVariant.destructive,
+                      onPress: canArchiveSpecies ? _toggleArchive : null,
+                      child: Text(
+                        species.isArchived
+                            ? l.speciesManagementUnarchive
+                            : l.speciesManagementArchive,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+
+              for (final cat in activeCats)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: AppListTile(
+                    title: cat.name,
+                    suffix: FButton.icon(
+                      onPress: () => _archiveCategory(cat),
+                      child: const Icon(FIcons.archive),
+                    ),
+                    onTap: () => _editCategory(cat),
                   ),
                 ),
-              ),
+
+              if (archivedCats.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  l.speciesManagementArchivedSection,
+                  style: theme.typography.lg.copyWith(
+                    color: theme.colors.foreground,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                for (final cat in archivedCats)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: AppListTile(
+                      title: cat.name,
+                      subtitle: l.speciesManagementArchivedSection.toLowerCase(),
+                      suffix: FButton(
+                        variant: FButtonVariant.outline,
+                        onPress: () => _unarchiveCategory(cat),
+                        child: Text(l.categoryFormUnarchive),
+                      ),
+                    ),
+                  ),
+              ],
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+        ),
 
-          for (final cat in activeCats)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _CategoryActiveRow(
-                category: cat,
-                onEdit: () => _editCategory(cat),
-                onArchive: () => _archiveCategory(cat),
-              ),
-            ),
-          FButton(
-            variant: FButtonVariant.outline,
+        // FAB — bottom-right
+        Positioned(
+          right: AppSpacing.md,
+          bottom: AppSpacing.md,
+          child: AppFAB(
+            icon: FIcons.plus,
+            label: 'Catégorie',
+            extended: true,
             onPress: _addCategory,
-            child: Text(l.speciesEditAddCategory),
           ),
-
-          if (archivedCats.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              l.speciesManagementArchivedSection,
-              style: theme.typography.lg.copyWith(
-                color: theme.colors.foreground,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            for (final cat in archivedCats)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: _CategoryArchivedRow(
-                  category: cat,
-                  onUnarchive: () => _unarchiveCategory(cat),
-                ),
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryActiveRow extends StatelessWidget {
-  final AnimalCategory category;
-  final VoidCallback onEdit;
-  final VoidCallback onArchive;
-
-  const _CategoryActiveRow({
-    required this.category,
-    required this.onEdit,
-    required this.onArchive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onEdit,
-      child: Container(
-        padding: AppSizes.listTilePadding,
-        decoration: BoxDecoration(
-          color: theme.colors.card,
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          border: Border.all(color: theme.colors.border),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                category.name,
-                style: theme.typography.md.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colors.foreground,
-                ),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.archive),
-              onPressed: onArchive,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryArchivedRow extends StatelessWidget {
-  final AnimalCategory category;
-  final VoidCallback onUnarchive;
-
-  const _CategoryArchivedRow({
-    required this.category,
-    required this.onUnarchive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    final theme = context.theme;
-    return Container(
-      padding: AppSizes.listTilePadding,
-      decoration: BoxDecoration(
-        color: theme.colors.card,
-        borderRadius: BorderRadius.circular(AppBorderRadius.md),
-        border: Border.all(color: theme.colors.border),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              category.name,
-              style: theme.typography.md.copyWith(
-                color: theme.colors.mutedForeground,
-              ),
-            ),
-          ),
-          FButton(
-            variant: FButtonVariant.outline,
-            onPress: onUnarchive,
-            child: Text(l.categoryFormUnarchive),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
