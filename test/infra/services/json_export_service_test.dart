@@ -8,6 +8,7 @@ import 'package:coup_laine/data/repositories/prestation_repository.dart';
 import 'package:coup_laine/data/repositories/settings_repository.dart';
 import 'package:coup_laine/data/repositories/species_repository.dart';
 import 'package:coup_laine/data/repositories/tour_repository.dart';
+import 'package:coup_laine/domain/models/animal_count.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:coup_laine/domain/models/distance_matrix_entry.dart';
@@ -16,6 +17,7 @@ import 'package:coup_laine/domain/models/tour.dart';
 import 'package:coup_laine/domain/models/tour_stop_prestation.dart';
 import 'package:coup_laine/infra/db/app_database.dart';
 import 'package:coup_laine/infra/services/json_export_service.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -270,7 +272,7 @@ void main() {
         categoryId: catId,
       );
 
-      // clients
+      // clients (with non-empty animals to exercise _serializeAnimalCounts)
       final clientId = await clients.insert(Client(
         id: 0,
         name: 'Le Gall',
@@ -278,6 +280,7 @@ void main() {
         postcode: '29000',
         city: 'Quimper',
         coordinates: const Coordinates(lat: 48.0, lon: -4.1),
+        animals: [AnimalCount(categoryId: catId, count: 7)],
       ));
 
       // manual history
@@ -348,6 +351,26 @@ void main() {
         ],
       ));
 
+      // Populate actualPrestations on the planned stop directly via Drift so
+      // we exercise the non-null branch of the export serializer without
+      // going through a full tour-completion flow.
+      await db.update(db.tourStopsTable).write(
+            TourStopsTableCompanion(
+              actualPrestations: Value([
+                TourStopPrestation(
+                  prestationId: prestationId,
+                  qty: 5,
+                  nameSnapshot: 'Tonte petit',
+                  priceCentsSnapshot: 800,
+                  minutesSnapshot: 8,
+                  categoryIdSnapshot: catId,
+                  categoryNameSnapshot: 'Petit',
+                  speciesNameSnapshot: 'Mouton',
+                ),
+              ]),
+            ),
+          );
+
       final json = await svc.exportToJsonString();
       await wipeAll();
 
@@ -389,6 +412,9 @@ void main() {
       expect(cs, hasLength(1));
       expect(cs.single.id, clientId);
       expect(cs.single.name, 'Le Gall');
+      expect(cs.single.animals, hasLength(1));
+      expect(cs.single.animals.single.categoryId, catId);
+      expect(cs.single.animals.single.count, 7);
 
       // manual history
       final mh = await manualHistory.listForClient(clientId);
@@ -412,11 +438,22 @@ void main() {
         read.stops.single.plannedPrestations.single.categoryIdSnapshot,
         catId,
       );
+      expect(read.stops.single.actualPrestations, isNotNull);
+      expect(read.stops.single.actualPrestations, hasLength(1));
+      expect(read.stops.single.actualPrestations!.single.qty, 5);
+      expect(
+        read.stops.single.actualPrestations!.single.nameSnapshot,
+        'Tonte petit',
+      );
     });
   });
 
   group('schema versioning', () {
     test('rejects a future schema (>schemaVersion)', () async {
+      // Settings already populated in setUp — sanity-check that, so we can
+      // verify a rejected import does NOT wipe the DB before throwing.
+      expect(await settings.read(), isNotNull);
+
       final body = jsonEncode({
         'schema': 99,
         'settings': null,
@@ -425,10 +462,15 @@ void main() {
         'tours': [],
         'tourStops': [],
       });
-      expect(
+      await expectLater(
         () => svc.importFromJsonString(body),
         throwsA(isA<JsonImportException>()),
       );
+
+      // The DB must be unchanged — the import wipe must NOT have run.
+      final s = await settings.read();
+      expect(s, isNotNull);
+      expect(s!.baseAddressLabel, 'base');
     });
 
     test('accepts a past schema (forward compat — v1 without 4 new keys)',
