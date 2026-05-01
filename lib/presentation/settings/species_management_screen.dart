@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart'
     show
-        ListTile,
         TextField,
         InputDecoration,
         Material,
         Icons,
-        IconButton,
+        ListTile,
         showModalBottomSheet;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/animal_icons.dart';
 import '../../core/design_tokens.dart';
 import '../../data/seeds/species_seeds.dart';
 import '../../domain/models/animal_category.dart';
@@ -19,6 +20,9 @@ import '../../domain/models/species.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
 import '../onboarding/custom_species_form_sheet.dart';
+import '../widgets/app_fab.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_list_tile.dart';
 
 class SpeciesManagementScreen extends ConsumerWidget {
   const SpeciesManagementScreen({super.key});
@@ -29,90 +33,164 @@ class SpeciesManagementScreen extends ConsumerWidget {
     final activeAsync = ref.watch(activeSpeciesProvider);
     final archivedAsync = ref.watch(archivedSpeciesProvider);
     final catsAsync = ref.watch(activeCategoriesBySpeciesProvider);
-    final theme = context.theme;
+
+    if (activeAsync.isLoading || archivedAsync.isLoading) {
+      return const SafeArea(child: Center(child: FCircularProgress()));
+    }
+    if (activeAsync.hasError) {
+      return SafeArea(child: Text('${activeAsync.error}'));
+    }
+    if (archivedAsync.hasError) {
+      return SafeArea(child: Text('${archivedAsync.error}'));
+    }
+
+    final active = activeAsync.value!;
+    final archived = archivedAsync.value!;
+    final catsBySpecies =
+        catsAsync.hasValue ? catsAsync.value! : const <int, List<AnimalCategory>>{};
+
+    final subtitle =
+        '${active.length} active${active.length == 1 ? '' : 's'} · '
+        '${archived.length} archivée${archived.length == 1 ? '' : 's'}';
 
     return SafeArea(
       child: FScaffold(
-        header: FHeader.nested(title: Text(l.speciesManagementTitle)),
-        child: SingleChildScrollView(
-          padding: AppSizes.screenPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (activeAsync.hasValue) ...[
-                for (final species in activeAsync.value!)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: _SpeciesActiveTile(
-                      species: species,
-                      categories:
-                          (catsAsync.hasValue ? catsAsync.value![species.id] : null) ?? const [],
-                      canArchive: activeAsync.value!.length > 1,
-                      onTap: () =>
-                          context.push('/settings/species/${species.id}'),
-                      onRename: () => _renameSpecies(context, ref, species),
-                      onArchive: () async {
-                        await ref
-                            .read(speciesRepositoryProvider)
-                            .archive(species.id);
-                        ref.invalidate(activeSpeciesProvider);
-                        ref.invalidate(archivedSpeciesProvider);
-                      },
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppHeader(
+                  title: l.speciesManagementTitle,
+                  subtitle: subtitle,
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: AppSizes.screenPadding.copyWith(
+                      bottom: AppSizes.bottomScrollPadding,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final species in active)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                            child: AppListTile(
+                              variant: AppListTileVariant.standard,
+                              prefix: _speciesPrefix(species),
+                              title: species.name,
+                              subtitle: _categoriesSubtitle(
+                                catsBySpecies[species.id] ?? const [],
+                                l,
+                              ),
+                              suffix: Icon(
+                                FIcons.chevronRight,
+                                color: context.theme.colors.mutedForeground,
+                              ),
+                              onTap: () => context
+                                  .push('/settings/species/${species.id}'),
+                              onLongPress: () =>
+                                  _openTileMenu(context, ref, species, active),
+                            ),
+                          ),
+                        if (archived.isNotEmpty) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          _ArchivedSection(
+                            archived: archived,
+                            onUnarchive: (species) async {
+                              await ref
+                                  .read(speciesRepositoryProvider)
+                                  .unarchive(species.id);
+                              ref.invalidate(activeSpeciesProvider);
+                              ref.invalidate(archivedSpeciesProvider);
+                            },
+                          ),
+                        ],
+                      ],
                     ),
                   ),
-                const SizedBox(height: AppSpacing.sm),
-                FButton(
-                  onPress: () => _addCustom(context, ref),
-                  child: Text(l.speciesManagementAddSpecies),
                 ),
-                const SizedBox(height: AppSpacing.sm),
-                FButton(
-                  variant: FButtonVariant.ghost,
-                  onPress: () => _restoreTemplate(
-                    context,
-                    ref,
-                    activeAsync.value!,
-                    archivedAsync.hasValue
-                        ? archivedAsync.value!
-                        : const <Species>[],
-                  ),
-                  child: Text(l.speciesManagementRestoreTemplate),
-                ),
-              ] else if (activeAsync.isLoading)
-                const Center(child: FCircularProgress())
-              else if (activeAsync.hasError)
-                Text('${activeAsync.error}'),
-              if (archivedAsync.hasValue &&
-                  archivedAsync.value!.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  l.speciesManagementArchivedSection,
-                  style: theme.typography.lg.copyWith(
-                    color: theme.colors.foreground,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                for (final species in archivedAsync.value!)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: _SpeciesArchivedTile(
-                      species: species,
-                      onUnarchive: () async {
-                        await ref
-                            .read(speciesRepositoryProvider)
-                            .unarchive(species.id);
-                        ref.invalidate(activeSpeciesProvider);
-                        ref.invalidate(archivedSpeciesProvider);
-                      },
-                    ),
-                  ),
               ],
-            ],
-          ),
+            ),
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: AppFAB(
+                icon: FIcons.plus,
+                label: 'Espèce',
+                extended: true,
+                onPress: () => _showAddSheet(
+                  context,
+                  ref,
+                  active,
+                  archived,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  Widget? _speciesPrefix(Species species) {
+    final asset = iconAssetForSpeciesKey(species.iconKey);
+    if (asset == null) return null;
+    return SvgPicture.asset(asset, width: 24, height: 24);
+  }
+
+  String _categoriesSubtitle(List<AnimalCategory> cats, AppLocalizations l) {
+    if (cats.isEmpty) return l.speciesManagementCountFmt(0, 0);
+    return '${cats.length} catégorie${cats.length == 1 ? '' : 's'}';
+  }
+
+  Future<void> _openTileMenu(
+    BuildContext context,
+    WidgetRef ref,
+    Species species,
+    List<Species> active,
+  ) async {
+    final l = AppLocalizations.of(context)!;
+    final canArchive = active.length > 1;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Material(
+                color: const Color(0x00000000),
+                child: ListTile(
+                  leading: const Icon(Icons.edit),
+                  title: Text(l.speciesManagementRename),
+                  onTap: () => Navigator.of(ctx).pop('rename'),
+                ),
+              ),
+              Material(
+                color: const Color(0x00000000),
+                child: ListTile(
+                  leading: const Icon(Icons.archive),
+                  title: Text(l.speciesManagementArchive),
+                  enabled: canArchive,
+                  onTap: canArchive
+                      ? () => Navigator.of(ctx).pop('archive')
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (action == 'rename') {
+      if (context.mounted) await _renameSpecies(context, ref, species);
+    }
+    if (action == 'archive') {
+      await ref.read(speciesRepositoryProvider).archive(species.id);
+      ref.invalidate(activeSpeciesProvider);
+      ref.invalidate(archivedSpeciesProvider);
+    }
   }
 
   Future<void> _renameSpecies(
@@ -163,6 +241,47 @@ class SpeciesManagementScreen extends ConsumerWidget {
         .read(speciesRepositoryProvider)
         .rename(id: species.id, name: newName.trim());
     ref.invalidate(activeSpeciesProvider);
+  }
+
+  Future<void> _showAddSheet(
+    BuildContext context,
+    WidgetRef ref,
+    List<Species> active,
+    List<Species> archived,
+  ) async {
+    final l = AppLocalizations.of(context)!;
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FButton(
+                  onPress: () => Navigator.of(ctx).pop('custom'),
+                  child: Text(l.speciesManagementAddSpecies),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                FButton(
+                  variant: FButtonVariant.ghost,
+                  onPress: () => Navigator.of(ctx).pop('template'),
+                  child: Text(l.speciesManagementRestoreTemplate),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    if (action == 'custom') {
+      if (context.mounted) await _addCustom(context, ref);
+    }
+    if (action == 'template') {
+      if (context.mounted) await _restoreTemplate(context, ref, active, archived);
+    }
   }
 
   Future<void> _addCustom(BuildContext context, WidgetRef ref) async {
@@ -274,151 +393,69 @@ class SpeciesManagementScreen extends ConsumerWidget {
   }
 }
 
-class _SpeciesActiveTile extends StatelessWidget {
-  final Species species;
-  final List<AnimalCategory> categories;
-  final bool canArchive;
-  final VoidCallback onTap;
-  final VoidCallback onRename;
-  final VoidCallback onArchive;
+class _ArchivedSection extends StatefulWidget {
+  final List<Species> archived;
+  final void Function(Species) onUnarchive;
 
-  const _SpeciesActiveTile({
-    required this.species,
-    required this.categories,
-    required this.canArchive,
-    required this.onTap,
-    required this.onRename,
-    required this.onArchive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    final theme = context.theme;
-    final names = categories.map((c) => c.name).join(', ');
-    final subtitle = categories.isEmpty
-        ? l.speciesManagementCountFmt(0, 0)
-        : '${categories.length} — $names';
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: AppSizes.listTilePadding,
-        decoration: BoxDecoration(
-          color: theme.colors.card,
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          border: Border.all(color: theme.colors.border),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    species.name,
-                    style: theme.typography.md.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colors.foreground,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    subtitle,
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.more_vert),
-              onPressed: () => _openMenu(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openMenu(BuildContext context) async {
-    final l = AppLocalizations.of(context)!;
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Material(
-                color: const Color(0x00000000),
-                child: ListTile(
-                  leading: const Icon(Icons.edit),
-                  title: Text(l.speciesManagementRename),
-                  onTap: () => Navigator.of(ctx).pop('rename'),
-                ),
-              ),
-              Material(
-                color: const Color(0x00000000),
-                child: ListTile(
-                  leading: const Icon(Icons.archive),
-                  title: Text(l.speciesManagementArchive),
-                  enabled: canArchive,
-                  onTap: canArchive
-                      ? () => Navigator.of(ctx).pop('archive')
-                      : null,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-    if (action == 'rename') onRename();
-    if (action == 'archive') onArchive();
-  }
-}
-
-class _SpeciesArchivedTile extends StatelessWidget {
-  final Species species;
-  final VoidCallback onUnarchive;
-
-  const _SpeciesArchivedTile({
-    required this.species,
+  const _ArchivedSection({
+    required this.archived,
     required this.onUnarchive,
   });
 
   @override
+  State<_ArchivedSection> createState() => _ArchivedSectionState();
+}
+
+class _ArchivedSectionState extends State<_ArchivedSection> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    return Container(
-      padding: AppSizes.listTilePadding,
-      decoration: BoxDecoration(
-        color: theme.colors.card,
-        borderRadius: BorderRadius.circular(AppBorderRadius.md),
-        border: Border.all(color: theme.colors.border),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              species.name,
-              style: theme.typography.md.copyWith(
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => setState(() => _expanded = !_expanded),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l.speciesManagementArchivedSection,
+                  style: theme.typography.lg.copyWith(
+                    color: theme.colors.foreground,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Icon(
+                _expanded ? FIcons.chevronUp : FIcons.chevronDown,
                 color: theme.colors.mutedForeground,
               ),
+            ],
+          ),
+        ),
+        if (_expanded) ...[
+          const SizedBox(height: AppSpacing.sm),
+          for (final species in widget.archived)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: AppListTile(
+                variant: AppListTileVariant.compact,
+                title: species.name,
+                suffix: FButton(
+                  variant: FButtonVariant.outline,
+                  size: FButtonSizeVariant.sm,
+                  onPress: () => widget.onUnarchive(species),
+                  child: Text(l.speciesManagementUnarchive),
+                ),
+              ),
             ),
-          ),
-          FButton(
-            variant: FButtonVariant.outline,
-            onPress: onUnarchive,
-            child: Text(l.speciesManagementUnarchive),
-          ),
         ],
-      ),
+      ],
     );
   }
 }
