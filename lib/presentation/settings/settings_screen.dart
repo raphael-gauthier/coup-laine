@@ -13,12 +13,16 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
 import '../../core/design_tokens.dart';
+import '../../core/ui/confirm_dialog.dart';
 import '../../domain/models/settings.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 import '../tours/tours_list_screen.dart' show toursAsyncProvider;
 import '../widgets/address_autocomplete_field.dart';
+import '../widgets/app_action_bar.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import '../widgets/color_swatch_picker.dart';
@@ -172,378 +176,305 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
 
-    return SingleChildScrollView(
-      padding: AppSizes.rootScreenPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Page heading
-          Text(
-            l.tabSettings,
-            style: theme.typography.xl3.copyWith(
-              fontWeight: FontWeight.bold,
-              color: theme.colors.foreground,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppHeader(title: l.tabSettings, showBackButton: false),
 
-          // --- Apparence ---
-          AppSectionCard(
-            icon: FIcons.palette,
-            title: l.settingsAppearanceTitle,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ThemeOption(
-                  mode: ThemeModePreference.system,
-                  icon: FIcons.monitor,
-                  label: l.settingsThemeSystem,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _ThemeOption(
-                  mode: ThemeModePreference.light,
-                  icon: FIcons.sun,
-                  label: l.settingsThemeLight,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _ThemeOption(
-                  mode: ThemeModePreference.dark,
-                  icon: FIcons.moon,
-                  label: l.settingsThemeDark,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // --- Espèces & catégories ---
-          AppSectionCard(
-            icon: FIcons.tag,
-            title: l.speciesManagementTitle,
-            child: Consumer(
-              builder: (context, ref, _) {
-                final activeAsync = ref.watch(activeSpeciesProvider);
-                final catsAsync = ref.watch(activeCategoriesBySpeciesProvider);
-                final speciesCount =
-                    activeAsync.hasValue ? activeAsync.value!.length : 0;
-                final catCount = catsAsync.hasValue
-                    ? catsAsync.value!.values
-                        .fold<int>(0, (a, b) => a + b.length)
-                    : 0;
-                return FTile(
-                  title: Text(
-                    l.speciesManagementCountFmt(speciesCount, catCount),
-                  ),
-                  suffix: const Icon(FIcons.chevronRight),
-                  onPress: () => context.push('/settings/species'),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // --- Catalogue de prestations ---
-          AppSectionCard(
-            icon: FIcons.listChecks,
-            title: l.prestationCatalogTitle,
-            child: Consumer(
-              builder: (context, ref, _) {
-                final countAsync = ref.watch(prestationCountActiveProvider);
-                final subtitle = countAsync.when(
-                  loading: () => '…',
-                  error: (_, __) => '',
-                  data: (n) => l.prestationCatalogCountFmt(n),
-                );
-                return FTile(
-                  title: Text(subtitle),
-                  suffix: const Icon(FIcons.chevronRight),
-                  onPress: () => context.push('/settings/prestations'),
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // --- Adresse de base ---
-          AppSectionCard(
-            icon: FIcons.house,
-            title: l.settingsBaseAddressTitle,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _draft.baseAddressLabel,
-                  style: theme.typography.sm.copyWith(
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                AddressAutocompleteField(
-                  labelText: l.settingsBaseAddressEdit,
-                  onPicked: (r) => setState(() {
-                    _draft = _draft.copyWith(
-                      baseAddressLabel: r.label,
-                      baseCoordinates: r.coordinates,
-                    );
-                  }),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // --- Valeurs par défaut ---
-          AppSectionCard(
-            icon: FIcons.slidersHorizontal,
-            title: l.settingsDefaultsTitle,
-            child: Column(
-              children: [
-                FTextField(
-                  control: FTextFieldControl.managed(
-                    controller: _radiusCtrl,
-                    onChange: (v) {
-                      final n = int.tryParse(v.text);
-                      if (n != null && n > 0) {
-                        setState(() => _draft = _draft.copyWith(defaultRadiusKm: n));
-                      }
-                    },
-                  ),
-                  label: Text(l.settingsRadiusLabel),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                FTextField(
-                  control: FTextFieldControl.managed(
-                    controller: _bracketKmCtrl,
-                    onChange: (v) {
-                      final n = int.tryParse(v.text);
-                      if (n != null && n > 0) {
-                        setState(() => _draft = _draft.copyWith(bracketKm: n));
-                      }
-                    },
-                  ),
-                  label: Text(l.settingsBracketKmLabel),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                FTextField(
-                  control: FTextFieldControl.managed(
-                    controller: _tariffCtrl,
-                    onChange: (v) {
-                      final n = int.tryParse(v.text);
-                      if (n != null && n > 0) {
-                        setState(() => _draft = _draft.copyWith(travelFeeEurosPerBracket: n));
-                      }
-                    },
-                  ),
-                  label: Text(l.settingsTariffLabel),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // --- Couleurs des marqueurs ---
-          AppSectionCard(
-            icon: FIcons.droplet,
-            title: 'Couleurs des marqueurs',
-            child: Column(
-              children: [
-                _MarkerColorRow(
-                  label: l.settingsMarkerDefault,
-                  currentHex: _draft.markerDefaultColor,
-                  defaultHex: '#9CA3AF',
-                  onPicked: (hex) => _persistMarkerColor(ClientStatus.defaultStatus, hex),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _MarkerColorRow(
-                  label: l.settingsMarkerWaiting,
-                  currentHex: _draft.markerWaitingColor,
-                  defaultHex: '#EAB308',
-                  onPicked: (hex) => _persistMarkerColor(ClientStatus.waiting, hex),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _MarkerColorRow(
-                  label: l.settingsMarkerScheduled,
-                  currentHex: _draft.markerScheduledColor,
-                  defaultHex: '#65A30D',
-                  onPicked: (hex) => _persistMarkerColor(ClientStatus.scheduled, hex),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _MarkerColorRow(
-                  label: l.settingsMarkerDone,
-                  currentHex: _draft.markerDoneColor,
-                  defaultHex: '#166534',
-                  onPicked: (hex) => _persistMarkerColor(ClientStatus.done, hex),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _MarkerColorRow(
-                  label: l.settingsMarkerNoAnimals,
-                  currentHex: _draft.markerNoAnimalsColor,
-                  defaultHex: '#1F2937',
-                  onPicked: (hex) => _persistMarkerColor(ClientStatus.noAnimals, hex),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _MarkerColorRow(
-                  label: l.settingsMarkerBanned,
-                  currentHex: _draft.markerBannedColor,
-                  defaultHex: '#B91C1C',
-                  onPicked: (hex) => _persistMarkerColor(ClientStatus.banned, hex),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // --- Saison ---
-          AppSectionCard(
-            icon: FIcons.calendar,
-            title: l.settingsSeasonTitle,
+        Expanded(
+          child: SingleChildScrollView(
+            padding: AppSizes.screenPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  l.settingsSeasonStartedFmt(
-                    DateFormat('dd/MM/yyyy').format(_draft.seasonStartedAt),
-                  ),
-                  style: theme.typography.sm.copyWith(
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                FButton(
-                  variant: FButtonVariant.destructive,
-                  prefix: const Icon(FIcons.rotateCcw),
-                  onPress: () async {
-                    final ok = await showFDialog<bool>(
-                      context: context,
-                      builder: (ctx, style, animation) => FDialog(
-                        style: style,
-                        animation: animation,
-                        title: Text(l.settingsSeasonResetConfirmTitle),
-                        body: Text(l.settingsSeasonResetConfirmBody),
-                        actions: [
-                          FButton(
-                            variant: FButtonVariant.outline,
-                            onPress: () => Navigator.of(ctx).pop(false),
-                            child: const Text('Annuler'),
-                          ),
-                          FButton(
-                            variant: FButtonVariant.destructive,
-                            onPress: () => Navigator.of(ctx).pop(true),
-                            child: Text(l.settingsSeasonResetButton),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (ok != true) return;
-                    final now = DateTime.now();
-                    await ref.read(settingsRepositoryProvider).bumpSeasonStartedAt(now);
-                    await ref.read(clientRepositoryProvider).resetAllWaiting();
-                    ref.invalidate(_settingsAsyncProvider);
-                    ref.invalidate(clientsAsyncProvider);
-                    if (!mounted) return;
-                    setState(() {
-                      _draft = _draft.copyWith(seasonStartedAt: now);
-                    });
-                    showFToast(
-                      context: context, // ignore: use_build_context_synchronously
-                      title: Text(l.settingsSeasonResetButton),
-                    );
-                  },
-                  child: Text(l.settingsSeasonResetButton),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // --- Données ---
-          AppSectionCard(
-            icon: FIcons.database,
-            title: l.settingsDataTitle,
-            child: Column(
-              children: [
-                FTile(
-                  prefix: const Icon(FIcons.upload),
-                  title: Text(l.settingsExportData),
-                  suffix: const Icon(FIcons.chevronRight),
-                  onPress: () async {
-                    final svc = ref.read(jsonExportServiceProvider);
-                    final body = await svc.exportToJsonString();
-                    final dir = await getTemporaryDirectory();
-                    final file = File(p.join(dir.path,
-                        'coup-laine-${DateTime.now().millisecondsSinceEpoch}.json'));
-                    await file.writeAsString(body);
-                    await SharePlus.instance.share(
-                      ShareParams(files: [XFile(file.path)]),
-                    );
-                  },
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                FTile(
-                  prefix: const Icon(FIcons.download),
-                  title: Text(l.settingsImportData),
-                  suffix: const Icon(FIcons.chevronRight),
-                  onPress: () async {
-                    final picked = await openFile(
-                      acceptedTypeGroups: [
-                        const XTypeGroup(
-                          label: 'JSON',
-                          extensions: ['json'],
+                // --- Adresse de base ---
+                AppSectionCard(
+                  icon: FIcons.house,
+                  title: l.settingsBaseAddressTitle,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _draft.baseAddressLabel,
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.mutedForeground,
                         ),
-                      ],
-                    );
-                    if (picked == null) return;
-                    final body = await picked.readAsString();
-                    if (!mounted) return;
-                    final ok = await showFDialog<bool>(
-                      context: context, // ignore: use_build_context_synchronously
-                      builder: (context, style, animation) => FDialog(
-                        style: style,
-                        animation: animation,
-                        body: const Text(
-                            'Cette action remplace toutes les données actuelles. Continuer ?'),
-                        actions: [
-                          FButton(
-                            variant: FButtonVariant.outline,
-                            onPress: () => Navigator.of(context).pop(false),
-                            child: const Text('Annuler'),
-                          ),
-                          FButton(
-                            onPress: () => Navigator.of(context).pop(true),
-                            child: const Text('Importer'),
-                          ),
-                        ],
                       ),
+                      const SizedBox(height: AppSpacing.sm),
+                      AddressAutocompleteField(
+                        labelText: l.settingsBaseAddressEdit,
+                        onPicked: (r) => setState(() {
+                          _draft = _draft.copyWith(
+                            baseAddressLabel: r.label,
+                            baseCoordinates: r.coordinates,
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // --- Apparence ---
+                AppSectionCard(
+                  icon: FIcons.palette,
+                  title: l.settingsAppearanceTitle,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _ThemeOption(
+                        mode: ThemeModePreference.system,
+                        icon: FIcons.monitor,
+                        label: l.settingsThemeSystem,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _ThemeOption(
+                        mode: ThemeModePreference.light,
+                        icon: FIcons.sun,
+                        label: l.settingsThemeLight,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _ThemeOption(
+                        mode: ThemeModePreference.dark,
+                        icon: FIcons.moon,
+                        label: l.settingsThemeDark,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // --- Couleurs des marqueurs ---
+                AppSectionCard(
+                  icon: FIcons.droplet,
+                  title: 'Couleurs des marqueurs',
+                  child: Column(
+                    children: [
+                      _MarkerColorRow(
+                        label: l.settingsMarkerDefault,
+                        currentHex: _draft.markerDefaultColor,
+                        defaultHex: '#9CA3AF',
+                        onPicked: (hex) => _persistMarkerColor(ClientStatus.defaultStatus, hex),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _MarkerColorRow(
+                        label: l.settingsMarkerWaiting,
+                        currentHex: _draft.markerWaitingColor,
+                        defaultHex: '#EAB308',
+                        onPicked: (hex) => _persistMarkerColor(ClientStatus.waiting, hex),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _MarkerColorRow(
+                        label: l.settingsMarkerScheduled,
+                        currentHex: _draft.markerScheduledColor,
+                        defaultHex: '#65A30D',
+                        onPicked: (hex) => _persistMarkerColor(ClientStatus.scheduled, hex),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _MarkerColorRow(
+                        label: l.settingsMarkerDone,
+                        currentHex: _draft.markerDoneColor,
+                        defaultHex: '#166534',
+                        onPicked: (hex) => _persistMarkerColor(ClientStatus.done, hex),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _MarkerColorRow(
+                        label: l.settingsMarkerNoAnimals,
+                        currentHex: _draft.markerNoAnimalsColor,
+                        defaultHex: '#1F2937',
+                        onPicked: (hex) => _persistMarkerColor(ClientStatus.noAnimals, hex),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _MarkerColorRow(
+                        label: l.settingsMarkerBanned,
+                        currentHex: _draft.markerBannedColor,
+                        defaultHex: '#B91C1C',
+                        onPicked: (hex) => _persistMarkerColor(ClientStatus.banned, hex),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // --- Optimisation tournée ---
+                AppSectionCard(
+                  icon: FIcons.slidersHorizontal,
+                  title: l.settingsDefaultsTitle,
+                  child: Column(
+                    children: [
+                      FTextField(
+                        control: FTextFieldControl.managed(
+                          controller: _radiusCtrl,
+                          onChange: (v) {
+                            final n = int.tryParse(v.text);
+                            if (n != null && n > 0) {
+                              setState(() => _draft = _draft.copyWith(defaultRadiusKm: n));
+                            }
+                          },
+                        ),
+                        label: Text(l.settingsRadiusLabel),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      FTextField(
+                        control: FTextFieldControl.managed(
+                          controller: _bracketKmCtrl,
+                          onChange: (v) {
+                            final n = int.tryParse(v.text);
+                            if (n != null && n > 0) {
+                              setState(() => _draft = _draft.copyWith(bracketKm: n));
+                            }
+                          },
+                        ),
+                        label: Text(l.settingsBracketKmLabel),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      FTextField(
+                        control: FTextFieldControl.managed(
+                          controller: _tariffCtrl,
+                          onChange: (v) {
+                            final n = int.tryParse(v.text);
+                            if (n != null && n > 0) {
+                              setState(() => _draft = _draft.copyWith(travelFeeEurosPerBracket: n));
+                            }
+                          },
+                        ),
+                        label: Text(l.settingsTariffLabel),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // --- Espèces & catégories ---
+                Consumer(
+                  builder: (context, ref, _) {
+                    final activeAsync = ref.watch(activeSpeciesProvider);
+                    final catsAsync = ref.watch(activeCategoriesBySpeciesProvider);
+                    final speciesCount =
+                        activeAsync.hasValue ? activeAsync.value!.length : 0;
+                    final catCount = catsAsync.hasValue
+                        ? catsAsync.value!.values
+                            .fold<int>(0, (a, b) => a + b.length)
+                        : 0;
+                    return AppListTile(
+                      variant: AppListTileVariant.standard,
+                      title: l.speciesManagementTitle,
+                      subtitle: l.speciesManagementCountFmt(speciesCount, catCount),
+                      suffix: const Icon(FIcons.chevronRight),
+                      onTap: () => context.push('/settings/species'),
                     );
-                    if (ok == true) {
-                      await ref
-                          .read(jsonExportServiceProvider)
-                          .importFromJsonString(body);
-                      ref.invalidate(_settingsAsyncProvider);
-                      ref.invalidate(clientsAsyncProvider);
-                      ref.invalidate(clientsPendingProvider);
-                      ref.invalidate(toursAsyncProvider);
-                    }
                   },
                 ),
+                const SizedBox(height: AppSpacing.sm),
+
+                // --- Catalogue de prestations ---
+                Consumer(
+                  builder: (context, ref, _) {
+                    final countAsync = ref.watch(prestationCountActiveProvider);
+                    final subtitle = countAsync.when(
+                      loading: () => '…',
+                      error: (_, __) => '',
+                      data: (n) => l.prestationCatalogCountFmt(n),
+                    );
+                    return AppListTile(
+                      variant: AppListTileVariant.standard,
+                      title: l.prestationCatalogTitle,
+                      subtitle: subtitle,
+                      suffix: const Icon(FIcons.chevronRight),
+                      onTap: () => context.push('/settings/prestations'),
+                    );
+                  },
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // --- Données ---
+                AppSectionCard(
+                  icon: FIcons.database,
+                  title: l.settingsDataTitle,
+                  child: Column(
+                    children: [
+                      FTile(
+                        prefix: const Icon(FIcons.upload),
+                        title: Text(l.settingsExportData),
+                        suffix: const Icon(FIcons.chevronRight),
+                        onPress: () async {
+                          final svc = ref.read(jsonExportServiceProvider);
+                          final body = await svc.exportToJsonString();
+                          final dir = await getTemporaryDirectory();
+                          final file = File(p.join(dir.path,
+                              'coup-laine-${DateTime.now().millisecondsSinceEpoch}.json'));
+                          await file.writeAsString(body);
+                          await SharePlus.instance.share(
+                            ShareParams(files: [XFile(file.path)]),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      FTile(
+                        prefix: const Icon(FIcons.download),
+                        title: Text(l.settingsImportData),
+                        suffix: const Icon(FIcons.chevronRight),
+                        onPress: () async {
+                          final picked = await openFile(
+                            acceptedTypeGroups: [
+                              const XTypeGroup(
+                                label: 'JSON',
+                                extensions: ['json'],
+                              ),
+                            ],
+                          );
+                          if (picked == null) return;
+                          final body = await picked.readAsString();
+                          if (!mounted) return;
+                          final ok = await showDestructiveConfirm(
+                            context, // ignore: use_build_context_synchronously
+                            title: 'Importer les données ?',
+                            body: 'Cette action remplace toutes les données actuelles. Continuer ?',
+                            confirmLabel: 'Importer',
+                          );
+                          if (ok) {
+                            await ref
+                                .read(jsonExportServiceProvider)
+                                .importFromJsonString(body);
+                            ref.invalidate(_settingsAsyncProvider);
+                            ref.invalidate(clientsAsyncProvider);
+                            ref.invalidate(clientsPendingProvider);
+                            ref.invalidate(toursAsyncProvider);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+
+                      // --- Saison (destructive) ---
+                      _SeasonResetTile(draft: _draft, onReset: (now) {
+                        setState(() {
+                          _draft = _draft.copyWith(seasonStartedAt: now);
+                        });
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.lg),
+        ),
 
-          // --- Save bar ---
-          AppPrimaryButton(
-            label: l.settingsSave,
-            onPress: _isDirty ? _save : null,
+        // --- Save bar (shown only when dirty) ---
+        if (_isDirty)
+          AppActionBar(
+            primary: AppPrimaryButton(
+              label: l.settingsSave,
+              onPress: _save,
+            ),
           ),
-        ],
-      ),
+      ],
     );
   }
 }
@@ -580,6 +511,62 @@ class _ThemeOption extends ConsumerWidget {
               ref.invalidate(themeModeProvider);
               ref.invalidate(_settingsAsyncProvider);
             },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Season reset tile (destructive)
+// ---------------------------------------------------------------------------
+
+class _SeasonResetTile extends ConsumerWidget {
+  final Settings draft;
+  final void Function(DateTime now) onReset;
+
+  const _SeasonResetTile({required this.draft, required this.onReset});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l.settingsSeasonStartedFmt(
+            DateFormat('dd/MM/yyyy').format(draft.seasonStartedAt),
+          ),
+          style: theme.typography.sm.copyWith(
+            color: theme.colors.mutedForeground,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        FButton(
+          variant: FButtonVariant.destructive,
+          prefix: const Icon(FIcons.rotateCcw),
+          onPress: () async {
+            final ok = await showDestructiveConfirm(
+              context,
+              title: l.settingsSeasonResetConfirmTitle,
+              body: l.settingsSeasonResetConfirmBody,
+              confirmLabel: l.settingsSeasonResetButton,
+            );
+            if (!ok) return;
+            final now = DateTime.now();
+            await ref.read(settingsRepositoryProvider).bumpSeasonStartedAt(now);
+            await ref.read(clientRepositoryProvider).resetAllWaiting();
+            ref.invalidate(_settingsAsyncProvider);
+            ref.invalidate(clientsAsyncProvider);
+            if (!context.mounted) return;
+            onReset(now);
+            showFToast(
+              context: context, // ignore: use_build_context_synchronously
+              title: Text(l.settingsSeasonResetButton),
+            );
+          },
+          child: Text(l.settingsSeasonResetButton),
+        ),
+      ],
     );
   }
 }
