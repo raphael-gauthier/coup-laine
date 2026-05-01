@@ -88,6 +88,9 @@ class ClientsListScreen extends ConsumerWidget {
             });
           final pending = ref.watch(clientsPendingProvider).value ?? 0;
 
+          final hasActiveFilter =
+              visible.length != ClientStatus.values.length;
+
           return Column(
             children: [
               AppHeader(
@@ -95,16 +98,19 @@ class ClientsListScreen extends ConsumerWidget {
                 subtitle:
                     '${l.clientsCountFmt(all.length)} · ${l.clientsWaitingCountFmt(waiting.length)}',
                 showBackButton: false,
+                actions: [
+                  AppHeaderAction(
+                    icon: FIcons.listFilter,
+                    label: l.clientsFilterByStatus,
+                    active: hasActiveFilter,
+                    onPress: () =>
+                        _StatusFilterButton.openFilterDialog(context, ref),
+                  ),
+                ],
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: Row(
-                  children: const [
-                    Expanded(child: _SearchField()),
-                    SizedBox(width: AppSpacing.sm),
-                    _StatusFilterButton(),
-                  ],
-                ),
+                child: const _SearchField(),
               ),
               if (pending > 0) ...[
                 Padding(
@@ -311,56 +317,13 @@ String _statusLabel(AppLocalizations l, ClientStatus s) => switch (s) {
       ClientStatus.banned => l.clientStatusBanned,
     };
 
-/// Square icon button placed next to the search field that opens a dialog
-/// of status checkboxes. A small dot in the corner signals when the filter
-/// is non-default (i.e. at least one status hidden).
-class _StatusFilterButton extends ConsumerWidget {
-  const _StatusFilterButton();
+/// Holder pour la méthode statique `openFilterDialog`. Le bouton lui-même
+/// vit dans `AppHeader.actions` (cf. `AppHeaderAction(active: hasActiveFilter)`).
+class _StatusFilterButton {
+  const _StatusFilterButton._();
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = context.theme;
-    final visible = ref.watch(_visibleStatusesProvider);
-    final hasActiveFilter = visible.length != ClientStatus.values.length;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _openFilterDialog(context, ref),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: theme.colors.card,
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          border: Border.all(color: theme.colors.border),
-        ),
-        alignment: Alignment.center,
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            Icon(FIcons.listFilter, color: theme.colors.foreground, size: 20),
-            if (hasActiveFilter)
-              Positioned(
-                right: -1,
-                top: -1,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: theme.colors.primary,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: theme.colors.card, width: 1),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openFilterDialog(BuildContext context, WidgetRef ref) async {
+  static Future<void> openFilterDialog(
+      BuildContext context, WidgetRef ref) async {
     final l = AppLocalizations.of(context)!;
     await showFDialog<void>(
       context: context,

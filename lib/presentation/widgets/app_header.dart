@@ -8,17 +8,22 @@ import '../../core/design_tokens.dart';
 /// Action décrite côté caller. Si la largeur disponible permet le label,
 /// on rend `[icon] label` ; sinon on rend juste l'icône (touch target 44dp,
 /// le tooltip Forui montre le label sur tap-and-hold).
+///
+/// `active: true` ajoute un petit dot `primary` 8dp en top-right de l'icône
+/// pour signaler un état "actif" (ex. filtre non-default appliqué).
 class AppHeaderAction {
   final IconData icon;
   final String label;
   final VoidCallback? onPress;
   final bool destructive;
+  final bool active;
 
   const AppHeaderAction({
     required this.icon,
     required this.label,
     required this.onPress,
     this.destructive = false,
+    this.active = false,
   });
 }
 
@@ -98,15 +103,37 @@ class AppHeader extends StatelessWidget {
 
   Widget _renderAction(BuildContext context, AppHeaderAction a,
       {required bool labelMode}) {
-    if (labelMode) {
-      return FButton(
-        variant: FButtonVariant.outline,
-        size: FButtonSizeVariant.sm,
-        prefix: Icon(a.icon),
-        onPress: a.onPress,
-        child: Text(a.label),
-      );
-    }
-    return FButton.icon(onPress: a.onPress, child: Icon(a.icon));
+    final theme = context.theme;
+    final button = labelMode
+        ? FButton(
+            variant: FButtonVariant.outline,
+            size: FButtonSizeVariant.sm,
+            prefix: Icon(a.icon),
+            onPress: a.onPress,
+            child: Text(a.label),
+          )
+        : FButton.icon(onPress: a.onPress, child: Icon(a.icon));
+
+    if (!a.active) return button;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        button,
+        Positioned(
+          right: -2,
+          top: -2,
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: theme.colors.primary,
+              shape: BoxShape.circle,
+              border: Border.all(color: theme.colors.background, width: 1),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
