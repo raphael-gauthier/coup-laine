@@ -367,20 +367,18 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
               const SizedBox(height: AppSpacing.xs),
               Row(
                 children: [
-                  if (_manualOrder != null) ...[
-                    Expanded(
-                      child: FButton(
-                        variant: FButtonVariant.outline,
-                        prefix: const Icon(FIcons.zap, size: 16),
-                        onPress: () {
-                          setState(() => _manualOrder = null);
-                          _refresh();
-                        },
-                        child: Text(l.tourDraftOptimizeOrder),
-                      ),
+                  Expanded(
+                    child: FButton(
+                      variant: FButtonVariant.outline,
+                      prefix: const Icon(FIcons.zap, size: 16),
+                      onPress: () {
+                        setState(() => _manualOrder = null);
+                        _refresh();
+                      },
+                      child: Text(l.tourDraftOptimizeOrder),
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                  ],
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: FButton(
                       variant: FButtonVariant.outline,
