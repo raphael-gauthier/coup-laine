@@ -1150,7 +1150,7 @@ class AppEmptyState extends StatelessWidget {
           Text(
             body,
             textAlign: TextAlign.center,
-            style: theme.typography.base.copyWith(
+            style: theme.typography.md.copyWith(
               color: theme.colors.mutedForeground,
             ),
           ),
@@ -2460,7 +2460,7 @@ class AppDiffRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: theme.typography.base.copyWith(
+              style: theme.typography.md.copyWith(
                 color: theme.colors.foreground,
               ),
             ),
@@ -2477,7 +2477,7 @@ class AppDiffRow extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Text(
             '$actual',
-            style: tabularStyle(theme.typography.base).copyWith(
+            style: tabularStyle(theme.typography.md).copyWith(
               color: theme.colors.foreground,
               fontWeight: FontWeight.w600,
             ),
