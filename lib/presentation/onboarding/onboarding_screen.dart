@@ -11,6 +11,7 @@ import '../../data/seeds/species_seeds.dart';
 import '../../domain/models/settings.dart';
 import '../../infra/services/ban_geocoding_service.dart';
 import '../../state/providers.dart';
+import '../cloud/first_signin_resolver_dialog.dart';
 import '../widgets/address_autocomplete_field.dart';
 import '../widgets/app_action_bar.dart';
 import '../widgets/app_primary_button.dart';
@@ -35,14 +36,15 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  // 0 = welcome (zero vs restore), 1 = address, 2 = species, 3 = recap.
   int _step = 0;
   GeocodingResult? _picked;
   final Set<int> _seedSpeciesActive = {};
   final List<_CustomSpeciesDraft> _customSpecies = [];
   bool _saving = false;
 
-  bool get _step1Ready => _picked != null;
-  bool get _step2Ready =>
+  bool get _addressReady => _picked != null;
+  bool get _speciesReady =>
       _seedSpeciesActive.isNotEmpty || _customSpecies.isNotEmpty;
 
   Future<void> _confirm() async {
@@ -109,30 +111,77 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     });
   }
 
+  Future<void> _onRestore() async {
+    await context.push('/onboarding/cloud-login');
+  }
+
+  /// Local listener: handles `false → true` of `isCloudOptedInProvider` while
+  /// in onboarding. The global host listener in `app.dart` skips this case
+  /// (guard on `/onboarding`), so the resolver runs here instead — the user
+  /// either gets pushed an empty initial backup (continue onboarding), keeps
+  /// local (continue onboarding), or restores from cloud (route to picker).
+  Future<void> _handleFirstSignin() async {
+    final service = ref.read(backupServiceProvider);
+    final pushed = await service.resolveInitialStateAfterOptIn();
+    if (!mounted) return;
+    if (pushed) {
+      // Cloud was empty. The local DB is essentially empty too at this point
+      // (we're mid-onboarding), so the "initial backup" is fine — just
+      // continue to the address step.
+      setState(() => _step = 1);
+      return;
+    }
+    final choice = await showFirstSigninResolverDialog(context);
+    if (!mounted) return;
+    if (choice == FirstSigninChoice.keepLocal) {
+      // Same as the empty-cloud case — continue onboarding.
+      setState(() => _step = 1);
+    } else if (choice == FirstSigninChoice.restoreCloud) {
+      context.push('/onboarding/restore-pick');
+    }
+    // null choice (system back) → stay on welcome step.
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+
+    ref.listen<bool>(isCloudOptedInProvider, (prev, curr) {
+      if (prev == false && curr == true) {
+        _handleFirstSignin();
+      }
+    });
+
+    final showStepper = _step > 0;
+    final showActionBar = _step > 0;
+
     return SafeArea(
       child: FScaffold(
         resizeToAvoidBottomInset: true,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AppStepper(
-              currentIndex: _step,
-              labels: [l.onboardingStep1Label, l.onboardingStep2Label, l.onboardingStep3Label],
-            ),
+            if (showStepper)
+              AppStepper(
+                currentIndex: _step - 1,
+                labels: [
+                  l.onboardingStep1Label,
+                  l.onboardingStep2Label,
+                  l.onboardingStep3Label,
+                ],
+              ),
             Expanded(
               child: IndexedStack(
                 index: _step,
                 children: [
-                  _buildStep1(context),
-                  _buildStep2(context),
-                  _buildStep3(context),
+                  _buildWelcomeStep(context),
+                  _buildAddressStep(context),
+                  _buildSpeciesStep(context),
+                  _buildRecapStep(context),
                 ],
               ),
             ),
-            _buildActionBar(context, l),
+            if (showActionBar) _buildActionBar(context, l),
           ],
         ),
       ),
@@ -140,7 +189,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildActionBar(BuildContext context, AppLocalizations l) {
-    if (_step == 2) {
+    if (_step == 3) {
       return AppActionBar(
         primary: AppPrimaryButton(
           label: l.onboardingStep3CtaStart,
@@ -153,7 +202,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return AppActionBar(
       secondary: AppPrimaryButton(
         label: l.onboardingPrevious,
-        onPress: _step == 0 ? null : () => setState(() => _step -= 1),
+        onPress: _step <= 1 ? null : () => setState(() => _step -= 1),
         variant: FButtonVariant.outline,
       ),
       primary: AppPrimaryButton(
@@ -165,12 +214,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   bool get _stepForwardReady {
-    if (_step == 0) return _step1Ready;
-    if (_step == 1) return _step2Ready;
+    if (_step == 1) return _addressReady;
+    if (_step == 2) return _speciesReady;
     return false;
   }
 
-  Widget _buildStep1(BuildContext context) {
+  Widget _buildWelcomeStep(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
     return SingleChildScrollView(
@@ -189,7 +238,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ),
           Text(
-            l.appTitle,
+            l.onboardingWelcomeTitle,
             textAlign: TextAlign.center,
             style: theme.typography.xl4.copyWith(
               color: theme.colors.foreground,
@@ -205,15 +254,45 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          AppSectionCard(
-            icon: FIcons.sparkles,
-            title: l.onboardingWelcomeTitle,
-            child: Text(
-              l.onboardingWelcomeBody,
-              style: theme.typography.md.copyWith(
-                color: theme.colors.foreground,
-              ),
+          const SizedBox(height: AppSpacing.xl),
+          AppPrimaryButton(
+            label: l.onboardingWelcomeStartFresh,
+            prefixIcon: FIcons.arrowRight,
+            onPress: () => setState(() => _step = 1),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AppPrimaryButton(
+            label: l.onboardingWelcomeRestore,
+            prefixIcon: FIcons.cloudDownload,
+            variant: FButtonVariant.outline,
+            onPress: _onRestore,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAddressStep(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
+    return SingleChildScrollView(
+      padding: AppSizes.screenPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l.onboardingAddressTitle,
+            textAlign: TextAlign.center,
+            style: theme.typography.xl3.copyWith(
+              color: theme.colors.foreground,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l.onboardingWelcomeBody,
+            textAlign: TextAlign.center,
+            style: theme.typography.md.copyWith(
+              color: theme.colors.mutedForeground,
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -229,7 +308,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  Widget _buildStep2(BuildContext context) {
+  Widget _buildSpeciesStep(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
     return SingleChildScrollView(
@@ -292,7 +371,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ],
             ),
           ),
-          if (!_step2Ready) ...[
+          if (!_speciesReady) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(
               l.onboardingErrorNoSpecies,
@@ -307,7 +386,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  Widget _buildStep3(BuildContext context) {
+  Widget _buildRecapStep(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
     final city = _picked?.label ?? '';

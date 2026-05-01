@@ -64,15 +64,24 @@ class AppRouter {
     return GoRouter(
       initialLocation: '/clients',
       redirect: (context, state) async {
-        if (state.matchedLocation == '/onboarding') return null;
+        if (state.matchedLocation.startsWith('/onboarding')) return null;
         final s = await ref.read(settingsRepositoryProvider).read();
-        return s == null ? '/onboarding' : null;
+        if (s == null) return '/onboarding';
+        // After a restore, BackupPickerScreen calls `context.go('/')` to pop
+        // back to the root. There's no `/` route — bounce to the default tab.
+        if (state.matchedLocation == '/') return '/clients';
+        return null;
       },
       routes: [
         GoRoute(
           path: '/onboarding',
           pageBuilder: (_, state) =>
               _fadeSlidePage(state, const OnboardingScreen()),
+        ),
+        GoRoute(
+          path: '/onboarding/cloud-login',
+          pageBuilder: (_, state) =>
+              _fadeSlidePage(state, const CloudLoginScreen()),
         ),
         GoRoute(
           path: '/settings/cloud-login',
