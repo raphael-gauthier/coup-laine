@@ -232,5 +232,11 @@
   "categoryFormUnarchive": "Désarchiver",
   "animalCountsEditorEmpty": "Aucune espèce active",
   "animalCountsArchivedSection": "Catégories archivées",
-  "animalCountsClear": "Effacer"
+  "animalCountsClear": "Effacer",
+  "prestationCatalogTitle": "Catalogue de prestations",
+  "@prestationCatalogTitle": {},
+  "prestationCatalogCountFmt": "{n} prestation(s) active(s)",
+  "@prestationCatalogCountFmt": {
+    "placeholders": {"n": {"type": "int"}}
+  }
 }

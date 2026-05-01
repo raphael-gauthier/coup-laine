@@ -49,6 +49,21 @@ class AppRouter {
           ),
         ),
         GoRoute(
+          path: '/settings/prestations',
+          builder: (context, state) =>
+              throw UnimplementedError('PrestationCatalogScreen — T14'),
+        ),
+        GoRoute(
+          path: '/settings/prestations/new',
+          builder: (context, state) =>
+              throw UnimplementedError('PrestationEditScreen — T15'),
+        ),
+        GoRoute(
+          path: '/settings/prestations/:id',
+          builder: (context, state) =>
+              throw UnimplementedError('PrestationEditScreen — T15'),
+        ),
+        GoRoute(
           path: '/proximity/:pivotId',
           builder: (_, state) => ProximityScreen(
             pivotId: int.parse(state.pathParameters['pivotId']!),
