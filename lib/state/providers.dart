@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../core/config/env.dart';
 import '../core/routing/app_router.dart';
 import '../data/consistency_check.dart';
 import '../data/distance_matrix_sync.dart';
@@ -176,10 +175,7 @@ final banGeocodingServiceProvider = Provider<BanGeocodingService>((ref) {
 });
 
 final orsRoutingServiceProvider = Provider<OrsRoutingService>((ref) {
-  return OrsRoutingService(
-    apiKey: Env.orsApiKey,
-    httpClient: ref.watch(httpClientProvider),
-  );
+  return OrsRoutingService(supabase: ref.watch(supabaseClientProvider));
 });
 
 final distanceMatrixSyncProvider = Provider<DistanceMatrixSync>((ref) {
