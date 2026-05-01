@@ -9,8 +9,14 @@ Index des fonctionnalités. Le brief détaillé (périmètre, critères d'accept
 ### 1. Synchronisation cloud — priorité haute
 Sauvegarde + restauration sur un nouveau device, à terme multi-device. Prérequis : choix du backend (Firebase / Supabase / custom), push-only vs bidirectionnel, auth, mode offline avec sync différée. À articuler avec la migration `ORS_API_KEY` côté backend (cf. memory).
 
+### 2. Gestion du RGPD — priorité haute
+Mise en conformité RGPD pour les données clients stockées (coordonnées, téléphones, historique de tonte, notes). À couvrir : politique de confidentialité, mentions de collecte, consentement, droit d'accès / rectification / suppression / portabilité (export JSON déjà en place — à compléter par une suppression totale), durée de conservation, mentions légales. À articuler avec la sync cloud (#1) qui change la nature du traitement (du local-only au cloud).
+
 ### 3. Personnalisation des statuts client — priorité moyenne
 Les statuts (`waiting`, `scheduled`, `done`, `noSheep`, `banned`) ont libellés et couleurs en dur. À l'onboarding + dans Réglages, l'utilisateur doit pouvoir les nommer et choisir leurs couleurs. Les couleurs sont déjà persistées (`Settings.markerXxxColor`) ; il faut ajouter les libellés en base et brancher l'UI dessus partout (badges, légende carte, filtres, fiche).
+
+### 4. Création du business model — priorité moyenne
+Définir le modèle économique de l'app : gratuit / freemium / abonnement / one-shot, segmentation par features (sync cloud, multi-device, catalogue avancé…), pricing, canaux de distribution. Travail produit + business, pas un sujet code. À cadrer avant d'ouvrir l'app au public et de basculer la clé ORS côté backend (coût serveur).
 
 ### 7. Génération de facture + envoi client — long terme (non prioritaire)
 PDF facture par client par tournée. Reportée : pas de plan court terme.
