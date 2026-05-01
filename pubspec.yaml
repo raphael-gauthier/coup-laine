@@ -46,7 +46,3 @@ flutter:
     - .env
     - assets/illustrations/
     - assets/icons/
-  fonts:
-    - family: Fraunces
-      fonts:
-        - asset: assets/fonts/Fraunces.ttf

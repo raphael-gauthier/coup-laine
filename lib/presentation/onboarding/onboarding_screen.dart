@@ -152,7 +152,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             style: theme.typography.lg.copyWith(
               color: theme.colors.mutedForeground,
               fontStyle: FontStyle.italic,
-              fontFamily: 'Fraunces',
               fontWeight: FontWeight.w600,
             ),
           ),
