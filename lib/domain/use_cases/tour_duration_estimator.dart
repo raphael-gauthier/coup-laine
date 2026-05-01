@@ -5,14 +5,14 @@ class TourDurationResult {
   final List<int> stopDepartureMinutes;
   final int endTimeMinutes;
   final int totalDriveSeconds;
-  final int totalShearingMinutes;
+  final int totalInterventionMinutes;
 
   const TourDurationResult({
     required this.stopArrivalMinutes,
     required this.stopDepartureMinutes,
     required this.endTimeMinutes,
     required this.totalDriveSeconds,
-    required this.totalShearingMinutes,
+    required this.totalInterventionMinutes,
   });
 }
 
@@ -43,7 +43,7 @@ class TourDurationEstimator {
     final departures = <int>[];
     var clock = startTimeMinutes;
     var totalDrive = 0;
-    var totalShear = 0;
+    var totalIntervention = 0;
 
     for (var i = 0; i < n; i++) {
       final driveMin = (driveSecondsToStops[i] / 60).round();
@@ -51,12 +51,12 @@ class TourDurationEstimator {
       totalDrive += driveSecondsToStops[i];
       arrivals.add(clock);
 
-      var shearMin = 0;
+      var stopMin = 0;
       for (final a in stops[i]) {
-        shearMin += a.count * a.minutesSnapshot;
+        stopMin += a.count * a.minutesSnapshot;
       }
-      clock += shearMin;
-      totalShear += shearMin;
+      clock += stopMin;
+      totalIntervention += stopMin;
       departures.add(clock);
     }
 
@@ -69,7 +69,7 @@ class TourDurationEstimator {
       stopDepartureMinutes: departures,
       endTimeMinutes: clock,
       totalDriveSeconds: totalDrive,
-      totalShearingMinutes: totalShear,
+      totalInterventionMinutes: totalIntervention,
     );
   }
 }

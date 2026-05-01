@@ -14,7 +14,7 @@ class TourDraftResult {
   final int endTimeMinutes;
   final int totalDistanceMeters;
   final int totalDriveSeconds;
-  final int totalShearingMinutes;
+  final int totalInterventionMinutes;
   final int totalFeeCents;
   final List<int> feeShareCents;
   final List<List<TourStopAnimal>> plannedAnimalsPerStop;
@@ -28,7 +28,7 @@ class TourDraftResult {
     required this.endTimeMinutes,
     required this.totalDistanceMeters,
     required this.totalDriveSeconds,
-    required this.totalShearingMinutes,
+    required this.totalInterventionMinutes,
     required this.totalFeeCents,
     required this.feeShareCents,
     required this.plannedAnimalsPerStop,
@@ -150,7 +150,7 @@ class BuildTourDraft {
       endTimeMinutes: duration.endTimeMinutes,
       totalDistanceMeters: totalDistance,
       totalDriveSeconds: duration.totalDriveSeconds,
-      totalShearingMinutes: duration.totalShearingMinutes,
+      totalInterventionMinutes: duration.totalInterventionMinutes,
       totalFeeCents: split.totalFeeCents,
       feeShareCents: split.shareCents,
       plannedAnimalsPerStop: plannedAnimalsPerStop,

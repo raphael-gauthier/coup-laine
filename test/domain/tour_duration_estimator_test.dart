@@ -21,7 +21,7 @@ void main() {
   group('TourDurationEstimator', () {
     final estimator = const TourDurationEstimator();
 
-    test('one stop, mixed breeds, drives 30 min each way', () {
+    test('one stop, mixed categories, drives 30 min each way', () {
       final result = estimator.estimate(
         startTimeMinutes: 8 * 60,
         driveSecondsToStops: const [1800],
@@ -33,14 +33,14 @@ void main() {
           ],
         ],
       );
-      // shearMin = 10*8 + 0*25 = 80
+      // stopMin = 10*8 + 0*25 = 80
       expect(result.stopArrivalMinutes, [8 * 60 + 30]);
       expect(result.stopDepartureMinutes, [8 * 60 + 30 + 80]);
       expect(result.endTimeMinutes, 8 * 60 + 30 + 80 + 30);
-      expect(result.totalShearingMinutes, 80);
+      expect(result.totalInterventionMinutes, 80);
     });
 
-    test('three stops accumulate breed-weighted shearing + drive', () {
+    test('three stops accumulate per-category intervention + drive', () {
       final result = estimator.estimate(
         startTimeMinutes: 8 * 60,
         driveSecondsToStops: const [600, 900, 1200],
@@ -54,8 +54,8 @@ void main() {
           ],
         ],
       );
-      // shear: 5*8=40, 3*25=75, 4*8+4*25=132 → total 247
-      expect(result.totalShearingMinutes, 40 + 75 + 132);
+      // intervention: 5*8=40, 3*25=75, 4*8+4*25=132 → total 247
+      expect(result.totalInterventionMinutes, 40 + 75 + 132);
       // arrivals chain: 8:00 + 10 = 8:10, then 8:10 + 40 + 15 = 9:05, then +75 + 20 = 10:40
       expect(result.stopArrivalMinutes[0], 8 * 60 + 10);
       expect(result.stopArrivalMinutes[1], 8 * 60 + 10 + 40 + 15);
@@ -72,7 +72,7 @@ void main() {
           [_a(categoryId: 1, count: 5, minutes: 0)],
         ],
       );
-      expect(result.totalShearingMinutes, 0);
+      expect(result.totalInterventionMinutes, 0);
       expect(result.stopArrivalMinutes, [8 * 60 + 10]);
       expect(result.stopDepartureMinutes, [8 * 60 + 10]);
       expect(result.endTimeMinutes, 8 * 60 + 20);
