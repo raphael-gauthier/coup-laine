@@ -240,10 +240,7 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          plannedSmall: 5,
-          plannedLarge: 0,
-          minutesPerSmallSnapshot: 8,
-          minutesPerLargeSnapshot: 25,
+          planned: [_small(5)],
           feeShareCents: 0,
         ),
       ],
@@ -263,18 +260,14 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          plannedSmall: 5,
-          plannedLarge: 0,
-          minutesPerSmallSnapshot: 8,
-          minutesPerLargeSnapshot: 25,
+          planned: [_small(5)],
           feeShareCents: 0,
         ),
       ],
     ));
     await tours.markCompleted(tourId, {
       (await tours.findById(tourId))!.stops.first.id: (
-        actualSmall: 5,
-        actualLarge: 0,
+        actuals: [_small(5)],
         note: null,
       ),
     });
@@ -293,10 +286,7 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          plannedSmall: 5,
-          plannedLarge: 0,
-          minutesPerSmallSnapshot: 8,
-          minutesPerLargeSnapshot: 25,
+          planned: [_small(5)],
           feeShareCents: 0,
         ),
       ],
@@ -353,18 +343,14 @@ void main() {
             orderIndex: 0,
             estimatedArrivalMinutes: 480,
             estimatedDepartureMinutes: 580,
-            plannedSmall: 5,
-            plannedLarge: 1,
-            minutesPerSmallSnapshot: 8,
-            minutesPerLargeSnapshot: 25,
+            planned: [_small(5), _large(1)],
             feeShareCents: 0,
           ),
         ],
       ));
       await tours.markCompleted(t1, {
         (await tours.findById(t1))!.stops.first.id: (
-          actualSmall: 4,
-          actualLarge: 1,
+          actuals: [_small(4), _large(1)],
           note: 'RAS',
         ),
       });
@@ -383,18 +369,14 @@ void main() {
             orderIndex: 0,
             estimatedArrivalMinutes: 480,
             estimatedDepartureMinutes: 580,
-            plannedSmall: 6,
-            plannedLarge: 0,
-            minutesPerSmallSnapshot: 8,
-            minutesPerLargeSnapshot: 25,
+            planned: [_small(6)],
             feeShareCents: 0,
           ),
         ],
       ));
       await tours.markCompleted(t2, {
         (await tours.findById(t2))!.stops.first.id: (
-          actualSmall: 6,
-          actualLarge: 0,
+          actuals: [_small(6)],
           note: null,
         ),
       });
@@ -413,10 +395,7 @@ void main() {
             orderIndex: 0,
             estimatedArrivalMinutes: 480,
             estimatedDepartureMinutes: 580,
-            plannedSmall: 4,
-            plannedLarge: 0,
-            minutesPerSmallSnapshot: 8,
-            minutesPerLargeSnapshot: 25,
+            planned: [_small(4)],
             feeShareCents: 0,
           ),
         ],
@@ -491,18 +470,14 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          plannedSmall: 5,
-          plannedLarge: 0,
-          minutesPerSmallSnapshot: 8,
-          minutesPerLargeSnapshot: 25,
+          planned: [_small(5)],
           feeShareCents: 0,
         ),
       ],
     ));
     await tours.markCompleted(tourId, {
       (await tours.findById(tourId))!.stops.first.id: (
-        actualSmall: 5,
-        actualLarge: 0,
+        actuals: [_small(5)],
         note: null,
       ),
     });
@@ -560,18 +535,14 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          plannedSmall: 5,
-          plannedLarge: 0,
-          minutesPerSmallSnapshot: 8,
-          minutesPerLargeSnapshot: 25,
+          planned: [_small(5)],
           feeShareCents: 0,
         ),
       ],
     ));
     await tours.markCompleted(tourId, {
       (await tours.findById(tourId))!.stops.first.id: (
-        actualSmall: 5,
-        actualLarge: 0,
+        actuals: [_small(5)],
         note: 'tour-note-A',
       ),
     });
@@ -709,18 +680,14 @@ void main() {
             orderIndex: 0,
             estimatedArrivalMinutes: 480,
             estimatedDepartureMinutes: 580,
-            plannedSmall: 5,
-            plannedLarge: 0,
-            minutesPerSmallSnapshot: 8,
-            minutesPerLargeSnapshot: 25,
+            planned: [_small(5)],
             feeShareCents: 0,
           ),
         ],
       ));
       await tours.markCompleted(tourId, {
         (await tours.findById(tourId))!.stops.first.id: (
-          actualSmall: 5,
-          actualLarge: 0,
+          actuals: [_small(5)],
           note: null,
         ),
       });

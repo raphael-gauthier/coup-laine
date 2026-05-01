@@ -19,7 +19,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Bonjour, tondeur !'), findsOneWidget);
+    final l = AppLocalizations.of(
+      tester.element(find.byType(_LocalizedHello)),
+    )!;
+    expect(find.text(l.appTitle), findsOneWidget);
   });
 }
 
@@ -28,6 +31,6 @@ class _LocalizedHello extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(AppLocalizations.of(context)!.helloDebug);
+    return Text(AppLocalizations.of(context)!.appTitle);
   }
 }
