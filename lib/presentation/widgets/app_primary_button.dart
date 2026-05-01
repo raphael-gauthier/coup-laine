@@ -3,8 +3,9 @@ import 'package:forui/forui.dart';
 
 import '../../core/design_tokens.dart';
 
-/// A primary CTA button with consistent height (56), generous horizontal
-/// padding, and Inter 600 weight. Optionally loading — shows a small
+/// Primary CTA button with consistent height (`AppSizes.primaryButtonHeight`,
+/// 52dp en v3 Modern Craft), generous horizontal padding from Forui's FButton,
+/// and Inter 600 from theme typography. Optional loading shows a small
 /// circular progress in place of the label and disables the press.
 class AppPrimaryButton extends StatelessWidget {
   final String label;
