@@ -22,6 +22,7 @@ import '../widgets/app_kpi_row.dart';
 import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
+import '../widgets/app_stepper.dart';
 import '../widgets/mini_map.dart';
 import '../widgets/waiting_clients_multi_picker.dart';
 import 'prestation_picker_sheet.dart';
@@ -49,7 +50,21 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
   List<int>? _manualOrder;
   bool _prefilled = false;
 
+  int _step = 0;
+
   bool get _isEditing => widget.editingTourId != null;
+
+  // Step 0 is always ready (date has a default value)
+  bool get _step0Ready => true;
+
+  bool _step1Ready(TourDraftBundle? bundle) =>
+      bundle != null && bundle.orderedClients.isNotEmpty;
+
+  bool _canGoNext(TourDraftBundle? bundle) {
+    if (_step == 0) return _step0Ready;
+    if (_step == 1) return _step1Ready(bundle);
+    return false;
+  }
 
   @override
   void initState() {
@@ -274,10 +289,244 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Step builders
+  // ---------------------------------------------------------------------------
+
+  Widget _buildStepWhen(BuildContext context, AppLocalizations l) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
+      child: AppSectionCard(
+        icon: FIcons.calendarClock,
+        title: l.tourDraftWhenTitle,
+        child: Row(
+          children: [
+            Expanded(
+              child: AppListTile(
+                variant: AppListTileVariant.standard,
+                prefix: const Icon(FIcons.calendar),
+                title: l.tourDraftDate,
+                subtitle: DateFormat('d MMM yyyy', 'fr').format(_date),
+                onTap: _pickDate,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: AppListTile(
+                variant: AppListTileVariant.standard,
+                prefix: const Icon(FIcons.clock),
+                title: l.tourDraftStart,
+                subtitle: formatHm(_startMinutes),
+                onTap: _pickTime,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepWho(BuildContext context, AppLocalizations l) {
+    return WaitingClientsMultiPicker(
+      initialSelection: ref.read(tourSelectionProvider),
+      onSelectionChanged: (selection) {
+        setState(() => _manualOrder = null);
+        final notifier = ref.read(tourSelectionProvider.notifier);
+        notifier.clear();
+        for (final id in selection) {
+          notifier.toggle(id);
+        }
+        ref.read(tourDraftInputProvider.notifier).state = TourDraftInput(
+          pivotId: widget.pivotId,
+          selectedIds: selection.toList(),
+          plannedDate: _date,
+          startTimeMinutes: _startMinutes,
+          overrideOrder: null,
+        );
+      },
+    );
+  }
+
+  Widget _buildStepWhat(BuildContext context, AppLocalizations l, TourDraftBundle bundle) {
+    final theme = context.theme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // "Étapes" heading
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxs),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l.tourDraftStepsTitle,
+                  style: theme.typography.lg.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colors.foreground,
+                  ),
+                ),
+              ),
+              FButton(
+                variant: FButtonVariant.outline,
+                prefix: const Icon(FIcons.pencil, size: 16),
+                onPress: () => _openEditSelection(context, bundle),
+                child: Text(l.tourDraftEditSelection),
+              ),
+            ],
+          ),
+        ),
+        // Reorderable list
+        Expanded(
+          child: Material(
+            type: MaterialType.transparency,
+            child: ReorderableListView.builder(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md),
+              itemCount: bundle.orderedClients.length,
+              onReorder: (oldIndex, newIndex) {
+                final order =
+                    bundle.orderedClients.map((c) => c.id).toList();
+                if (newIndex > oldIndex) newIndex -= 1;
+                final id = order.removeAt(oldIndex);
+                order.insert(newIndex, id);
+                setState(() => _manualOrder = order);
+                _refresh();
+              },
+              itemBuilder: (_, i) {
+                final c = bundle.orderedClients[i];
+                final arr = bundle.result.arrivalMinutes[i];
+                final dep = bundle.result.departureMinutes[i];
+                final fee = formatEuros(bundle.result.feeShareCents[i]);
+                final stopPres =
+                    bundle.result.plannedPrestationsPerStop[i];
+                final stopMinutes = stopPres.fold<int>(
+                    0, (sum, p) => sum + p.qty * p.minutesSnapshot);
+                final stopRevenue =
+                    bundle.result.revenueCentsPerStop[i];
+                return Padding(
+                  key: ValueKey(c.id),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: FTile(
+                    onPress: () => _openPicker(context, c, stopPres),
+                    prefix: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: theme.colors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${i + 1}',
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.primaryForeground,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    title: Text(c.name),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          l.tourDraftStopArrivalFmt(
+                              formatHm(arr), formatHm(dep)),
+                        ),
+                        if (stopPres.isEmpty)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                FIcons.triangleAlert,
+                                size: 14,
+                                color: theme.colors.mutedForeground,
+                              ),
+                              const SizedBox(width: AppSpacing.xxs),
+                              Text(l.tourDraftStopNoPrestation),
+                            ],
+                          )
+                        else
+                          Text(
+                            l.tourDraftStopNPrestationsFmt(
+                              stopPres.length,
+                              formatDuration(stopMinutes),
+                              formatEuros(stopRevenue),
+                            ),
+                          ),
+                      ],
+                    ),
+                    details: Text(fee),
+                    suffix: const Icon(FIcons.gripVertical),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        // MiniMap preview (shown when base is available and ≥1 stop)
+        Builder(builder: (context) {
+          final settingsAsync = ref.watch(settingsRepositoryFutureProvider);
+          final base = settingsAsync.value?.baseCoordinates;
+          if (base == null || bundle.orderedClients.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0,
+            ),
+            child: MiniMap(
+              base: LatLng(base.lat, base.lon),
+              waypoints: [
+                for (final c in bundle.orderedClients)
+                  LatLng(c.coordinates.lat, c.coordinates.lon),
+              ],
+              height: 140,
+            ),
+          );
+        }),
+        // Summary footer (KpiRow)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+          child: AppKpiRow(
+            cells: [
+              AppKpiCell(
+                value: (bundle.result.totalDistanceMeters / 1000)
+                    .toStringAsFixed(0),
+                label: 'km',
+              ),
+              AppKpiCell(
+                value: formatDuration(
+                    bundle.result.totalDriveSeconds ~/ 60),
+                label: 'durée',
+              ),
+              if (bundle.result.totalRevenueCents > 0)
+                AppKpiCell(
+                  value: formatEuros(bundle.result.totalRevenueCents),
+                  label: 'revenu',
+                  valueColor: theme.colors.secondary,
+                ),
+              AppKpiCell(
+                value: formatHm(bundle.result.endTimeMinutes),
+                label: 'fin',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final theme = context.theme;
     final async = ref.watch(tourDraftProvider);
     final title = _isEditing ? l.tourEditTitle : l.tourDraftTitle;
     final isLoadingPrefill = _isEditing && !_prefilled;
@@ -294,249 +543,78 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                   const Expanded(child: Center(child: FCircularProgress())),
                 ],
               )
-            : async.when(
-        loading: () => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AppHeader(title: title),
-            const Expanded(child: Center(child: FCircularProgress())),
-          ],
-        ),
-        error: (e, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AppHeader(title: title),
-            Expanded(child: Center(child: Text('$e'))),
-          ],
-        ),
-        data: (bundle) {
-          if (bundle == null) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                AppHeader(title: title),
-                const Expanded(child: Center(child: FCircularProgress())),
-              ],
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              AppHeader(title: title),
-              // Date/time card
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, 0, AppSpacing.md, 0),
-                child: AppSectionCard(
-                  icon: FIcons.calendarClock,
-                  title: l.tourDraftWhenTitle,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: AppListTile(
-                          variant: AppListTileVariant.standard,
-                          prefix: const Icon(FIcons.calendar),
-                          title: l.tourDraftDate,
-                          subtitle: DateFormat('d MMM yyyy', 'fr').format(_date),
-                          onTap: _pickDate,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: AppListTile(
-                          variant: AppListTileVariant.standard,
-                          prefix: const Icon(FIcons.clock),
-                          title: l.tourDraftStart,
-                          subtitle: formatHm(_startMinutes),
-                          onTap: _pickTime,
-                        ),
-                      ),
-                    ],
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppHeader(title: title),
+                  AppStepper(
+                    currentIndex: _step,
+                    labels: const ['Quand', 'Qui', 'Quoi'],
                   ),
-                ),
-              ),
-              // "Étapes" heading
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxs),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l.tourDraftStepsTitle,
-                        style: theme.typography.lg.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colors.foreground,
-                        ),
-                      ),
+                  Expanded(
+                    child: async.when(
+                      loading: () => const Center(child: FCircularProgress()),
+                      error: (e, _) => Center(child: Text('$e')),
+                      data: (bundle) {
+                        if (bundle == null) {
+                          return const Center(child: FCircularProgress());
+                        }
+                        return IndexedStack(
+                          index: _step,
+                          children: [
+                            _buildStepWhen(context, l),
+                            _buildStepWho(context, l),
+                            _buildStepWhat(context, l, bundle),
+                          ],
+                        );
+                      },
                     ),
-                    FButton(
-                      variant: FButtonVariant.outline,
-                      prefix: const Icon(FIcons.pencil, size: 16),
-                      onPress: () => _openEditSelection(context, bundle),
-                      child: Text(l.tourDraftEditSelection),
-                    ),
-                  ],
-                ),
-              ),
-              // Reorderable list
-              Expanded(
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: ReorderableListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md),
-                    itemCount: bundle.orderedClients.length,
-                    onReorder: (oldIndex, newIndex) {
-                      final order =
-                          bundle.orderedClients.map((c) => c.id).toList();
-                      if (newIndex > oldIndex) newIndex -= 1;
-                      final id = order.removeAt(oldIndex);
-                      order.insert(newIndex, id);
-                      setState(() => _manualOrder = order);
-                      _refresh();
-                    },
-                    itemBuilder: (_, i) {
-                      final c = bundle.orderedClients[i];
-                      final arr = bundle.result.arrivalMinutes[i];
-                      final dep = bundle.result.departureMinutes[i];
-                      final fee = formatEuros(bundle.result.feeShareCents[i]);
-                      final stopPres =
-                          bundle.result.plannedPrestationsPerStop[i];
-                      final stopMinutes = stopPres.fold<int>(
-                          0, (sum, p) => sum + p.qty * p.minutesSnapshot);
-                      final stopRevenue =
-                          bundle.result.revenueCentsPerStop[i];
-                      return Padding(
-                        key: ValueKey(c.id),
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: FTile(
-                          onPress: () => _openPicker(context, c, stopPres),
-                          prefix: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: theme.colors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '${i + 1}',
-                              style: theme.typography.sm.copyWith(
-                                color: theme.colors.primaryForeground,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          title: Text(c.name),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                l.tourDraftStopArrivalFmt(
-                                    formatHm(arr), formatHm(dep)),
-                              ),
-                              if (stopPres.isEmpty)
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      FIcons.triangleAlert,
-                                      size: 14,
-                                      color: theme.colors.mutedForeground,
-                                    ),
-                                    const SizedBox(width: AppSpacing.xxs),
-                                    Text(l.tourDraftStopNoPrestation),
-                                  ],
+                  ),
+                  async.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (bundle) {
+                      final canNext = _canGoNext(bundle);
+                      if (_step < 2) {
+                        return AppActionBar(
+                          secondary: _step > 0
+                              ? AppPrimaryButton(
+                                  label: l.onboardingPrevious,
+                                  variant: FButtonVariant.outline,
+                                  onPress: () =>
+                                      setState(() => _step -= 1),
                                 )
-                              else
-                                Text(
-                                  l.tourDraftStopNPrestationsFmt(
-                                    stopPres.length,
-                                    formatDuration(stopMinutes),
-                                    formatEuros(stopRevenue),
-                                  ),
+                              : AppPrimaryButton(
+                                  label: l.onboardingPrevious,
+                                  variant: FButtonVariant.outline,
+                                  onPress: null,
                                 ),
-                            ],
+                          primary: AppPrimaryButton(
+                            label: l.onboardingStep1Cta,
+                            onPress: canNext
+                                ? () => setState(() => _step += 1)
+                                : null,
                           ),
-                          details: Text(fee),
-                          suffix: const Icon(FIcons.gripVertical),
+                        );
+                      }
+                      // Step 2
+                      return AppActionBar(
+                        secondary: AppPrimaryButton(
+                          label: l.onboardingPrevious,
+                          variant: FButtonVariant.outline,
+                          onPress: () => setState(() => _step -= 1),
+                        ),
+                        primary: AppPrimaryButton(
+                          label: l.tourDraftConfirm,
+                          onPress: bundle != null
+                              ? () => _save(bundle)
+                              : null,
                         ),
                       );
                     },
                   ),
-                ),
+                ],
               ),
-              // MiniMap preview (shown when base is available and ≥1 stop)
-              Builder(builder: (context) {
-                final settingsAsync = ref.watch(settingsRepositoryFutureProvider);
-                final base = settingsAsync.value?.baseCoordinates;
-                if (base == null || bundle.orderedClients.isEmpty) {
-                  return const SizedBox.shrink();
-                }
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0,
-                  ),
-                  child: MiniMap(
-                    base: LatLng(base.lat, base.lon),
-                    waypoints: [
-                      for (final c in bundle.orderedClients)
-                        LatLng(c.coordinates.lat, c.coordinates.lon),
-                    ],
-                    height: 140,
-                  ),
-                );
-              }),
-              // Summary footer (KpiRow)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
-                child: AppKpiRow(
-                  cells: [
-                    AppKpiCell(
-                      value: (bundle.result.totalDistanceMeters / 1000)
-                          .toStringAsFixed(0),
-                      label: 'km',
-                    ),
-                    AppKpiCell(
-                      value: formatDuration(
-                          bundle.result.totalDriveSeconds ~/ 60),
-                      label: 'durée',
-                    ),
-                    if (bundle.result.totalRevenueCents > 0)
-                      AppKpiCell(
-                        value: formatEuros(bundle.result.totalRevenueCents),
-                        label: 'revenu',
-                        valueColor: theme.colors.secondary,
-                      ),
-                    AppKpiCell(
-                      value: formatHm(bundle.result.endTimeMinutes),
-                      label: 'fin',
-                    ),
-                  ],
-                ),
-              ),
-              // Action bar
-              AppActionBar(
-                secondary: FButton(
-                  variant: FButtonVariant.outline,
-                  onPress: () {
-                    setState(() => _manualOrder = null);
-                    _refresh();
-                  },
-                  child: Text(l.tourDraftOptimise),
-                ),
-                primary: AppPrimaryButton(
-                  label: l.tourDraftConfirm,
-                  onPress: () => _save(bundle),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
       ),
     );
   }
