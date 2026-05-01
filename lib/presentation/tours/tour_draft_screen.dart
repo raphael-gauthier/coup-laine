@@ -15,7 +15,10 @@ import '../../domain/models/tour_stop_prestation.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
+import '../widgets/app_action_bar.dart';
+import '../widgets/app_header.dart';
 import '../widgets/app_kpi_row.dart';
+import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import '../widgets/waiting_clients_multi_picker.dart';
@@ -278,45 +281,72 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     final isLoadingPrefill = _isEditing && !_prefilled;
 
     return SafeArea(
+      bottom: false,
       child: FScaffold(
         resizeToAvoidBottomInset: true,
-        header: FHeader.nested(title: Text(title)),
         child: isLoadingPrefill
-            ? const Center(child: FCircularProgress())
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppHeader(title: title),
+                  const Expanded(child: Center(child: FCircularProgress())),
+                ],
+              )
             : async.when(
-        loading: () => const Center(child: FCircularProgress()),
-        error: (e, _) => Center(child: Text('$e')),
+        loading: () => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppHeader(title: title),
+            const Expanded(child: Center(child: FCircularProgress())),
+          ],
+        ),
+        error: (e, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppHeader(title: title),
+            Expanded(child: Center(child: Text('$e'))),
+          ],
+        ),
         data: (bundle) {
           if (bundle == null) {
-            return const Center(child: FCircularProgress());
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppHeader(title: title),
+                const Expanded(child: Center(child: FCircularProgress())),
+              ],
+            );
           }
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              AppHeader(title: title),
               // Date/time card
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
+                    AppSpacing.md, 0, AppSpacing.md, 0),
                 child: AppSectionCard(
                   icon: FIcons.calendarClock,
                   title: l.tourDraftWhenTitle,
                   child: Row(
                     children: [
                       Expanded(
-                        child: FTile(
+                        child: AppListTile(
+                          variant: AppListTileVariant.standard,
                           prefix: const Icon(FIcons.calendar),
-                          title: Text(l.tourDraftDate),
-                          subtitle: Text(DateFormat('d MMM yyyy', 'fr').format(_date)),
-                          onPress: _pickDate,
+                          title: l.tourDraftDate,
+                          subtitle: DateFormat('d MMM yyyy', 'fr').format(_date),
+                          onTap: _pickDate,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: FTile(
+                        child: AppListTile(
+                          variant: AppListTileVariant.standard,
                           prefix: const Icon(FIcons.clock),
-                          title: Text(l.tourDraftStart),
-                          subtitle: Text(formatHm(_startMinutes)),
-                          onPress: _pickTime,
+                          title: l.tourDraftStart,
+                          subtitle: formatHm(_startMinutes),
+                          onTap: _pickTime,
                         ),
                       ),
                     ],
@@ -465,29 +495,19 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                   ],
                 ),
               ),
-              // Action row
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      FButton(
-                        variant: FButtonVariant.outline,
-                        onPress: () {
-                          setState(() => _manualOrder = null);
-                          _refresh();
-                        },
-                        child: Text(l.tourDraftOptimise),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: AppPrimaryButton(
-                          label: l.tourDraftConfirm,
-                          onPress: () => _save(bundle),
-                        ),
-                      ),
-                    ],
-                  ),
+              // Action bar
+              AppActionBar(
+                secondary: FButton(
+                  variant: FButtonVariant.outline,
+                  onPress: () {
+                    setState(() => _manualOrder = null);
+                    _refresh();
+                  },
+                  child: Text(l.tourDraftOptimise),
+                ),
+                primary: AppPrimaryButton(
+                  label: l.tourDraftConfirm,
+                  onPress: () => _save(bundle),
                 ),
               ),
             ],
