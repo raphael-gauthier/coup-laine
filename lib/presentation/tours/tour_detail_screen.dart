@@ -116,6 +116,11 @@ class _Body extends ConsumerWidget {
     final totalCents = prestationsCents + bundle.tour.totalTravelFeeCents;
     final totalAnimals = source.fold<int>(
         0, (s, list) => s + list.fold<int>(0, (a, p) => a + p.qty));
+    final prestationsMin = source.fold<int>(
+        0,
+        (s, list) =>
+            s + list.fold<int>(0, (a, p) => a + p.qty * p.minutesSnapshot));
+    final totalMin = driveMin + prestationsMin;
 
     final settingsAsync = ref.watch(settingsRepositoryFutureProvider);
     final waypointsAsync = ref.watch(_tourWaypointsProvider(tourId));
@@ -129,7 +134,7 @@ class _Body extends ConsumerWidget {
           AppKpiRow(
             cells: [
               AppKpiCell(value: km, label: 'km'),
-              AppKpiCell(value: formatDuration(driveMin), label: 'durée'),
+              AppKpiCell(value: formatDuration(totalMin), label: 'durée'),
               AppKpiCell(
                 value: formatEuros(totalCents),
                 label: 'revenu',
@@ -324,6 +329,9 @@ class _StopTile extends ConsumerWidget {
 
     final stopMin =
         source.fold<int>(0, (sum, p) => sum + p.qty * p.minutesSnapshot);
+    final stopPrestationsCents =
+        source.fold<int>(0, (sum, p) => sum + p.qty * p.priceCentsSnapshot);
+    final stopTotalCents = stopPrestationsCents + stop.feeShareCents;
 
     return AppListTile(
       variant: AppListTileVariant.rich,
@@ -339,7 +347,7 @@ class _StopTile extends ConsumerWidget {
         children: [
           AppStat(
             icon: FIcons.banknote,
-            value: formatEuros(stop.feeShareCents),
+            value: formatEuros(stopTotalCents),
           ),
           AppStat(
             icon: FIcons.clock,

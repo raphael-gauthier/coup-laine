@@ -57,10 +57,16 @@ class AppKpiRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                c.value,
-                style: valueStyle.copyWith(
-                  color: c.valueColor ?? theme.colors.foreground,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.center,
+                child: Text(
+                  c.value,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: valueStyle.copyWith(
+                    color: c.valueColor ?? theme.colors.foreground,
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.xxs),
