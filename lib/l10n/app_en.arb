@@ -270,5 +270,19 @@
   "prestationFormCreateTitle": "New service",
   "@prestationFormCreateTitle": {},
   "prestationFormEditTitle": "Edit service",
-  "@prestationFormEditTitle": {}
+  "@prestationFormEditTitle": {},
+  "prestationPickerTitleFmt": "Services for {client}",
+  "@prestationPickerTitleFmt": {
+    "placeholders": {"client": {"type": "String"}}
+  },
+  "prestationPickerSuggested": "Suggested",
+  "@prestationPickerSuggested": {},
+  "prestationPickerOther": "Other",
+  "@prestationPickerOther": {},
+  "prestationPickerEmptyValues": "Price/duration not set",
+  "@prestationPickerEmptyValues": {},
+  "prestationPickerCancel": "Cancel",
+  "@prestationPickerCancel": {},
+  "prestationPickerValidate": "Confirm",
+  "@prestationPickerValidate": {}
 }

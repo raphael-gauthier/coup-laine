@@ -270,5 +270,19 @@
   "prestationFormCreateTitle": "Nouvelle prestation",
   "@prestationFormCreateTitle": {},
   "prestationFormEditTitle": "Modifier la prestation",
-  "@prestationFormEditTitle": {}
+  "@prestationFormEditTitle": {},
+  "prestationPickerTitleFmt": "Prestations pour {client}",
+  "@prestationPickerTitleFmt": {
+    "placeholders": {"client": {"type": "String"}}
+  },
+  "prestationPickerSuggested": "Suggérées",
+  "@prestationPickerSuggested": {},
+  "prestationPickerOther": "Autres",
+  "@prestationPickerOther": {},
+  "prestationPickerEmptyValues": "Prix/durée non renseignés",
+  "@prestationPickerEmptyValues": {},
+  "prestationPickerCancel": "Annuler",
+  "@prestationPickerCancel": {},
+  "prestationPickerValidate": "Valider",
+  "@prestationPickerValidate": {}
 }
