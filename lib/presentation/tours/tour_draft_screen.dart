@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
@@ -21,6 +22,7 @@ import '../widgets/app_kpi_row.dart';
 import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
+import '../widgets/mini_map.dart';
 import '../widgets/waiting_clients_multi_picker.dart';
 import 'prestation_picker_sheet.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
@@ -466,6 +468,27 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                   ),
                 ),
               ),
+              // MiniMap preview (shown when base is available and ≥1 stop)
+              Builder(builder: (context) {
+                final settingsAsync = ref.watch(settingsRepositoryFutureProvider);
+                final base = settingsAsync.value?.baseCoordinates;
+                if (base == null || bundle.orderedClients.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0,
+                  ),
+                  child: MiniMap(
+                    base: LatLng(base.lat, base.lon),
+                    waypoints: [
+                      for (final c in bundle.orderedClients)
+                        LatLng(c.coordinates.lat, c.coordinates.lon),
+                    ],
+                    height: 140,
+                  ),
+                );
+              }),
               // Summary footer (KpiRow)
               Padding(
                 padding: const EdgeInsets.fromLTRB(
