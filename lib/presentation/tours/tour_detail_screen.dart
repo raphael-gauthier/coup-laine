@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
+import '../../core/text_truncate.dart';
 import '../../core/theme/app_typography.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/animal_count.dart';
@@ -383,7 +384,7 @@ class _StopTile extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.xxs),
                 Expanded(
                   child: Text(
-                    _truncateNote(note!),
+                    truncateForPreview(note, maxChars: 110),
                     style: theme.typography.sm.copyWith(
                       color: theme.colors.mutedForeground,
                       fontStyle: FontStyle.italic,
@@ -408,11 +409,3 @@ class _StopTile extends ConsumerWidget {
   }
 }
 
-String _truncateNote(String s, {int maxChars = 110}) {
-  final flat = s.replaceAll(RegExp(r'\s+'), ' ').trim();
-  if (flat.length <= maxChars) return flat;
-  final cut = flat.substring(0, maxChars);
-  final lastSpace = cut.lastIndexOf(' ');
-  final base = lastSpace > maxChars ~/ 2 ? cut.substring(0, lastSpace) : cut;
-  return '$base…';
-}

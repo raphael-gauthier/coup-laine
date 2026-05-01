@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
+import '../../core/text_truncate.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/ui/confirm_dialog.dart';
 import 'client_actions.dart';
@@ -772,7 +773,7 @@ class _InterventionTileState extends State<_InterventionTile> {
                       const SizedBox(width: AppSpacing.xxs),
                       Expanded(
                         child: Text(
-                          _truncateForPreview(note),
+                          truncateForPreview(note, maxChars: 90),
                           style: theme.typography.sm.copyWith(
                             color: theme.colors.mutedForeground,
                             fontStyle: FontStyle.italic,
@@ -792,16 +793,3 @@ class _InterventionTileState extends State<_InterventionTile> {
   }
 }
 
-/// Tronque un texte de note pour preview compact dans une liste. Garde max
-/// `maxChars` caractères et coupe sur la dernière espace pour ne pas casser
-/// un mot ; ajoute `…` si tronqué. Newlines remplacés par espaces.
-String _truncateForPreview(String s, {int maxChars = 90}) {
-  final flat = s.replaceAll(RegExp(r'\s+'), ' ').trim();
-  if (flat.length <= maxChars) return flat;
-  final cut = flat.substring(0, maxChars);
-  final lastSpace = cut.lastIndexOf(' ');
-  final base = lastSpace > maxChars ~/ 2
-      ? cut.substring(0, lastSpace)
-      : cut;
-  return '$base…';
-}

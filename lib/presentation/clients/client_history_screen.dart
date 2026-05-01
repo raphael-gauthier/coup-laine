@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
+import '../../core/text_truncate.dart';
 import '../../core/theme/app_typography.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/intervention.dart';
@@ -201,7 +202,8 @@ class ClientHistoryScreen extends ConsumerWidget {
                                           width: AppSpacing.xxs),
                                       Expanded(
                                         child: Text(
-                                          _truncateNotePreview(note),
+                                          truncateForPreview(note,
+                                              maxChars: 120),
                                           style: theme.typography.sm
                                               .copyWith(
                                             color: theme
@@ -285,11 +287,3 @@ class _MonthHeaderTile extends StatelessWidget {
   }
 }
 
-String _truncateNotePreview(String s, {int maxChars = 120}) {
-  final flat = s.replaceAll(RegExp(r'\s+'), ' ').trim();
-  if (flat.length <= maxChars) return flat;
-  final cut = flat.substring(0, maxChars);
-  final lastSpace = cut.lastIndexOf(' ');
-  final base = lastSpace > maxChars ~/ 2 ? cut.substring(0, lastSpace) : cut;
-  return '$base…';
-}
