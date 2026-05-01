@@ -24,6 +24,31 @@ List<TourStopPrestation> _coerceTourStopPrestations(List raw) => [
         ),
     ];
 
+// Drift's row.toJson() leaves typed-list converter fields as their domain
+// object lists (e.g. List<TourStopPrestation>, List<AnimalCount>), which
+// jsonEncode can't serialize. Replace them with plain JSON-friendly maps
+// before encoding.
+List<Map<String, dynamic>> _serializeTourStopPrestations(
+  List<TourStopPrestation> list,
+) =>
+    [
+      for (final p in list)
+        {
+          'prestationId': p.prestationId,
+          'qty': p.qty,
+          'nameSnapshot': p.nameSnapshot,
+          'priceCentsSnapshot': p.priceCentsSnapshot,
+          'minutesSnapshot': p.minutesSnapshot,
+          'categoryIdSnapshot': p.categoryIdSnapshot,
+          'categoryNameSnapshot': p.categoryNameSnapshot,
+          'speciesNameSnapshot': p.speciesNameSnapshot,
+        },
+    ];
+
+List<Map<String, dynamic>> _serializeAnimalCounts(List<AnimalCount> list) => [
+      for (final a in list) {'categoryId': a.categoryId, 'count': a.count},
+    ];
+
 class JsonImportException implements Exception {
   final String message;
   JsonImportException(this.message);
@@ -61,14 +86,31 @@ class JsonExportService {
     return jsonEncode({
       'schema': schemaVersion,
       'settings': s?.toJson(),
-      'clients': cs.map((r) => r.toJson()).toList(),
+      'clients': cs.map((r) {
+        final j = r.toJson();
+        j['animals'] = _serializeAnimalCounts(r.animals);
+        return j;
+      }).toList(),
       'distanceMatrix': dm.map((r) => r.toJson()).toList(),
       'tours': ts.map((r) => r.toJson()).toList(),
-      'tourStops': stops.map((r) => r.toJson()).toList(),
+      'tourStops': stops.map((r) {
+        final j = r.toJson();
+        j['plannedPrestations'] =
+            _serializeTourStopPrestations(r.plannedPrestations);
+        final actuals = r.actualPrestations;
+        if (actuals != null) {
+          j['actualPrestations'] = _serializeTourStopPrestations(actuals);
+        }
+        return j;
+      }).toList(),
       'species': sp.map((r) => r.toJson()).toList(),
       'animalCategories': ac.map((r) => r.toJson()).toList(),
       'prestations': pr.map((r) => r.toJson()).toList(),
-      'manualHistoryEntries': mh.map((r) => r.toJson()).toList(),
+      'manualHistoryEntries': mh.map((r) {
+        final j = r.toJson();
+        j['prestations'] = _serializeTourStopPrestations(r.prestations);
+        return j;
+      }).toList(),
     });
   }
 
