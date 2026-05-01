@@ -276,6 +276,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                         context.push('/clients/${r.$1.id}');
                                       } else {
                                         ref.read(mapSelectedClientIdProvider.notifier).state = r.$1.id;
+                                        _mapController.move(
+                                          LatLng(
+                                            r.$1.coordinates.lat,
+                                            r.$1.coordinates.lon,
+                                          ),
+                                          _mapController.camera.zoom,
+                                        );
                                       }
                                     },
                                     child: _StatusPin(
