@@ -447,11 +447,17 @@ class _SpeciesAndCategoryPicker extends ConsumerWidget {
         if (error != null)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.xs),
-            child: Text(
-              error!,
-              style: theme.typography.sm.copyWith(
-                color: theme.colors.destructive,
-              ),
+            child: Row(
+              children: [
+                Icon(FIcons.triangleAlert, size: 14, color: theme.colors.destructive),
+                const SizedBox(width: AppSpacing.xxs),
+                Text(
+                  error!,
+                  style: theme.typography.xs.copyWith(
+                    color: theme.colors.destructive,
+                  ),
+                ),
+              ],
             ),
           ),
       ],
