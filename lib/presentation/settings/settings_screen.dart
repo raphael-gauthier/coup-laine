@@ -242,6 +242,28 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
           ),
           const SizedBox(height: AppSpacing.md),
 
+          // --- Catalogue de prestations ---
+          AppSectionCard(
+            icon: FIcons.listChecks,
+            title: l.prestationCatalogTitle,
+            child: Consumer(
+              builder: (context, ref, _) {
+                final countAsync = ref.watch(prestationCountActiveProvider);
+                final subtitle = countAsync.when(
+                  loading: () => '…',
+                  error: (_, __) => '',
+                  data: (n) => l.prestationCatalogCountFmt(n),
+                );
+                return FTile(
+                  title: Text(subtitle),
+                  suffix: const Icon(FIcons.chevronRight),
+                  onPress: () => context.push('/settings/prestations'),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
           // --- Adresse de base ---
           AppSectionCard(
             icon: FIcons.house,

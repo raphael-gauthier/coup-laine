@@ -7,18 +7,18 @@ import 'package:coup_laine/presentation/widgets/animal_counts_badges.dart';
 import 'package:coup_laine/state/providers.dart';
 
 void main() {
-  Map<int, ({String speciesName, String categoryName, int minutes})>
-      stubLookup() => {
-            1: (speciesName: 'Mouton', categoryName: 'Petit', minutes: 8),
-            2: (speciesName: 'Mouton', categoryName: 'Grand', minutes: 25),
-            3: (speciesName: 'Cheval', categoryName: 'Adulte', minutes: 45),
-          };
+  Map<int, ({String speciesName, String categoryName})> stubLookup() => {
+        1: (speciesName: 'Mouton', categoryName: 'Petit'),
+        2: (speciesName: 'Mouton', categoryName: 'Grand'),
+        3: (speciesName: 'Cheval', categoryName: 'Adulte'),
+      };
 
   testWidgets('compact mode sums per species', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          categoryLookupProvider.overrideWith((ref) async => stubLookup()),
+          categoryDisplayInfoProvider
+              .overrideWith((ref) async => stubLookup()),
         ],
         child: const MaterialApp(
           home: Scaffold(
@@ -42,7 +42,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          categoryLookupProvider.overrideWith((ref) async => stubLookup()),
+          categoryDisplayInfoProvider
+              .overrideWith((ref) async => stubLookup()),
         ],
         child: const MaterialApp(
           home: Scaffold(
@@ -67,7 +68,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          categoryLookupProvider.overrideWith((ref) async => stubLookup()),
+          categoryDisplayInfoProvider
+              .overrideWith((ref) async => stubLookup()),
         ],
         child: const MaterialApp(
           home: Scaffold(
@@ -88,7 +90,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          categoryLookupProvider.overrideWith((ref) async => stubLookup()),
+          categoryDisplayInfoProvider
+              .overrideWith((ref) async => stubLookup()),
         ],
         child: const MaterialApp(
           home: Scaffold(

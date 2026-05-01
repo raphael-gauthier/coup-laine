@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'animal_count_list_converter.dart';
 import 'phone_list_converter.dart';
-import 'tour_stop_animal_list_converter.dart';
+import 'tour_stop_prestation_list_converter.dart';
 
 @DataClassName('SettingsRow')
 class SettingsTable extends Table {
@@ -100,8 +100,6 @@ class AnimalCategoriesTable extends Table {
   IntColumn get speciesId => integer()
       .references(SpeciesTable, #id, onDelete: KeyAction.cascade)();
   TextColumn get name => text()();
-  IntColumn get defaultMinutes => integer().nullable()();
-  IntColumn get defaultPriceCents => integer().nullable()();
   IntColumn get archivedAt => integer().nullable()();
   IntColumn get createdAt => integer()();
 }
@@ -138,11 +136,11 @@ class TourStopsTable extends Table {
   IntColumn get orderIndex => integer()();
   IntColumn get estimatedArrivalMinutes => integer()();
   IntColumn get estimatedDepartureMinutes => integer()();
-  TextColumn get plannedAnimals => text()
-      .map(const TourStopAnimalListConverter())
+  TextColumn get plannedPrestations => text()
+      .map(const TourStopPrestationListConverter())
       .withDefault(const Constant('[]'))();
-  TextColumn get actualAnimals => text()
-      .map(const TourStopAnimalListConverter())
+  TextColumn get actualPrestations => text()
+      .map(const TourStopPrestationListConverter())
       .nullable()();
   TextColumn get interventionNote => text().nullable()();
   IntColumn get feeShareCents => integer()();
@@ -157,10 +155,25 @@ class ManualHistoryEntriesTable extends Table {
   IntColumn get clientId => integer()
       .references(ClientsTable, #id, onDelete: KeyAction.cascade)();
   IntColumn get date => integer()();
-  TextColumn get animals => text()
-      .map(const TourStopAnimalListConverter())
+  TextColumn get prestations => text()
+      .map(const TourStopPrestationListConverter())
       .withDefault(const Constant('[]'))();
   TextColumn get note => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+}
+
+@DataClassName('PrestationRow')
+class PrestationsTable extends Table {
+  @override
+  String get tableName => 'prestations';
+
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  IntColumn get priceCents => integer().nullable()();
+  IntColumn get minutes => integer().nullable()();
+  IntColumn get categoryId => integer().nullable()
+      .references(AnimalCategoriesTable, #id, onDelete: KeyAction.setNull)();
+  IntColumn get archivedAt => integer().nullable()();
+  IntColumn get createdAt => integer()();
 }

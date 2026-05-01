@@ -224,13 +224,94 @@
   "speciesEditUnarchive": "Désarchiver l'espèce",
   "speciesEditArchiveBlocked": "Au moins une espèce active est requise",
   "categoryFormName": "Nom",
-  "categoryFormDefaultMinutes": "Durée par défaut (min)",
-  "categoryFormDefaultPrice": "Prix indicatif HT (€)",
-  "categoryFormPriceHelper": "Sera utilisé pour la facturation à venir",
   "categoryFormSave": "Enregistrer",
   "categoryFormArchive": "Archiver",
   "categoryFormUnarchive": "Désarchiver",
   "animalCountsEditorEmpty": "Aucune espèce active",
   "animalCountsArchivedSection": "Catégories archivées",
-  "animalCountsClear": "Effacer"
+  "animalCountsClear": "Effacer",
+  "prestationCatalogTitle": "Catalogue de prestations",
+  "@prestationCatalogTitle": {},
+  "prestationCatalogCountFmt": "{n} prestation(s) active(s)",
+  "@prestationCatalogCountFmt": {
+    "placeholders": {"n": {"type": "int"}}
+  },
+  "prestationCatalogAddCta": "+ Ajouter une prestation",
+  "@prestationCatalogAddCta": {},
+  "prestationCatalogArchivedSection": "Archivées",
+  "@prestationCatalogArchivedSection": {},
+  "prestationCatalogFreeGroup": "Libres",
+  "@prestationCatalogFreeGroup": {},
+  "prestationFormName": "Nom",
+  "@prestationFormName": {},
+  "prestationFormBindToCategory": "Liée à une catégorie ?",
+  "@prestationFormBindToCategory": {},
+  "prestationFormSpecies": "Espèce",
+  "@prestationFormSpecies": {},
+  "prestationFormCategory": "Catégorie",
+  "@prestationFormCategory": {},
+  "prestationFormPrice": "Prix (€)",
+  "@prestationFormPrice": {},
+  "prestationFormPriceHelper": "Prix par unité",
+  "@prestationFormPriceHelper": {},
+  "prestationFormMinutes": "Durée (min)",
+  "@prestationFormMinutes": {},
+  "prestationFormMinutesHelper": "Utilisée pour estimer la durée d'une tournée",
+  "@prestationFormMinutesHelper": {},
+  "prestationFormSave": "Enregistrer",
+  "@prestationFormSave": {},
+  "prestationFormArchive": "Archiver",
+  "@prestationFormArchive": {},
+  "prestationFormUnarchive": "Désarchiver",
+  "@prestationFormUnarchive": {},
+  "prestationFormCreateTitle": "Nouvelle prestation",
+  "@prestationFormCreateTitle": {},
+  "prestationFormEditTitle": "Modifier la prestation",
+  "@prestationFormEditTitle": {},
+  "prestationPickerTitleFmt": "Prestations pour {client}",
+  "@prestationPickerTitleFmt": {
+    "placeholders": {"client": {"type": "String"}}
+  },
+  "prestationPickerSuggested": "Suggérées",
+  "@prestationPickerSuggested": {},
+  "prestationPickerOther": "Autres",
+  "@prestationPickerOther": {},
+  "prestationPickerEmptyValues": "Prix/durée non renseignés",
+  "@prestationPickerEmptyValues": {},
+  "prestationPickerCancel": "Annuler",
+  "@prestationPickerCancel": {},
+  "prestationPickerValidate": "Valider",
+  "@prestationPickerValidate": {},
+  "tourDraftStopNoPrestation": "Aucune prestation",
+  "@tourDraftStopNoPrestation": {},
+  "tourDraftStopNPrestationsFmt": "{n} prestation(s) · {minutes} · {amount}",
+  "@tourDraftStopNPrestationsFmt": {
+    "placeholders": {
+      "n": {"type": "int"},
+      "minutes": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "tourDraftSummaryRevenue": "Revenu : {amount}",
+  "@tourDraftSummaryRevenue": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "tourCompletionAddOffPlan": "+ Ajouter une prestation hors plan",
+  "@tourCompletionAddOffPlan": {},
+  "tourCompletionRevenueRealized": "Revenu réalisé",
+  "@tourCompletionRevenueRealized": {},
+  "tourCompletionInterventionReal": "Intervention réelle",
+  "@tourCompletionInterventionReal": {},
+  "clientHistoryPrestationCountFmt": "{n} prestation(s) · {amount} · {duration}",
+  "@clientHistoryPrestationCountFmt": {
+    "placeholders": {
+      "n": {"type": "int"},
+      "amount": {"type": "String"},
+      "duration": {"type": "String"}
+    }
+  },
+  "clientHistoryAndOthersFmt": "… et {n} autre(s)",
+  "@clientHistoryAndOthersFmt": {
+    "placeholders": {"n": {"type": "int"}}
+  }
 }

@@ -51,6 +51,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final db = ref.read(appDatabaseProvider);
       final speciesRepo = ref.read(speciesRepositoryProvider);
       final catsRepo = ref.read(animalCategoryRepositoryProvider);
+      final prestationRepo = ref.read(prestationRepositoryProvider);
       final settingsRepo = ref.read(settingsRepositoryProvider);
 
       await db.transaction(() async {
@@ -58,7 +59,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           final seed = kSpeciesSeeds[i];
           final speciesId = await speciesRepo.insert(name: seed.name);
           for (final cat in seed.categories) {
-            await catsRepo.insert(speciesId: speciesId, name: cat.name);
+            final catId =
+                await catsRepo.insert(speciesId: speciesId, name: cat.name);
+            if (cat.defaultPrestationName != null) {
+              await prestationRepo.insert(
+                name: cat.defaultPrestationName!,
+                priceCents: null,
+                minutes: null,
+                categoryId: catId,
+              );
+            }
           }
         }
         for (final cs in _customSpecies) {
@@ -73,6 +83,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           seasonStartedAt: DateTime.now(),
         ));
       });
+      ref.invalidate(activePrestationsProvider);
+      ref.invalidate(prestationCountActiveProvider);
       if (!mounted) return;
       context.go('/clients');
     } finally {

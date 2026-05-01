@@ -5,7 +5,7 @@ import 'package:coup_laine/domain/models/animal_count.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:coup_laine/domain/models/intervention.dart';
-import 'package:coup_laine/domain/models/tour_stop_animal.dart';
+import 'package:coup_laine/domain/models/tour_stop_prestation.dart';
 import 'package:coup_laine/domain/use_cases/client_status.dart';
 import 'package:coup_laine/infra/db/app_database.dart';
 import 'package:drift/drift.dart' show Value;
@@ -15,20 +15,28 @@ import 'package:flutter_test/flutter_test.dart';
 // Stable test convention:
 //   - categoryId 1 stands for "small / Petit Mouton"
 //   - categoryId 2 stands for "large / Gros Mouton"
-TourStopAnimal _small(int n) => TourStopAnimal(
-      categoryId: 1,
-      count: n,
+TourStopPrestation _small(int n, {int prestationId = 11}) =>
+    TourStopPrestation(
+      prestationId: prestationId,
+      qty: n,
+      nameSnapshot: 'Tonte petit',
+      priceCentsSnapshot: 800,
+      minutesSnapshot: 8,
+      categoryIdSnapshot: 1,
       categoryNameSnapshot: 'Petit',
       speciesNameSnapshot: 'Mouton',
-      minutesSnapshot: 8,
     );
 
-TourStopAnimal _large(int n) => TourStopAnimal(
-      categoryId: 2,
-      count: n,
+TourStopPrestation _large(int n, {int prestationId = 12}) =>
+    TourStopPrestation(
+      prestationId: prestationId,
+      qty: n,
+      nameSnapshot: 'Tonte gros',
+      priceCentsSnapshot: 2500,
+      minutesSnapshot: 25,
+      categoryIdSnapshot: 2,
       categoryNameSnapshot: 'Gros',
       speciesNameSnapshot: 'Mouton',
-      minutesSnapshot: 25,
     );
 
 Client _newClient({
@@ -240,7 +248,7 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          planned: [_small(5)],
+          plannedPrestations: [_small(5)],
           feeShareCents: 0,
         ),
       ],
@@ -260,7 +268,7 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          planned: [_small(5)],
+          plannedPrestations: [_small(5)],
           feeShareCents: 0,
         ),
       ],
@@ -286,7 +294,7 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          planned: [_small(5)],
+          plannedPrestations: [_small(5)],
           feeShareCents: 0,
         ),
       ],
@@ -343,7 +351,7 @@ void main() {
             orderIndex: 0,
             estimatedArrivalMinutes: 480,
             estimatedDepartureMinutes: 580,
-            planned: [_small(5), _large(1)],
+            plannedPrestations: [_small(5), _large(1)],
             feeShareCents: 0,
           ),
         ],
@@ -369,7 +377,7 @@ void main() {
             orderIndex: 0,
             estimatedArrivalMinutes: 480,
             estimatedDepartureMinutes: 580,
-            planned: [_small(6)],
+            plannedPrestations: [_small(6)],
             feeShareCents: 0,
           ),
         ],
@@ -395,7 +403,7 @@ void main() {
             orderIndex: 0,
             estimatedArrivalMinutes: 480,
             estimatedDepartureMinutes: 580,
-            planned: [_small(4)],
+            plannedPrestations: [_small(4)],
             feeShareCents: 0,
           ),
         ],
@@ -404,11 +412,11 @@ void main() {
       final history = await repo.listInterventionsForClient(cId);
       expect(history.length, 2);
       expect(history[0].date, DateTime(2026, 5, 14));
-      expect(history[0].animalsTotal, 5);
+      expect(history[0].prestationsQtyTotal, 5);
       expect(history[0].note, 'RAS');
       expect(history[0].hasBilan, isTrue);
       expect(history[1].date, DateTime(2026, 4, 1));
-      expect(history[1].animalsTotal, 6);
+      expect(history[1].prestationsQtyTotal, 6);
       expect(history[1].hasBilan, isTrue);
     },
   );
@@ -423,7 +431,7 @@ void main() {
     await manual.insert(
       clientId: cId,
       date: DateTime(2026, 5, 1),
-      animals: [_small(4)],
+      prestations: [_small(4)],
     );
 
     final all = await repo.listAllWithStatus(season);
@@ -441,7 +449,7 @@ void main() {
       await manual.insert(
         clientId: cId,
         date: DateTime(2025, 9, 1), // before season
-        animals: [_small(4)],
+        prestations: [_small(4)],
       );
 
       final all = await repo.listAllWithStatus(season);
@@ -470,7 +478,7 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          planned: [_small(5)],
+          plannedPrestations: [_small(5)],
           feeShareCents: 0,
         ),
       ],
@@ -486,14 +494,14 @@ void main() {
     await manual.insert(
       clientId: cId,
       date: DateTime(2025, 9, 10),
-      animals: [_small(3), _large(1)],
+      prestations: [_small(3), _large(1)],
       note: 'manual older',
     );
     // Manual entry on 2026-06-01 (newest)
     final newestId = await manual.insert(
       clientId: cId,
       date: DateTime(2026, 6, 1),
-      animals: [_small(4)],
+      prestations: [_small(4)],
       note: 'manual newer',
     );
 
@@ -535,7 +543,7 @@ void main() {
           orderIndex: 0,
           estimatedArrivalMinutes: 480,
           estimatedDepartureMinutes: 580,
-          planned: [_small(5)],
+          plannedPrestations: [_small(5)],
           feeShareCents: 0,
         ),
       ],
@@ -549,7 +557,7 @@ void main() {
     await manual.insert(
       clientId: a,
       date: DateTime(2024, 6, 1),
-      animals: [_small(3), _large(1)],
+      prestations: [_small(3), _large(1)],
       note: 'manual-note-A',
     );
 
@@ -557,7 +565,7 @@ void main() {
     await manual.insert(
       clientId: b,
       date: DateTime(2024, 6, 1),
-      animals: [_small(3), _large(1)],
+      prestations: [_small(3), _large(1)],
       note: 'manual-note-B',
     );
 
@@ -566,7 +574,7 @@ void main() {
     await manual.insert(
       clientId: c,
       date: DateTime(2024, 6, 1),
-      animals: [_small(3), _large(1)],
+      prestations: [_small(3), _large(1)],
     );
 
     final map = await repo.loadClientNotesMap();
@@ -587,7 +595,7 @@ void main() {
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2025, 5, 1),
-        animals: [_small(6), _large(2)],
+        prestations: [_small(6), _large(2)],
       );
       final c = (await repo.findById(cId))!;
       expect(c.lastInterventionDate, DateTime(2025, 5, 1));
@@ -609,7 +617,7 @@ void main() {
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2025, 6, 1), // later
-        animals: [_small(7), _large(1)],
+        prestations: [_small(7), _large(1)],
       );
       final c = (await repo.findById(cId))!;
       expect(c.lastInterventionDate, DateTime(2025, 6, 1));
@@ -632,7 +640,7 @@ void main() {
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2025, 5, 1), // equal
-        animals: [_small(99), _large(99)],
+        prestations: [_small(99), _large(99)],
       );
       final c = (await repo.findById(cId))!;
       // animals untouched: small=5 from the intervention, no large entry.
@@ -651,7 +659,7 @@ void main() {
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2024, 1, 1), // earlier
-        animals: [_small(99), _large(99)],
+        prestations: [_small(99), _large(99)],
       );
       final c = (await repo.findById(cId))!;
       expect(c.lastInterventionDate, DateTime(2025, 5, 1));
@@ -680,7 +688,7 @@ void main() {
             orderIndex: 0,
             estimatedArrivalMinutes: 480,
             estimatedDepartureMinutes: 580,
-            planned: [_small(5)],
+            plannedPrestations: [_small(5)],
             feeShareCents: 0,
           ),
         ],
@@ -701,12 +709,12 @@ void main() {
       final manualId = await manual.insert(
         clientId: cId,
         date: DateTime(2026, 5, 1),
-        animals: [_small(8), _large(2)],
+        prestations: [_small(8), _large(2)],
       );
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2026, 5, 1),
-        animals: [_small(8), _large(2)],
+        prestations: [_small(8), _large(2)],
       );
       expect((await repo.findById(cId))!.animals, const [
         AnimalCount(categoryId: 1, count: 8),
@@ -733,12 +741,12 @@ void main() {
       final id = await manual.insert(
         clientId: cId,
         date: DateTime(2026, 5, 1),
-        animals: [_small(4)],
+        prestations: [_small(4)],
       );
       await repo.applyManualEntryToClient(
         cId,
         date: DateTime(2026, 5, 1),
-        animals: [_small(4)],
+        prestations: [_small(4)],
       );
       // Sanity: small now reflects the manual entry; large untouched.
       expect((await repo.findById(cId))!.animals, const [
@@ -753,6 +761,82 @@ void main() {
       expect(c.lastInterventionDate, isNull);
       // No source to rebuild from → animals cleared.
       expect(c.animals, const <AnimalCount>[]);
+    });
+
+    test('MAX rule + most-recent wins per category across interventions',
+        () async {
+      final tours = TourRepository(db);
+      final cId = await repo.insert(_newClient(animals: const []));
+
+      // Tour 1 (older, 2025-05-01): small=5, large=2
+      final t1 = await tours.plan(TourDraft(
+        plannedDate: DateTime(2025, 5, 1),
+        startTimeMinutes: 480,
+        totalDistanceMeters: 0,
+        totalDriveSeconds: 0,
+        totalTravelFeeCents: 0,
+        stops: [
+          TourStopDraft(
+            clientId: cId,
+            clientNameSnapshot: 'C',
+            orderIndex: 0,
+            estimatedArrivalMinutes: 480,
+            estimatedDepartureMinutes: 580,
+            plannedPrestations: [_small(5), _large(2)],
+            feeShareCents: 0,
+          ),
+        ],
+      ));
+      await tours.markCompleted(t1, {
+        (await tours.findById(t1))!.stops.first.id: (
+          actuals: [_small(5), _large(2)],
+          note: null,
+        ),
+      });
+
+      // Tour 2 (newer, 2026-05-01): two prestations bound to small (catId=1),
+      // qty 7 each (MAX rule → 7, not 14). large is NOT in this tour.
+      final t2 = await tours.plan(TourDraft(
+        plannedDate: DateTime(2026, 5, 1),
+        startTimeMinutes: 480,
+        totalDistanceMeters: 0,
+        totalDriveSeconds: 0,
+        totalTravelFeeCents: 0,
+        stops: [
+          TourStopDraft(
+            clientId: cId,
+            clientNameSnapshot: 'C',
+            orderIndex: 0,
+            estimatedArrivalMinutes: 480,
+            estimatedDepartureMinutes: 580,
+            plannedPrestations: [
+              _small(7, prestationId: 21),
+              _small(7, prestationId: 22),
+            ],
+            feeShareCents: 0,
+          ),
+        ],
+      ));
+      await tours.markCompleted(t2, {
+        (await tours.findById(t2))!.stops.first.id: (
+          actuals: [
+            _small(7, prestationId: 21),
+            _small(7, prestationId: 22),
+          ],
+          note: null,
+        ),
+      });
+
+      await repo.recomputeClientFromHistory(cId);
+      final c = (await repo.findById(cId))!;
+      // small comes from the most-recent tour with MAX = 7.
+      // large only appeared in the older tour → still picked up at 2.
+      expect(c.animals, const [
+        AnimalCount(categoryId: 1, count: 7),
+        AnimalCount(categoryId: 2, count: 2),
+      ]);
+      // lastInterventionDate is the newest.
+      expect(c.lastInterventionDate, DateTime(2026, 5, 1));
     });
   });
 }

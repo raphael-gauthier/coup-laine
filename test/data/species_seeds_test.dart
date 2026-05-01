@@ -26,4 +26,26 @@ void main() {
       }
     }
   });
+
+  test('Mouton categories seed Tonte', () {
+    final mouton = kSpeciesSeeds.firstWhere((s) => s.name == 'Mouton');
+    expect(mouton.categories.every((c) => c.defaultPrestationName == 'Tonte'),
+        isTrue);
+  });
+
+  test('Cheval & Bovin seed Parage', () {
+    final cheval = kSpeciesSeeds.firstWhere((s) => s.name == 'Cheval');
+    expect(cheval.categories.every((c) => c.defaultPrestationName == 'Parage'),
+        isTrue);
+    final bovin = kSpeciesSeeds.firstWhere((s) => s.name == 'Bovin');
+    expect(bovin.categories.every((c) => c.defaultPrestationName == 'Parage'),
+        isTrue);
+  });
+
+  test('Caprin/Chèvre seeds Onglons', () {
+    final caprin = kSpeciesSeeds.firstWhere((s) => s.name == 'Caprin');
+    final chevre =
+        caprin.categories.firstWhere((c) => c.name == 'Chèvre');
+    expect(chevre.defaultPrestationName, 'Onglons');
+  });
 }

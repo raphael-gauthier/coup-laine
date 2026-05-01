@@ -6,11 +6,11 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../domain/models/animal_count.dart';
-import '../../domain/models/tour_stop_animal.dart';
+import '../../domain/models/tour_stop_prestation.dart';
 import 'animal_count_list_converter.dart';
 import 'phone_list_converter.dart';
 import 'tables.dart';
-import 'tour_stop_animal_list_converter.dart';
+import 'tour_stop_prestation_list_converter.dart';
 
 part 'app_database.g.dart';
 
@@ -24,6 +24,7 @@ part 'app_database.g.dart';
     ToursTable,
     TourStopsTable,
     ManualHistoryEntriesTable,
+    PrestationsTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -32,13 +33,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
-      if (from < 11) {
+      if (from < 12) {
         // Reset complet — pas d'utilisateurs en prod, pas de migration data.
         for (final table in allTables.toList().reversed) {
           await m.deleteTable(table.actualTableName);

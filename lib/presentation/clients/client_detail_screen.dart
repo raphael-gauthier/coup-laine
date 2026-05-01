@@ -524,8 +524,9 @@ class _InterventionRow extends StatelessWidget {
     final dateStr = DateFormat('d MMM yyyy', 'fr').format(item.date);
     final note = item.note;
     final counts = [
-      for (final a in item.animals)
-        AnimalCount(categoryId: a.categoryId, count: a.count),
+      for (final a in item.prestations)
+        if (a.categoryIdSnapshot != null)
+          AnimalCount(categoryId: a.categoryIdSnapshot!, count: a.qty),
     ];
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -582,7 +583,7 @@ class _InterventionRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              '${item.animalsTotal}',
+              '${item.prestationsQtyTotal}',
               style: theme.typography.lg.copyWith(
                 fontWeight: FontWeight.w700,
                 color: theme.colors.foreground,

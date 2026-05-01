@@ -6,10 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
-import '../../domain/models/animal_count.dart';
+import '../../core/format_minutes.dart';
 import '../../domain/models/intervention.dart';
 import '../../state/providers.dart';
-import '../widgets/animal_counts_badges.dart';
 import 'manual_history_entry_sheet.dart';
 
 class ClientHistoryScreen extends ConsumerWidget {
@@ -61,10 +60,33 @@ class ClientHistoryScreen extends ConsumerWidget {
                 final isManual = it.kind == InterventionKind.manual;
                 final dateStr =
                     DateFormat('d MMM yyyy', 'fr').format(it.date);
-                final counts = [
-                  for (final a in it.animals)
-                    AnimalCount(categoryId: a.categoryId, count: a.count),
-                ];
+
+                // Build summary line: "{n} prestation(s) · {amount} · {duration}"
+                final summaryLine = l.clientHistoryPrestationCountFmt(
+                  it.prestations.length,
+                  formatEuros(it.totalRevenueCents),
+                  formatDuration(it.totalMinutes),
+                );
+
+                // Build detail line: up to 3 prestations
+                final maxPrestaDisplay = 3;
+                final displayPrestations = it.prestations.length > maxPrestaDisplay
+                    ? it.prestations.sublist(0, maxPrestaDisplay)
+                    : it.prestations;
+                final remaining = (it.prestations.length > maxPrestaDisplay)
+                    ? it.prestations.length - maxPrestaDisplay
+                    : 0;
+
+                final prestationItems = displayPrestations
+                    .map((p) =>
+                        '${p.nameSnapshot} ${p.categoryNameSnapshot ?? '(libre)'} × ${p.qty}')
+                    .toList();
+
+                final detailLine = prestationItems.join(' · ') +
+                    (remaining > 0
+                        ? ' ${l.clientHistoryAndOthersFmt(remaining)}'
+                        : '');
+
                 return GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () async {
@@ -119,12 +141,19 @@ class ClientHistoryScreen extends ConsumerWidget {
                                   color: theme.colors.foreground,
                                 ),
                               ),
-                              AnimalCountsBadges(
-                                counts: counts,
-                                mode: AnimalCountsBadgesMode.detailed,
+                              Text(
+                                summaryLine,
                                 style: theme.typography.sm.copyWith(
                                   color: theme.colors.mutedForeground,
                                 ),
+                              ),
+                              Text(
+                                detailLine,
+                                style: theme.typography.xs.copyWith(
+                                  color: theme.colors.mutedForeground,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               if (!it.hasBilan)
                                 Text(
@@ -146,25 +175,6 @@ class ClientHistoryScreen extends ConsumerWidget {
                               ],
                             ],
                           ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '${it.animalsTotal}',
-                              style: theme.typography.xl.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: theme.colors.foreground,
-                              ),
-                            ),
-                            Text(
-                              'animaux',
-                              style: theme.typography.xs.copyWith(
-                                color: theme.colors.mutedForeground,
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),

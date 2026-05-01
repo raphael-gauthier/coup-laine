@@ -1,10 +1,11 @@
 import 'package:drift/drift.dart';
 
-import '../../core/animal_counts_normalizer.dart';
-import '../../domain/models/animal_count.dart';
+import '../../core/animal_counts_from_prestations.dart';
+import '../../core/animal_counts_merge.dart';
+import '../../core/tour_stop_prestations_normalizer.dart';
 import '../../domain/models/tour.dart';
 import '../../domain/models/tour_stop.dart';
-import '../../domain/models/tour_stop_animal.dart';
+import '../../domain/models/tour_stop_prestation.dart';
 import '../../infra/db/app_database.dart';
 
 class TourStopDraft {
@@ -13,7 +14,7 @@ class TourStopDraft {
   final int orderIndex;
   final int estimatedArrivalMinutes;
   final int estimatedDepartureMinutes;
-  final List<TourStopAnimal> planned;
+  final List<TourStopPrestation> plannedPrestations;
   final int feeShareCents;
 
   const TourStopDraft({
@@ -21,7 +22,7 @@ class TourStopDraft {
     required this.orderIndex,
     required this.estimatedArrivalMinutes,
     required this.estimatedDepartureMinutes,
-    required this.planned,
+    required this.plannedPrestations,
     required this.feeShareCents,
     this.clientId,
   });
@@ -81,7 +82,8 @@ class TourRepository {
                 orderIndex: s.orderIndex,
                 estimatedArrivalMinutes: s.estimatedArrivalMinutes,
                 estimatedDepartureMinutes: s.estimatedDepartureMinutes,
-                plannedAnimals: Value(normalizeTourStopAnimals(s.planned)),
+                plannedPrestations: Value(
+                    normalizeTourStopPrestations(s.plannedPrestations)),
                 feeShareCents: s.feeShareCents,
               ),
             );
@@ -113,14 +115,14 @@ class TourRepository {
   }
 
   /// Mark a tour as completed. The caller passes a map keyed by `stop.id`
-  /// containing the actual animal counts and an optional note. For each stop
-  /// with a non-null `clientId`, the corresponding client's stored animals
-  /// are merged per `categoryId` (actuals overwrite per-category, other
-  /// categories untouched) and `lastInterventionDate` is bumped to the tour's
+  /// containing the actual prestations and an optional note. For each stop
+  /// with a non-null `clientId`, per-category counts are derived from the
+  /// actual prestations (MAX rule, libres ignored) and merged into the
+  /// client's stored animals; `lastInterventionDate` is bumped to the tour's
   /// planned date.
   Future<void> markCompleted(
     int id,
-    Map<int, ({List<TourStopAnimal> actuals, String? note})> actuals,
+    Map<int, ({List<TourStopPrestation> actuals, String? note})> actuals,
   ) async {
     await _db.transaction(() async {
       final tour = await (_db.select(_db.toursTable)
@@ -149,35 +151,30 @@ class TourRepository {
       for (final s in stopRows) {
         final entry = actuals[s.id];
         if (entry == null) continue;
-        final normalized = normalizeTourStopAnimals(entry.actuals);
+        final normalized = normalizeTourStopPrestations(entry.actuals);
 
         await (_db.update(_db.tourStopsTable)
               ..where((t) => t.id.equals(s.id)))
             .write(
           TourStopsTableCompanion(
-            actualAnimals: Value(normalized),
+            actualPrestations: Value(normalized),
             interventionNote: Value(entry.note),
           ),
         );
 
         final cid = s.clientId;
         if (cid != null) {
-          // Sync the client's stored animals: merge actuals into client.animals
-          // by categoryId (actuals overwrite per-category, others untouched).
+          // Derive per-category counts from the actual prestations (MAX rule,
+          // libres ignored) and merge them into the client's stored animals.
+          final derived = animalCountsFromPrestations(normalized);
           final clientRow = await (_db.select(_db.clientsTable)
                 ..where((c) => c.id.equals(cid)))
               .getSingleOrNull();
           if (clientRow != null) {
-            final byId = <int, int>{
-              for (final a in clientRow.animals) a.categoryId: a.count,
-            };
-            for (final a in normalized) {
-              byId[a.categoryId] = a.count;
-            }
-            final mergedAnimals = normalizeAnimalCounts([
-              for (final entry in byId.entries)
-                AnimalCount(categoryId: entry.key, count: entry.value),
-            ]);
+            final mergedAnimals = mergeAnimalCountsByCategory(
+              clientRow.animals,
+              derived,
+            );
             await (_db.update(_db.clientsTable)
                   ..where((c) => c.id.equals(cid)))
                 .write(
@@ -225,7 +222,8 @@ class TourRepository {
                 orderIndex: s.orderIndex,
                 estimatedArrivalMinutes: s.estimatedArrivalMinutes,
                 estimatedDepartureMinutes: s.estimatedDepartureMinutes,
-                plannedAnimals: Value(normalizeTourStopAnimals(s.planned)),
+                plannedPrestations: Value(
+                    normalizeTourStopPrestations(s.plannedPrestations)),
                 feeShareCents: s.feeShareCents,
               ),
             );
@@ -271,8 +269,8 @@ class TourRepository {
         orderIndex: row.orderIndex,
         estimatedArrivalMinutes: row.estimatedArrivalMinutes,
         estimatedDepartureMinutes: row.estimatedDepartureMinutes,
-        planned: row.plannedAnimals,
-        actual: row.actualAnimals,
+        plannedPrestations: row.plannedPrestations,
+        actualPrestations: row.actualPrestations,
         interventionNote: row.interventionNote,
         feeShareCents: row.feeShareCents,
       );

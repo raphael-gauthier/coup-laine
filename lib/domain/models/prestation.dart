@@ -1,13 +1,17 @@
-class AnimalCategory {
+class Prestation {
   final int id;
-  final int speciesId;
   final String name;
+  final int? priceCents;
+  final int? minutes;
+  final int? categoryId;
   final DateTime? archivedAt;
 
-  const AnimalCategory({
+  const Prestation({
     required this.id,
-    required this.speciesId,
     required this.name,
+    this.priceCents,
+    this.minutes,
+    this.categoryId,
     this.archivedAt,
   });
 

@@ -11,6 +11,7 @@ import '../data/repositories/animal_category_repository.dart';
 import '../data/repositories/client_repository.dart';
 import '../data/repositories/distance_matrix_repository.dart';
 import '../data/repositories/manual_history_repository.dart';
+import '../data/repositories/prestation_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/repositories/species_repository.dart';
 import '../data/repositories/tour_repository.dart';
@@ -18,6 +19,7 @@ import '../domain/models/animal_category.dart';
 import '../domain/models/client.dart';
 import '../domain/models/distance_matrix_entry.dart';
 import '../domain/models/intervention.dart';
+import '../domain/models/prestation.dart';
 import '../domain/models/settings.dart';
 import '../domain/models/species.dart';
 import '../domain/use_cases/build_optimized_tour_proposal.dart';
@@ -79,6 +81,25 @@ final allCategoriesByIdProvider =
   return {for (final c in list) c.id: c};
 });
 
+/// For a given category id, returns the species name + category name.
+/// Used by widgets that need to display "Mouton/Petit" for an animal counter
+/// or a snapshot id reference. Includes archived species/categories so that
+/// historical references still resolve.
+final categoryDisplayInfoProvider =
+    FutureProvider<Map<int, ({String speciesName, String categoryName})>>(
+        (ref) async {
+  final species = await ref.watch(speciesRepositoryProvider).listAll();
+  final speciesById = {for (final s in species) s.id: s};
+  final cats = await ref.watch(animalCategoryRepositoryProvider).listAll();
+  return {
+    for (final c in cats)
+      c.id: (
+        speciesName: speciesById[c.speciesId]?.name ?? '',
+        categoryName: c.name,
+      ),
+  };
+});
+
 /// Active categories grouped by speciesId. Used by AnimalCountsEditor.
 final activeCategoriesBySpeciesProvider =
     FutureProvider<Map<int, List<AnimalCategory>>>((ref) async {
@@ -91,27 +112,36 @@ final activeCategoriesBySpeciesProvider =
   return out;
 });
 
-/// Convenience: the species + category info needed to build TourStopAnimal
-/// snapshots when constructing a TourDraft. Built once per provider read.
-/// Keys are categoryIds; values include speciesName, categoryName, and
-/// minutesSnapshot (defaulting to 0 if the user hasn't set defaultMinutes).
-/// Includes archived categories so historic clients still resolve.
-final categoryLookupProvider = FutureProvider<
-    Map<int, ({String speciesName, String categoryName, int minutes})>>(
-    (ref) async {
-  final speciesById = {
-    for (final s in await ref.watch(speciesRepositoryProvider).listAll())
-      s.id: s,
-  };
-  final cats = await ref.watch(animalCategoryRepositoryProvider).listAll();
-  return {
-    for (final c in cats)
-      c.id: (
-        speciesName: speciesById[c.speciesId]?.name ?? '',
-        categoryName: c.name,
-        minutes: c.defaultMinutes ?? 0,
-      ),
-  };
+final prestationRepositoryProvider = Provider<PrestationRepository>((ref) {
+  return PrestationRepository(ref.watch(appDatabaseProvider));
+});
+
+/// Active prestations ordered by id. Used by the catalog screen and the
+/// stop picker.
+final activePrestationsProvider = FutureProvider<List<Prestation>>((ref) {
+  return ref.watch(prestationRepositoryProvider).listActive();
+});
+
+/// Archived prestations.
+final archivedPrestationsProvider = FutureProvider<List<Prestation>>((ref) {
+  return ref.watch(prestationRepositoryProvider).listArchived();
+});
+
+/// Active prestations grouped : `categoryId` (or `null` for libres) → list.
+/// Convenient for the catalog screen's grouped layout.
+final activePrestationsByCategoryProvider =
+    FutureProvider<Map<int?, List<Prestation>>>((ref) async {
+  final list = await ref.watch(activePrestationsProvider.future);
+  final out = <int?, List<Prestation>>{};
+  for (final p in list) {
+    out.putIfAbsent(p.categoryId, () => []).add(p);
+  }
+  return out;
+});
+
+/// Count of active prestations. Cheap; surfaced in Settings.
+final prestationCountActiveProvider = FutureProvider<int>((ref) {
+  return ref.watch(prestationRepositoryProvider).countActive();
 });
 
 final clientRepositoryProvider = Provider<ClientRepository>((ref) {
@@ -306,7 +336,6 @@ final optimizedProposalProvider = FutureProvider.autoDispose
   final clientsRepo = ref.watch(clientRepositoryProvider);
   final matrixRepo = ref.watch(distanceMatrixRepositoryProvider);
   final settingsRepo = ref.watch(settingsRepositoryProvider);
-  final categoryLookupFuture = ref.watch(categoryLookupProvider.future);
 
   final settings = await settingsRepo.read();
   if (settings == null) return OptimizedProposal.empty();
@@ -335,7 +364,6 @@ final optimizedProposalProvider = FutureProvider.autoDispose
       ));
     }
   }
-  final categoryLookup = await categoryLookupFuture;
   return const BuildOptimizedTourProposal().call(
     communeName: req.communeName,
     targetMinutes: req.targetMinutes,
@@ -343,6 +371,5 @@ final optimizedProposalProvider = FutureProvider.autoDispose
     waitingClients: waiting,
     matrix: entries,
     settings: settings,
-    categoryLookup: categoryLookup,
   );
 });

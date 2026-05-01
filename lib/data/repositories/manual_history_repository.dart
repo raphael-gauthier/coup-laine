@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
 
-import '../../core/animal_counts_normalizer.dart';
+import '../../core/tour_stop_prestations_normalizer.dart';
 import '../../domain/models/manual_history_entry.dart';
-import '../../domain/models/tour_stop_animal.dart';
+import '../../domain/models/tour_stop_prestation.dart';
 import '../../infra/db/app_database.dart';
 
 class ManualHistoryRepository {
@@ -12,7 +12,7 @@ class ManualHistoryRepository {
   Future<int> insert({
     required int clientId,
     required DateTime date,
-    required List<TourStopAnimal> animals,
+    required List<TourStopPrestation> prestations,
     String? note,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -20,7 +20,7 @@ class ManualHistoryRepository {
           ManualHistoryEntriesTableCompanion.insert(
             clientId: clientId,
             date: _toEpochDays(date),
-            animals: Value(normalizeTourStopAnimals(animals)),
+            prestations: Value(normalizeTourStopPrestations(prestations)),
             note: Value(note),
             createdAt: now,
             updatedAt: now,
@@ -31,7 +31,7 @@ class ManualHistoryRepository {
   Future<void> update(
     int id, {
     required DateTime date,
-    required List<TourStopAnimal> animals,
+    required List<TourStopPrestation> prestations,
     String? note,
   }) async {
     await (_db.update(_db.manualHistoryEntriesTable)
@@ -39,7 +39,7 @@ class ManualHistoryRepository {
         .write(
       ManualHistoryEntriesTableCompanion(
         date: Value(_toEpochDays(date)),
-        animals: Value(normalizeTourStopAnimals(animals)),
+        prestations: Value(normalizeTourStopPrestations(prestations)),
         note: Value(note),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
@@ -88,7 +88,7 @@ class ManualHistoryRepository {
       id: r.id,
       clientId: r.clientId,
       date: DateTime(utc.year, utc.month, utc.day),
-      animals: r.animals,
+      prestations: r.prestations,
       note: r.note,
     );
   }

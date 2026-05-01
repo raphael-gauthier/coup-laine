@@ -1,12 +1,14 @@
 import 'package:drift/drift.dart';
 
+import '../../core/animal_counts_from_prestations.dart';
+import '../../core/animal_counts_merge.dart';
 import '../../core/animal_counts_normalizer.dart';
 import '../../core/phone_normalizer.dart';
 import '../../domain/models/animal_count.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
 import '../../domain/models/intervention.dart';
-import '../../domain/models/tour_stop_animal.dart';
+import '../../domain/models/tour_stop_prestation.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../infra/db/app_database.dart';
 import 'manual_history_repository.dart';
@@ -276,7 +278,7 @@ class ClientRepository {
         () {
           final stop = r.readTable(_db.tourStopsTable);
           final tour = r.readTable(_db.toursTable);
-          final hasBilan = stop.actualAnimals != null;
+          final hasBilan = stop.actualPrestations != null;
           final utc = DateTime.fromMillisecondsSinceEpoch(
             tour.plannedDate * 86400000,
             isUtc: true,
@@ -286,7 +288,7 @@ class ClientRepository {
             tourId: tour.id,
             stopId: stop.id,
             date: DateTime(utc.year, utc.month, utc.day),
-            animals: stop.actualAnimals ?? stop.plannedAnimals,
+            prestations: stop.actualPrestations ?? stop.plannedPrestations,
             note: stop.interventionNote,
             hasBilan: hasBilan,
           );
@@ -301,7 +303,7 @@ class ClientRepository {
           kind: InterventionKind.manual,
           manualEntryId: e.id,
           date: e.date,
-          animals: e.animals,
+          prestations: e.prestations,
           note: e.note,
           hasBilan: true,
         ),
@@ -352,18 +354,22 @@ class ClientRepository {
   }
 
   /// Persists the actuals captured during a tour completion onto the client's
-  /// stored animal counts, merging per `categoryId` (entries in [actuals]
-  /// overwrite the matching category, others untouched). Bumps
-  /// `lastInterventionDate` to [tourDate]. Does not mutate `isWaiting` (status now
-  /// derives from completed tour membership).
+  /// stored animal counts.
+  ///
+  /// Each prestation in [actuals] is converted to a per-category count via the
+  /// MAX rule (libres ignored, max qty wins per category). The derived counts
+  /// then merge into `client.animals` (per-category overwrite, others untouched).
+  /// Bumps `lastInterventionDate` to [tourDate]. Does not mutate `isWaiting`
+  /// (status now derives from completed tour membership).
   Future<void> applyInterventionActuals(
     int clientId, {
-    required List<TourStopAnimal> actuals,
+    required List<TourStopPrestation> actuals,
     required DateTime tourDate,
   }) async {
     final c = await findById(clientId);
     if (c == null) return;
-    final merged = _mergePerCategory(c.animals, actuals);
+    final derived = animalCountsFromPrestations(actuals);
+    final merged = _mergePerCategory(c.animals, derived);
     await (_db.update(_db.clientsTable)
           ..where((t) => t.id.equals(clientId)))
         .write(
@@ -384,7 +390,7 @@ class ClientRepository {
   Future<void> applyManualEntryToClient(
     int clientId, {
     required DateTime date,
-    required List<TourStopAnimal> animals,
+    required List<TourStopPrestation> prestations,
   }) async {
     final c = await findById(clientId);
     if (c == null) return;
@@ -393,7 +399,8 @@ class ClientRepository {
     final currentMs = c.lastInterventionDate?.millisecondsSinceEpoch;
     if (currentMs != null && entryMs <= currentMs) return;
 
-    final merged = _mergePerCategory(c.animals, animals);
+    final derived = animalCountsFromPrestations(prestations);
+    final merged = _mergePerCategory(c.animals, derived);
     await (_db.update(_db.clientsTable)
           ..where((t) => t.id.equals(clientId)))
         .write(
@@ -428,10 +435,12 @@ class ClientRepository {
     }
 
     // listInterventionsForClient is sorted desc by date — for each categoryId,
-    // the first occurrence wins (= most recent).
+    // the first occurrence wins (= most recent). Counts are derived from the
+    // intervention's prestations via the MAX rule (libres ignored).
     final byId = <int, int>{};
     for (final iv in list) {
-      for (final a in iv.animals) {
+      final derived = animalCountsFromPrestations(iv.prestations);
+      for (final a in derived) {
         byId.putIfAbsent(a.categoryId, () => a.count);
       }
     }
@@ -488,17 +497,7 @@ class ClientRepository {
   /// Result is normalized (sorted, zeros dropped, dedup-summed).
   List<AnimalCount> _mergePerCategory(
     List<AnimalCount> existing,
-    List<TourStopAnimal> incoming,
-  ) {
-    final byId = <int, int>{
-      for (final a in existing) a.categoryId: a.count,
-    };
-    for (final a in incoming) {
-      byId[a.categoryId] = a.count;
-    }
-    return normalizeAnimalCounts([
-      for (final entry in byId.entries)
-        AnimalCount(categoryId: entry.key, count: entry.value),
-    ]);
-  }
+    List<AnimalCount> incoming,
+  ) =>
+      mergeAnimalCountsByCategory(existing, incoming);
 }

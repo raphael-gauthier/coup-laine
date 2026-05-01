@@ -186,7 +186,7 @@ class SpeciesManagementScreen extends ConsumerWidget {
     ref.invalidate(activeSpeciesProvider);
     ref.invalidate(activeCategoriesBySpeciesProvider);
     ref.invalidate(allCategoriesByIdProvider);
-    ref.invalidate(categoryLookupProvider);
+    ref.invalidate(categoryDisplayInfoProvider);
   }
 
   Future<void> _restoreTemplate(
@@ -246,20 +246,31 @@ class SpeciesManagementScreen extends ConsumerWidget {
     );
     if (picked == null) return;
     final db = ref.read(appDatabaseProvider);
+    final prestationRepo = ref.read(prestationRepositoryProvider);
     await db.transaction(() async {
       final speciesId =
           await ref.read(speciesRepositoryProvider).insert(name: picked.name);
       for (final cat in picked.categories) {
-        await ref.read(animalCategoryRepositoryProvider).insert(
+        final catId = await ref.read(animalCategoryRepositoryProvider).insert(
               speciesId: speciesId,
               name: cat.name,
             );
+        if (cat.defaultPrestationName != null) {
+          await prestationRepo.insert(
+            name: cat.defaultPrestationName!,
+            priceCents: null,
+            minutes: null,
+            categoryId: catId,
+          );
+        }
       }
     });
     ref.invalidate(activeSpeciesProvider);
     ref.invalidate(activeCategoriesBySpeciesProvider);
     ref.invalidate(allCategoriesByIdProvider);
-    ref.invalidate(categoryLookupProvider);
+    ref.invalidate(categoryDisplayInfoProvider);
+    ref.invalidate(activePrestationsProvider);
+    ref.invalidate(prestationCountActiveProvider);
   }
 }
 

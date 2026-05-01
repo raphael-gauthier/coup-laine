@@ -10,15 +10,16 @@ import 'package:intl/intl.dart';
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
-import '../../domain/models/animal_count.dart';
+import '../../domain/models/client.dart';
+import '../../domain/models/tour_stop_prestation.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
-import '../widgets/animal_counts_badges.dart';
 import '../widgets/app_hero_card.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import '../widgets/waiting_clients_multi_picker.dart';
+import 'prestation_picker_sheet.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
 
 class TourDraftScreen extends ConsumerStatefulWidget {
@@ -51,7 +52,11 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     if (_isEditing) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadForEdit());
     } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        // Fresh draft: start with no picker selections.
+        ref.read(tourDraftPrestationsProvider.notifier).clear();
+        _refresh();
+      });
     }
   }
 
@@ -77,6 +82,15 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     notifier.clear();
     for (final id in orderedIds) {
       notifier.toggle(id);
+    }
+    // Seed picker selections from the existing tour stops so the user sees
+    // their previous choices when re-opening the draft.
+    final pres = ref.read(tourDraftPrestationsProvider.notifier);
+    pres.clear();
+    for (final s in tour.stops) {
+      if (s.clientId != null && s.plannedPrestations.isNotEmpty) {
+        pres.setForClient(s.clientId!, s.plannedPrestations);
+      }
     }
     _refresh();
   }
@@ -118,6 +132,24 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     }
   }
 
+  Future<void> _openPicker(
+    BuildContext context,
+    Client client,
+    List<TourStopPrestation> current,
+  ) async {
+    final result = await showPrestationPickerSheet(
+      context,
+      clientName: client.name,
+      clientAnimals: client.animals,
+      initialSelection: current,
+    );
+    if (result != null) {
+      ref
+          .read(tourDraftPrestationsProvider.notifier)
+          .setForClient(client.id, result);
+    }
+  }
+
   Future<void> _save(TourDraftBundle bundle) async {
     final stops = <TourStopDraft>[];
     for (var i = 0; i < bundle.orderedClients.length; i++) {
@@ -128,7 +160,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         orderIndex: i,
         estimatedArrivalMinutes: bundle.result.arrivalMinutes[i],
         estimatedDepartureMinutes: bundle.result.departureMinutes[i],
-        planned: bundle.result.plannedAnimalsPerStop[i],
+        plannedPrestations: bundle.result.plannedPrestationsPerStop[i],
         feeShareCents: bundle.result.feeShareCents[i],
       ));
     }
@@ -337,15 +369,17 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       final arr = bundle.result.arrivalMinutes[i];
                       final dep = bundle.result.departureMinutes[i];
                       final fee = formatEuros(bundle.result.feeShareCents[i]);
-                      final planned = bundle.result.plannedAnimalsPerStop[i];
-                      final counts = [
-                        for (final a in planned)
-                          AnimalCount(categoryId: a.categoryId, count: a.count),
-                      ];
+                      final stopPres =
+                          bundle.result.plannedPrestationsPerStop[i];
+                      final stopMinutes = stopPres.fold<int>(
+                          0, (sum, p) => sum + p.qty * p.minutesSnapshot);
+                      final stopRevenue =
+                          bundle.result.revenueCentsPerStop[i];
                       return Padding(
                         key: ValueKey(c.id),
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: FTile(
+                          onPress: () => _openPicker(context, c, stopPres),
                           prefix: Container(
                             width: 28,
                             height: 28,
@@ -371,10 +405,27 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                                 l.tourDraftStopArrivalFmt(
                                     formatHm(arr), formatHm(dep)),
                               ),
-                              AnimalCountsBadges(
-                                counts: counts,
-                                mode: AnimalCountsBadgesMode.compact,
-                              ),
+                              if (stopPres.isEmpty)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      FIcons.triangleAlert,
+                                      size: 14,
+                                      color: theme.colors.mutedForeground,
+                                    ),
+                                    const SizedBox(width: AppSpacing.xxs),
+                                    Text(l.tourDraftStopNoPrestation),
+                                  ],
+                                )
+                              else
+                                Text(
+                                  l.tourDraftStopNPrestationsFmt(
+                                    stopPres.length,
+                                    formatDuration(stopMinutes),
+                                    formatEuros(stopRevenue),
+                                  ),
+                                ),
                             ],
                           ),
                           details: Text(fee),
@@ -397,6 +448,16 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       '${formatDuration(bundle.result.totalDriveSeconds ~/ 60)} de trajet · Fin ${formatHm(bundle.result.endTimeMinutes)}',
                 ),
               ),
+              if (bundle.result.totalRevenueCents > 0)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
+                  child: Text(
+                    l.tourDraftSummaryRevenue(
+                        formatEuros(bundle.result.totalRevenueCents)),
+                    style: theme.typography.sm,
+                  ),
+                ),
               // Action row
               SafeArea(
                 child: Padding(

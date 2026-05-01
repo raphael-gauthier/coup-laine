@@ -1,4 +1,4 @@
-import '../models/tour_stop_animal.dart';
+import '../models/tour_stop_prestation.dart';
 
 class TourDurationResult {
   final List<int> stopArrivalMinutes;
@@ -20,16 +20,13 @@ class TourDurationEstimator {
   const TourDurationEstimator();
 
   /// Estimates per-stop arrival/departure clock minutes plus totals.
-  /// `stops[i]` is the planned animal list for stop i. Time spent at the
-  /// stop is `Σ animal.count * animal.minutesSnapshot`. If a category's
-  /// `minutesSnapshot` is 0 (the user hasn't entered a default duration),
-  /// it contributes 0 — the stop's intervention time falls to whatever
-  /// the user has filled in.
+  /// Per-stop time = `Σ prestation.qty × prestation.minutesSnapshot`.
+  /// `minutesSnapshot == 0` (prestation without a duration set) contributes 0.
   TourDurationResult estimate({
     required int startTimeMinutes,
     required List<int> driveSecondsToStops,
     required int driveSecondsBackToBase,
-    required List<List<TourStopAnimal>> stops,
+    required List<List<TourStopPrestation>> stops,
   }) {
     final n = driveSecondsToStops.length;
     if (stops.length != n) {
@@ -52,8 +49,8 @@ class TourDurationEstimator {
       arrivals.add(clock);
 
       var stopMin = 0;
-      for (final a in stops[i]) {
-        stopMin += a.count * a.minutesSnapshot;
+      for (final p in stops[i]) {
+        stopMin += p.qty * p.minutesSnapshot;
       }
       clock += stopMin;
       totalIntervention += stopMin;

@@ -12,14 +12,10 @@ Sauvegarde + restauration sur un nouveau device, à terme multi-device. Prérequ
 ### 3. Personnalisation des statuts client — priorité moyenne
 Les statuts (`waiting`, `scheduled`, `done`, `noSheep`, `banned`) ont libellés et couleurs en dur. À l'onboarding + dans Réglages, l'utilisateur doit pouvoir les nommer et choisir leurs couleurs. Les couleurs sont déjà persistées (`Settings.markerXxxColor`) ; il faut ajouter les libellés en base et brancher l'UI dessus partout (badges, légende carte, filtres, fiche).
 
-### 4. Tarification par animal — priorité moyenne
-Aujourd'hui une tournée n'affiche que les frais de déplacement. Ajouter prix par catégorie d'animal (`defaultPriceSmallCents` / `LargeCents`), snapshot dans `tour_stops`, et un calcul revenu / net dans `BuildTourDraft`. **Sera probablement absorbé par #6** si on y va direct — utile uniquement comme phase 1 minimale si #5/#6 sont repoussés.
-
-### 6. Catalogue de prestations et tarifs — priorité haute (dépend de #5, supersede #4)
-Une fois multi-praticien, l'utilisateur définit son catalogue de prestations (label, prix, durée estimée, espèces applicables). À la planification, sélection par arrêt avec quantité — un arrêt peut combiner plusieurs prestations. Snapshot dans `tour_stops` pour figer les valeurs. Base nécessaire à #7. Catalogues préconfigurés selon les espèces actives au gain de temps initial.
-
-### 7. Génération de facture + envoi client — priorité haute (dépend de #6)
-PDF facture par client par tournée, conforme légalement : numérotation continue (`FAC-2026-0001`), mentions, identité praticien saisie dans Settings, totaux HT/TVA/TTC, facture immuable une fois émise. Envoi via email natif + partage `share_plus`. **Vigilance** : conformité anti-fraude TVA française (loi 2018, logiciels de facturation certifiés), spécificités micro-entrepreneur. Phase 1 : template figé, pas de mode paiement, pas de SMS.
+### 7. Génération de facture + envoi client — long terme (non prioritaire)
+PDF facture par client par tournée. Reportée : pas de plan court terme.
+Le `priceCentsSnapshot` sur `TourStopPrestation` (livré en #6) servira de
+source quand le sujet sera repris.
 
 ---
 
@@ -156,7 +152,6 @@ PDF facture par client par tournée, conforme légalement : numérotation contin
 **UI — onboarding & paramètres**
 - Onboarding 2-étapes : adresse → sélection des espèces (templates seed + ajout perso via `CustomSpeciesFormSheet`).
 - `SpeciesManagementScreen` + `SpeciesEditScreen` : CRUD espèces et catégories, archive/désarchive, restauration de templates.
-- `AnimalCategoryFormSheet` : édition de catégorie (nom, durée par défaut, prix indicatif HT, archive).
 
 **UI — widgets signature**
 - `AnimalCountsEditor` : input numérique par catégorie, regroupé par espèce (accordéon), section "archivées" si l'utilisateur a des compteurs sur des catégories désormais archivées.
@@ -182,4 +177,67 @@ PDF facture par client par tournée, conforme légalement : numérotation contin
 - **Branding `Coup'Laine` non touché** : volontairement hors scope. Le rebrand impacte le package Dart (`coup_laine`), `userAgentPackageName`, l'asset `sheep-mascot.png`, le filename `coup_laine.sqlite`, l'asset launcher — autre chantier. Mascotte mouton conservée à l'étape 1 de l'onboarding en attendant.
 - **Avatar/Logo de l'app** : initialement prévu dans la spec (`appAvatarKey` + `AvatarPicker` à 6 icônes forui), implémenté **puis retiré** post-merge. Sélectionnable à l'onboarding et aux Settings, mais le choix n'était lu nulle part. Picker incomplet → décision de drop pour ne pas laisser de dette ouverte. Si besoin d'un vrai logo custom plus tard, refonte propre (image picker + vraie surface au démarrage).
 - **`AnimalCategory.defaultPriceCents`** : champ en place mais dormant — sera consommé par #6 (catalogue de prestations).
-- **Tarification par animal (#4)** : superseded par #6. La donnée de prix vit désormais au niveau catégorie ; reste à brancher la facturation et le calcul revenu/net.
+- **Tarification par animal (#4)** : absorbé par #6 — livré.
+
+---
+
+### Catalogue de prestations et tarifs
+**Mergé sur `main`** — 2026-05-01 (commit TBD)
+**Spec :** `docs/superpowers/specs/2026-05-01-prestation-catalog-design.md`
+**Plan :** `docs/superpowers/plans/2026-05-01-prestation-catalog.md`
+
+#### Ce qui a été livré
+
+**Données**
+- Nouvelle entité `Prestation` (id, name, priceCents?, minutes?, categoryId?, archivedAt). Nouvelle table `prestations` (soft-delete via `archivedAt`).
+- Nouvelle entité `TourStopPrestation` (prestationId, qty, snapshots : nameSnapshot, priceCentsSnapshot, minutesSnapshot, categoryIdSnapshot, categoryNameSnapshot, speciesNameSnapshot). Remplace intégralement `TourStopAnimal`.
+- `TourStop.plannedPrestations` / `actualPrestations` (JSON via `TourStopPrestationListConverter`), `manual_history_entries.prestations`.
+- `AnimalCategory.defaultMinutes` et `defaultPriceCents` supprimés (remplacés par Prestation).
+- Schema 11 → 12 (drop+recreate, pas d'utilisateurs en prod).
+- Repository `PrestationRepository` (CRUD + archive/unarchive).
+
+**Catalogue**
+- Nouvel écran Settings → « Catalogue de prestations » avec sections par espèce, section « Libres » (categoryId nul), et section « Archivées » (collapsible).
+- Formulaire d'édition : choix bind-to-category (dropdown espèce + catégorie, ou libre), helper text prix/durée, boutons archive/unarchive.
+- Import/export : prestations incluses dans `JsonExportService` round-trip.
+
+**Picker**
+- `PrestationPickerSheet` à la planification d'une tournée (création + édition). Deux sections : « Suggérées » (matching `client.animals` categories) et « Autres ».
+- Pré-remplissage des qty depuis `client.animals` snapshots au premier affichage. Snapshots re-capturés à la validation (gelé pour la tournée).
+- Libre : qty saisie manuellement, visible dans les deux sections selon contexte.
+
+**Tour draft**
+- Intégration picker par stop. Nouveau `tourDraftPrestationsProvider` (StateNotifier) qui gère les prestations pour chaque stop et réinitialise à chaque re-snapshot.
+- Ligne résumé « Revenu : N,NNe | Net indicatif : N,NNe » (masquée si revenu == 0).
+- `BuildTourDraft` + `TourDurationEstimator` adaptés pour consommer `List<TourStopPrestation>` et `TourStopAnimal` supprimé.
+
+**Bilan**
+- Refonte `TourCompletionScreen` : tableau d'ajustement par prestation (qty ±), bouton « + Ajouter une prestation hors plan ».
+- Re-capture des snapshots au save. Frais déplacement figés (non recalculés post-snapshot).
+
+**Saisie manuelle**
+- Refonte `ManualHistoryEntrySheet` : lignes de prestations (une par prestation, qty), date, note.
+- Appel à `applyManualEntryToClient` / `recomputeClientFromHistory` (règle MAX déjà en place).
+
+**Historique**
+- `ClientHistoryScreen` affiche prestations avec résumé (« 5 Tontes Petit, 2 Parage ») + détail tronqué (max 3 + « et N autres »).
+
+**Compteurs en cascade**
+- `animalCountsFromPrestations` helper : dérive `client.animals` à partir des prestations effectuées via règle MAX (libres ignorées).
+- Intégré à `TourRepository.markCompleted`, `ClientRepository.recomputeClientFromHistory`.
+
+**Seeding**
+- `kSpeciesSeeds` étendu avec `defaultPrestationName` (ex. « Tonte », « Parage », « Onglons »).
+- Onboarding + restauration template auto-créent prestations par catégorie seedée.
+- Espèces custom : pas de seeding.
+
+**Tests**
+- ~225 verts. Use cases (`BuildTourDraft` avec revenu/net, `TourDurationEstimator` avec prestations, `animalCountsFromPrestations` MAX rule).
+- Repos (`PrestationRepository`, `TourRepository.markCompleted` MAX rule, `ClientRepository.recomputeClientFromHistory` cross-source, `ManualHistoryRepository`).
+
+**l10n**
+- 33 nouvelles clés (FR + EN) : catalogue, formulaire édition, picker, résumé tour draft, bilan complétion, historique client.
+
+**Cleanup**
+- `categoryLookupProvider` remplacé par `categoryDisplayInfoProvider` (sans le champ `minutes` inutilisé).
+- Aucun code mort supprimé (AnimalCategory.defaultMinutes/defaultPriceCents restent en place en cas de rollback, seront removés post-validation).

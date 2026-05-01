@@ -1,7 +1,7 @@
 import '../models/client.dart';
 import '../models/distance_matrix_entry.dart';
 import '../models/settings.dart';
-import '../models/tour_stop_animal.dart';
+import '../models/tour_stop_prestation.dart';
 import 'bracket_counter.dart';
 import 'cost_split_calculator.dart';
 import 'tour_duration_estimator.dart';
@@ -17,9 +17,11 @@ class TourDraftResult {
   final int totalInterventionMinutes;
   final int totalFeeCents;
   final List<int> feeShareCents;
-  final List<List<TourStopAnimal>> plannedAnimalsPerStop;
+  final List<List<TourStopPrestation>> plannedPrestationsPerStop;
   final int feeFarthestCents;
   final int feeInterCents;
+  final List<int> revenueCentsPerStop;
+  final int totalRevenueCents;
 
   const TourDraftResult({
     required this.orderedClientIds,
@@ -31,9 +33,11 @@ class TourDraftResult {
     required this.totalInterventionMinutes,
     required this.totalFeeCents,
     required this.feeShareCents,
-    required this.plannedAnimalsPerStop,
+    required this.plannedPrestationsPerStop,
     required this.feeFarthestCents,
     required this.feeInterCents,
+    required this.revenueCentsPerStop,
+    required this.totalRevenueCents,
   });
 }
 
@@ -45,8 +49,7 @@ class BuildTourDraft {
     required List<Client> candidates,
     required List<DistanceMatrixEntry> matrix,
     required Settings settings,
-    required Map<int, ({String speciesName, String categoryName, int minutes})>
-        categoryLookup,
+    required Map<int, List<TourStopPrestation>> prestationsPerClient,
     required int startTimeMinutes,
     List<int>? presetOrder, // skip optimiser if provided
   }) {
@@ -94,31 +97,17 @@ class BuildTourDraft {
     ];
     final driveBack = tm[visitIndices.last][0];
 
-    // Build per-stop planned animals from each client's animals + the
-    // category lookup. Categories no longer in the lookup (deleted) are
-    // skipped silently.
-    final plannedAnimalsPerStop = <List<TourStopAnimal>>[
-      for (final id in orderedIds)
-        [
-          for (final ac in byId[id]!.animals)
-            if (categoryLookup[ac.categoryId] != null)
-              TourStopAnimal(
-                categoryId: ac.categoryId,
-                count: ac.count,
-                categoryNameSnapshot:
-                    categoryLookup[ac.categoryId]!.categoryName,
-                speciesNameSnapshot:
-                    categoryLookup[ac.categoryId]!.speciesName,
-                minutesSnapshot: categoryLookup[ac.categoryId]!.minutes,
-              ),
-        ],
+    // Per-stop prestations come straight from the controller's map.
+    // Missing entries (client without picker selection) → empty list.
+    final plannedPerStop = <List<TourStopPrestation>>[
+      for (final id in orderedIds) prestationsPerClient[id] ?? const [],
     ];
 
     final duration = const TourDurationEstimator().estimate(
       startTimeMinutes: startTimeMinutes,
       driveSecondsToStops: driveToStops,
       driveSecondsBackToBase: driveBack,
-      stops: plannedAnimalsPerStop,
+      stops: plannedPerStop,
     );
 
     final baseToStopMeters = <int>[
@@ -143,6 +132,13 @@ class BuildTourDraft {
     final totalDistance =
         baseToStopMeters.first + interStopMeters.fold<int>(0, (a, b) => a + b) + returnMeters;
 
+    // Revenue per stop = Σ priceCentsSnapshot × qty.
+    final revenuePerStop = <int>[
+      for (final list in plannedPerStop)
+        list.fold<int>(0, (sum, p) => sum + p.priceCentsSnapshot * p.qty),
+    ];
+    final totalRevenue = revenuePerStop.fold<int>(0, (a, b) => a + b);
+
     return TourDraftResult(
       orderedClientIds: orderedIds,
       arrivalMinutes: duration.stopArrivalMinutes,
@@ -153,9 +149,11 @@ class BuildTourDraft {
       totalInterventionMinutes: duration.totalInterventionMinutes,
       totalFeeCents: split.totalFeeCents,
       feeShareCents: split.shareCents,
-      plannedAnimalsPerStop: plannedAnimalsPerStop,
+      plannedPrestationsPerStop: plannedPerStop,
       feeFarthestCents: split.feeFarthestCents,
       feeInterCents: split.feeInterCents,
+      revenueCentsPerStop: revenuePerStop,
+      totalRevenueCents: totalRevenue,
     );
   }
 }
