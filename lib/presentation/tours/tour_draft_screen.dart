@@ -457,10 +457,16 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                               Icon(
                                 FIcons.triangleAlert,
                                 size: 14,
-                                color: theme.colors.mutedForeground,
+                                color: theme.colors.destructive,
                               ),
                               const SizedBox(width: AppSpacing.xxs),
-                              Text(l.tourDraftStopNoPrestation),
+                              Text(
+                                l.tourDraftStopNoPrestation,
+                                style: theme.typography.sm.copyWith(
+                                  color: theme.colors.destructive,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ],
                           )
                         else
