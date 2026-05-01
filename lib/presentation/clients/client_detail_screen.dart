@@ -24,9 +24,10 @@ import '../widgets/app_action_bar.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_kpi_row.dart';
+import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
-import '../widgets/app_timeline_row.dart';
+import '../widgets/app_stat.dart';
 import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
 final _clientByIdProvider =
@@ -566,55 +567,12 @@ class _InterventionsCard extends ConsumerWidget {
                 )
               else
                 for (final it in visible) ...[
-                  AppTimelineRow(
-                    dateLabel:
-                        DateFormat('d MMM yyyy', 'fr').format(it.date),
-                    icon: it.kind == InterventionKind.manual
-                        ? FIcons.pencil
-                        : FIcons.scissors,
-                    title: it.kind == InterventionKind.tour
-                        ? l.clientHistoryKindTour
-                        : l.clientHistoryKindManual,
-                    breakdown: _breakdown(it, l),
-                    amount: it.totalRevenueCents == 0
-                        ? null
-                        : formatEuros(it.totalRevenueCents),
-                    duration: it.totalMinutes == 0
-                        ? null
-                        : formatDuration(it.totalMinutes),
-                    onTap: () async {
-                      if (it.kind == InterventionKind.tour &&
-                          it.tourId != null) {
-                        context.push('/tours/${it.tourId}');
-                        return;
-                      }
-                      if (it.kind == InterventionKind.manual &&
-                          it.manualEntryId != null) {
-                        final manualRepo =
-                            ref.read(manualHistoryRepositoryProvider);
-                        final all =
-                            await manualRepo.listForClient(clientId);
-                        final matches =
-                            all.where((e) => e.id == it.manualEntryId);
-                        final entry =
-                            matches.isEmpty ? null : matches.first;
-                        if (entry != null && context.mounted) {
-                          await showManualHistoryEntrySheet(
-                            context,
-                            clientId: clientId,
-                            existing: entry,
-                          );
-                        }
-                      }
-                    },
+                  _InterventionTile(
+                    intervention: it,
+                    onTap: () => _openIntervention(context, ref, it),
                   ),
                   if (it != visible.last)
-                    Container(
-                      height: AppSizes.hairlineBorder,
-                      color: theme.colors.border,
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md),
-                    ),
+                    const SizedBox(height: AppSpacing.xs),
                 ],
               if (hasMore) ...[
                 const SizedBox(height: AppSpacing.sm),
@@ -632,15 +590,125 @@ class _InterventionsCard extends ConsumerWidget {
     );
   }
 
-  String _breakdown(Intervention it, AppLocalizations l) {
+  Future<void> _openIntervention(
+      BuildContext context, WidgetRef ref, Intervention it) async {
+    if (it.kind == InterventionKind.tour && it.tourId != null) {
+      context.push('/tours/${it.tourId}');
+      return;
+    }
+    if (it.kind == InterventionKind.manual && it.manualEntryId != null) {
+      final manualRepo = ref.read(manualHistoryRepositoryProvider);
+      final all = await manualRepo.listForClient(clientId);
+      final matches = all.where((e) => e.id == it.manualEntryId);
+      final entry = matches.isEmpty ? null : matches.first;
+      if (entry != null && context.mounted) {
+        await showManualHistoryEntrySheet(
+          context,
+          clientId: clientId,
+          existing: entry,
+        );
+      }
+    }
+  }
+}
+
+/// Tile riche pour une intervention dans la card historique de la fiche
+/// client : badge date à gauche (jour bold + mois muted), titre, breakdown
+/// italique, metadata (revenu + durée), chevron à droite.
+class _InterventionTile extends StatelessWidget {
+  final Intervention intervention;
+  final VoidCallback onTap;
+
+  const _InterventionTile({
+    required this.intervention,
+    required this.onTap,
+  });
+
+  String _breakdown(AppLocalizations l) {
     final parts = <String>[];
-    for (final p in it.prestations) {
+    for (final p in intervention.prestations) {
       parts.add('${p.qty} ${p.nameSnapshot}');
       if (parts.length >= 3) break;
     }
-    if (it.prestations.length > 3) {
-      parts.add(l.clientHistoryAndOthersFmt(it.prestations.length - 3));
+    if (intervention.prestations.length > 3) {
+      parts.add(l.clientHistoryAndOthersFmt(
+          intervention.prestations.length - 3));
     }
     return parts.join(' · ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
+    final it = intervention;
+    final breakdown = _breakdown(l);
+
+    final dateBadge = Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: theme.colors.muted,
+        borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+      ),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            DateFormat('d', 'fr').format(it.date),
+            style: theme.typography.lg.copyWith(
+              color: theme.colors.foreground,
+              fontWeight: FontWeight.w700,
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            DateFormat('MMM', 'fr').format(it.date).toUpperCase(),
+            style: theme.typography.xs.copyWith(
+              color: theme.colors.mutedForeground,
+              height: 1.1,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final title = it.kind == InterventionKind.tour
+        ? l.clientHistoryKindTour
+        : l.clientHistoryKindManual;
+
+    final metaChildren = <Widget>[];
+    if (it.totalRevenueCents > 0) {
+      metaChildren.add(AppStat(
+        icon: FIcons.banknote,
+        value: formatEuros(it.totalRevenueCents),
+      ));
+    }
+    if (it.totalMinutes > 0) {
+      metaChildren.add(AppStat(
+        icon: FIcons.clock,
+        value: formatDuration(it.totalMinutes),
+      ));
+    }
+
+    return AppListTile(
+      variant: AppListTileVariant.rich,
+      prefix: dateBadge,
+      title: title,
+      subtitle: breakdown.isEmpty ? null : breakdown,
+      metadata: metaChildren.isEmpty
+          ? null
+          : Wrap(
+              spacing: AppSpacing.md,
+              runSpacing: AppSpacing.xxs,
+              children: metaChildren,
+            ),
+      suffix: Icon(FIcons.chevronRight,
+          color: theme.colors.mutedForeground, size: 16),
+      onTap: onTap,
+    );
   }
 }
