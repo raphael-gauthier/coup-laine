@@ -32,7 +32,7 @@ class JsonImportException implements Exception {
 }
 
 class JsonExportService {
-  static const int schemaVersion = 1;
+  static const int schemaVersion = 2;
 
   final AppDatabase database;
   final SettingsRepository settings;
@@ -54,6 +54,10 @@ class JsonExportService {
     final dm = await database.select(database.distanceMatrixTable).get();
     final ts = await database.select(database.toursTable).get();
     final stops = await database.select(database.tourStopsTable).get();
+    final sp = await database.select(database.speciesTable).get();
+    final ac = await database.select(database.animalCategoriesTable).get();
+    final pr = await database.select(database.prestationsTable).get();
+    final mh = await database.select(database.manualHistoryEntriesTable).get();
     return jsonEncode({
       'schema': schemaVersion,
       'settings': s?.toJson(),
@@ -61,20 +65,32 @@ class JsonExportService {
       'distanceMatrix': dm.map((r) => r.toJson()).toList(),
       'tours': ts.map((r) => r.toJson()).toList(),
       'tourStops': stops.map((r) => r.toJson()).toList(),
+      'species': sp.map((r) => r.toJson()).toList(),
+      'animalCategories': ac.map((r) => r.toJson()).toList(),
+      'prestations': pr.map((r) => r.toJson()).toList(),
+      'manualHistoryEntries': mh.map((r) => r.toJson()).toList(),
     });
   }
 
   Future<void> importFromJsonString(String body) async {
     final json = jsonDecode(body) as Map<String, dynamic>;
     final schema = json['schema'];
-    if (schema != schemaVersion) {
-      throw JsonImportException('Unsupported schema $schema');
+    if (schema is! int || schema > schemaVersion) {
+      throw JsonImportException(
+        'Sauvegarde au format v$schema, non supportée (max v$schemaVersion).',
+      );
     }
+    // schema < schemaVersion : accepté en lecture (forward compat —
+    // les `?? []` plus bas gèrent l'absence des nouvelles clés).
     await database.transaction(() async {
-      // wipe
+      // wipe — ordre important pour respecter les FK cascade
       await database.delete(database.tourStopsTable).go();
       await database.delete(database.toursTable).go();
       await database.delete(database.distanceMatrixTable).go();
+      await database.delete(database.manualHistoryEntriesTable).go();
+      await database.delete(database.prestationsTable).go();
+      await database.delete(database.animalCategoriesTable).go();
+      await database.delete(database.speciesTable).go();
       await database.delete(database.clientsTable).go();
       await database.delete(database.settingsTable).go();
 
@@ -107,6 +123,24 @@ class JsonExportService {
               mode: InsertMode.insertOrReplace,
             );
       }
+      for (final sp in (json['species'] as List? ?? [])) {
+        await database.into(database.speciesTable).insert(
+              SpeciesRow.fromJson(sp as Map<String, dynamic>),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
+      for (final ac in (json['animalCategories'] as List? ?? [])) {
+        await database.into(database.animalCategoriesTable).insert(
+              AnimalCategoryRow.fromJson(ac as Map<String, dynamic>),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
+      for (final pr in (json['prestations'] as List? ?? [])) {
+        await database.into(database.prestationsTable).insert(
+              PrestationRow.fromJson(pr as Map<String, dynamic>),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
       for (final d in (json['distanceMatrix'] as List)) {
         await database.into(database.distanceMatrixTable).insert(
               DistanceMatrixRow.fromJson(d as Map<String, dynamic>),
@@ -131,6 +165,17 @@ class JsonExportService {
         }
         await database.into(database.tourStopsTable).insert(
               TourStopRow.fromJson(row),
+              mode: InsertMode.insertOrReplace,
+            );
+      }
+      for (final mh in (json['manualHistoryEntries'] as List? ?? [])) {
+        final row = Map<String, dynamic>.from(mh as Map<String, dynamic>);
+        if (row['prestations'] is List) {
+          row['prestations'] =
+              _coerceTourStopPrestations(row['prestations'] as List);
+        }
+        await database.into(database.manualHistoryEntriesTable).insert(
+              ManualHistoryEntryRow.fromJson(row),
               mode: InsertMode.insertOrReplace,
             );
       }
