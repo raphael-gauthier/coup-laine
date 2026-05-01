@@ -11,6 +11,7 @@ import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_header.dart';
+import '../widgets/app_option_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 
@@ -115,16 +116,16 @@ class _TourOptimizedConfigScreenState
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             for (final c in communes)
-                              FTile(
-                                title: Text(c.name),
-                                details: Text(
-                                    l.optimizedConfigCommuneOptionFmt(c.name, c.count)),
-                                suffix: _commune == c.name
-                                    ? Icon(FIcons.check,
-                                        color: theme.colors.primary, size: 18)
-                                    : null,
-                                onPress: () =>
-                                    setState(() => _commune = c.name),
+                              AppOptionTile(
+                                title: c.name,
+                                subtitle: l.optimizedConfigCommuneOptionFmt(
+                                    c.name, c.count),
+                                checked: _commune == c.name,
+                                onChanged: (_) => setState(() {
+                                  // Single-select : tap toggles to this commune;
+                                  // tapping the active one again deselects.
+                                  _commune = _commune == c.name ? null : c.name;
+                                }),
                               ),
                           ],
                         ),
