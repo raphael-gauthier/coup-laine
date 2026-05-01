@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -20,6 +21,7 @@ import '../tours/tours_list_screen.dart' show toursAsyncProvider;
 import '../widgets/address_autocomplete_field.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
+import '../widgets/avatar_picker.dart';
 import '../widgets/color_swatch_picker.dart';
 
 Color _hexToColor(String hex) {
@@ -76,10 +78,9 @@ class _SettingsForm extends ConsumerStatefulWidget {
 class _SettingsFormState extends ConsumerState<_SettingsForm> {
   late Settings _draft;
 
-  // Controllers for the four numeric fields — kept alive for the widget lifetime.
+  // Controllers for numeric fields — kept alive for the widget lifetime.
   late final TextEditingController _radiusCtrl;
-  late final TextEditingController _minPerSmallCtrl;
-  late final TextEditingController _minPerLargeCtrl;
+  late final TextEditingController _bracketKmCtrl;
   late final TextEditingController _tariffCtrl;
 
   @override
@@ -87,18 +88,14 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
     super.initState();
     _draft = widget.initial;
     _radiusCtrl = TextEditingController(text: _draft.defaultRadiusKm.toString());
-    _minPerSmallCtrl =
-        TextEditingController(text: _draft.defaultMinutesPerSmall.toString());
-    _minPerLargeCtrl =
-        TextEditingController(text: _draft.defaultMinutesPerLarge.toString());
+    _bracketKmCtrl = TextEditingController(text: _draft.bracketKm.toString());
     _tariffCtrl = TextEditingController(text: _draft.travelFeeEurosPerBracket.toString());
   }
 
   @override
   void dispose() {
     _radiusCtrl.dispose();
-    _minPerSmallCtrl.dispose();
-    _minPerLargeCtrl.dispose();
+    _bracketKmCtrl.dispose();
     _tariffCtrl.dispose();
     super.dispose();
   }
@@ -107,8 +104,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
       _draft.baseAddressLabel != widget.initial.baseAddressLabel ||
       _draft.baseCoordinates != widget.initial.baseCoordinates ||
       _draft.defaultRadiusKm != widget.initial.defaultRadiusKm ||
-      _draft.defaultMinutesPerSmall != widget.initial.defaultMinutesPerSmall ||
-      _draft.defaultMinutesPerLarge != widget.initial.defaultMinutesPerLarge ||
+      _draft.bracketKm != widget.initial.bracketKm ||
       _draft.travelFeeEurosPerBracket != widget.initial.travelFeeEurosPerBracket;
 
   Future<void> _persistMarkerColor(ClientStatus status, String hex) async {
@@ -197,6 +193,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
             icon: FIcons.palette,
             title: l.settingsAppearanceTitle,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _ThemeOption(
                   mode: ThemeModePreference.system,
@@ -215,7 +212,59 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                   icon: FIcons.moon,
                   label: l.settingsThemeDark,
                 ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  l.settingsAppAvatarTitle,
+                  style: theme.typography.sm.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colors.foreground,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l.settingsAppAvatarSubtitle,
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                AvatarPicker(
+                  selectedKey: _draft.appAvatarKey,
+                  onSelect: (key) async {
+                    final next = _draft.copyWith(appAvatarKey: key);
+                    setState(() => _draft = next);
+                    await ref.read(settingsRepositoryProvider).save(next);
+                    ref.invalidate(themeModeProvider);
+                    ref.invalidate(_settingsAsyncProvider);
+                  },
+                ),
               ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // --- Espèces & catégories ---
+          AppSectionCard(
+            icon: FIcons.tag,
+            title: l.speciesManagementTitle,
+            child: Consumer(
+              builder: (context, ref, _) {
+                final activeAsync = ref.watch(activeSpeciesProvider);
+                final catsAsync = ref.watch(activeCategoriesBySpeciesProvider);
+                final speciesCount =
+                    activeAsync.hasValue ? activeAsync.value!.length : 0;
+                final catCount = catsAsync.hasValue
+                    ? catsAsync.value!.values
+                        .fold<int>(0, (a, b) => a + b.length)
+                    : 0;
+                return FTile(
+                  title: Text(
+                    l.speciesManagementCountFmt(speciesCount, catCount),
+                  ),
+                  suffix: const Icon(FIcons.chevronRight),
+                  onPress: () => context.push('/settings/species'),
+                );
+              },
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -271,32 +320,15 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 const SizedBox(height: AppSpacing.sm),
                 FTextField(
                   control: FTextFieldControl.managed(
-                    controller: _minPerSmallCtrl,
+                    controller: _bracketKmCtrl,
                     onChange: (v) {
                       final n = int.tryParse(v.text);
                       if (n != null && n > 0) {
-                        setState(() => _draft =
-                            _draft.copyWith(defaultMinutesPerSmall: n));
+                        setState(() => _draft = _draft.copyWith(bracketKm: n));
                       }
                     },
                   ),
-                  label: Text(l.settingsMinPerSmallLabel),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                FTextField(
-                  control: FTextFieldControl.managed(
-                    controller: _minPerLargeCtrl,
-                    onChange: (v) {
-                      final n = int.tryParse(v.text);
-                      if (n != null && n > 0) {
-                        setState(() => _draft =
-                            _draft.copyWith(defaultMinutesPerLarge: n));
-                      }
-                    },
-                  ),
-                  label: Text(l.settingsMinPerLargeLabel),
+                  label: Text(l.settingsBracketKmLabel),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 ),
