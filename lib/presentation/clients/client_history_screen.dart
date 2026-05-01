@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
 import '../../core/theme/app_typography.dart';
 import '../../domain/models/client.dart';
@@ -153,23 +154,69 @@ class ClientHistoryScreen extends ConsumerWidget {
                           }
                           final entry = item as _Entry;
                           final it = entry.intervention;
-                          return AppTimelineRow(
-                            dateLabel:
-                                DateFormat('d MMM', 'fr').format(it.date),
-                            icon: it.kind == InterventionKind.manual
-                                ? FIcons.pencil
-                                : FIcons.scissors,
-                            title: it.kind == InterventionKind.tour
-                                ? l.clientHistoryKindTour
-                                : l.clientHistoryKindManual,
-                            breakdown: _breakdown(it, l),
-                            amount: it.totalRevenueCents == 0
-                                ? null
-                                : formatEuros(it.totalRevenueCents),
-                            duration: it.totalMinutes == 0
-                                ? null
-                                : formatDuration(it.totalMinutes),
-                            onTap: () => _onTap(context, ref, it),
+                          final note = it.note?.trim();
+                          final hasNote = note != null && note.isNotEmpty;
+                          final theme = context.theme;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppTimelineRow(
+                                dateLabel: DateFormat('d MMM', 'fr')
+                                    .format(it.date),
+                                icon: it.kind == InterventionKind.manual
+                                    ? FIcons.pencil
+                                    : FIcons.scissors,
+                                title: it.kind == InterventionKind.tour
+                                    ? l.clientHistoryKindTour
+                                    : l.clientHistoryKindManual,
+                                breakdown: _breakdown(it, l),
+                                amount: it.totalRevenueCents == 0
+                                    ? null
+                                    : formatEuros(it.totalRevenueCents),
+                                duration: it.totalMinutes == 0
+                                    ? null
+                                    : formatDuration(it.totalMinutes),
+                                onTap: () => _onTap(context, ref, it),
+                              ),
+                              if (hasNote)
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    AppSpacing.md + 70 + AppSpacing.sm,
+                                    0,
+                                    AppSpacing.md,
+                                    AppSpacing.xs,
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Icon(
+                                        FIcons.stickyNote,
+                                        size: 13,
+                                        color:
+                                            theme.colors.mutedForeground,
+                                      ),
+                                      const SizedBox(
+                                          width: AppSpacing.xxs),
+                                      Expanded(
+                                        child: Text(
+                                          note,
+                                          style: theme.typography.sm
+                                              .copyWith(
+                                            color: theme
+                                                .colors.mutedForeground,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                          maxLines: 3,
+                                          overflow:
+                                              TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
                           );
                         },
                       );

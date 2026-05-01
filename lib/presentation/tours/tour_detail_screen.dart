@@ -333,6 +333,9 @@ class _StopTile extends ConsumerWidget {
         source.fold<int>(0, (sum, p) => sum + p.qty * p.priceCentsSnapshot);
     final stopTotalCents = stopPrestationsCents + stop.feeShareCents;
 
+    final note = stop.interventionNote?.trim();
+    final hasNote = note != null && note.isNotEmpty;
+
     return AppListTile(
       variant: AppListTileVariant.rich,
       prefix: indexBadge,
@@ -341,26 +344,57 @@ class _StopTile extends ConsumerWidget {
           : stop.clientNameSnapshot,
       subtitle:
           '${formatHm(stop.estimatedArrivalMinutes)} → ${formatHm(stop.estimatedDepartureMinutes)}',
-      metadata: Wrap(
-        spacing: AppSpacing.md,
-        runSpacing: AppSpacing.xxs,
+      metadata: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          AppStat(
-            icon: FIcons.banknote,
-            value: formatEuros(stopTotalCents),
-          ),
-          AppStat(
-            icon: FIcons.clock,
-            value: formatDuration(stopMin),
-          ),
-          if (counts.isNotEmpty)
-            AnimalCountsBadges(
-              counts: counts,
-              mode: AnimalCountsBadgesMode.compact,
-              style: theme.typography.sm.copyWith(
-                color: theme.colors.mutedForeground,
+          Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.xxs,
+            children: [
+              AppStat(
+                icon: FIcons.banknote,
+                value: formatEuros(stopTotalCents),
               ),
+              AppStat(
+                icon: FIcons.clock,
+                value: formatDuration(stopMin),
+              ),
+              if (counts.isNotEmpty)
+                AnimalCountsBadges(
+                  counts: counts,
+                  mode: AnimalCountsBadgesMode.compact,
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+            ],
+          ),
+          if (hasNote) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  FIcons.stickyNote,
+                  size: 14,
+                  color: theme.colors.mutedForeground,
+                ),
+                const SizedBox(width: AppSpacing.xxs),
+                Expanded(
+                  child: Text(
+                    note,
+                    style: theme.typography.sm.copyWith(
+                      color: theme.colors.mutedForeground,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
+          ],
         ],
       ),
       suffix: Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),
