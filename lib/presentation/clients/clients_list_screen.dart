@@ -19,6 +19,7 @@ import '../widgets/app_empty_state.dart';
 import '../widgets/app_fab.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_list_tile.dart';
+import '../widgets/app_command_palette_actions.dart';
 import '../widgets/app_option_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
@@ -98,6 +99,7 @@ class ClientsListScreen extends ConsumerWidget {
                 subtitle:
                     '${l.clientsCountFmt(all.length)} · ${l.clientsWaitingCountFmt(waiting.length)}',
                 showBackButton: false,
+                onTitleLongPress: () => showAppCommandPalette(context, ref),
                 actions: [
                   AppHeaderAction(
                     icon: FIcons.listFilter,

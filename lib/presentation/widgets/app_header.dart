@@ -38,6 +38,9 @@ class AppHeader extends StatelessWidget {
   final List<AppHeaderAction> actions;
   final VoidCallback? onBack;
 
+  /// Long-press sur le titre — utilisé pour ouvrir la palette de commandes.
+  final VoidCallback? onTitleLongPress;
+
   const AppHeader({
     super.key,
     required this.title,
@@ -45,6 +48,7 @@ class AppHeader extends StatelessWidget {
     this.showBackButton = true,
     this.actions = const [],
     this.onBack,
+    this.onTitleLongPress,
   });
 
   @override
@@ -67,30 +71,34 @@ class AppHeader extends StatelessWidget {
             ),
           if (showBackButton) const SizedBox(width: AppSpacing.xs),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: theme.typography.xl2.copyWith(
-                    color: theme.colors.foreground,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: AppSpacing.xxxs),
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onLongPress: onTitleLongPress,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   Text(
-                    subtitle!,
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.mutedForeground,
+                    title,
+                    style: theme.typography.xl2.copyWith(
+                      color: theme.colors.foreground,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: AppSpacing.xxxs),
+                    Text(
+                      subtitle!,
+                      style: theme.typography.sm.copyWith(
+                        color: theme.colors.mutedForeground,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
           for (final a in actions) ...[

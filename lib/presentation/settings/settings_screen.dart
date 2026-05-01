@@ -23,6 +23,7 @@ import '../widgets/app_list_tile.dart';
 import '../widgets/app_option_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
+import '../widgets/app_command_palette_actions.dart';
 import '../widgets/color_swatch_picker.dart';
 
 Color _hexToColor(String hex) {
@@ -175,7 +176,11 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AppHeader(title: l.tabSettings, showBackButton: false),
+        AppHeader(
+          title: l.tabSettings,
+          showBackButton: false,
+          onTitleLongPress: () => showAppCommandPalette(context, ref),
+        ),
 
         Expanded(
           child: SingleChildScrollView(

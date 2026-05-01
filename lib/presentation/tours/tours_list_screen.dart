@@ -16,6 +16,7 @@ import '../widgets/app_badge.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_fab.dart';
 import '../widgets/app_header.dart';
+import '../widgets/app_command_palette_actions.dart';
 import '../widgets/app_list_tile.dart';
 import '../widgets/app_option_tile.dart';
 import '../widgets/app_stat.dart';
@@ -61,6 +62,8 @@ class ToursListScreen extends ConsumerWidget {
                           title: l.toursListTitle,
                           subtitle: l.toursStatsFmt(all.length, planned.length),
                           showBackButton: false,
+                          onTitleLongPress: () =>
+                              showAppCommandPalette(context, ref),
                           actions: [
                             AppHeaderAction(
                               icon: FIcons.listFilter,
