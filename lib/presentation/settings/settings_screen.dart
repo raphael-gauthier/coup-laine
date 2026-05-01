@@ -42,6 +42,26 @@ final _settingsAsyncProvider = FutureProvider<Settings?>((ref) {
   return ref.watch(settingsRepositoryProvider).read();
 });
 
+/// Nombre de backups disponibles pour le user courant. Renvoie 0 si pas
+/// de session non-anonyme (au lieu de throw) pour simplifier l'UI.
+final _backupCountProvider = FutureProvider.autoDispose<int>((ref) async {
+  if (!ref.watch(isCloudOptedInProvider)) return 0;
+  try {
+    return await ref.watch(backupsRepositoryProvider).countForCurrentUser();
+  } catch (_) {
+    return 0;
+  }
+});
+
+String _formatRelative(DateTime when) {
+  final now = DateTime.now();
+  final diff = now.difference(when);
+  if (diff.inMinutes < 1) return 'à l\'instant';
+  if (diff.inMinutes < 60) return 'il y a ${diff.inMinutes} min';
+  if (diff.inHours < 24) return 'il y a ${diff.inHours} h';
+  return 'il y a ${diff.inDays} j';
+}
+
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
@@ -394,6 +414,10 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 ),
                 const SizedBox(height: AppSpacing.md),
 
+                // --- Compte cloud ---
+                const _CloudAccountSection(),
+                const SizedBox(height: AppSpacing.md),
+
                 // --- Données ---
                 AppSectionCard(
                   icon: FIcons.database,
@@ -578,6 +602,132 @@ class _SeasonResetTile extends ConsumerWidget {
           child: Text(l.settingsSeasonResetButton),
         ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Cloud account section
+// ---------------------------------------------------------------------------
+
+class _CloudAccountSection extends ConsumerWidget {
+  const _CloudAccountSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final theme = context.theme;
+    final optedIn = ref.watch(isCloudOptedInProvider);
+    final session = ref.watch(currentSessionProvider);
+    final settingsAsync = ref.watch(_settingsAsyncProvider);
+
+    return AppSectionCard(
+      icon: FIcons.cloud,
+      title: l.settingsCloudSection,
+      child: !optedIn
+          ? AppPrimaryButton(
+              label: l.settingsCloudActivate,
+              prefixIcon: FIcons.cloud,
+              onPress: () => context.push('/settings/cloud-login'),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l.settingsCloudConnectedAs(session?.user.email ?? ''),
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.foreground,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  settingsAsync.value?.lastBackupAt == null
+                      ? l.settingsCloudLastBackupNever
+                      : l.settingsCloudLastBackupAgo(
+                          _formatRelative(settingsAsync.value!.lastBackupAt!),
+                        ),
+                  style: theme.typography.sm.copyWith(
+                    color: theme.colors.mutedForeground,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _BackupNowButton(),
+                const SizedBox(height: AppSpacing.sm),
+                _RestoreButton(),
+                const SizedBox(height: AppSpacing.sm),
+                AppPrimaryButton(
+                  label: l.settingsCloudSignOut,
+                  variant: FButtonVariant.outline,
+                  onPress: () => _confirmSignOut(context, ref),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+    final l = AppLocalizations.of(context)!;
+    final ok = await showDestructiveConfirm(
+      context,
+      title: l.settingsCloudSignOut,
+      body: l.settingsCloudSignOutConfirm,
+      confirmLabel: l.settingsCloudSignOut,
+    );
+    if (!ok) return;
+    await ref.read(authServiceProvider).signOut();
+  }
+}
+
+class _BackupNowButton extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_BackupNowButton> createState() => _BackupNowButtonState();
+}
+
+class _BackupNowButtonState extends ConsumerState<_BackupNowButton> {
+  bool _running = false;
+
+  Future<void> _run() async {
+    final l = AppLocalizations.of(context)!;
+    setState(() => _running = true);
+    try {
+      await ref.read(backupServiceProvider).runBackup();
+      ref.invalidate(_settingsAsyncProvider);
+      ref.invalidate(settingsRepositoryFutureProvider);
+      ref.invalidate(_backupCountProvider);
+      if (!mounted) return;
+      showFToast(context: context, title: Text(l.settingsCloudBackupSuccess));
+    } catch (_) {
+      if (!mounted) return;
+      showFToast(context: context, title: Text(l.settingsCloudBackupFailed));
+    } finally {
+      if (mounted) setState(() => _running = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return AppPrimaryButton(
+      label: l.settingsCloudBackupNow,
+      prefixIcon: FIcons.cloudUpload,
+      loading: _running,
+      onPress: _running ? null : _run,
+    );
+  }
+}
+
+class _RestoreButton extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final countAsync = ref.watch(_backupCountProvider);
+    final hasBackups = countAsync.value != null && countAsync.value! > 0;
+    if (!hasBackups) return const SizedBox.shrink();
+    return AppPrimaryButton(
+      label: l.settingsCloudRestore,
+      variant: FButtonVariant.outline,
+      prefixIcon: FIcons.cloudDownload,
+      onPress: () => context.push('/settings/backups'),
     );
   }
 }

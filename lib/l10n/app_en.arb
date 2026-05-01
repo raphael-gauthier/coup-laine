@@ -335,5 +335,31 @@
   "tourDraftStepDate": "Date",
   "tourDraftStepClients": "Clients",
   "tourDraftStepPrestations": "Prestations",
-  "tourDraftOptimizeOrder": "Optimize order"
+  "tourDraftOptimizeOrder": "Optimize order",
+  "settingsCloudSection": "Cloud account",
+  "settingsCloudActivate": "Enable cloud backup",
+  "settingsCloudConnectedAs": "Signed in as {email}",
+  "@settingsCloudConnectedAs": {
+    "placeholders": {"email": {"type": "String"}}
+  },
+  "settingsCloudLastBackupNever": "No backup yet",
+  "settingsCloudLastBackupAgo": "Last backup: {when}",
+  "@settingsCloudLastBackupAgo": {
+    "placeholders": {"when": {"type": "String"}}
+  },
+  "settingsCloudBackupNow": "Back up now",
+  "settingsCloudBackupSuccess": "Backup successful",
+  "settingsCloudBackupFailed": "Backup failed. Try again.",
+  "settingsCloudBackupNoNetwork": "No connection.",
+  "settingsCloudRestore": "Restore a backup",
+  "settingsCloudSignOut": "Sign out of cloud",
+  "settingsCloudSignOutConfirm": "This will not delete your local data. You can sign back in at any time.",
+  "cloudLoginTitle": "Cloud sign-in",
+  "cloudLoginEmailLabel": "Email address",
+  "cloudLoginEmailHint": "you@example.com",
+  "cloudLoginEmailInvalid": "Invalid email",
+  "cloudLoginSendButton": "Send link",
+  "cloudLoginCheckEmail": "Link sent. Check your inbox and tap the link to sign in.",
+  "cloudLoginNoNetwork": "No connection.",
+  "cloudLoginGenericError": "Error. Try again later."
 }

@@ -9,6 +9,7 @@ import '../../presentation/clients/client_history_screen.dart';
 import '../../presentation/proximity/proximity_screen.dart';
 import '../../presentation/clients/client_form_screen.dart';
 import '../../presentation/clients/clients_list_screen.dart';
+import '../../presentation/cloud/cloud_login_screen.dart';
 import '../../presentation/onboarding/onboarding_screen.dart';
 import '../../presentation/settings/settings_screen.dart';
 import '../../presentation/settings/prestation_catalog_screen.dart';
@@ -71,6 +72,11 @@ class AppRouter {
           path: '/onboarding',
           pageBuilder: (_, state) =>
               _fadeSlidePage(state, const OnboardingScreen()),
+        ),
+        GoRoute(
+          path: '/settings/cloud-login',
+          pageBuilder: (_, state) =>
+              _fadeSlidePage(state, const CloudLoginScreen()),
         ),
         GoRoute(
           path: '/settings/species',
