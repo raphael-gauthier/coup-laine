@@ -12,6 +12,7 @@ import '../../domain/models/client.dart';
 import '../../state/providers.dart';
 import 'animal_counts_badges.dart';
 import 'app_empty_state.dart';
+import 'map_pins.dart';
 
 /// One-shot loader for a fixed set of client ids. Used by
 /// [WaitingClientsMultiPicker] to surface clients that don't satisfy the
@@ -295,7 +296,7 @@ class _ListTabState extends State<_ListTab> {
   }
 }
 
-class _MapTab extends StatelessWidget {
+class _MapTab extends ConsumerWidget {
   final List<Client> clients;
   final Set<int> selection;
   final ValueChanged<int> onToggle;
@@ -305,13 +306,24 @@ class _MapTab extends StatelessWidget {
     required this.onToggle,
   });
 
+  Color _hexToColor(String hex) {
+    final cleaned = hex.replaceAll('#', '');
+    return Color(int.parse(cleaned, radix: 16) | 0xFF000000);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
     if (clients.isEmpty) {
       return const SizedBox.shrink();
     }
+    final settings = ref.watch(settingsRepositoryFutureProvider).value;
     final centre = clients.first;
+    final waitingColor = settings == null
+        ? theme.colors.secondary
+        : _hexToColor(settings.markerWaitingColor);
+    final base = settings?.baseCoordinates;
+
     return FlutterMap(
       options: MapOptions(
         initialCenter: LatLng(centre.coordinates.lat, centre.coordinates.lon),
@@ -323,20 +335,31 @@ class _MapTab extends StatelessWidget {
           userAgentPackageName: 'fr.raphaelgauthier.couplaine',
         ),
         MarkerLayer(
+          rotate: true,
           markers: [
+            // Base pin (home) for reference, if Settings is loaded.
+            if (base != null)
+              Marker(
+                point: LatLng(base.lat, base.lon),
+                width: 48,
+                height: 56,
+                alignment: Alignment.bottomCenter,
+                child: MapBasePin(color: theme.colors.primary),
+              ),
             for (final c in clients)
               Marker(
                 point: LatLng(c.coordinates.lat, c.coordinates.lon),
-                width: 28,
-                height: 28,
+                width: 48,
+                height: 50,
+                alignment: Alignment.bottomCenter,
                 child: GestureDetector(
                   onTap: () => onToggle(c.id),
-                  child: Icon(
-                    FIcons.mapPin,
-                    color: selection.contains(c.id)
-                        ? theme.colors.primary
-                        : theme.colors.mutedForeground,
-                    size: 28,
+                  child: MapStatusPin(
+                    color: c.markerColorHex != null
+                        ? _hexToColor(c.markerColorHex!)
+                        : waitingColor,
+                    animalCount: c.animalsTotal,
+                    selected: selection.contains(c.id),
                   ),
                 ),
               ),
