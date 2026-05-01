@@ -35,7 +35,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('17 Mouton, 4 Cheval'), findsOneWidget);
+    expect(find.text('17 Moutons, 4 Chevaux'), findsOneWidget);
   });
 
   testWidgets('detailed mode shows per-category breakdown', (tester) async {
@@ -58,9 +58,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.textContaining('5 Petit'), findsOneWidget);
-    expect(find.textContaining('12 Grand'), findsOneWidget);
-    expect(find.textContaining('Mouton'), findsOneWidget);
+    expect(find.textContaining('5 Petits'), findsOneWidget);
+    expect(find.textContaining('12 Grands'), findsOneWidget);
+    expect(find.textContaining('Moutons'), findsOneWidget);
   });
 
   testWidgets('empty counts → SizedBox.shrink (no text)', (tester) async {
@@ -104,6 +104,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('5 Mouton'), findsOneWidget);
+    expect(find.text('5 Moutons'), findsOneWidget);
   });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/text_pluralization.dart';
 import '../../domain/models/animal_count.dart';
 import '../../state/providers.dart';
 
@@ -51,10 +52,12 @@ class AnimalCountsBadges extends ConsumerWidget {
 
         final text = mode == AnimalCountsBadgesMode.compact
             ? perSpecies.entries
-                .map((e) => '${e.value.total} ${e.key}')
+                .map((e) =>
+                    '${e.value.total} ${pluralizeFr(e.key, e.value.total)}')
                 .join(', ')
             : perSpecies.entries
-                .map((e) => '${e.key} — ${e.value.formatBreakdown()}')
+                .map((e) =>
+                    '${pluralizeFr(e.key, e.value.total)} — ${e.value.formatBreakdown()}')
                 .join('  ·  ');
 
         return Text(text, style: style);
@@ -74,6 +77,7 @@ class _Bucket {
     parts.add((name: name, count: count));
   }
 
-  String formatBreakdown() =>
-      parts.map((p) => '${p.count} ${p.name}').join(' + ');
+  String formatBreakdown() => parts
+      .map((p) => '${p.count} ${pluralizeFr(p.name, p.count)}')
+      .join(' + ');
 }
