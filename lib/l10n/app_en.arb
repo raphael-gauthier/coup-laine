@@ -331,5 +331,8 @@
     }
   },
   "settingsImportConfirmBody": "This will replace all current data. Continue?",
-  "settingsImportConfirmAction": "Import"
+  "settingsImportConfirmAction": "Import",
+  "tourDraftStepDate": "Date",
+  "tourDraftStepClients": "Clients",
+  "tourDraftStepPrestations": "Prestations"
 }

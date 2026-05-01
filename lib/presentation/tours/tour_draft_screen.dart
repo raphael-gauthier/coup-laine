@@ -300,26 +300,23 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
       child: AppSectionCard(
         icon: FIcons.calendarClock,
         title: l.tourDraftWhenTitle,
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: AppListTile(
-                variant: AppListTileVariant.standard,
-                prefix: const Icon(FIcons.calendar),
-                title: l.tourDraftDate,
-                subtitle: DateFormat('d MMM yyyy', 'fr').format(_date),
-                onTap: _pickDate,
-              ),
+            AppListTile(
+              variant: AppListTileVariant.standard,
+              prefix: const Icon(FIcons.calendar),
+              title: l.tourDraftDate,
+              subtitle: DateFormat('d MMM yyyy', 'fr').format(_date),
+              onTap: _pickDate,
             ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: AppListTile(
-                variant: AppListTileVariant.standard,
-                prefix: const Icon(FIcons.clock),
-                title: l.tourDraftStart,
-                subtitle: formatHm(_startMinutes),
-                onTap: _pickTime,
-              ),
+            const SizedBox(height: AppSpacing.sm),
+            AppListTile(
+              variant: AppListTileVariant.standard,
+              prefix: const Icon(FIcons.clock),
+              title: l.tourDraftStart,
+              subtitle: formatHm(_startMinutes),
+              onTap: _pickTime,
             ),
           ],
         ),
@@ -549,7 +546,11 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                   AppHeader(title: title),
                   AppStepper(
                     currentIndex: _step,
-                    labels: const ['Quand', 'Qui', 'Quoi'],
+                    labels: [
+                      l.tourDraftStepDate,
+                      l.tourDraftStepClients,
+                      l.tourDraftStepPrestations,
+                    ],
                   ),
                   Expanded(
                     child: async.when(
