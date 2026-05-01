@@ -186,7 +186,7 @@ class SpeciesManagementScreen extends ConsumerWidget {
     ref.invalidate(activeSpeciesProvider);
     ref.invalidate(activeCategoriesBySpeciesProvider);
     ref.invalidate(allCategoriesByIdProvider);
-    ref.invalidate(categoryLookupProvider);
+    ref.invalidate(categoryDisplayInfoProvider);
   }
 
   Future<void> _restoreTemplate(
@@ -268,7 +268,7 @@ class SpeciesManagementScreen extends ConsumerWidget {
     ref.invalidate(activeSpeciesProvider);
     ref.invalidate(activeCategoriesBySpeciesProvider);
     ref.invalidate(allCategoriesByIdProvider);
-    ref.invalidate(categoryLookupProvider);
+    ref.invalidate(categoryDisplayInfoProvider);
     ref.invalidate(activePrestationsProvider);
     ref.invalidate(prestationCountActiveProvider);
   }

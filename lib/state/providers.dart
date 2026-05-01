@@ -81,6 +81,25 @@ final allCategoriesByIdProvider =
   return {for (final c in list) c.id: c};
 });
 
+/// For a given category id, returns the species name + category name.
+/// Used by widgets that need to display "Mouton/Petit" for an animal counter
+/// or a snapshot id reference. Includes archived species/categories so that
+/// historical references still resolve.
+final categoryDisplayInfoProvider =
+    FutureProvider<Map<int, ({String speciesName, String categoryName})>>(
+        (ref) async {
+  final species = await ref.watch(speciesRepositoryProvider).listAll();
+  final speciesById = {for (final s in species) s.id: s};
+  final cats = await ref.watch(animalCategoryRepositoryProvider).listAll();
+  return {
+    for (final c in cats)
+      c.id: (
+        speciesName: speciesById[c.speciesId]?.name ?? '',
+        categoryName: c.name,
+      ),
+  };
+});
+
 /// Active categories grouped by speciesId. Used by AnimalCountsEditor.
 final activeCategoriesBySpeciesProvider =
     FutureProvider<Map<int, List<AnimalCategory>>>((ref) async {

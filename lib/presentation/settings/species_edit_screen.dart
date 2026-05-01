@@ -54,7 +54,7 @@ class _SpeciesEditScreenState extends ConsumerState<SpeciesEditScreen> {
     ref.invalidate(archivedSpeciesProvider);
     ref.invalidate(activeCategoriesBySpeciesProvider);
     ref.invalidate(allCategoriesByIdProvider);
-    ref.invalidate(categoryLookupProvider);
+    ref.invalidate(categoryDisplayInfoProvider);
   }
 
   @override

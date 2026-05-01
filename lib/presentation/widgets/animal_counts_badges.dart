@@ -17,7 +17,7 @@ enum AnimalCountsBadgesMode { compact, detailed }
 /// per-category breakdown: `"Mouton — 5 Petit + 12 Grand · Cheval — 4 Adulte"`.
 /// Used on detail screens.
 ///
-/// Resolves species and category names from [categoryLookupProvider].
+/// Resolves species and category names from [categoryDisplayInfoProvider].
 /// Counts whose `categoryId` no longer resolves (truly deleted, never
 /// soft-archived) are skipped silently. Empty input or all zero-counts
 /// renders nothing.
@@ -36,7 +36,7 @@ class AnimalCountsBadges extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (counts.isEmpty) return const SizedBox.shrink();
-    final lookupAsync = ref.watch(categoryLookupProvider);
+    final lookupAsync = ref.watch(categoryDisplayInfoProvider);
     return lookupAsync.when(
       data: (lookup) {
         final perSpecies = <String, _Bucket>{};
