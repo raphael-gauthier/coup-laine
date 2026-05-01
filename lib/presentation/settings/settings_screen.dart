@@ -562,8 +562,12 @@ class _SeasonResetTile extends ConsumerWidget {
             final now = DateTime.now();
             await ref.read(settingsRepositoryProvider).bumpSeasonStartedAt(now);
             await ref.read(clientRepositoryProvider).resetAllWaiting();
+            // Invalidate settings + status providers so client detail / list /
+            // map recompute their statuses with the new seasonStartedAt.
+            ref.invalidate(settingsRepositoryFutureProvider);
             ref.invalidate(_settingsAsyncProvider);
             ref.invalidate(clientsAsyncProvider);
+            ref.invalidate(toursAsyncProvider);
             if (!context.mounted) return;
             onReset(now);
             showFToast(

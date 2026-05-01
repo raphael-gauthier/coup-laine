@@ -31,7 +31,9 @@ final _searchQueryProvider = StateProvider<String>((_) => '');
 
 final clientsAsyncProvider =
     FutureProvider<List<(Client, ClientStatus)>>((ref) async {
-  final settings = await ref.watch(settingsRepositoryProvider).read();
+  // Watch the FutureProvider for settings (not the repo Provider), so this
+  // auto-refreshes when the season is reset or settings change.
+  final settings = await ref.watch(settingsRepositoryFutureProvider.future);
   final seasonStart = settings?.seasonStartedAt ??
       DateTime.fromMillisecondsSinceEpoch(0);
   return ref.watch(clientRepositoryProvider).listAllWithStatus(seasonStart);

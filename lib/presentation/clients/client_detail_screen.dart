@@ -31,7 +31,9 @@ import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvi
 
 final _clientByIdProvider =
     FutureProvider.family<(Client, ClientStatus)?, int>((ref, id) async {
-  final settings = await ref.watch(settingsRepositoryProvider).read();
+  // Watch the FutureProvider for settings (not the repo Provider), so this
+  // auto-refreshes when the season is reset or settings change.
+  final settings = await ref.watch(settingsRepositoryFutureProvider.future);
   final seasonStart = settings?.seasonStartedAt ??
       DateTime.fromMillisecondsSinceEpoch(0);
   return ref.watch(clientRepositoryProvider).findByIdWithStatus(id, seasonStart);
