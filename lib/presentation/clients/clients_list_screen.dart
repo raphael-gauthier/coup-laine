@@ -1,5 +1,5 @@
 // lib/presentation/clients/clients_list_screen.dart
-import 'package:flutter/material.dart' show FloatingActionButton, Material, MaterialType, RefreshIndicator;
+import 'package:flutter/material.dart' show Material, MaterialType, RefreshIndicator;
 import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +16,9 @@ import '../../state/providers.dart';
 import '../widgets/animal_counts_badges.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_empty_state.dart';
+import '../widgets/app_fab.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 
@@ -84,137 +87,138 @@ class ClientsListScreen extends ConsumerWidget {
             });
           final pending = ref.watch(clientsPendingProvider).value ?? 0;
 
-          return Stack(
+          return Column(
             children: [
-              RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(clientsAsyncProvider);
-                  ref.invalidate(clientsPendingProvider);
-                },
-                child: CustomScrollView(
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: AppSizes.rootScreenPadding.copyWith(bottom: 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Page heading
-                            Text(
-                              l.clientsListTitle,
-                              style: theme.typography.xl3.copyWith(
-                                color: theme.colors.foreground,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xxs),
-                            // Stats row
-                            Text(
-                              '${l.clientsCountFmt(all.length)} · ${l.clientsWaitingCountFmt(waiting.length)}',
-                              style: theme.typography.sm.copyWith(
-                                color: theme.colors.mutedForeground,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            // Search field + status filter button on a single row
-                            Row(
-                              children: const [
-                                Expanded(child: _SearchField()),
-                                SizedBox(width: AppSpacing.sm),
-                                _StatusFilterButton(),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            // Recompute banner
-                            if (pending > 0) ...[
-                              AppSectionCard(
-                                icon: FIcons.triangleAlert,
-                                iconBackground: theme.colors.destructive,
-                                title: 'Distances',
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        '$pending client(s) sans distances calculées',
-                                        style: theme.typography.sm,
-                                      ),
-                                    ),
-                                    const SizedBox(width: AppSpacing.sm),
-                                    FButton(
-                                      variant: FButtonVariant.outline,
-                                      size: FButtonSizeVariant.sm,
-                                      onPress: () async {
-                                        final sync = ref.read(distanceMatrixSyncProvider);
-                                        final fixed = await sync.retryAllPending();
-                                        ref.invalidate(clientsPendingProvider);
-                                        ref.invalidate(clientsAsyncProvider);
-                                        if (context.mounted) {
-                                          showFToast(
-                                            context: context,
-                                            title: Text('$fixed client(s) recalculés'),
-                                          );
-                                        }
-                                      },
-                                      child: const Text('Recalculer'),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                    // Client list or empty state
-                    if (visible.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppSpacing.lg),
-                            child: Text(
-                              'Aucun statut sélectionné',
-                              style: theme.typography.sm,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      )
-                    else if (list.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: AppEmptyState(
-                          illustrationAsset: 'assets/illustrations/empty-clients.svg',
-                          title: l.emptyClientsTitle,
-                          body: l.emptyClientsBody,
-                          action: AppPrimaryButton(
-                            label: l.clientsAddNew,
-                            prefixIcon: FIcons.userPlus,
-                            onPress: () => context.push('/clients/new'),
-                          ),
-                        ),
-                      )
-                    else
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, AppSizes.bottomScrollPadding),
-                        sliver: SliverList.separated(
-                          itemCount: list.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-                          itemBuilder: (_, i) => _ClientTile(
-                            client: list[i].$1,
-                            status: list[i].$2,
-                          ),
-                        ),
-                      ),
+              AppHeader(
+                title: l.clientsListTitle,
+                subtitle:
+                    '${l.clientsCountFmt(all.length)} · ${l.clientsWaitingCountFmt(waiting.length)}',
+                showBackButton: false,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: Row(
+                  children: const [
+                    Expanded(child: _SearchField()),
+                    SizedBox(width: AppSpacing.sm),
+                    _StatusFilterButton(),
                   ],
                 ),
               ),
-              Positioned(
-                bottom: 16,
-                right: 16,
-                child: FloatingActionButton(
-                  onPressed: () => context.push('/clients/new'),
-                  child: const Icon(FIcons.userPlus),
+              if (pending > 0) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    0,
+                  ),
+                  child: AppSectionCard(
+                    icon: FIcons.triangleAlert,
+                    iconBackground: theme.colors.destructive,
+                    title: 'Distances',
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '$pending client(s) sans distances calculées',
+                            style: theme.typography.sm,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        FButton(
+                          variant: FButtonVariant.outline,
+                          size: FButtonSizeVariant.sm,
+                          onPress: () async {
+                            final sync = ref.read(distanceMatrixSyncProvider);
+                            final fixed = await sync.retryAllPending();
+                            ref.invalidate(clientsPendingProvider);
+                            ref.invalidate(clientsAsyncProvider);
+                            if (context.mounted) {
+                              showFToast(
+                                context: context,
+                                title: Text('$fixed client(s) recalculés'),
+                              );
+                            }
+                          },
+                          child: const Text('Recalculer'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              Expanded(
+                child: Stack(
+                  children: [
+                    RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(clientsAsyncProvider);
+                        ref.invalidate(clientsPendingProvider);
+                      },
+                      child: CustomScrollView(
+                        slivers: [
+                          if (visible.isEmpty)
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(AppSpacing.lg),
+                                  child: Text(
+                                    'Aucun statut sélectionné',
+                                    style: theme.typography.sm,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else if (list.isEmpty)
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: AppEmptyState(
+                                illustrationAsset:
+                                    'assets/illustrations/empty-clients.svg',
+                                title: l.emptyClientsTitle,
+                                body: l.emptyClientsBody,
+                                action: AppPrimaryButton(
+                                  label: l.clientsAddNew,
+                                  prefixIcon: FIcons.userPlus,
+                                  onPress: () => context.push('/clients/new'),
+                                ),
+                              ),
+                            )
+                          else
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(
+                                AppSpacing.md,
+                                AppSpacing.md,
+                                AppSpacing.md,
+                                AppSizes.bottomScrollPadding,
+                              ),
+                              sliver: SliverList.separated(
+                                itemCount: list.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: AppSpacing.sm),
+                                itemBuilder: (_, i) => _ClientTile(
+                                  client: list[i].$1,
+                                  status: list[i].$2,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 16,
+                      right: 16,
+                      child: AppFAB(
+                        icon: FIcons.userPlus,
+                        label: l.clientsAddNew,
+                        extended: true,
+                        onPress: () => context.push('/clients/new'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -276,22 +280,23 @@ class _ClientTile extends ConsumerWidget {
         : _hexForStatus(settingsAsync.value!, status);
     final dotColor = _hexToColor(hex);
 
-    return FTile(
+    return AppListTile(
+      variant: AppListTileVariant.rich,
       prefix: Container(
         width: 12,
         height: 12,
         decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
       ),
-      title: Text(client.name),
-      subtitle: Text(client.city),
-      details: AnimalCountsBadges(
+      title: client.name,
+      subtitle: client.city,
+      metadata: AnimalCountsBadges(
         counts: client.animals,
         mode: AnimalCountsBadgesMode.compact,
       ),
       suffix: client.needsDistanceRecompute
           ? AppBadge.recompute(context)
           : Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),
-      onPress: () => context.push('/clients/${client.id}'),
+      onTap: () => context.push('/clients/${client.id}'),
     );
   }
 }
