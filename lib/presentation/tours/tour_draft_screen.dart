@@ -14,7 +14,6 @@ import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
 import '../../domain/models/tour_stop_prestation.dart';
-import '../../infra/services/ors_routing_service.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
@@ -187,24 +186,16 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
       ));
     }
 
-    // Try to fetch the route geometry from ORS — best-effort. If offline /
-    // quota / error, persist null and the map falls back to straight lines.
+    // Reuse the route geometry already fetched (and cached) by the live
+    // provider feeding the MiniMap on step 3 — avoids a redundant ORS call.
+    // Returns null silently on offline / quota / error, in which case the
+    // tour is persisted without geometry and the map falls back to straight
+    // lines.
     List<Coordinates>? routeGeometry;
-    final settings = await ref.read(settingsRepositoryProvider).read();
-    if (settings != null && bundle.orderedClients.isNotEmpty) {
-      final waypoints = <Coordinates>[
-        settings.baseCoordinates,
-        for (final c in bundle.orderedClients) c.coordinates,
-        settings.baseCoordinates,
-      ];
-      try {
-        routeGeometry = await ref
-            .read(orsRoutingServiceProvider)
-            .getRouteGeometry(waypoints: waypoints);
-      } on OrsException catch (_) {
-        // Silent fallback — UI will show straight lines.
-        routeGeometry = null;
-      }
+    try {
+      routeGeometry = await ref.read(tourDraftRouteGeometryProvider.future);
+    } catch (_) {
+      routeGeometry = null;
     }
 
     final draft = TourDraft(
@@ -518,6 +509,11 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
           if (base == null || bundle.orderedClients.isEmpty) {
             return const SizedBox.shrink();
           }
+          // Live ORS geometry for the current ordered draft (refetched on
+          // each reorder / picker change). Falls back to straight lines if
+          // not yet loaded or on error.
+          final geomAsync = ref.watch(tourDraftRouteGeometryProvider);
+          final geom = geomAsync.value;
           return Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0,
@@ -528,6 +524,11 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                 for (final c in bundle.orderedClients)
                   LatLng(c.coordinates.lat, c.coordinates.lon),
               ],
+              routeGeometry: geom == null
+                  ? null
+                  : [
+                      for (final c in geom) LatLng(c.lat, c.lon),
+                    ],
               height: 140,
             ),
           );

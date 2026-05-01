@@ -2,9 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../domain/models/client.dart';
+import '../domain/models/coordinates.dart';
 import '../domain/models/distance_matrix_entry.dart';
 import '../domain/models/tour_stop_prestation.dart';
 import '../domain/use_cases/build_tour_draft.dart';
+import '../infra/services/ors_routing_service.dart';
 import 'providers.dart';
 
 class TourDraftInput {
@@ -101,4 +103,33 @@ final tourDraftProvider =
   final orderedClients =
       result.orderedClientIds.map((id) => byId[id]!).toList();
   return TourDraftBundle(result: result, orderedClients: orderedClients);
+});
+
+/// Polyline ORS de la tournée en cours de composition. Re-fetché à chaque
+/// fois que `tourDraftProvider` change (ordre des stops, sélection clients,
+/// etc.). Retourne `null` en cas d'erreur — la MiniMap tombera en lignes
+/// droites silencieusement.
+///
+/// Note quota : un appel ORS par recompute = quelques dizaines pendant
+/// une session active de composition. Free tier 2000/jour suffit largement.
+final tourDraftRouteGeometryProvider =
+    FutureProvider.autoDispose<List<Coordinates>?>((ref) async {
+  final bundle = await ref.watch(tourDraftProvider.future);
+  if (bundle == null || bundle.orderedClients.isEmpty) return null;
+  final settings = await ref.watch(settingsRepositoryProvider).read();
+  if (settings == null) return null;
+
+  final waypoints = <Coordinates>[
+    settings.baseCoordinates,
+    for (final c in bundle.orderedClients) c.coordinates,
+    settings.baseCoordinates,
+  ];
+
+  try {
+    return await ref
+        .watch(orsRoutingServiceProvider)
+        .getRouteGeometry(waypoints: waypoints);
+  } on OrsException {
+    return null;
+  }
 });
