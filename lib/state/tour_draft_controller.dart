@@ -33,9 +33,15 @@ final tourDraftProvider =
     FutureProvider.autoDispose<TourDraftBundle?>((ref) async {
   final input = ref.watch(tourDraftInputProvider);
   if (input == null) return null;
+  // All ref.watch calls happen synchronously up-front so the dependency
+  // graph is registered before any await — otherwise the ref can be
+  // disposed mid-build if the input changes during the matrix loop.
   final clients = ref.watch(clientRepositoryProvider);
   final matrix = ref.watch(distanceMatrixRepositoryProvider);
-  final settings = await ref.watch(settingsRepositoryProvider).read();
+  final settingsRepo = ref.watch(settingsRepositoryProvider);
+  final categoryLookupFuture = ref.watch(categoryLookupProvider.future);
+
+  final settings = await settingsRepo.read();
   if (settings == null) return null;
 
   final all = await clients.listAll();
@@ -63,7 +69,7 @@ final tourDraftProvider =
     }
   }
 
-  final categoryLookup = await ref.read(categoryLookupProvider.future);
+  final categoryLookup = await categoryLookupFuture;
   final result = const BuildTourDraft().build(
     candidateIds: ids,
     candidates: all,

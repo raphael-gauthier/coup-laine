@@ -290,9 +290,15 @@ class OptimizedRequest {
 
 final optimizedProposalProvider = FutureProvider.autoDispose
     .family<OptimizedProposal, OptimizedRequest>((ref, req) async {
+  // All ref.watch calls happen synchronously up-front. Awaiting before all
+  // dependencies are registered would risk the ref being disposed by the
+  // time we come back from the await.
   final clientsRepo = ref.watch(clientRepositoryProvider);
   final matrixRepo = ref.watch(distanceMatrixRepositoryProvider);
-  final settings = await ref.watch(settingsRepositoryProvider).read();
+  final settingsRepo = ref.watch(settingsRepositoryProvider);
+  final categoryLookupFuture = ref.watch(categoryLookupProvider.future);
+
+  final settings = await settingsRepo.read();
   if (settings == null) return OptimizedProposal.empty();
   final seasonStart = settings.seasonStartedAt;
   final withStatus = await clientsRepo.listAllWithStatus(seasonStart);
@@ -319,7 +325,7 @@ final optimizedProposalProvider = FutureProvider.autoDispose
       ));
     }
   }
-  final categoryLookup = await ref.watch(categoryLookupProvider.future);
+  final categoryLookup = await categoryLookupFuture;
   return const BuildOptimizedTourProposal().call(
     communeName: req.communeName,
     targetMinutes: req.targetMinutes,
