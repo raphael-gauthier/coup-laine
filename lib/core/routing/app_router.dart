@@ -24,6 +24,37 @@ import '../../presentation/tours/tour_optimized_config_screen.dart';
 import '../../presentation/tours/tours_list_screen.dart';
 import '../../state/providers.dart';
 
+/// Page builder helper — fade + slight slide-up pour push routes.
+/// Durée 200ms in / 160ms out, courbe `easeOutCubic`.
+CustomTransitionPage<void> _fadeSlidePage(
+  GoRouterState state,
+  Widget child,
+) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 200),
+    reverseTransitionDuration: const Duration(milliseconds: 160),
+    transitionsBuilder: (context, animation, secondaryAnimation, c) {
+      final curved = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.025),
+            end: Offset.zero,
+          ).animate(curved),
+          child: c,
+        ),
+      );
+    },
+  );
+}
+
 class AppRouter {
   AppRouter._();
 
@@ -38,63 +69,106 @@ class AppRouter {
       routes: [
         GoRoute(
           path: '/onboarding',
-          builder: (_, __) => const OnboardingScreen(),
+          pageBuilder: (_, state) =>
+              _fadeSlidePage(state, const OnboardingScreen()),
         ),
         GoRoute(
           path: '/settings/species',
-          builder: (_, __) => const SpeciesManagementScreen(),
+          pageBuilder: (_, state) =>
+              _fadeSlidePage(state, const SpeciesManagementScreen()),
         ),
         GoRoute(
           path: '/settings/species/:id',
-          builder: (_, state) => SpeciesEditScreen(
-            speciesId: int.parse(state.pathParameters['id']!),
+          pageBuilder: (_, state) => _fadeSlidePage(
+            state,
+            SpeciesEditScreen(
+              speciesId: int.parse(state.pathParameters['id']!),
+            ),
           ),
         ),
         GoRoute(
           path: '/settings/prestations',
-          builder: (context, state) => const PrestationCatalogScreen(),
+          pageBuilder: (_, state) =>
+              _fadeSlidePage(state, const PrestationCatalogScreen()),
         ),
         GoRoute(
           path: '/settings/prestations/new',
-          builder: (context, state) => const PrestationEditScreen(),
+          pageBuilder: (_, state) =>
+              _fadeSlidePage(state, const PrestationEditScreen()),
         ),
         GoRoute(
           path: '/settings/prestations/:id',
-          builder: (context, state) => PrestationEditScreen(
-            id: int.parse(state.pathParameters['id']!),
+          pageBuilder: (_, state) => _fadeSlidePage(
+            state,
+            PrestationEditScreen(
+              id: int.parse(state.pathParameters['id']!),
+            ),
           ),
         ),
         GoRoute(
           path: '/proximity/:pivotId',
-          builder: (_, state) => ProximityScreen(
-            pivotId: int.parse(state.pathParameters['pivotId']!),
+          pageBuilder: (_, state) => _fadeSlidePage(
+            state,
+            ProximityScreen(
+              pivotId: int.parse(state.pathParameters['pivotId']!),
+            ),
           ),
         ),
         GoRoute(
           path: '/tours/draft',
-          builder: (_, state) {
+          pageBuilder: (_, state) {
             final raw = state.uri.queryParameters['pivot'];
-            return TourDraftScreen(
-              pivotId: raw == null ? null : int.parse(raw),
+            return _fadeSlidePage(
+              state,
+              TourDraftScreen(
+                pivotId: raw == null ? null : int.parse(raw),
+              ),
             );
           },
         ),
         GoRoute(
           path: '/tours/:id/edit',
-          builder: (_, state) => TourDraftScreen(
-            editingTourId: int.parse(state.pathParameters['id']!),
+          pageBuilder: (_, state) => _fadeSlidePage(
+            state,
+            TourDraftScreen(
+              editingTourId: int.parse(state.pathParameters['id']!),
+            ),
           ),
         ),
         GoRoute(
           path: '/tours/new/manual',
-          builder: (_, __) => const TourManualPickerScreen(),
+          pageBuilder: (_, state) =>
+              _fadeSlidePage(state, const TourManualPickerScreen()),
         ),
         GoRoute(
           path: '/tours/new/optimized',
-          builder: (_, __) => const TourOptimizedConfigScreen(),
+          pageBuilder: (_, state) =>
+              _fadeSlidePage(state, const TourOptimizedConfigScreen()),
         ),
-        StatefulShellRoute.indexedStack(
+        StatefulShellRoute(
           builder: (context, state, shell) => _ShellScaffold(shell: shell),
+          // Custom container : on garde toutes les branches mountées (Stack +
+          // Offstage) pour préserver l'état par tab, et on fade-in la branche
+          // active. Pas d'`indexedStack` par défaut (qui ne s'anime pas).
+          navigatorContainerBuilder: (context, shell, children) {
+            return Stack(
+              children: [
+                for (var i = 0; i < children.length; i++)
+                  Offstage(
+                    offstage: shell.currentIndex != i,
+                    child: TickerMode(
+                      enabled: shell.currentIndex == i,
+                      child: AnimatedOpacity(
+                        opacity: shell.currentIndex == i ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 140),
+                        curve: Curves.easeOut,
+                        child: children[i],
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
           branches: [
             StatefulShellBranch(routes: [
               GoRoute(
@@ -103,24 +177,34 @@ class AppRouter {
                 routes: [
                   GoRoute(
                     path: 'new',
-                    builder: (_, __) => const ClientFormScreen(),
+                    pageBuilder: (_, state) =>
+                        _fadeSlidePage(state, const ClientFormScreen()),
                   ),
                   GoRoute(
                     path: ':id',
-                    builder: (_, state) => ClientDetailScreen(
-                      clientId: int.parse(state.pathParameters['id']!),
+                    pageBuilder: (_, state) => _fadeSlidePage(
+                      state,
+                      ClientDetailScreen(
+                        clientId: int.parse(state.pathParameters['id']!),
+                      ),
                     ),
                     routes: [
                       GoRoute(
                         path: 'edit',
-                        builder: (_, state) => ClientFormScreen(
-                          clientId: int.parse(state.pathParameters['id']!),
+                        pageBuilder: (_, state) => _fadeSlidePage(
+                          state,
+                          ClientFormScreen(
+                            clientId: int.parse(state.pathParameters['id']!),
+                          ),
                         ),
                       ),
                       GoRoute(
                         path: 'history',
-                        builder: (_, state) => ClientHistoryScreen(
-                          clientId: int.parse(state.pathParameters['id']!),
+                        pageBuilder: (_, state) => _fadeSlidePage(
+                          state,
+                          ClientHistoryScreen(
+                            clientId: int.parse(state.pathParameters['id']!),
+                          ),
                         ),
                       ),
                     ],
@@ -135,14 +219,20 @@ class AppRouter {
                 routes: [
                   GoRoute(
                     path: ':id',
-                    builder: (_, state) => TourDetailScreen(
-                      tourId: int.parse(state.pathParameters['id']!),
+                    pageBuilder: (_, state) => _fadeSlidePage(
+                      state,
+                      TourDetailScreen(
+                        tourId: int.parse(state.pathParameters['id']!),
+                      ),
                     ),
                     routes: [
                       GoRoute(
                         path: 'complete',
-                        builder: (_, state) => TourCompletionScreen(
-                          tourId: int.parse(state.pathParameters['id']!),
+                        pageBuilder: (_, state) => _fadeSlidePage(
+                          state,
+                          TourCompletionScreen(
+                            tourId: int.parse(state.pathParameters['id']!),
+                          ),
                         ),
                       ),
                     ],
@@ -180,6 +270,11 @@ class _ShellScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.colors.background,
       resizeToAvoidBottomInset: true,
+      // Note: pas d'AnimatedSwitcher autour de `shell` — StatefulNavigationShell
+      // est une instance unique avec un GlobalKey interne ; le wrapper duplique
+      // le key pendant la transition. Les transitions inter-tabs restent
+      // instantanées (par défaut). Les transitions push (sub-routes) sont
+      // animées via `_fadeSlidePage` sur chaque GoRoute.
       body: shell,
       bottomNavigationBar: FBottomNavigationBar(
         index: shell.currentIndex,

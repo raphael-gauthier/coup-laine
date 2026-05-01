@@ -1,5 +1,5 @@
 // lib/presentation/clients/clients_list_screen.dart
-import 'package:flutter/material.dart' show FloatingActionButton, Material, MaterialType, RefreshIndicator;
+import 'package:flutter/material.dart' show Material, MaterialType, RefreshIndicator;
 import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +16,11 @@ import '../../state/providers.dart';
 import '../widgets/animal_counts_badges.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_empty_state.dart';
+import '../widgets/app_fab.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_list_tile.dart';
+import '../widgets/app_command_palette_actions.dart';
+import '../widgets/app_option_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 
@@ -26,7 +31,9 @@ final _searchQueryProvider = StateProvider<String>((_) => '');
 
 final clientsAsyncProvider =
     FutureProvider<List<(Client, ClientStatus)>>((ref) async {
-  final settings = await ref.watch(settingsRepositoryProvider).read();
+  // Watch the FutureProvider for settings (not the repo Provider), so this
+  // auto-refreshes when the season is reset or settings change.
+  final settings = await ref.watch(settingsRepositoryFutureProvider.future);
   final seasonStart = settings?.seasonStartedAt ??
       DateTime.fromMillisecondsSinceEpoch(0);
   return ref.watch(clientRepositoryProvider).listAllWithStatus(seasonStart);
@@ -84,137 +91,145 @@ class ClientsListScreen extends ConsumerWidget {
             });
           final pending = ref.watch(clientsPendingProvider).value ?? 0;
 
-          return Stack(
+          final hasActiveFilter =
+              visible.length != ClientStatus.values.length;
+
+          return Column(
             children: [
-              RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(clientsAsyncProvider);
-                  ref.invalidate(clientsPendingProvider);
-                },
-                child: CustomScrollView(
-                  slivers: [
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: AppSizes.rootScreenPadding.copyWith(bottom: 0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Page heading
-                            Text(
-                              l.clientsListTitle,
-                              style: theme.typography.xl3.copyWith(
-                                color: theme.colors.foreground,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xxs),
-                            // Stats row
-                            Text(
-                              '${l.clientsCountFmt(all.length)} · ${l.clientsWaitingCountFmt(waiting.length)}',
-                              style: theme.typography.sm.copyWith(
-                                color: theme.colors.mutedForeground,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            // Search field + status filter button on a single row
-                            Row(
-                              children: const [
-                                Expanded(child: _SearchField()),
-                                SizedBox(width: AppSpacing.sm),
-                                _StatusFilterButton(),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            // Recompute banner
-                            if (pending > 0) ...[
-                              AppSectionCard(
-                                icon: FIcons.triangleAlert,
-                                iconBackground: theme.colors.destructive,
-                                title: 'Distances',
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        '$pending client(s) sans distances calculées',
-                                        style: theme.typography.sm,
-                                      ),
-                                    ),
-                                    const SizedBox(width: AppSpacing.sm),
-                                    FButton(
-                                      variant: FButtonVariant.outline,
-                                      size: FButtonSizeVariant.sm,
-                                      onPress: () async {
-                                        final sync = ref.read(distanceMatrixSyncProvider);
-                                        final fixed = await sync.retryAllPending();
-                                        ref.invalidate(clientsPendingProvider);
-                                        ref.invalidate(clientsAsyncProvider);
-                                        if (context.mounted) {
-                                          showFToast(
-                                            context: context,
-                                            title: Text('$fixed client(s) recalculés'),
-                                          );
-                                        }
-                                      },
-                                      child: const Text('Recalculer'),
-                                    ),
-                                  ],
+              AppHeader(
+                title: l.clientsListTitle,
+                subtitle:
+                    '${l.clientsCountFmt(all.length)} · ${l.clientsWaitingCountFmt(waiting.length)}',
+                showBackButton: false,
+                onTitleLongPress: () => showAppCommandPalette(context, ref),
+                actions: [
+                  AppHeaderAction(
+                    icon: FIcons.listFilter,
+                    label: l.commonFilter,
+                    active: hasActiveFilter,
+                    onPress: () =>
+                        _StatusFilterButton.openFilterDialog(context, ref),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                child: const _SearchField(),
+              ),
+              if (pending > 0) ...[
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    0,
+                  ),
+                  child: AppSectionCard(
+                    icon: FIcons.triangleAlert,
+                    iconBackground: theme.colors.destructive,
+                    title: l.commonDistancesTitle,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            l.clientsRecomputePendingFmt(pending),
+                            style: theme.typography.sm,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        FButton(
+                          variant: FButtonVariant.outline,
+                          size: FButtonSizeVariant.sm,
+                          onPress: () async {
+                            final sync = ref.read(distanceMatrixSyncProvider);
+                            final fixed = await sync.retryAllPending();
+                            ref.invalidate(clientsPendingProvider);
+                            ref.invalidate(clientsAsyncProvider);
+                            if (context.mounted) {
+                              showFToast(
+                                context: context,
+                                title: Text(l.clientsRecomputedToastFmt(fixed)),
+                              );
+                            }
+                          },
+                          child: Text(l.commonRecompute),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              Expanded(
+                child: Stack(
+                  children: [
+                    RefreshIndicator(
+                      onRefresh: () async {
+                        ref.invalidate(clientsAsyncProvider);
+                        ref.invalidate(clientsPendingProvider);
+                      },
+                      child: CustomScrollView(
+                        slivers: [
+                          if (visible.isEmpty)
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(AppSpacing.lg),
+                                  child: Text(
+                                    l.commonNoStatusSelected,
+                                    style: theme.typography.sm,
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: AppSpacing.xs),
-                            ],
-                          ],
-                        ),
+                            )
+                          else if (list.isEmpty)
+                            SliverFillRemaining(
+                              hasScrollBody: false,
+                              child: AppEmptyState(
+                                illustrationAsset:
+                                    'assets/illustrations/empty-clients.svg',
+                                title: l.emptyClientsTitle,
+                                body: l.emptyClientsBody,
+                                action: AppPrimaryButton(
+                                  label: l.clientsAddNew,
+                                  prefixIcon: FIcons.userPlus,
+                                  onPress: () => context.push('/clients/new'),
+                                ),
+                              ),
+                            )
+                          else
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(
+                                AppSpacing.md,
+                                AppSpacing.md,
+                                AppSpacing.md,
+                                AppSizes.bottomScrollPadding,
+                              ),
+                              sliver: SliverList.separated(
+                                itemCount: list.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: AppSpacing.sm),
+                                itemBuilder: (_, i) => _ClientTile(
+                                  client: list[i].$1,
+                                  status: list[i].$2,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    // Client list or empty state
-                    if (visible.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(AppSpacing.lg),
-                            child: Text(
-                              'Aucun statut sélectionné',
-                              style: theme.typography.sm,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      )
-                    else if (list.isEmpty)
-                      SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: AppEmptyState(
-                          illustrationAsset: 'assets/illustrations/empty-clients.svg',
-                          title: l.emptyClientsTitle,
-                          body: l.emptyClientsBody,
-                          action: AppPrimaryButton(
-                            label: l.clientsAddNew,
-                            prefixIcon: FIcons.userPlus,
-                            onPress: () => context.push('/clients/new'),
-                          ),
-                        ),
-                      )
-                    else
-                      SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, AppSizes.bottomScrollPadding),
-                        sliver: SliverList.separated(
-                          itemCount: list.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.sm),
-                          itemBuilder: (_, i) => _ClientTile(
-                            client: list[i].$1,
-                            status: list[i].$2,
-                          ),
-                        ),
+                    Positioned(
+                      bottom: 16,
+                      right: 16,
+                      child: AppFAB(
+                        icon: FIcons.userPlus,
+                        label: l.clientsAddNew,
+                        extended: true,
+                        onPress: () => context.push('/clients/new'),
                       ),
+                    ),
                   ],
-                ),
-              ),
-              Positioned(
-                bottom: 16,
-                right: 16,
-                child: FloatingActionButton(
-                  onPressed: () => context.push('/clients/new'),
-                  child: const Icon(FIcons.userPlus),
                 ),
               ),
             ],
@@ -276,22 +291,23 @@ class _ClientTile extends ConsumerWidget {
         : _hexForStatus(settingsAsync.value!, status);
     final dotColor = _hexToColor(hex);
 
-    return FTile(
+    return AppListTile(
+      variant: AppListTileVariant.rich,
       prefix: Container(
         width: 12,
         height: 12,
         decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
       ),
-      title: Text(client.name),
-      subtitle: Text(client.city),
-      details: AnimalCountsBadges(
+      title: client.name,
+      subtitle: client.city,
+      metadata: AnimalCountsBadges(
         counts: client.animals,
         mode: AnimalCountsBadgesMode.compact,
       ),
       suffix: client.needsDistanceRecompute
           ? AppBadge.recompute(context)
           : Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),
-      onPress: () => context.push('/clients/${client.id}'),
+      onTap: () => context.push('/clients/${client.id}'),
     );
   }
 }
@@ -305,56 +321,13 @@ String _statusLabel(AppLocalizations l, ClientStatus s) => switch (s) {
       ClientStatus.banned => l.clientStatusBanned,
     };
 
-/// Square icon button placed next to the search field that opens a dialog
-/// of status checkboxes. A small dot in the corner signals when the filter
-/// is non-default (i.e. at least one status hidden).
-class _StatusFilterButton extends ConsumerWidget {
-  const _StatusFilterButton();
+/// Holder pour la méthode statique `openFilterDialog`. Le bouton lui-même
+/// vit dans `AppHeader.actions` (cf. `AppHeaderAction(active: hasActiveFilter)`).
+class _StatusFilterButton {
+  const _StatusFilterButton._();
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = context.theme;
-    final visible = ref.watch(_visibleStatusesProvider);
-    final hasActiveFilter = visible.length != ClientStatus.values.length;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _openFilterDialog(context, ref),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: theme.colors.card,
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          border: Border.all(color: theme.colors.border),
-        ),
-        alignment: Alignment.center,
-        child: Stack(
-          alignment: Alignment.center,
-          clipBehavior: Clip.none,
-          children: [
-            Icon(FIcons.listFilter, color: theme.colors.foreground, size: 20),
-            if (hasActiveFilter)
-              Positioned(
-                right: -1,
-                top: -1,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: theme.colors.primary,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: theme.colors.card, width: 1),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openFilterDialog(BuildContext context, WidgetRef ref) async {
+  static Future<void> openFilterDialog(
+      BuildContext context, WidgetRef ref) async {
     final l = AppLocalizations.of(context)!;
     await showFDialog<void>(
       context: context,
@@ -408,9 +381,8 @@ class _StatusFilterButton extends ConsumerWidget {
   }
 }
 
-/// Single row inside the status filter dialog. Mirrors the map screen's
-/// `_LayerToggleRow` for visual consistency: 16 px colored dot, label,
-/// trailing `FSwitch`.
+/// Single row inside the status filter dialog. Visual unifié v3 :
+/// dot coloré 16dp + label + checkbox carré 22dp via `AppOptionTile`.
 class _StatusToggleRow extends StatelessWidget {
   final ClientStatus status;
   final String label;
@@ -428,21 +400,15 @@ class _StatusToggleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.theme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        children: [
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(label, style: theme.typography.md)),
-          FSwitch(value: isOn, onChange: onChanged),
-        ],
+    return AppOptionTile(
+      leading: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
+      title: label,
+      checked: isOn,
+      onChanged: onChanged,
     );
   }
 }

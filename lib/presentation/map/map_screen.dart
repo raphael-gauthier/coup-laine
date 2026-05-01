@@ -19,6 +19,9 @@ import '../../l10n/app_localizations.dart';
 import '../../state/map_controller.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
+import '../widgets/app_option_tile.dart';
+import '../widgets/map_pins.dart';
+import '../widgets/osm_tile_layer.dart';
 import 'client_pin_popup.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -237,11 +240,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           },
                         ),
                         children: [
-                          TileLayer(
-                            urlTemplate:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'fr.raphaelgauthier.couplaine',
-                          ),
+                          osmTileLayer(),
                           MarkerLayer(
                             rotate: true,
                             markers: [
@@ -254,7 +253,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 width: 48,
                                 height: 56,
                                 alignment: Alignment.bottomCenter,
-                                child: _BasePin(color: theme.colors.primary),
+                                child: MapBasePin(color: theme.colors.primary),
                               ),
                               // Client pins
                               for (final r in visibleClients)
@@ -282,7 +281,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                         );
                                       }
                                     },
-                                    child: _StatusPin(
+                                    child: MapStatusPin(
                                       color: _resolveColor(r.$1, r.$2, settings),
                                       animalCount: r.$1.animalsTotal,
                                     ),
@@ -319,31 +318,38 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                         top: AppSpacing.md,
                         left: AppSpacing.md,
                         right: AppSpacing.md,
-                        child: Row(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: _SearchOverlay(
-                                controller: _searchCtrl,
-                                onChanged: _onSearchChanged,
-                                clients: clients,
-                                onPicked: _flyTo,
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Column(
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _MapIconButton(
-                                  icon: FIcons.layers,
-                                  onPress: () => _openLayersPanel(context, settings),
+                                Expanded(
+                                  child: _SearchOverlay(
+                                    controller: _searchCtrl,
+                                    onChanged: _onSearchChanged,
+                                    clients: clients,
+                                    onPicked: _flyTo,
+                                  ),
                                 ),
-                                const SizedBox(height: AppSpacing.sm),
-                                _MapIconButton(
-                                  icon: FIcons.locate,
-                                  onPress: () => _recenterOnVisible(visibleClients, settings),
+                                const SizedBox(width: AppSpacing.sm),
+                                Column(
+                                  children: [
+                                    _MapIconButton(
+                                      icon: FIcons.layers,
+                                      onPress: () => _openLayersPanel(context, settings),
+                                    ),
+                                    const SizedBox(height: AppSpacing.sm),
+                                    _MapIconButton(
+                                      icon: FIcons.locate,
+                                      onPress: () => _recenterOnVisible(visibleClients, settings),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
+                            const SizedBox(height: AppSpacing.sm),
+                            _StatusChipsRow(clients: clients, settings: settings),
                           ],
                         ),
                       ),
@@ -456,110 +462,8 @@ class _MapIconButton extends StatelessWidget {
   }
 }
 
-class _StatusPin extends StatelessWidget {
-  final Color color;
-  final int animalCount;
-
-  const _StatusPin({required this.color, required this.animalCount});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 40,
-      height: 48,
-      child: CustomPaint(
-        painter: _PinPainter(color: color),
-        child: Align(
-          alignment: const Alignment(0, -0.25),
-          child: Text(
-            '$animalCount',
-            style: const TextStyle(
-              color: Color(0xFFFFFFFF),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              height: 1,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BasePin extends StatelessWidget {
-  final Color color;
-
-  const _BasePin({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 48,
-      height: 56,
-      child: CustomPaint(
-        painter: _PinPainter(color: color),
-        child: const Align(
-          // Disc center is at y = 22; nudge ~2px up to compensate for the
-          // icon-font baseline offset so the glyph reads as truly centered.
-          alignment: Alignment(0, -0.286),
-          child: Icon(
-            FIcons.house,
-            color: Color(0xFFFFFFFF),
-            size: 20,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PinPainter extends CustomPainter {
-  final Color color;
-
-  _PinPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    // 2px margin each side leaves room for the white outline.
-    final discRadius = (size.width - 4) / 2;
-    final discCenter = Offset(cx, discRadius);
-    final tip = Offset(cx, size.height);
-    // Tail proportions match the original 40×48 pin (8/18 ≈ 0.444).
-    final tailHalf = discRadius * 8.0 / 18.0;
-    final tailY = discRadius + tailHalf;
-
-    final circle = Path()
-      ..addOval(Rect.fromCircle(center: discCenter, radius: discRadius));
-    final tail = Path()
-      ..moveTo(cx - tailHalf, tailY)
-      ..lineTo(tip.dx, tip.dy)
-      ..lineTo(cx + tailHalf, tailY)
-      ..close();
-    final pin = Path.combine(PathOperation.union, circle, tail);
-
-    canvas.drawShadow(pin, const Color(0x66000000), 2, false);
-
-    canvas.drawPath(
-      pin,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.fill,
-    );
-
-    canvas.drawPath(
-      pin,
-      Paint()
-        ..color = const Color(0xFFFFFFFF)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeJoin = StrokeJoin.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _PinPainter old) => old.color != color;
-}
+// Pins extracted to `lib/presentation/widgets/map_pins.dart` so they're
+// shared with the proximity Map view (tour creation flow).
 
 class _LayerToggleRow extends StatelessWidget {
   final ClientStatus status;
@@ -583,7 +487,6 @@ class _LayerToggleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.theme;
     final color = switch (status) {
       ClientStatus.defaultStatus => _hex(settings.markerDefaultColor),
       ClientStatus.waiting => _hex(settings.markerWaitingColor),
@@ -592,23 +495,166 @@ class _LayerToggleRow extends StatelessWidget {
       ClientStatus.noAnimals => _hex(settings.markerNoAnimalsColor),
       ClientStatus.banned => _hex(settings.markerBannedColor),
     };
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+    return AppOptionTile(
+      leading: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+        ),
+      ),
+      title: label,
+      checked: isOn,
+      onChanged: onChanged,
+    );
+  }
+}
+
+/// Floating row of status chips above the map. Shows a compact count per
+/// status (only statuses with ≥1 client are rendered). Tapping a chip
+/// toggles it in `mapVisibleStatusesProvider` — the marker layer filters
+/// accordingly.
+class _StatusChipsRow extends ConsumerWidget {
+  final List<(Client, ClientStatus)> clients;
+  final Settings settings;
+  const _StatusChipsRow({required this.clients, required this.settings});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
+    final visible = ref.watch(mapVisibleStatusesProvider);
+
+    final counts = <ClientStatus, int>{
+      for (final s in ClientStatus.values) s: 0,
+    };
+    for (final r in clients) {
+      counts[r.$2] = (counts[r.$2] ?? 0) + 1;
+    }
+
+    final entries = ClientStatus.values
+        .where((s) => (counts[s] ?? 0) > 0)
+        .toList();
+    if (entries.isEmpty) return const SizedBox.shrink();
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          Container(
-            width: 16,
-            height: 16,
+          for (final s in entries)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.xs),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  final next = {...visible};
+                  if (next.contains(s)) {
+                    next.remove(s);
+                  } else {
+                    next.add(s);
+                  }
+                  ref.read(mapVisibleStatusesProvider.notifier).state = next;
+                },
+                child: _StatusChip(
+                  status: s,
+                  count: counts[s]!,
+                  active: visible.contains(s),
+                  label: _statusLabelForChip(l, s),
+                  color: _statusColor(s, settings),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Color _statusColor(ClientStatus s, Settings settings) {
+    final hex = switch (s) {
+      ClientStatus.defaultStatus => settings.markerDefaultColor,
+      ClientStatus.waiting => settings.markerWaitingColor,
+      ClientStatus.scheduled => settings.markerScheduledColor,
+      ClientStatus.done => settings.markerDoneColor,
+      ClientStatus.noAnimals => settings.markerNoAnimalsColor,
+      ClientStatus.banned => settings.markerBannedColor,
+    };
+    final cleaned = hex.replaceAll('#', '');
+    return Color(int.parse(cleaned, radix: 16) | 0xFF000000);
+  }
+}
+
+String _statusLabelForChip(AppLocalizations l, ClientStatus s) => switch (s) {
+      ClientStatus.defaultStatus => l.clientStatusDefault,
+      ClientStatus.waiting => l.clientStatusWaiting,
+      ClientStatus.scheduled => l.clientStatusScheduled,
+      ClientStatus.done => l.clientStatusDone,
+      ClientStatus.noAnimals => l.clientStatusNoAnimals,
+      ClientStatus.banned => l.clientStatusBanned,
+    };
+
+class _StatusChip extends StatelessWidget {
+  final ClientStatus status;
+  final int count;
+  final bool active;
+  final String label;
+  final Color color;
+
+  const _StatusChip({
+    required this.status,
+    required this.count,
+    required this.active,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    final dur = const Duration(milliseconds: 120);
+    return AnimatedContainer(
+      duration: dur,
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: active ? theme.colors.card : theme.colors.muted,
+        borderRadius: BorderRadius.circular(AppBorderRadius.pill),
+        border: Border.all(
+          color: active ? color : theme.colors.border,
+          width: active ? 1.5 : AppSizes.hairlineBorder,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: dur,
+            width: 8,
+            height: 8,
             decoration: BoxDecoration(
-              color: color,
+              color: active ? color : theme.colors.mutedForeground,
               shape: BoxShape.circle,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(label, style: theme.typography.md),
+          const SizedBox(width: AppSpacing.xxs),
+          AnimatedDefaultTextStyle(
+            duration: dur,
+            style: theme.typography.sm.copyWith(
+              color: active ? theme.colors.foreground : theme.colors.mutedForeground,
+              fontWeight: FontWeight.w600,
+            ),
+            child: Text('$count'),
           ),
-          FSwitch(value: isOn, onChange: onChanged),
+          const SizedBox(width: AppSpacing.xxs),
+          AnimatedDefaultTextStyle(
+            duration: dur,
+            style: theme.typography.xs.copyWith(
+              color: active ? theme.colors.foreground : theme.colors.mutedForeground,
+            ),
+            child: Text(label),
+          ),
         ],
       ),
     );

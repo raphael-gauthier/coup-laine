@@ -6,18 +6,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/client.dart';
+import '../../domain/models/coordinates.dart';
 import '../../domain/models/tour_stop_prestation.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
-import '../widgets/app_hero_card.dart';
+import '../widgets/app_action_bar.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_kpi_row.dart';
+import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
+import '../widgets/app_stepper.dart';
+import '../widgets/mini_map.dart';
 import '../widgets/waiting_clients_multi_picker.dart';
 import 'prestation_picker_sheet.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
@@ -44,7 +51,21 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
   List<int>? _manualOrder;
   bool _prefilled = false;
 
+  int _step = 0;
+
   bool get _isEditing => widget.editingTourId != null;
+
+  // Step 0 is always ready (date has a default value)
+  bool get _step0Ready => true;
+
+  bool _step1Ready(TourDraftBundle? bundle) =>
+      bundle != null && bundle.orderedClients.isNotEmpty;
+
+  bool _canGoNext(TourDraftBundle? bundle) {
+    if (_step == 0) return _step0Ready;
+    if (_step == 1) return _step1Ready(bundle);
+    return false;
+  }
 
   @override
   void initState() {
@@ -164,6 +185,19 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         feeShareCents: bundle.result.feeShareCents[i],
       ));
     }
+
+    // Reuse the route geometry already fetched (and cached) by the live
+    // provider feeding the MiniMap on step 3 — avoids a redundant ORS call.
+    // Returns null silently on offline / quota / error, in which case the
+    // tour is persisted without geometry and the map falls back to straight
+    // lines.
+    List<Coordinates>? routeGeometry;
+    try {
+      routeGeometry = await ref.read(tourDraftRouteGeometryProvider.future);
+    } catch (_) {
+      routeGeometry = null;
+    }
+
     final draft = TourDraft(
       plannedDate: _date,
       startTimeMinutes: _startMinutes,
@@ -171,6 +205,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
       totalDriveSeconds: bundle.result.totalDriveSeconds,
       totalTravelFeeCents: bundle.result.totalFeeCents,
       stops: stops,
+      routeGeometry: routeGeometry,
     );
 
     final repo = ref.read(tourRepositoryProvider);
@@ -269,224 +304,367 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context)!;
-    final theme = context.theme;
-    final async = ref.watch(tourDraftProvider);
-    final title = _isEditing ? l.tourEditTitle : l.tourDraftTitle;
-    final isLoadingPrefill = _isEditing && !_prefilled;
+  // ---------------------------------------------------------------------------
+  // Step builders
+  // ---------------------------------------------------------------------------
 
-    return SafeArea(
-      child: FScaffold(
-        resizeToAvoidBottomInset: true,
-        header: FHeader.nested(title: Text(title)),
-        child: isLoadingPrefill
-            ? const Center(child: FCircularProgress())
-            : async.when(
-        loading: () => const Center(child: FCircularProgress()),
-        error: (e, _) => Center(child: Text('$e')),
-        data: (bundle) {
-          if (bundle == null) {
-            return const Center(child: FCircularProgress());
-          }
-          return Column(
+  Widget _buildStepWhen(BuildContext context, AppLocalizations l) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
+      child: AppSectionCard(
+        icon: FIcons.calendarClock,
+        title: l.tourDraftWhenTitle,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppListTile(
+              variant: AppListTileVariant.standard,
+              prefix: const Icon(FIcons.calendar),
+              title: l.tourDraftDate,
+              subtitle: DateFormat('d MMM yyyy', 'fr').format(_date),
+              onTap: _pickDate,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            AppListTile(
+              variant: AppListTileVariant.standard,
+              prefix: const Icon(FIcons.clock),
+              title: l.tourDraftStart,
+              subtitle: formatHm(_startMinutes),
+              onTap: _pickTime,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepWho(BuildContext context, AppLocalizations l) {
+    return WaitingClientsMultiPicker(
+      initialSelection: ref.read(tourSelectionProvider),
+      onSelectionChanged: (selection) {
+        setState(() => _manualOrder = null);
+        final notifier = ref.read(tourSelectionProvider.notifier);
+        notifier.clear();
+        for (final id in selection) {
+          notifier.toggle(id);
+        }
+        ref.read(tourDraftInputProvider.notifier).state = TourDraftInput(
+          pivotId: widget.pivotId,
+          selectedIds: selection.toList(),
+          plannedDate: _date,
+          startTimeMinutes: _startMinutes,
+          overrideOrder: null,
+        );
+      },
+    );
+  }
+
+  Widget _buildStepWhat(BuildContext context, AppLocalizations l, TourDraftBundle bundle) {
+    final theme = context.theme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // "Étapes" heading
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxs),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Date/time card
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, AppSpacing.md, AppSpacing.md, 0),
-                child: AppSectionCard(
-                  icon: FIcons.calendarClock,
-                  title: l.tourDraftWhenTitle,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: FTile(
-                          prefix: const Icon(FIcons.calendar),
-                          title: Text(l.tourDraftDate),
-                          subtitle: Text(DateFormat('d MMM yyyy', 'fr').format(_date)),
-                          onPress: _pickDate,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: FTile(
-                          prefix: const Icon(FIcons.clock),
-                          title: Text(l.tourDraftStart),
-                          subtitle: Text(formatHm(_startMinutes)),
-                          onPress: _pickTime,
-                        ),
-                      ),
-                    ],
-                  ),
+              Text(
+                l.tourDraftStepsTitle,
+                style: theme.typography.lg.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colors.foreground,
                 ),
               ),
-              // "Étapes" heading
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxs),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l.tourDraftStepsTitle,
-                        style: theme.typography.lg.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: theme.colors.foreground,
-                        ),
-                      ),
+              const SizedBox(height: AppSpacing.xs),
+              Row(
+                children: [
+                  Expanded(
+                    child: FButton(
+                      variant: FButtonVariant.outline,
+                      prefix: const Icon(FIcons.zap, size: 16),
+                      onPress: () {
+                        setState(() => _manualOrder = null);
+                        _refresh();
+                      },
+                      child: Text(l.tourDraftOptimizeOrder),
                     ),
-                    FButton(
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: FButton(
                       variant: FButtonVariant.outline,
                       prefix: const Icon(FIcons.pencil, size: 16),
                       onPress: () => _openEditSelection(context, bundle),
                       child: Text(l.tourDraftEditSelection),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              // Reorderable list
-              Expanded(
-                child: Material(
-                  type: MaterialType.transparency,
-                  child: ReorderableListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md),
-                    itemCount: bundle.orderedClients.length,
-                    onReorder: (oldIndex, newIndex) {
-                      final order =
-                          bundle.orderedClients.map((c) => c.id).toList();
-                      if (newIndex > oldIndex) newIndex -= 1;
-                      final id = order.removeAt(oldIndex);
-                      order.insert(newIndex, id);
-                      setState(() => _manualOrder = order);
-                      _refresh();
-                    },
-                    itemBuilder: (_, i) {
-                      final c = bundle.orderedClients[i];
-                      final arr = bundle.result.arrivalMinutes[i];
-                      final dep = bundle.result.departureMinutes[i];
-                      final fee = formatEuros(bundle.result.feeShareCents[i]);
-                      final stopPres =
-                          bundle.result.plannedPrestationsPerStop[i];
-                      final stopMinutes = stopPres.fold<int>(
-                          0, (sum, p) => sum + p.qty * p.minutesSnapshot);
-                      final stopRevenue =
-                          bundle.result.revenueCentsPerStop[i];
-                      return Padding(
-                        key: ValueKey(c.id),
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: FTile(
-                          onPress: () => _openPicker(context, c, stopPres),
-                          prefix: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: theme.colors.primary,
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              '${i + 1}',
-                              style: theme.typography.sm.copyWith(
-                                color: theme.colors.primaryForeground,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          title: Text(c.name),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+          ),
+        ),
+        // Reorderable list
+        Expanded(
+          child: Material(
+            type: MaterialType.transparency,
+            child: ReorderableListView.builder(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md),
+              itemCount: bundle.orderedClients.length,
+              onReorder: (oldIndex, newIndex) {
+                final order =
+                    bundle.orderedClients.map((c) => c.id).toList();
+                if (newIndex > oldIndex) newIndex -= 1;
+                final id = order.removeAt(oldIndex);
+                order.insert(newIndex, id);
+                setState(() => _manualOrder = order);
+                _refresh();
+              },
+              itemBuilder: (_, i) {
+                final c = bundle.orderedClients[i];
+                final arr = bundle.result.arrivalMinutes[i];
+                final dep = bundle.result.departureMinutes[i];
+                final fee = formatEuros(bundle.result.feeShareCents[i]);
+                final stopPres =
+                    bundle.result.plannedPrestationsPerStop[i];
+                final stopMinutes = stopPres.fold<int>(
+                    0, (sum, p) => sum + p.qty * p.minutesSnapshot);
+                final stopRevenue =
+                    bundle.result.revenueCentsPerStop[i];
+                return Padding(
+                  key: ValueKey(c.id),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xxs),
+                  child: FTile(
+                    onPress: () => _openPicker(context, c, stopPres),
+                    prefix: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: theme.colors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${i + 1}',
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.primaryForeground,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    title: Text(c.name),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          l.tourDraftStopArrivalFmt(
+                              formatHm(arr), formatHm(dep)),
+                        ),
+                        if (stopPres.isEmpty)
+                          Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                l.tourDraftStopArrivalFmt(
-                                    formatHm(arr), formatHm(dep)),
+                              Icon(
+                                FIcons.triangleAlert,
+                                size: 14,
+                                color: theme.colors.destructive,
                               ),
-                              if (stopPres.isEmpty)
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      FIcons.triangleAlert,
-                                      size: 14,
-                                      color: theme.colors.mutedForeground,
-                                    ),
-                                    const SizedBox(width: AppSpacing.xxs),
-                                    Text(l.tourDraftStopNoPrestation),
-                                  ],
-                                )
-                              else
-                                Text(
-                                  l.tourDraftStopNPrestationsFmt(
-                                    stopPres.length,
-                                    formatDuration(stopMinutes),
-                                    formatEuros(stopRevenue),
-                                  ),
+                              const SizedBox(width: AppSpacing.xxs),
+                              Text(
+                                l.tourDraftStopNoPrestation,
+                                style: theme.typography.sm.copyWith(
+                                  color: theme.colors.destructive,
+                                  fontWeight: FontWeight.w600,
                                 ),
+                              ),
                             ],
+                          )
+                        else
+                          Text(
+                            l.tourDraftStopNPrestationsFmt(
+                              stopPres.length,
+                              formatDuration(stopMinutes),
+                              formatEuros(stopRevenue),
+                            ),
                           ),
-                          details: Text(fee),
-                          suffix: const Icon(FIcons.gripVertical),
+                      ],
+                    ),
+                    details: Text(fee),
+                    suffix: const Icon(FIcons.gripVertical),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        // MiniMap preview (shown when base is available and ≥1 stop)
+        Builder(builder: (context) {
+          final settingsAsync = ref.watch(settingsRepositoryFutureProvider);
+          final base = settingsAsync.value?.baseCoordinates;
+          if (base == null || bundle.orderedClients.isEmpty) {
+            return const SizedBox.shrink();
+          }
+          // Live ORS geometry for the current ordered draft (refetched on
+          // each reorder / picker change). Falls back to straight lines if
+          // not yet loaded or on error.
+          final geomAsync = ref.watch(tourDraftRouteGeometryProvider);
+          final geom = geomAsync.value;
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0,
+            ),
+            child: MiniMap(
+              base: LatLng(base.lat, base.lon),
+              waypoints: [
+                for (final c in bundle.orderedClients)
+                  LatLng(c.coordinates.lat, c.coordinates.lon),
+              ],
+              routeGeometry: geom == null
+                  ? null
+                  : [
+                      for (final c in geom) LatLng(c.lat, c.lon),
+                    ],
+              height: 140,
+            ),
+          );
+        }),
+        // Summary footer (KpiRow)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
+          child: AppKpiRow(
+            cells: [
+              AppKpiCell(
+                value: (bundle.result.totalDistanceMeters / 1000)
+                    .toStringAsFixed(0),
+                label: 'km',
+              ),
+              AppKpiCell(
+                value: formatDuration(
+                    bundle.result.totalDriveSeconds ~/ 60),
+                label: 'durée',
+              ),
+              if (bundle.result.totalRevenueCents > 0)
+                AppKpiCell(
+                  value: formatEuros(bundle.result.totalRevenueCents),
+                  label: 'revenu',
+                  valueColor: theme.colors.secondary,
+                ),
+              AppKpiCell(
+                value: formatHm(bundle.result.endTimeMinutes),
+                label: 'fin',
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final async = ref.watch(tourDraftProvider);
+    final title = _isEditing ? l.tourEditTitle : l.tourDraftTitle;
+    final isLoadingPrefill = _isEditing && !_prefilled;
+
+    return SafeArea(
+      bottom: false,
+      child: FScaffold(
+        resizeToAvoidBottomInset: true,
+        child: isLoadingPrefill
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppHeader(title: title),
+                  const Expanded(child: Center(child: FCircularProgress())),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  AppHeader(title: title),
+                  AppStepper(
+                    currentIndex: _step,
+                    labels: [
+                      l.tourDraftStepDate,
+                      l.tourDraftStepClients,
+                      l.tourDraftStepPrestations,
+                    ],
+                  ),
+                  Expanded(
+                    child: async.when(
+                      loading: () => const Center(child: FCircularProgress()),
+                      error: (e, _) => Center(child: Text('$e')),
+                      data: (bundle) {
+                        if (bundle == null) {
+                          return const Center(child: FCircularProgress());
+                        }
+                        return IndexedStack(
+                          index: _step,
+                          children: [
+                            _buildStepWhen(context, l),
+                            _buildStepWho(context, l),
+                            _buildStepWhat(context, l, bundle),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  async.when(
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (bundle) {
+                      final canNext = _canGoNext(bundle);
+                      if (_step < 2) {
+                        return AppActionBar(
+                          secondary: _step > 0
+                              ? AppPrimaryButton(
+                                  label: l.onboardingPrevious,
+                                  variant: FButtonVariant.outline,
+                                  onPress: () =>
+                                      setState(() => _step -= 1),
+                                )
+                              : AppPrimaryButton(
+                                  label: l.onboardingPrevious,
+                                  variant: FButtonVariant.outline,
+                                  onPress: null,
+                                ),
+                          primary: AppPrimaryButton(
+                            label: l.onboardingStep1Cta,
+                            onPress: canNext
+                                ? () => setState(() => _step += 1)
+                                : null,
+                          ),
+                        );
+                      }
+                      // Step 2
+                      return AppActionBar(
+                        secondary: AppPrimaryButton(
+                          label: l.onboardingPrevious,
+                          variant: FButtonVariant.outline,
+                          onPress: () => setState(() => _step -= 1),
+                        ),
+                        primary: AppPrimaryButton(
+                          label: l.tourDraftConfirm,
+                          onPress: bundle != null
+                              ? () => _save(bundle)
+                              : null,
                         ),
                       );
                     },
                   ),
-                ),
+                ],
               ),
-              // Summary footer
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
-                child: AppHeroCard(
-                  bigNumber:
-                      (bundle.result.totalDistanceMeters / 1000).toStringAsFixed(0),
-                  label: 'km au total',
-                  subtitle:
-                      '${formatDuration(bundle.result.totalDriveSeconds ~/ 60)} de trajet · Fin ${formatHm(bundle.result.endTimeMinutes)}',
-                ),
-              ),
-              if (bundle.result.totalRevenueCents > 0)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
-                  child: Text(
-                    l.tourDraftSummaryRevenue(
-                        formatEuros(bundle.result.totalRevenueCents)),
-                    style: theme.typography.sm,
-                  ),
-                ),
-              // Action row
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      FButton(
-                        variant: FButtonVariant.outline,
-                        onPress: () {
-                          setState(() => _manualOrder = null);
-                          _refresh();
-                        },
-                        child: Text(l.tourDraftOptimise),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: AppPrimaryButton(
-                          label: l.tourDraftConfirm,
-                          onPress: () => _save(bundle),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
       ),
     );
   }

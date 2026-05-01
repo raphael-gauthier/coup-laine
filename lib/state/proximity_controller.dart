@@ -59,5 +59,11 @@ class TourSelection extends StateNotifier<Set<int>> {
     state = next;
   }
 
+  /// Idempotent — adds `id` if absent, no-op otherwise.
+  void include(int id) {
+    if (state.contains(id)) return;
+    state = {...state, id};
+  }
+
   void clear() => state = const {};
 }

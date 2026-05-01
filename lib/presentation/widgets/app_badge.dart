@@ -96,6 +96,28 @@ class AppBadge extends StatelessWidget {
     );
   }
 
+  /// Nouveau v3 — succès générique.
+  factory AppBadge.success(BuildContext context, {required String label, IconData? icon}) {
+    final colors = context.theme.colors;
+    return AppBadge._(
+      label: label,
+      icon: icon ?? FIcons.check,
+      background: colors.primary,
+      foreground: colors.primaryForeground,
+    );
+  }
+
+  /// Nouveau v3 — info neutre.
+  factory AppBadge.info(BuildContext context, {required String label, IconData? icon}) {
+    final colors = context.theme.colors;
+    return AppBadge._(
+      label: label,
+      icon: icon,
+      background: colors.muted,
+      foreground: colors.foreground,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;

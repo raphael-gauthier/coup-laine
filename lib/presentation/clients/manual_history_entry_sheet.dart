@@ -213,7 +213,7 @@ class _SheetState extends ConsumerState<_Sheet> {
           FButton(
             variant: FButtonVariant.outline,
             onPress: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
+            child: Text(l.commonCancel),
           ),
           FButton(
             variant: FButtonVariant.destructive,

@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 
 import '../../core/animal_counts_from_prestations.dart';
 import '../../core/animal_counts_merge.dart';
 import '../../core/tour_stop_prestations_normalizer.dart';
+import '../../domain/models/coordinates.dart';
 import '../../domain/models/tour.dart';
 import '../../domain/models/tour_stop.dart';
 import '../../domain/models/tour_stop_prestation.dart';
@@ -37,6 +40,11 @@ class TourDraft {
   final String? notes;
   final List<TourStopDraft> stops;
 
+  /// Polyline ORS du trajet complet (base → stops → base). Nullable :
+  /// si l'appel ORS échoue (offline, quota), on persiste null et la map
+  /// tombe en lignes droites côté UI.
+  final List<Coordinates>? routeGeometry;
+
   const TourDraft({
     required this.plannedDate,
     required this.startTimeMinutes,
@@ -45,7 +53,28 @@ class TourDraft {
     required this.totalTravelFeeCents,
     required this.stops,
     this.notes,
+    this.routeGeometry,
   });
+}
+
+/// Encode/decode helpers pour le champ JSON `tours.routeGeometry`.
+/// Format compact : `[[lat, lon], [lat, lon], ...]`.
+String? encodeRouteGeometry(List<Coordinates>? coords) {
+  if (coords == null || coords.isEmpty) return null;
+  return jsonEncode([
+    for (final c in coords) [c.lat, c.lon],
+  ]);
+}
+
+List<Coordinates>? decodeRouteGeometry(String? json) {
+  if (json == null || json.isEmpty) return null;
+  final raw = jsonDecode(json);
+  if (raw is! List) return null;
+  return [
+    for (final p in raw)
+      if (p is List && p.length >= 2)
+        Coordinates(lat: (p[0] as num).toDouble(), lon: (p[1] as num).toDouble()),
+  ];
 }
 
 class TourWithStops {
@@ -71,6 +100,7 @@ class TourRepository {
               totalTravelFeeCents: draft.totalTravelFeeCents,
               notes: Value(draft.notes),
               createdAt: now,
+              routeGeometry: Value(encodeRouteGeometry(draft.routeGeometry)),
             ),
           );
       for (final s in draft.stops) {
@@ -206,6 +236,7 @@ class TourRepository {
           totalDriveSeconds: Value(draft.totalDriveSeconds),
           totalTravelFeeCents: Value(draft.totalTravelFeeCents),
           notes: Value(draft.notes),
+          routeGeometry: Value(encodeRouteGeometry(draft.routeGeometry)),
         ),
       );
 
@@ -259,6 +290,7 @@ class TourRepository {
             ? null
             : DateTime.fromMillisecondsSinceEpoch(row.completedAt!),
         createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
+        routeGeometry: decodeRouteGeometry(row.routeGeometry),
       );
 
   TourStop _stopFromRow(TourStopRow row) => TourStop(

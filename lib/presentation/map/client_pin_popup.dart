@@ -2,14 +2,15 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
-import '../clients/client_actions.dart';
 import '../widgets/animal_counts_badges.dart';
 import '../widgets/app_badge.dart';
 
@@ -29,8 +30,6 @@ class ClientPinPopup extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
     final l = AppLocalizations.of(context)!;
-    final principalPhone = client.principalPhone;
-    final hasPhone = principalPhone != null;
     final distanceAsync = ref.watch(clientDistanceFromBaseProvider(client.id));
 
     final lastInterventionLabel = client.lastInterventionDate == null
@@ -132,11 +131,9 @@ class ClientPinPopup extends ConsumerWidget {
                   child: FButton(
                     variant: FButtonVariant.outline,
                     size: FButtonSizeVariant.sm,
-                    prefix: const Icon(FIcons.phone),
-                    onPress: hasPhone
-                        ? () => callPhone(context, principalPhone)
-                        : null,
-                    child: const Text('Appeler'),
+                    prefix: const Icon(FIcons.compass),
+                    onPress: () => _openItinerary(client),
+                    child: Text(l.mapPinPopupItinerary),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.xs),
@@ -144,11 +141,9 @@ class ClientPinPopup extends ConsumerWidget {
                   child: FButton(
                     variant: FButtonVariant.outline,
                     size: FButtonSizeVariant.sm,
-                    prefix: const Icon(FIcons.messageCircle),
-                    onPress: hasPhone
-                        ? () => sendSms(context, principalPhone)
-                        : null,
-                    child: const Text('SMS'),
+                    prefix: const Icon(FIcons.route),
+                    onPress: () => context.push('/proximity/${client.id}'),
+                    child: const Text('Planifier'),
                   ),
                 ),
               ],
@@ -157,6 +152,14 @@ class ClientPinPopup extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openItinerary(Client c) async {
+    // Universal "geo:" URI — handled by Maps/Waze/etc.
+    final uri = Uri.parse(
+      'geo:${c.coordinates.lat},${c.coordinates.lon}?q=${c.coordinates.lat},${c.coordinates.lon}(${Uri.encodeComponent(c.name)})',
+    );
+    await launchUrl(uri);
   }
 
   String _statusLabel(AppLocalizations l, ClientStatus s) => switch (s) {

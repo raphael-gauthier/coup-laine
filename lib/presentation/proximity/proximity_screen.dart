@@ -8,6 +8,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
 import '../../state/proximity_controller.dart';
+import '../widgets/app_action_bar.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_kpi_row.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import 'proximity_list_view.dart';
@@ -47,107 +50,117 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final theme = context.theme;
     final selection = ref.watch(tourSelectionProvider);
     final pivotAsync = ref.watch(pivotClientProvider(widget.pivotId));
     final pivot = pivotAsync.value;
+    final nearbyResults = ref.watch(proximityResultsProvider).value;
 
-    final footer = selection.isEmpty
-        ? null
-        : Container(
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: theme.colors.border),
-              ),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-            child: Row(
-              children: [
-                Text(l.proximitySelectedCount(selection.length)),
-                const Spacer(),
-                AppPrimaryButton(
-                  label: l.proximityPlanTour,
-                  prefixIcon: FIcons.route,
-                  onPress: () =>
-                      context.push('/tours/draft?pivot=${widget.pivotId}'),
-                ),
-              ],
-            ),
-          );
+    // --- NICE: KPI row (no new providers, data already watched) ---
+    Widget? kpiRow;
+    if (nearbyResults != null && nearbyResults.isNotEmpty) {
+      final found = nearbyResults.length;
+      final avgKm = (nearbyResults.map((e) => e.distanceMeters).reduce((a, b) => a + b) /
+              found /
+              1000)
+          .toStringAsFixed(1);
+      kpiRow = Padding(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
+        child: AppKpiRow(cells: [
+          AppKpiCell(value: '$found', label: 'trouvés'),
+          AppKpiCell(value: '${selection.length}', label: 'sélectionnés'),
+          AppKpiCell(value: '$avgKm km', label: 'distance moy.'),
+        ]),
+      );
+    }
+
+    // --- SHOULD: bottom CTA via AppActionBar ---
+    Widget? footer;
+    if (selection.isNotEmpty) {
+      footer = AppActionBar(
+        primary: AppPrimaryButton(
+          label: '${l.proximityPlanTour} (${selection.length})',
+          prefixIcon: FIcons.route,
+          onPress: () {
+            // Make sure the pivot client is part of the tour selection so the
+            // draft picker reflects it as already-included (it's also added
+            // implicitly at the head by tourDraftProvider, but having it in
+            // the selection set keeps the UI/state consistent).
+            ref
+                .read(tourSelectionProvider.notifier)
+                .include(widget.pivotId);
+            context.push('/tours/draft?pivot=${widget.pivotId}');
+          },
+        ),
+      );
+    }
 
     return SafeArea(
       child: FScaffold(
-        header: FHeader.nested(
-          title: Text(pivot?.name ?? l.proximityTitle),
+        // --- MUST: AppHeader replaces FHeader.nested ---
+        header: AppHeader(
+          title: pivot != null
+              ? 'À proximité de ${pivot.name}'
+              : l.proximityTitle,
+          subtitle: pivot?.city,
         ),
         footer: footer,
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Pivot info row
-          if (pivot != null)
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (kpiRow != null) kpiRow,
+            // Radius card
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xxs),
-              child: Text(
-                pivot.city,
-                style: theme.typography.sm
-                    .copyWith(color: theme.colors.mutedForeground),
-              ),
-            ),
-          // Radius card
-          Padding(
-            padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
-            child: AppSectionCard(
-              icon: FIcons.compass,
-              title: l.proximityRadiusTitle,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '$_radiusKm km',
-                    style: theme.typography.xl2.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colors.foreground,
+              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
+              child: AppSectionCard(
+                icon: FIcons.compass,
+                title: l.proximityRadiusTitle,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$_radiusKm km',
+                      style: context.theme.typography.xl2.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: context.theme.colors.foreground,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Material(
-                    type: MaterialType.transparency,
-                    child: Slider(
-                      min: 5,
-                      max: 30,
-                      divisions: 5,
-                      value: _radiusKm.toDouble(),
-                      label: '$_radiusKm km',
-                      onChanged: (v) => _setRadius(v.round()),
+                    const SizedBox(height: AppSpacing.xs),
+                    Material(
+                      type: MaterialType.transparency,
+                      child: Slider(
+                        min: 5,
+                        max: 30,
+                        divisions: 5,
+                        value: _radiusKm.toDouble(),
+                        label: '$_radiusKm km',
+                        onChanged: (v) => _setRadius(v.round()),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          // Tabs (list / map) — FTabs with expands:true fills remaining space
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.xs),
-              child: FTabs(
-                expands: true,
-                children: [
-                  FTabEntry(
-                    label: Text(l.proximityTabList),
-                    child: const ProximityListView(),
-                  ),
-                  FTabEntry(
-                    label: Text(l.proximityTabMap),
-                    child: ProximityMapView(pivotId: widget.pivotId),
-                  ),
-                ],
+            // Tabs (list / map) — FTabs with expands:true fills remaining space
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: FTabs(
+                  expands: true,
+                  children: [
+                    FTabEntry(
+                      label: Text(l.proximityTabList),
+                      child: const ProximityListView(),
+                    ),
+                    FTabEntry(
+                      label: Text(l.proximityTabMap),
+                      child: ProximityMapView(pivotId: widget.pivotId),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

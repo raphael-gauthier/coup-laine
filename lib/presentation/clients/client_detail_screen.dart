@@ -8,24 +8,32 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
+import '../../core/format_minutes.dart';
+import '../../core/text_truncate.dart';
+import '../../core/theme/app_typography.dart';
+import '../../core/ui/confirm_dialog.dart';
 import 'client_actions.dart';
-import '../../domain/models/animal_count.dart';
 import '../../domain/models/client.dart';
 import 'manual_history_entry_sheet.dart';
 import '../../domain/models/intervention.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
+import '../../state/providers/client_kpis.dart';
 import '../widgets/animal_counts_badges.dart';
+import '../widgets/app_action_bar.dart';
 import '../widgets/app_badge.dart';
-import '../widgets/app_hero_card.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_kpi_row.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
 final _clientByIdProvider =
     FutureProvider.family<(Client, ClientStatus)?, int>((ref, id) async {
-  final settings = await ref.watch(settingsRepositoryProvider).read();
+  // Watch the FutureProvider for settings (not the repo Provider), so this
+  // auto-refreshes when the season is reset or settings change.
+  final settings = await ref.watch(settingsRepositoryFutureProvider.future);
   final seasonStart = settings?.seasonStartedAt ??
       DateTime.fromMillisecondsSinceEpoch(0);
   return ref.watch(clientRepositoryProvider).findByIdWithStatus(id, seasonStart);
@@ -40,27 +48,52 @@ class ClientDetailScreen extends ConsumerWidget {
     final async = ref.watch(_clientByIdProvider(clientId));
     final l = AppLocalizations.of(context)!;
 
-    return SafeArea(
-      child: FScaffold(
-        header: FHeader.nested(
-          title: Text(async.value?.$1.name ?? '...'),
-          suffixes: [
-            FButton.icon(
-              child: const Icon(FIcons.pencil),
-              onPress: () => context.push('/clients/$clientId/edit'),
-            ),
-            FButton.icon(
-              child: const Icon(FIcons.trash),
-              onPress: () => _confirmDelete(context, ref, l),
-            ),
-          ],
-        ),
+    return FScaffold(
+      child: SafeArea(
+        top: true,
+        bottom: false,
         child: async.when(
           loading: () => const Center(child: FCircularProgress()),
           error: (e, _) => Center(child: Text('$e')),
-          data: (record) => record == null
-              ? const SizedBox.shrink()
-              : _Body(client: record.$1, status: record.$2),
+          data: (record) {
+            if (record == null) return const SizedBox.shrink();
+            final client = record.$1;
+            final status = record.$2;
+            return Column(
+              children: [
+                AppHeader(
+                  title: client.name,
+                  subtitle: client.city,
+                  actions: [
+                    AppHeaderAction(
+                      icon: FIcons.trash,
+                      label: l.clientDetailDelete,
+                      destructive: true,
+                      onPress: () => _confirmDelete(context, ref, l),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: _Body(client: client, status: status),
+                ),
+                AppActionBar(
+                  secondary: AppPrimaryButton(
+                    label: l.clientHistoryAddAction,
+                    variant: FButtonVariant.outline,
+                    onPress: () => showManualHistoryEntrySheet(
+                      context,
+                      clientId: client.id,
+                    ),
+                  ),
+                  primary: AppPrimaryButton(
+                    label: l.clientDetailEdit,
+                    variant: FButtonVariant.outline,
+                    onPress: () => context.push('/clients/${client.id}/edit'),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -68,34 +101,19 @@ class ClientDetailScreen extends ConsumerWidget {
 
   Future<void> _confirmDelete(
       BuildContext context, WidgetRef ref, AppLocalizations l) async {
-    final ok = await showFDialog<bool>(
-      context: context,
-      builder: (context, style, animation) => FDialog(
-        style: style,
-        animation: animation,
-        body: Text(l.clientDetailDeleteConfirm),
-        actions: [
-          FButton(
-            variant: FButtonVariant.outline,
-            onPress: () => Navigator.of(context).pop(false),
-            child: const Text('Annuler'),
-          ),
-          FButton(
-            variant: FButtonVariant.destructive,
-            onPress: () => Navigator.of(context).pop(true),
-            child: Text(l.clientDetailDelete),
-          ),
-        ],
-      ),
+    final ok = await showDestructiveConfirm(
+      context,
+      title: l.clientDetailDelete,
+      body: l.clientDetailDeleteConfirm,
+      confirmLabel: l.clientDetailDelete,
     );
-    if (ok == true) {
-      await ref.read(clientRepositoryProvider).delete(clientId);
-      await ref.read(distanceMatrixRepositoryProvider).deleteForClient(clientId);
-      ref.invalidate(_clientByIdProvider(clientId));
-      ref.invalidate(clientsAsyncProvider);
-      ref.invalidate(clientsPendingProvider);
-      if (context.mounted) context.pop();
-    }
+    if (!ok) return;
+    await ref.read(clientRepositoryProvider).delete(clientId);
+    await ref.read(distanceMatrixRepositoryProvider).deleteForClient(clientId);
+    ref.invalidate(_clientByIdProvider(clientId));
+    ref.invalidate(clientsAsyncProvider);
+    ref.invalidate(clientsPendingProvider);
+    if (context.mounted) context.pop();
   }
 }
 
@@ -108,38 +126,102 @@ class _Body extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
+    final kpisAsync = ref.watch(clientKpisProvider(client.id));
+    final plannedTourAsync = ref.watch(_plannedTourForClientProvider(client.id));
 
     return SingleChildScrollView(
       padding: AppSizes.screenPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Hero card: animal count
-          AppHeroCard(
-            badge: AppBadge.fromStatus(
-              context,
-              status: status,
-              label: _statusLabel(l, status),
-            ),
-            bigNumber: '${client.animalsTotal}',
-            label: 'animaux',
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          AnimalCountsBadges(
-            counts: client.animals,
-            mode: AnimalCountsBadgesMode.detailed,
-            style: theme.typography.sm.copyWith(
-              color: theme.colors.mutedForeground,
+          // KpiRow synthèse
+          kpisAsync.when(
+            loading: () => const SizedBox(height: 80),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (kpis) => AppKpiRow(
+              cells: [
+                AppKpiCell(
+                  value: '${kpis.interventionCount}',
+                  label: l.kpiLabelInterventions,
+                ),
+                AppKpiCell(
+                  value: kpis.totalRevenueCents == 0
+                      ? '—'
+                      : formatEuros(kpis.totalRevenueCents),
+                  label: l.kpiLabelRevenue,
+                  valueColor: theme.colors.secondary,
+                ),
+                AppKpiCell(
+                  value: kpis.lastInterventionDate == null
+                      ? '—'
+                      : _relativeShort(kpis.lastInterventionDate!),
+                  label: l.kpiLabelLastVisit,
+                ),
+                AppKpiCell(
+                  value: kpis.firstInterventionDate == null
+                      ? '—'
+                      : '${DateTime.now().year - kpis.firstInterventionDate!.year + 1}',
+                  label: l.kpiLabelYears,
+                ),
+              ],
             ),
           ),
           const SizedBox(height: AppSpacing.md),
 
-          // Recompute banner
+          // Status badge inline
+          Row(
+            children: [
+              AppBadge.fromStatus(
+                context,
+                status: status,
+                label: _statusLabel(l, status),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Prochaine action
+          plannedTourAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (date) => AppSectionCard(
+              icon: FIcons.calendar,
+              title: l.clientDetailNextActionTitle,
+              child: date == null
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          l.clientDetailNoPlannedTour,
+                          style: theme.typography.md.copyWith(
+                            color: theme.colors.mutedForeground,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        AppPrimaryButton(
+                          label: l.clientDetailFindNearby,
+                          onPress: status == ClientStatus.waiting
+                              ? () => context.push('/proximity/${client.id}')
+                              : null,
+                        ),
+                      ],
+                    )
+                  : Text(
+                      l.clientDetailPlannedTourFmt(
+                          DateFormat('EEEE d MMMM', 'fr').format(date)),
+                      style: theme.typography.md.copyWith(
+                        color: theme.colors.foreground,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Recompute banner (gardé)
           if (client.needsDistanceRecompute) ...[
             AppSectionCard(
               icon: FIcons.triangleAlert,
-              iconBackground: theme.colors.destructive,
-              title: 'Distances',
+              title: l.commonDistancesTitle,
               child: Row(
                 children: [
                   Expanded(
@@ -173,17 +255,30 @@ class _Body extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
           ],
 
-          // Address card
+          // Animaux
+          if (client.animals.isNotEmpty) ...[
+            AppSectionCard(
+              icon: FIcons.pawPrint,
+              title: l.clientFormSectionAnimals,
+              child: AnimalCountsBadges(
+                counts: client.animals,
+                mode: AnimalCountsBadgesMode.detailed,
+                style: theme.typography.md.copyWith(
+                  color: theme.colors.foreground,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+          ],
+
+          // Coordonnées
           AppSectionCard(
             icon: FIcons.mapPin,
             title: l.clientDetailSectionAddress,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  client.addressLabel,
-                  style: theme.typography.md,
-                ),
+                Text(client.addressLabel, style: theme.typography.md),
                 Text(
                   '${client.postcode} ${client.city}',
                   style: theme.typography.sm.copyWith(
@@ -195,7 +290,7 @@ class _Body extends ConsumerWidget {
           ),
           const SizedBox(height: AppSpacing.md),
 
-          // Contact card (one row per phone)
+          // Phones
           if (client.phones.isNotEmpty) ...[
             AppSectionCard(
               icon: FIcons.phone,
@@ -207,16 +302,23 @@ class _Body extends ConsumerWidget {
                     if (i > 0) const SizedBox(height: AppSpacing.md),
                     Row(
                       children: [
-                        Icon(FIcons.phone, color: theme.colors.mutedForeground),
+                        Icon(FIcons.phone,
+                            color: theme.colors.mutedForeground, size: 16),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
                             client.phones[i],
-                            style: theme.typography.md,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            style: tabularStyle(theme.typography.md),
                           ),
                         ),
+                        if (i == 0)
+                          Text(
+                            l.clientDetailPhonePrincipal,
+                            style: theme.typography.xs.copyWith(
+                              color: theme.colors.mutedForeground,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.sm),
@@ -226,8 +328,9 @@ class _Body extends ConsumerWidget {
                           child: FButton(
                             variant: FButtonVariant.outline,
                             prefix: const Icon(FIcons.phone),
-                            onPress: () => callPhone(context, client.phones[i]),
-                            child: const Text('Appeler'),
+                            onPress: () =>
+                                callPhone(context, client.phones[i]),
+                            child: Text(l.commonCall),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
@@ -235,8 +338,9 @@ class _Body extends ConsumerWidget {
                           child: FButton(
                             variant: FButtonVariant.outline,
                             prefix: const Icon(FIcons.messageCircle),
-                            onPress: () => sendSms(context, client.phones[i]),
-                            child: const Text('SMS'),
+                            onPress: () =>
+                                sendSms(context, client.phones[i]),
+                            child: Text(l.commonSms),
                           ),
                         ),
                       ],
@@ -248,83 +352,94 @@ class _Body extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
           ],
 
-          // Status section
-          Builder(builder: (context) {
-            final waitingToggleDisabled = status == ClientStatus.banned ||
-                status == ClientStatus.noAnimals ||
-                status == ClientStatus.scheduled ||
-                status == ClientStatus.done;
-            return AppSectionCard(
-              icon: FIcons.bellRing,
-              title: l.clientDetailSectionStatus,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  FTile(
-                    title: Text(l.clientStatusWaiting),
-                    subtitle: waitingToggleDisabled
-                        ? Text(
-                            l.clientDetailWaitingDisabledHintFmt(
-                              _statusLabel(l, status),
-                            ),
-                            style: theme.typography.xs.copyWith(
-                              color: theme.colors.mutedForeground,
-                            ),
-                          )
-                        : null,
-                    suffix: FSwitch(
-                      value: client.isWaiting,
-                      onChange: waitingToggleDisabled
-                          ? null
-                          : (v) async {
-                              await ref
-                                  .read(clientRepositoryProvider)
-                                  .setWaiting(id: client.id, isWaiting: v);
-                              ref.invalidate(_clientByIdProvider(client.id));
-                              ref.invalidate(clientsAsyncProvider);
-                            },
+          // Status & actions
+          _StatusActionsCard(client: client, status: status, l: l),
+          const SizedBox(height: AppSpacing.md),
+
+          // Historique (3 derniers + lien)
+          _InterventionsCard(clientId: client.id),
+          const SizedBox(height: AppSizes.bottomScrollPadding),
+        ],
+      ),
+    );
+  }
+
+  String _relativeShort(DateTime d) {
+    final now = DateTime.now();
+    final diff = now.difference(d);
+    if (diff.inDays < 30) return 'il y a ${diff.inDays}j';
+    final months = (diff.inDays / 30).round();
+    if (months < 12) return 'il y a ${months}m';
+    final years = (months / 12).round();
+    return 'il y a ${years}an${years > 1 ? 's' : ''}';
+  }
+}
+
+class _StatusActionsCard extends ConsumerWidget {
+  final Client client;
+  final ClientStatus status;
+  final AppLocalizations l;
+  const _StatusActionsCard(
+      {required this.client, required this.status, required this.l});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = context.theme;
+    final waitingToggleDisabled = status == ClientStatus.banned ||
+        status == ClientStatus.noAnimals ||
+        status == ClientStatus.scheduled ||
+        status == ClientStatus.done;
+
+    return AppSectionCard(
+      icon: FIcons.bellRing,
+      title: l.clientDetailSectionStatus,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          FTile(
+            title: Text(l.clientStatusWaiting),
+            subtitle: waitingToggleDisabled
+                ? Text(
+                    l.clientDetailWaitingDisabledHintFmt(
+                      _statusLabel(l, status),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  FButton(
-                    variant: client.isBanned
-                        ? FButtonVariant.outline
-                        : FButtonVariant.destructive,
-                    prefix: Icon(client.isBanned ? FIcons.shieldOff : FIcons.ban),
-                    onPress: () async {
+                    style: theme.typography.xs.copyWith(
+                      color: theme.colors.mutedForeground,
+                    ),
+                  )
+                : null,
+            suffix: FSwitch(
+              value: client.isWaiting,
+              onChange: waitingToggleDisabled
+                  ? null
+                  : (v) async {
                       await ref
                           .read(clientRepositoryProvider)
-                          .setBanned(client.id, !client.isBanned);
+                          .setWaiting(id: client.id, isWaiting: v);
                       ref.invalidate(_clientByIdProvider(client.id));
                       ref.invalidate(clientsAsyncProvider);
                     },
-                    child: Text(
-                      client.isBanned
-                          ? l.clientDetailUnban
-                          : l.clientDetailBan,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  _ResetToDefaultButton(client: client),
-                ],
-              ),
-            );
-          }),
-          const SizedBox(height: AppSpacing.lg),
-
-          const SizedBox(height: AppSpacing.md),
-          _InterventionsCard(clientId: client.id),
-          const SizedBox(height: AppSpacing.lg),
-
-          // CTA: find nearby clients
-          AppPrimaryButton(
-            label: l.clientDetailFindNearby,
-            prefixIcon: FIcons.compass,
-            onPress: status == ClientStatus.waiting
-                ? () => context.push('/proximity/${client.id}')
-                : null,
+            ),
           ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm),
+          FButton(
+            variant: client.isBanned
+                ? FButtonVariant.outline
+                : FButtonVariant.destructive,
+            prefix: Icon(client.isBanned ? FIcons.shieldOff : FIcons.ban),
+            onPress: () async {
+              await ref
+                  .read(clientRepositoryProvider)
+                  .setBanned(client.id, !client.isBanned);
+              ref.invalidate(_clientByIdProvider(client.id));
+              ref.invalidate(clientsAsyncProvider);
+            },
+            child: Text(
+              client.isBanned ? l.clientDetailUnban : l.clientDetailBan,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _ResetToDefaultButton(client: client),
         ],
       ),
     );
@@ -348,7 +463,6 @@ class _ResetToDefaultButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-
     final plannedTourAsync = ref.watch(_plannedTourForClientProvider(client.id));
 
     return plannedTourAsync.when(
@@ -391,8 +505,6 @@ class _ResetToDefaultButton extends ConsumerWidget {
   }
 }
 
-/// Returns the planned date of the *earliest* tour this client is part of
-/// in the current season, or null if none exists.
 final _plannedTourForClientProvider =
     FutureProvider.family.autoDispose<DateTime?, int>((ref, clientId) async {
   final settings = await ref.watch(settingsRepositoryProvider).read();
@@ -440,7 +552,7 @@ class _InterventionsCard extends ConsumerWidget {
         ),
         error: (e, _) => Text('$e'),
         data: (items) {
-          final visible = items.take(5).toList();
+          final visible = items.take(3).toList();
           final hasMore = items.length > visible.length;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -454,150 +566,230 @@ class _InterventionsCard extends ConsumerWidget {
                 )
               else
                 for (final it in visible) ...[
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () async {
-                      if (it.kind == InterventionKind.tour &&
-                          it.tourId != null) {
-                        context.push('/tours/${it.tourId}');
-                        return;
-                      }
-                      if (it.kind == InterventionKind.manual &&
-                          it.manualEntryId != null) {
-                        final manualRepo =
-                            ref.read(manualHistoryRepositoryProvider);
-                        final all =
-                            await manualRepo.listForClient(clientId);
-                        final matches =
-                            all.where((e) => e.id == it.manualEntryId);
-                        final entry =
-                            matches.isEmpty ? null : matches.first;
-                        if (entry != null && context.mounted) {
-                          await showManualHistoryEntrySheet(
-                            context,
-                            clientId: clientId,
-                            existing: entry,
-                          );
-                        }
-                      }
-                    },
-                    child: _InterventionRow(item: it),
+                  _InterventionTile(
+                    intervention: it,
+                    onTap: () => _openIntervention(context, ref, it),
                   ),
                   if (it != visible.last)
-                    const SizedBox(height: AppSpacing.xs),
+                    Container(
+                      height: AppSizes.hairlineBorder,
+                      color: theme.colors.border,
+                    ),
                 ],
               if (hasMore) ...[
                 const SizedBox(height: AppSpacing.sm),
                 FButton(
                   variant: FButtonVariant.outline,
-                  onPress: () => context.push('/clients/$clientId/history'),
+                  onPress: () =>
+                      context.push('/clients/$clientId/history'),
                   child: Text(l.clientDetailHistoryViewAll),
                 ),
               ],
-              const SizedBox(height: AppSpacing.sm),
-              FButton(
-                variant: FButtonVariant.outline,
-                prefix: const Icon(FIcons.plus),
-                onPress: () => showManualHistoryEntrySheet(
-                  context,
-                  clientId: clientId,
-                ),
-                child: Text(l.clientHistoryAddAction),
-              ),
             ],
           );
         },
       ),
     );
   }
+
+  Future<void> _openIntervention(
+      BuildContext context, WidgetRef ref, Intervention it) async {
+    if (it.kind == InterventionKind.tour && it.tourId != null) {
+      context.push('/tours/${it.tourId}');
+      return;
+    }
+    if (it.kind == InterventionKind.manual && it.manualEntryId != null) {
+      final manualRepo = ref.read(manualHistoryRepositoryProvider);
+      final all = await manualRepo.listForClient(clientId);
+      final matches = all.where((e) => e.id == it.manualEntryId);
+      final entry = matches.isEmpty ? null : matches.first;
+      if (entry != null && context.mounted) {
+        await showManualHistoryEntrySheet(
+          context,
+          clientId: clientId,
+          existing: entry,
+        );
+      }
+    }
+  }
 }
 
-class _InterventionRow extends StatelessWidget {
-  final Intervention item;
-  const _InterventionRow({required this.item});
+/// Tile pour une intervention dans la card historique de la fiche client.
+/// Layout 2 colonnes :
+/// - Gauche  : icône kind + breakdown (bold) + date avec année (muted italic)
+/// - Droite  : revenu (bold accent) + durée (muted) en tabular
+class _InterventionTile extends StatefulWidget {
+  final Intervention intervention;
+  final VoidCallback onTap;
+
+  const _InterventionTile({
+    required this.intervention,
+    required this.onTap,
+  });
+
+  @override
+  State<_InterventionTile> createState() => _InterventionTileState();
+}
+
+class _InterventionTileState extends State<_InterventionTile> {
+  bool _pressed = false;
+
+  String _breakdown(AppLocalizations l) {
+    final parts = <String>[];
+    for (final p in widget.intervention.prestations) {
+      parts.add('${p.qty} ${p.nameSnapshot}');
+      if (parts.length >= 3) break;
+    }
+    if (widget.intervention.prestations.length > 3) {
+      parts.add(l.clientHistoryAndOthersFmt(
+          widget.intervention.prestations.length - 3));
+    }
+    return parts.join(' · ');
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final isManual = item.kind == InterventionKind.manual;
-    final dateStr = DateFormat('d MMM yyyy', 'fr').format(item.date);
-    final note = item.note;
-    final counts = [
-      for (final a in item.prestations)
-        if (a.categoryIdSnapshot != null)
-          AnimalCount(categoryId: a.categoryIdSnapshot!, count: a.qty),
-    ];
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Icon(
-          isManual ? FIcons.pencil : FIcons.scissors,
-          size: 18,
-          color: theme.colors.mutedForeground,
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
+    final it = widget.intervention;
+    final breakdown = _breakdown(l);
+    final dateStr = DateFormat('EEE d MMM yyyy', 'fr').format(it.date);
+    final mainTitle = breakdown.isEmpty
+        ? (it.kind == InterventionKind.tour
+            ? l.clientHistoryKindTour
+            : l.clientHistoryKindManual)
+        : breakdown;
+
+    final kindIcon = Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: theme.colors.muted,
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Icon(
+        it.kind == InterventionKind.manual
+            ? FIcons.pencil
+            : FIcons.scissors,
+        size: 14,
+        color: theme.colors.foreground,
+      ),
+    );
+
+    Widget rightCol = const SizedBox.shrink();
+    if (it.totalRevenueCents > 0 || it.totalMinutes > 0) {
+      rightCol = Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (it.totalRevenueCents > 0)
+            Text(
+              formatEuros(it.totalRevenueCents),
+              style: tabularStyle(theme.typography.lg).copyWith(
+                color: theme.colors.secondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          if (it.totalMinutes > 0) ...[
+            const SizedBox(height: 2),
+            Text(
+              formatDuration(it.totalMinutes),
+              style: tabularStyle(theme.typography.sm).copyWith(
+                color: theme.colors.mutedForeground,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    final note = it.note?.trim();
+    final hasNote = note != null && note.isNotEmpty;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedOpacity(
+        opacity: _pressed ? 0.6 : 1.0,
+        duration: const Duration(milliseconds: 80),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                dateStr,
-                style: theme.typography.sm.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colors.foreground,
-                ),
-              ),
-              AnimalCountsBadges(
-                counts: counts,
-                mode: AnimalCountsBadgesMode.detailed,
-                style: theme.typography.xs.copyWith(
-                  color: theme.colors.mutedForeground,
-                ),
-              ),
-              if (!item.hasBilan)
-                Text(
-                  l.clientDetailHistoryNoBilan.trim(),
-                  style: theme.typography.xs.copyWith(
-                    color: theme.colors.mutedForeground,
-                    fontStyle: FontStyle.italic,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  kindIcon,
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          mainTitle,
+                          style: theme.typography.lg.copyWith(
+                            color: theme.colors.foreground,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          dateStr,
+                          style: theme.typography.sm.copyWith(
+                            color: theme.colors.mutedForeground,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              if (note != null && note.isNotEmpty) ...[
-                const SizedBox(height: AppSpacing.hairline),
-                Text(
-                  note,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.typography.xs.copyWith(
-                    color: theme.colors.mutedForeground,
-                    fontStyle: FontStyle.italic,
+                  const SizedBox(width: AppSpacing.sm),
+                  rightCol,
+                ],
+              ),
+              if (hasNote) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Padding(
+                  padding: const EdgeInsets.only(left: 40),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        FIcons.stickyNote,
+                        size: 13,
+                        color: theme.colors.mutedForeground,
+                      ),
+                      const SizedBox(width: AppSpacing.xxs),
+                      Expanded(
+                        child: Text(
+                          truncateForPreview(note, maxChars: 90),
+                          style: theme.typography.sm.copyWith(
+                            color: theme.colors.mutedForeground,
+                            fontStyle: FontStyle.italic,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ],
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '${item.prestationsQtyTotal}',
-              style: theme.typography.lg.copyWith(
-                fontWeight: FontWeight.w700,
-                color: theme.colors.foreground,
-              ),
-            ),
-            Text(
-              'animaux',
-              style: theme.typography.xs.copyWith(
-                color: theme.colors.mutedForeground,
-              ),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }
+

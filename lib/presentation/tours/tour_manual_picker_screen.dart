@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design_tokens.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/tour_draft_controller.dart';
+import '../widgets/app_header.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/waiting_clients_multi_picker.dart';
 
@@ -72,13 +73,21 @@ class _TourManualPickerScreenState
               ],
             ),
           );
-    return SafeArea(
-      child: FScaffold(
-        header: FHeader.nested(title: Text(l.manualPickerTitle)),
-        footer: footer,
-        child: WaitingClientsMultiPicker(
-          initialSelection: _selection,
-          onSelectionChanged: (s) => setState(() => _selection = s),
+    return FScaffold(
+      footer: footer,
+      child: SafeArea(
+        top: true,
+        bottom: false,
+        child: Column(
+          children: [
+            AppHeader(title: l.manualPickerTitle),
+            Expanded(
+              child: WaitingClientsMultiPicker(
+                initialSelection: _selection,
+                onSelectionChanged: (s) => setState(() => _selection = s),
+              ),
+            ),
+          ],
         ),
       ),
     );

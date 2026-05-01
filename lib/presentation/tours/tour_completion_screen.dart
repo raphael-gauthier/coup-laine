@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
+import '../../core/theme/app_typography.dart';
+import '../../core/ui/confirm_dialog.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/animal_category.dart';
 import '../../domain/models/prestation.dart';
@@ -14,6 +16,10 @@ import '../../domain/models/tour_stop_prestation.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart'
     show clientsAsyncProvider, clientNotesMapProvider;
+import '../widgets/app_action_bar.dart';
+import '../widgets/app_diff_row.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_kpi_row.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
@@ -188,10 +194,11 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
     final theme = context.theme;
     final async = ref.watch(_tourForCompletionProvider(widget.tourId));
 
-    return SafeArea(
-      child: FScaffold(
-        resizeToAvoidBottomInset: true,
-        header: FHeader.nested(title: Text(l.tourCompletionTitle)),
+    return FScaffold(
+      resizeToAvoidBottomInset: true,
+      child: SafeArea(
+        top: true,
+        bottom: false,
         child: async.when(
           loading: () => const Center(child: FCircularProgress()),
           error: (e, _) => Center(child: Text('$e')),
@@ -202,8 +209,59 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
                 bundle.stops.where((s) => s.clientId != null).toList();
             final totals = _liveTotals();
             final feeCents = bundle.tour.totalTravelFeeCents;
+            final plannedRevenue = bundle.stops.fold<int>(
+                0,
+                (s, st) =>
+                    s +
+                    st.plannedPrestations.fold<int>(
+                        0, (a, p) => a + p.priceCentsSnapshot * p.qty));
+            final actualRevenue = totals.revenueCents + feeCents;
+            final delta = actualRevenue - plannedRevenue - feeCents;
+            final stopsValidated = _drafts.values
+                .where((d) => d.rows.any((r) => r.checked && r.qty > 0))
+                .length;
+
+            final deltaSign =
+                delta == 0 ? '' : (delta > 0 ? '+' : '-');
+            final deltaLabel = '$deltaSign${formatEuros(delta.abs())}';
+
             return Column(
               children: [
+                AppHeader(
+                  title: l.tourCompletionTitle,
+                  subtitle:
+                      '${visibleStops.length} stops · prévu ${formatEuros(plannedRevenue + feeCents)}',
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  child: AppKpiRow(
+                    cells: [
+                      AppKpiCell(
+                        value: '$stopsValidated/${visibleStops.length}',
+                        label: l.kpiLabelStops,
+                      ),
+                      AppKpiCell(
+                        value: formatEuros(actualRevenue),
+                        label: l.kpiLabelRevenue,
+                        valueColor: theme.colors.secondary,
+                      ),
+                      AppKpiCell(
+                        value: formatDuration(totals.minutes),
+                        label: l.kpiLabelDuration,
+                      ),
+                      AppKpiCell(
+                        value: delta == 0 ? '0 €' : deltaLabel,
+                        label: l.kpiLabelDeltaVsPlanned,
+                        valueColor: delta == 0
+                            ? theme.colors.mutedForeground
+                            : (delta > 0
+                                ? theme.colors.primary
+                                : theme.colors.destructive),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
                 Expanded(
                   child: ListView.separated(
                     padding: AppSizes.screenPadding,
@@ -213,26 +271,46 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
                     itemBuilder: (_, i) {
                       final s = visibleStops[i];
                       final draft = _drafts[s.id]!;
+                      final stopMin = draft.rows.fold<int>(
+                          0,
+                          (acc, r) =>
+                              acc +
+                              (r.checked && r.qty > 0
+                                  ? r.qty * r.minutesSnapshot
+                                  : 0));
+                      final stopRev = draft.rows.fold<int>(
+                          0,
+                          (acc, r) =>
+                              acc +
+                              (r.checked && r.qty > 0
+                                  ? r.qty * r.priceCentsSnapshot
+                                  : 0));
+                      final plannedById = {
+                        for (final p in s.plannedPrestations)
+                          p.prestationId: p.qty,
+                      };
                       return AppSectionCard(
                         icon: FIcons.user,
-                        title: s.clientNameSnapshot,
+                        title: '${i + 1} · ${s.clientNameSnapshot}',
+                        trailing: Text(
+                          '${formatEuros(stopRev)} · ${formatDuration(stopMin)}',
+                          style: tabularStyle(theme.typography.sm).copyWith(
+                            color: theme.colors.mutedForeground,
+                          ),
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             for (var ri = 0; ri < draft.rows.length; ri++)
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: ri == draft.rows.length - 1
-                                      ? 0
-                                      : AppSpacing.sm,
-                                ),
-                                child: _PrestationRowEditor(
-                                  row: draft.rows[ri],
-                                  onCheckedChanged: (v) =>
-                                      setState(() => draft.rows[ri].checked = v),
-                                  onQtyChanged: (q) =>
-                                      setState(() => draft.rows[ri].qty = q),
-                                ),
+                              _PrestationRowEditor(
+                                row: draft.rows[ri],
+                                planned: plannedById[
+                                        draft.rows[ri].prestationId] ??
+                                    0,
+                                onCheckedChanged: (v) =>
+                                    setState(() => draft.rows[ri].checked = v),
+                                onQtyChanged: (q) =>
+                                    setState(() => draft.rows[ri].qty = q),
                               ),
                             const SizedBox(height: AppSpacing.sm),
                             Align(
@@ -257,45 +335,24 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
                     },
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.sm,
-                    AppSpacing.md,
-                    0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${l.tourCompletionInterventionReal} : ${formatDuration(totals.minutes)}',
-                        style: theme.typography.sm,
-                      ),
-                      Text(
-                        '${l.tourCompletionRevenueRealized} : ${formatEuros(totals.revenueCents)}',
-                        style: theme.typography.sm,
-                      ),
-                      Text(
-                        'Frais déplacement : ${formatEuros(feeCents)}',
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.sm,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                  ),
-                  child: AppPrimaryButton(
+                AppActionBar(
+                  primary: AppPrimaryButton(
                     label: l.tourCompletionConfirm,
-                    prefixIcon: FIcons.check,
                     loading: _saving,
-                    onPress: _saving ? null : () => _confirm(bundle),
+                    onPress: _saving
+                        ? null
+                        : () async {
+                            final ok = await showDestructiveConfirm(
+                              context,
+                              title: l.tourCompletionConfirmTitle,
+                              body: l.tourCompletionConfirmBody,
+                              cancelLabel: l.commonCancel,
+                              confirmLabel: 'Valider',
+                            );
+                            if (ok && context.mounted) {
+                              await _confirm(bundle);
+                            }
+                          },
                   ),
                 ),
               ],
@@ -370,11 +427,13 @@ class _StopRow {
 
 class _PrestationRowEditor extends StatelessWidget {
   final _StopRow row;
+  final int planned;
   final ValueChanged<bool> onCheckedChanged;
   final ValueChanged<int> onQtyChanged;
 
   const _PrestationRowEditor({
     required this.row,
+    required this.planned,
     required this.onCheckedChanged,
     required this.onQtyChanged,
   });
@@ -382,20 +441,12 @@ class _PrestationRowEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final subtitleParts = <String>[];
-    if (row.categoryNameSnapshot != null) {
-      subtitleParts.add(
-        '${row.speciesNameSnapshot ?? '?'}/${row.categoryNameSnapshot}',
-      );
-    }
+    final priceLabel = row.priceCentsSnapshot == 0
+        ? null
+        : formatEuros(row.priceCentsSnapshot * (row.checked ? row.qty : 0));
 
-    return Container(
-      padding: AppSizes.listTilePadding,
-      decoration: BoxDecoration(
-        color: theme.colors.card,
-        borderRadius: BorderRadius.circular(AppBorderRadius.md),
-        border: Border.all(color: theme.colors.border),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -403,59 +454,33 @@ class _PrestationRowEditor extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             onTap: () => onCheckedChanged(!row.checked),
             child: Container(
-              width: 24,
-              height: 24,
+              width: 22,
+              height: 22,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: row.checked ? theme.colors.primary : null,
                 border: row.checked
                     ? null
-                    : Border.all(color: theme.colors.border, width: 2),
+                    : Border.all(color: theme.colors.border, width: 1.5),
               ),
               child: row.checked
-                  ? Icon(
-                      FIcons.check,
-                      color: theme.colors.primaryForeground,
-                      size: 16,
-                    )
+                  ? Icon(FIcons.check,
+                      color: theme.colors.primaryForeground, size: 14)
                   : null,
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  row.nameSnapshot,
-                  style: theme.typography.md.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colors.foreground,
-                  ),
-                ),
-                if (subtitleParts.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.xxs),
-                    child: Text(
-                      subtitleParts.join(' · '),
-                      style: theme.typography.sm.copyWith(
-                        color: theme.colors.mutedForeground,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            '×',
-            style: theme.typography.lg.copyWith(
-              color: theme.colors.mutedForeground,
+            child: AppDiffRow(
+              label: row.nameSnapshot,
+              planned: planned,
+              actual: row.checked ? row.qty : 0,
+              amountLabel: priceLabel,
             ),
           ),
           const SizedBox(width: AppSpacing.xs),
           SizedBox(
-            width: 72,
+            width: 56,
             child: FTextField(
               control: FTextFieldControl.managed(
                 controller: row.qtyCtrl,
