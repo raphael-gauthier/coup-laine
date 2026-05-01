@@ -10,10 +10,12 @@ import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
+import '../../domain/models/animal_count.dart';
 import '../../domain/models/tour.dart';
 import '../../domain/models/tour_stop.dart';
 import '../../state/map_controller.dart';
 import '../../state/providers.dart';
+import '../widgets/animal_counts_badges.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_hero_card.dart';
 import '../widgets/app_primary_button.dart';
@@ -150,8 +152,8 @@ class _Body extends ConsumerWidget {
             0,
             (sum, s) =>
                 sum +
-                s.plannedSmall * s.minutesPerSmallSnapshot +
-                s.plannedLarge * s.minutesPerLargeSnapshot);
+                s.planned.fold<int>(
+                    0, (acc, a) => acc + a.count * a.minutesSnapshot));
   }
 }
 
@@ -164,11 +166,13 @@ class _ScheduleRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final actualSmall = stop.actualSmall;
-    final actualLarge = stop.actualLarge;
-    final hasActuals = actualSmall != null && actualLarge != null;
     final note = stop.interventionNote;
     final clientId = stop.clientId;
+    final source = stop.actual ?? stop.planned;
+    final counts = [
+      for (final a in source)
+        AnimalCount(categoryId: a.categoryId, count: a.count),
+    ];
 
     return FTile(
       prefix: Container(
@@ -199,19 +203,12 @@ class _ScheduleRow extends ConsumerWidget {
           Text(
             '${formatHm(stop.estimatedArrivalMinutes)} → '
             '${formatHm(stop.estimatedDepartureMinutes)} · '
-            '${_formatBreeds(stop.plannedSmall, stop.plannedLarge)} · '
             '${formatEuros(stop.feeShareCents)}',
           ),
-          if (hasActuals) ...[
-            const SizedBox(height: AppSpacing.hairline),
-            Text(
-              'Effectif : ${_formatBreeds(actualSmall, actualLarge)}',
-              style: theme.typography.sm.copyWith(
-                color: theme.colors.foreground,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+          AnimalCountsBadges(
+            counts: counts,
+            mode: AnimalCountsBadgesMode.compact,
+          ),
           if (note != null && note.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.hairline),
             Text(
@@ -233,12 +230,4 @@ class _ScheduleRow extends ConsumerWidget {
             },
     );
   }
-}
-
-String _formatBreeds(int small, int large) {
-  if (small == 0 && large == 0) return '0 mouton';
-  if (small == 0) return '$large ${large == 1 ? 'grand' : 'grands'}';
-  if (large == 0) return '$small ${small == 1 ? 'petit' : 'petits'}';
-  return '$small ${small == 1 ? 'petit' : 'petits'} + '
-      '$large ${large == 1 ? 'grand' : 'grands'}';
 }

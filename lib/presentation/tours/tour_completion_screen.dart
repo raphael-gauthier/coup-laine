@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,9 +6,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
 import '../../data/repositories/tour_repository.dart';
+import '../../domain/models/animal_count.dart';
+import '../../domain/models/tour_stop_animal.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart'
     show clientsAsyncProvider, clientNotesMapProvider;
+import '../widgets/animal_counts_editor.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import 'tours_list_screen.dart' show toursAsyncProvider;
@@ -37,8 +39,6 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
   @override
   void dispose() {
     for (final d in _drafts.values) {
-      d.smallCtrl.dispose();
-      d.largeCtrl.dispose();
       d.noteCtrl.dispose();
     }
     super.dispose();
@@ -49,8 +49,10 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
     for (final s in bundle.stops) {
       if (s.clientId == null) continue;
       _drafts[s.id] = _StopDraft(
-        smallCtrl: TextEditingController(text: s.plannedSmall.toString()),
-        largeCtrl: TextEditingController(text: s.plannedLarge.toString()),
+        animals: [
+          for (final a in s.planned)
+            AnimalCount(categoryId: a.categoryId, count: a.count),
+        ],
         noteCtrl: TextEditingController(),
       );
     }
@@ -59,19 +61,29 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
 
   Future<void> _confirm(TourWithStops bundle) async {
     final l = AppLocalizations.of(context)!;
+    setState(() => _saving = true);
+
+    final lookup = await ref.read(categoryLookupProvider.future);
     final actuals =
-        <int, ({int actualSmall, int actualLarge, String? note})>{};
+        <int, ({List<TourStopAnimal> actuals, String? note})>{};
     for (final entry in _drafts.entries) {
-      final small = int.tryParse(entry.value.smallCtrl.text) ?? 0;
-      final large = int.tryParse(entry.value.largeCtrl.text) ?? 0;
       final note = entry.value.noteCtrl.text.trim();
+      final tourStopAnimals = <TourStopAnimal>[
+        for (final ac in entry.value.animals)
+          if (lookup[ac.categoryId] != null)
+            TourStopAnimal(
+              categoryId: ac.categoryId,
+              count: ac.count,
+              categoryNameSnapshot: lookup[ac.categoryId]!.categoryName,
+              speciesNameSnapshot: lookup[ac.categoryId]!.speciesName,
+              minutesSnapshot: lookup[ac.categoryId]!.minutes,
+            ),
+      ];
       actuals[entry.key] = (
-        actualSmall: small,
-        actualLarge: large,
+        actuals: tourStopAnimals,
         note: note.isEmpty ? null : note,
       );
     }
-    setState(() => _saving = true);
     await ref.read(tourRepositoryProvider).markCompleted(widget.tourId, actuals);
 
     // Invalidate downstream caches.
@@ -121,26 +133,10 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            FTextField(
-                              control: FTextFieldControl.managed(
-                                controller: draft.smallCtrl,
-                              ),
-                              label: Text(l.clientFormSheepCountSmall),
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            FTextField(
-                              control: FTextFieldControl.managed(
-                                controller: draft.largeCtrl,
-                              ),
-                              label: Text(l.clientFormSheepCountLarge),
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly
-                              ],
+                            AnimalCountsEditor(
+                              value: draft.animals,
+                              onChanged: (next) =>
+                                  setState(() => draft.animals = next),
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             FTextField(
@@ -180,12 +176,10 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
 }
 
 class _StopDraft {
-  final TextEditingController smallCtrl;
-  final TextEditingController largeCtrl;
+  List<AnimalCount> animals;
   final TextEditingController noteCtrl;
   _StopDraft({
-    required this.smallCtrl,
-    required this.largeCtrl,
+    required this.animals,
     required this.noteCtrl,
   });
 }

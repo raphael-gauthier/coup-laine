@@ -10,6 +10,7 @@ import '../../core/design_tokens.dart';
 import '../../core/text_search.dart';
 import '../../domain/models/client.dart';
 import '../../state/providers.dart';
+import 'animal_counts_badges.dart';
 import 'app_empty_state.dart';
 
 /// One-shot loader for a fixed set of client ids. Used by
@@ -270,6 +271,10 @@ class _ListTabState extends State<_ListTab> {
       prefix: Icon(FIcons.mapPin, color: theme.colors.mutedForeground),
       title: Text(c.name),
       subtitle: Text(c.city),
+      details: AnimalCountsBadges(
+        counts: c.animals,
+        mode: AnimalCountsBadgesMode.compact,
+      ),
       suffix: Container(
         width: 24,
         height: 24,

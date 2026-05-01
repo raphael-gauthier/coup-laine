@@ -10,9 +10,11 @@ import 'package:intl/intl.dart';
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
+import '../../domain/models/animal_count.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
+import '../widgets/animal_counts_badges.dart';
 import '../widgets/app_hero_card.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
@@ -335,6 +337,11 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                       final arr = bundle.result.arrivalMinutes[i];
                       final dep = bundle.result.departureMinutes[i];
                       final fee = formatEuros(bundle.result.feeShareCents[i]);
+                      final planned = bundle.result.plannedAnimalsPerStop[i];
+                      final counts = [
+                        for (final a in planned)
+                          AnimalCount(categoryId: a.categoryId, count: a.count),
+                      ];
                       return Padding(
                         key: ValueKey(c.id),
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -356,8 +363,19 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                             ),
                           ),
                           title: Text(c.name),
-                          subtitle: Text(
-                            l.tourDraftStopArrivalFmt(formatHm(arr), formatHm(dep)),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                l.tourDraftStopArrivalFmt(
+                                    formatHm(arr), formatHm(dep)),
+                              ),
+                              AnimalCountsBadges(
+                                counts: counts,
+                                mode: AnimalCountsBadgesMode.compact,
+                              ),
+                            ],
                           ),
                           details: Text(fee),
                           suffix: const Icon(FIcons.gripVertical),
