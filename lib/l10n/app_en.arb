@@ -308,5 +308,17 @@
   "tourCompletionRevenueRealized": "Realized revenue",
   "@tourCompletionRevenueRealized": {},
   "tourCompletionInterventionReal": "Actual intervention",
-  "@tourCompletionInterventionReal": {}
+  "@tourCompletionInterventionReal": {},
+  "clientHistoryPrestationCountFmt": "{n} service(s) · {amount} · {duration}",
+  "@clientHistoryPrestationCountFmt": {
+    "placeholders": {
+      "n": {"type": "int"},
+      "amount": {"type": "String"},
+      "duration": {"type": "String"}
+    }
+  },
+  "clientHistoryAndOthersFmt": "… and {n} more",
+  "@clientHistoryAndOthersFmt": {
+    "placeholders": {"n": {"type": "int"}}
+  }
 }
