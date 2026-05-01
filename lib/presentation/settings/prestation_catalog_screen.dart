@@ -1,16 +1,19 @@
-import 'package:flutter/material.dart'
-    show ListTile, Material, Icons, IconButton, showModalBottomSheet;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
+import '../../core/format_minutes.dart';
 import '../../domain/models/animal_category.dart';
 import '../../domain/models/prestation.dart';
 import '../../domain/models/species.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
+import '../widgets/app_fab.dart';
+import '../widgets/app_header.dart';
+import '../widgets/app_list_tile.dart';
+import '../widgets/app_stat.dart';
 
 class PrestationCatalogScreen extends ConsumerWidget {
   const PrestationCatalogScreen({super.key});
@@ -22,53 +25,34 @@ class PrestationCatalogScreen extends ConsumerWidget {
     final archivedAsync = ref.watch(archivedPrestationsProvider);
     final speciesAsync = ref.watch(activeSpeciesProvider);
     final allCatsAsync = ref.watch(allCategoriesByIdProvider);
-    final theme = context.theme;
 
-    return SafeArea(
-      child: FScaffold(
-        header: FHeader.nested(title: Text(l.prestationCatalogTitle)),
-        child: SingleChildScrollView(
-          padding: AppSizes.screenPadding,
-          child: _buildBody(
-            context: context,
-            ref: ref,
-            l: l,
-            theme: theme,
-            activeAsync: activeAsync,
-            archivedAsync: archivedAsync,
-            speciesAsync: speciesAsync,
-            allCatsAsync: allCatsAsync,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBody({
-    required BuildContext context,
-    required WidgetRef ref,
-    required AppLocalizations l,
-    required FThemeData theme,
-    required AsyncValue<List<Prestation>> activeAsync,
-    required AsyncValue<List<Prestation>> archivedAsync,
-    required AsyncValue<List<Species>> speciesAsync,
-    required AsyncValue<Map<int, AnimalCategory>> allCatsAsync,
-  }) {
     if (activeAsync.isLoading ||
         archivedAsync.isLoading ||
         speciesAsync.isLoading ||
         allCatsAsync.isLoading) {
-      return const Center(child: FCircularProgress());
+      return const SafeArea(child: Center(child: FCircularProgress()));
     }
-    if (activeAsync.hasError) return Text('${activeAsync.error}');
-    if (archivedAsync.hasError) return Text('${archivedAsync.error}');
-    if (speciesAsync.hasError) return Text('${speciesAsync.error}');
-    if (allCatsAsync.hasError) return Text('${allCatsAsync.error}');
+    if (activeAsync.hasError) {
+      return SafeArea(child: Text('${activeAsync.error}'));
+    }
+    if (archivedAsync.hasError) {
+      return SafeArea(child: Text('${archivedAsync.error}'));
+    }
+    if (speciesAsync.hasError) {
+      return SafeArea(child: Text('${speciesAsync.error}'));
+    }
+    if (allCatsAsync.hasError) {
+      return SafeArea(child: Text('${allCatsAsync.error}'));
+    }
 
     final active = activeAsync.value!;
     final archived = archivedAsync.value!;
     final species = speciesAsync.value!;
     final allCats = allCatsAsync.value!;
+
+    final subtitle =
+        '${active.length} active${active.length == 1 ? '' : 's'} · '
+        '${archived.length} archivée${archived.length == 1 ? '' : 's'}';
 
     // Group active prestations by speciesId (or null for libres).
     final bySpecies = <int, List<Prestation>>{};
@@ -80,59 +64,127 @@ class PrestationCatalogScreen extends ConsumerWidget {
       }
       final cat = allCats[p.categoryId];
       if (cat == null) {
-        // Orphan reference — drop into libres so it's still visible.
         libres.add(p);
         continue;
       }
       bySpecies.putIfAbsent(cat.speciesId, () => []).add(p);
     }
 
+    return SafeArea(
+      child: FScaffold(
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppHeader(
+                  title: l.prestationCatalogTitle,
+                  subtitle: subtitle,
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: AppSizes.screenPadding.copyWith(
+                      bottom: AppSizes.bottomScrollPadding,
+                    ),
+                    child: _buildContent(
+                      context: context,
+                      ref: ref,
+                      l: l,
+                      active: active,
+                      archived: archived,
+                      species: species,
+                      allCats: allCats,
+                      bySpecies: bySpecies,
+                      libres: libres,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              bottom: 16,
+              right: 16,
+              child: AppFAB(
+                icon: FIcons.plus,
+                label: 'Prestation',
+                extended: true,
+                onPress: () => context.push('/settings/prestations/new'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent({
+    required BuildContext context,
+    required WidgetRef ref,
+    required AppLocalizations l,
+    required List<Prestation> active,
+    required List<Prestation> archived,
+    required List<Species> species,
+    required Map<int, AnimalCategory> allCats,
+    required Map<int, List<Prestation>> bySpecies,
+    required List<Prestation> libres,
+  }) {
+    final theme = context.theme;
+
+    if (active.isEmpty && archived.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+        child: Text(
+          l.emptyClientsBody,
+          style: theme.typography.sm.copyWith(
+            color: theme.colors.mutedForeground,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (active.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-            child: Text(
-              l.emptyClientsBody, // generic fallback; dedicated key intentionally avoided
-              style: theme.typography.sm.copyWith(
-                color: theme.colors.mutedForeground,
+        for (final s in species)
+          if ((bySpecies[s.id] ?? const []).isNotEmpty) ...[
+            _SectionHeader(title: s.name),
+            const SizedBox(height: AppSpacing.sm),
+            for (final p in bySpecies[s.id]!)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: _ActiveTile(
+                  prestation: p,
+                  subtitleText:
+                      '${s.name}/${allCats[p.categoryId]?.name ?? '—'}',
+                  onTap: () => context.push('/settings/prestations/${p.id}'),
+                  onArchive: () => _archive(ref, p),
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-          )
-        else ...[
-          for (final s in species)
-            if ((bySpecies[s.id] ?? const []).isNotEmpty)
-              _SpeciesGroup(
-                title: s.name,
-                prestations: bySpecies[s.id]!,
-                allCats: allCats,
-                onTap: (p) => context.push('/settings/prestations/${p.id}'),
-                onArchive: (p) => _archive(ref, p),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        if (libres.isNotEmpty) ...[
+          _SectionHeader(title: l.prestationCatalogFreeGroup),
+          const SizedBox(height: AppSpacing.sm),
+          for (final p in libres)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: _ActiveTile(
+                prestation: p,
+                subtitleText: l.prestationCatalogFreeGroup,
+                onTap: () => context.push('/settings/prestations/${p.id}'),
+                onArchive: () => _archive(ref, p),
               ),
-          if (libres.isNotEmpty)
-            _SpeciesGroup(
-              title: l.prestationCatalogFreeGroup,
-              prestations: libres,
-              allCats: allCats,
-              onTap: (p) => context.push('/settings/prestations/${p.id}'),
-              onArchive: (p) => _archive(ref, p),
             ),
+          const SizedBox(height: AppSpacing.md),
         ],
-        const SizedBox(height: AppSpacing.sm),
-        FButton(
-          onPress: () => context.push('/settings/prestations/new'),
-          child: Text(l.prestationCatalogAddCta),
-        ),
-        if (archived.isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.lg),
+        if (archived.isNotEmpty)
           _ArchivedSection(
             archived: archived,
             allCats: allCats,
+            species: species,
             onUnarchive: (p) => _unarchive(ref, p),
           ),
-        ],
       ],
     );
   }
@@ -152,17 +204,32 @@ class PrestationCatalogScreen extends ConsumerWidget {
   }
 }
 
-class _SpeciesGroup extends StatelessWidget {
+class _SectionHeader extends StatelessWidget {
   final String title;
-  final List<Prestation> prestations;
-  final Map<int, AnimalCategory> allCats;
-  final void Function(Prestation) onTap;
-  final void Function(Prestation) onArchive;
+  const _SectionHeader({required this.title});
 
-  const _SpeciesGroup({
-    required this.title,
-    required this.prestations,
-    required this.allCats,
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return Text(
+      title,
+      style: theme.typography.lg.copyWith(
+        color: theme.colors.foreground,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+}
+
+class _ActiveTile extends StatelessWidget {
+  final Prestation prestation;
+  final String subtitleText;
+  final VoidCallback onTap;
+  final VoidCallback onArchive;
+
+  const _ActiveTile({
+    required this.prestation,
+    required this.subtitleText,
     required this.onTap,
     required this.onArchive,
   });
@@ -170,31 +237,30 @@ class _SpeciesGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            title,
-            style: theme.typography.lg.copyWith(
-              color: theme.colors.foreground,
-              fontWeight: FontWeight.w600,
+    final p = prestation;
+
+    final stats = <Widget>[];
+    if (p.priceCents != null) stats.add(AppStat(value: formatEuros(p.priceCents!)));
+    if (p.minutes != null) stats.add(AppStat(value: '${p.minutes} min'));
+
+    return AppListTile(
+      variant: stats.isEmpty ? AppListTileVariant.standard : AppListTileVariant.rich,
+      title: p.name,
+      subtitle: subtitleText,
+      metadata: stats.isEmpty
+          ? null
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (int i = 0; i < stats.length; i++) ...[
+                  if (i > 0) const SizedBox(width: AppSpacing.sm),
+                  stats[i],
+                ],
+              ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          for (final p in prestations)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _PrestationActiveTile(
-                prestation: p,
-                category: p.categoryId == null ? null : allCats[p.categoryId],
-                onTap: () => onTap(p),
-                onArchive: () => onArchive(p),
-              ),
-            ),
-        ],
-      ),
+      suffix: Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),
+      onTap: onTap,
+      onLongPress: onArchive,
     );
   }
 }
@@ -202,11 +268,13 @@ class _SpeciesGroup extends StatelessWidget {
 class _ArchivedSection extends StatefulWidget {
   final List<Prestation> archived;
   final Map<int, AnimalCategory> allCats;
+  final List<Species> species;
   final void Function(Prestation) onUnarchive;
 
   const _ArchivedSection({
     required this.archived,
     required this.allCats,
+    required this.species,
     required this.onUnarchive,
   });
 
@@ -221,6 +289,10 @@ class _ArchivedSectionState extends State<_ArchivedSection> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
+
+    // Build speciesName lookup for subtitle
+    final speciesById = {for (final s in widget.species) s.id: s.name};
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -239,7 +311,7 @@ class _ArchivedSectionState extends State<_ArchivedSection> {
                 ),
               ),
               Icon(
-                _expanded ? Icons.expand_less : Icons.expand_more,
+                _expanded ? FIcons.chevronUp : FIcons.chevronDown,
                 color: theme.colors.mutedForeground,
               ),
             ],
@@ -250,10 +322,9 @@ class _ArchivedSectionState extends State<_ArchivedSection> {
           for (final p in widget.archived)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: _PrestationArchivedTile(
+              child: _ArchivedTile(
                 prestation: p,
-                category:
-                    p.categoryId == null ? null : widget.allCats[p.categoryId],
+                subtitleText: _subtitleFor(p, widget.allCats, speciesById, l),
                 onUnarchive: () => widget.onUnarchive(p),
               ),
             ),
@@ -261,171 +332,61 @@ class _ArchivedSectionState extends State<_ArchivedSection> {
       ],
     );
   }
-}
 
-String _formatSubtitle({
-  required Prestation p,
-  required AnimalCategory? category,
-}) {
-  final priceStr = p.priceCents == null
-      ? '—'
-      : '${(p.priceCents! / 100).toStringAsFixed(2)} €';
-  final minutesStr = p.minutes == null ? '—' : '${p.minutes} min';
-  if (p.categoryId == null) {
-    return '$priceStr · $minutesStr';
+  String _subtitleFor(
+    Prestation p,
+    Map<int, AnimalCategory> allCats,
+    Map<int, String> speciesById,
+    AppLocalizations l,
+  ) {
+    if (p.categoryId == null) return l.prestationCatalogFreeGroup;
+    final cat = allCats[p.categoryId];
+    if (cat == null) return l.prestationCatalogFreeGroup;
+    final sp = speciesById[cat.speciesId] ?? '—';
+    return '$sp/${cat.name}';
   }
-  final catLabel = category?.name ?? '—';
-  return '$catLabel · $priceStr · $minutesStr';
 }
 
-class _PrestationActiveTile extends StatelessWidget {
+class _ArchivedTile extends StatelessWidget {
   final Prestation prestation;
-  final AnimalCategory? category;
-  final VoidCallback onTap;
-  final VoidCallback onArchive;
-
-  const _PrestationActiveTile({
-    required this.prestation,
-    required this.category,
-    required this.onTap,
-    required this.onArchive,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = context.theme;
-    final subtitle = _formatSubtitle(p: prestation, category: category);
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Container(
-        padding: AppSizes.listTilePadding,
-        decoration: BoxDecoration(
-          color: theme.colors.card,
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          border: Border.all(color: theme.colors.border),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    prestation.name,
-                    style: theme.typography.md.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colors.foreground,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    subtitle,
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.mutedForeground,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.more_vert),
-              onPressed: () => _openMenu(context),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _openMenu(BuildContext context) async {
-    final l = AppLocalizations.of(context)!;
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Material(
-                color: const Color(0x00000000),
-                child: ListTile(
-                  leading: const Icon(Icons.edit),
-                  title: Text(l.clientDetailEdit),
-                  onTap: () => Navigator.of(ctx).pop('edit'),
-                ),
-              ),
-              Material(
-                color: const Color(0x00000000),
-                child: ListTile(
-                  leading: const Icon(Icons.archive),
-                  title: Text(l.speciesManagementArchive),
-                  onTap: () => Navigator.of(ctx).pop('archive'),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-    if (action == 'edit') onTap();
-    if (action == 'archive') onArchive();
-  }
-}
-
-class _PrestationArchivedTile extends StatelessWidget {
-  final Prestation prestation;
-  final AnimalCategory? category;
+  final String subtitleText;
   final VoidCallback onUnarchive;
 
-  const _PrestationArchivedTile({
+  const _ArchivedTile({
     required this.prestation,
-    required this.category,
+    required this.subtitleText,
     required this.onUnarchive,
   });
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final theme = context.theme;
-    final subtitle = _formatSubtitle(p: prestation, category: category);
-    return Container(
-      padding: AppSizes.listTilePadding,
-      decoration: BoxDecoration(
-        color: theme.colors.card,
-        borderRadius: BorderRadius.circular(AppBorderRadius.md),
-        border: Border.all(color: theme.colors.border),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final p = prestation;
+
+    final stats = <Widget>[];
+    if (p.priceCents != null) stats.add(AppStat(value: formatEuros(p.priceCents!)));
+    if (p.minutes != null) stats.add(AppStat(value: '${p.minutes} min'));
+
+    return AppListTile(
+      variant: stats.isEmpty ? AppListTileVariant.standard : AppListTileVariant.rich,
+      title: p.name,
+      subtitle: subtitleText,
+      metadata: stats.isEmpty
+          ? null
+          : Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  prestation.name,
-                  style: theme.typography.md.copyWith(
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  subtitle,
-                  style: theme.typography.sm.copyWith(
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
+                for (int i = 0; i < stats.length; i++) ...[
+                  if (i > 0) const SizedBox(width: AppSpacing.sm),
+                  stats[i],
+                ],
               ],
             ),
-          ),
-          FButton(
-            variant: FButtonVariant.outline,
-            onPress: onUnarchive,
-            child: Text(l.speciesManagementUnarchive),
-          ),
-        ],
+      suffix: FButton(
+        variant: FButtonVariant.outline,
+        size: FButtonSizeVariant.sm,
+        onPress: onUnarchive,
+        child: Text(l.speciesManagementUnarchive),
       ),
     );
   }
