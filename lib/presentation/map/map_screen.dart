@@ -186,6 +186,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.theme;
     final clientsAsync = ref.watch(clientsAsyncProvider);
     final settingsAsync = ref.watch(_settingsForMapProvider);
 
@@ -244,20 +245,16 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           MarkerLayer(
                             rotate: true,
                             markers: [
-                              // Base star
+                              // Base pin
                               Marker(
                                 point: LatLng(
                                   settings.baseCoordinates.lat,
                                   settings.baseCoordinates.lon,
                                 ),
-                                width: 36,
-                                height: 36,
-                                alignment: Alignment.center,
-                                child: Icon(
-                                  FIcons.star,
-                                  color: _hexToColor(settings.markerDefaultColor),
-                                  size: 36,
-                                ),
+                                width: 48,
+                                height: 56,
+                                alignment: Alignment.bottomCenter,
+                                child: _BasePin(color: theme.colors.primary),
                               ),
                               // Client pins
                               for (final r in visibleClients)
@@ -489,6 +486,33 @@ class _StatusPin extends StatelessWidget {
   }
 }
 
+class _BasePin extends StatelessWidget {
+  final Color color;
+
+  const _BasePin({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 48,
+      height: 56,
+      child: CustomPaint(
+        painter: _PinPainter(color: color),
+        child: const Align(
+          // Disc center is at y = 22; nudge ~2px up to compensate for the
+          // icon-font baseline offset so the glyph reads as truly centered.
+          alignment: Alignment(0, -0.286),
+          child: Icon(
+            FIcons.house,
+            color: Color(0xFFFFFFFF),
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PinPainter extends CustomPainter {
   final Color color;
 
@@ -496,17 +520,21 @@ class _PinPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const cx = 20.0;
-    const discRadius = 18.0;
-    const discCenter = Offset(cx, discRadius);
+    final cx = size.width / 2;
+    // 2px margin each side leaves room for the white outline.
+    final discRadius = (size.width - 4) / 2;
+    final discCenter = Offset(cx, discRadius);
     final tip = Offset(cx, size.height);
+    // Tail proportions match the original 40×48 pin (8/18 ≈ 0.444).
+    final tailHalf = discRadius * 8.0 / 18.0;
+    final tailY = discRadius + tailHalf;
 
     final circle = Path()
       ..addOval(Rect.fromCircle(center: discCenter, radius: discRadius));
     final tail = Path()
-      ..moveTo(cx - 8, discRadius + 8)
+      ..moveTo(cx - tailHalf, tailY)
       ..lineTo(tip.dx, tip.dy)
-      ..lineTo(cx + 8, discRadius + 8)
+      ..lineTo(cx + tailHalf, tailY)
       ..close();
     final pin = Path.combine(PathOperation.union, circle, tail);
 
