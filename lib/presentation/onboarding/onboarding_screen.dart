@@ -12,8 +12,10 @@ import '../../domain/models/settings.dart';
 import '../../infra/services/ban_geocoding_service.dart';
 import '../../state/providers.dart';
 import '../widgets/address_autocomplete_field.dart';
+import '../widgets/app_action_bar.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
+import '../widgets/app_stepper.dart';
 import 'custom_species_form_sheet.dart';
 
 class _CustomSpeciesDraft {
@@ -109,15 +111,63 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return SafeArea(
       child: FScaffold(
         resizeToAvoidBottomInset: true,
-        child: IndexedStack(
-          index: _step,
-          children: [_buildStep1(context), _buildStep2(context)],
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppStepper(
+              currentIndex: _step,
+              labels: const ['Adresse', 'Espèces', 'Bienvenue'],
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: _step,
+                children: [
+                  _buildStep1(context),
+                  _buildStep2(context),
+                  _buildStep3(context),
+                ],
+              ),
+            ),
+            _buildActionBar(context, l),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _buildActionBar(BuildContext context, AppLocalizations l) {
+    if (_step == 2) {
+      return AppActionBar(
+        primary: AppPrimaryButton(
+          label: 'Démarrer',
+          prefixIcon: FIcons.check,
+          onPress: _saving ? null : _confirm,
+          loading: _saving,
+        ),
+      );
+    }
+    return AppActionBar(
+      secondary: AppPrimaryButton(
+        label: l.onboardingPrevious,
+        onPress: _step == 0 ? null : () => setState(() => _step -= 1),
+        variant: FButtonVariant.outline,
+      ),
+      primary: AppPrimaryButton(
+        label: l.onboardingStep1Cta,
+        prefixIcon: FIcons.arrowRight,
+        onPress: _stepForwardReady ? () => setState(() => _step += 1) : null,
+      ),
+    );
+  }
+
+  bool get _stepForwardReady {
+    if (_step == 0) return _step1Ready;
+    if (_step == 1) return _step2Ready;
+    return false;
   }
 
   Widget _buildStep1(BuildContext context) {
@@ -174,12 +224,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               onPicked: (r) => setState(() => _picked = r),
             ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          AppPrimaryButton(
-            label: l.onboardingStep1Cta,
-            prefixIcon: FIcons.arrowRight,
-            onPress: _step1Ready ? () => setState(() => _step = 1) : null,
-          ),
         ],
       ),
     );
@@ -188,104 +232,121 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _buildStep2(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              tooltip: l.onboardingPrevious,
-              onPressed: () => setState(() => _step = 0),
+    return SingleChildScrollView(
+      padding: AppSizes.screenPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l.onboardingStep2Title,
+            textAlign: TextAlign.center,
+            style: theme.typography.xl3.copyWith(
+              color: theme.colors.foreground,
             ),
           ),
-        ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: AppSizes.screenPadding,
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l.onboardingStep2Subtitle,
+            textAlign: TextAlign.center,
+            style: theme.typography.md.copyWith(
+              color: theme.colors.mutedForeground,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Species selection card.
+          AppSectionCard(
+            icon: FIcons.tag,
+            title: l.onboardingStep2Title,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  l.onboardingStep2Title,
-                  textAlign: TextAlign.center,
-                  style: theme.typography.xl3.copyWith(
-                    color: theme.colors.foreground,
+                for (var i = 0; i < kSpeciesSeeds.length; i++)
+                  _SeedSpeciesTile(
+                    seed: kSpeciesSeeds[i],
+                    checked: _seedSpeciesActive.contains(i),
+                    onToggle: () => setState(() {
+                      if (_seedSpeciesActive.contains(i)) {
+                        _seedSpeciesActive.remove(i);
+                      } else {
+                        _seedSpeciesActive.add(i);
+                      }
+                    }),
+                  ),
+                for (var i = 0; i < _customSpecies.length; i++)
+                  _CustomSpeciesTile(
+                    draft: _customSpecies[i],
+                    onRemove: () => setState(() {
+                      _customSpecies.removeAt(i);
+                    }),
+                  ),
+                const SizedBox(height: AppSpacing.sm),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FButton(
+                    variant: FButtonVariant.outline,
+                    onPress: _openCustomSpeciesSheet,
+                    child: Text(l.onboardingAddCustomSpecies),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  l.onboardingStep2Subtitle,
-                  textAlign: TextAlign.center,
-                  style: theme.typography.md.copyWith(
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-
-                // Species selection card.
-                AppSectionCard(
-                  icon: FIcons.tag,
-                  title: l.onboardingStep2Title,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (var i = 0; i < kSpeciesSeeds.length; i++)
-                        _SeedSpeciesTile(
-                          seed: kSpeciesSeeds[i],
-                          checked: _seedSpeciesActive.contains(i),
-                          onToggle: () => setState(() {
-                            if (_seedSpeciesActive.contains(i)) {
-                              _seedSpeciesActive.remove(i);
-                            } else {
-                              _seedSpeciesActive.add(i);
-                            }
-                          }),
-                        ),
-                      for (var i = 0; i < _customSpecies.length; i++)
-                        _CustomSpeciesTile(
-                          draft: _customSpecies[i],
-                          onRemove: () => setState(() {
-                            _customSpecies.removeAt(i);
-                          }),
-                        ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: FButton(
-                          variant: FButtonVariant.outline,
-                          onPress: _openCustomSpeciesSheet,
-                          child: Text(l.onboardingAddCustomSpecies),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-
-                AppPrimaryButton(
-                  label: l.onboardingCtaFinish,
-                  prefixIcon: FIcons.check,
-                  onPress: _step2Ready ? _confirm : null,
-                  loading: _saving,
-                ),
-                if (!_step2Ready) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    l.onboardingErrorNoSpecies,
-                    textAlign: TextAlign.center,
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.destructive,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
+          if (!_step2Ready) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l.onboardingErrorNoSpecies,
+              textAlign: TextAlign.center,
+              style: theme.typography.sm.copyWith(
+                color: theme.colors.destructive,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep3(BuildContext context) {
+    final theme = context.theme;
+    final city = _picked?.label ?? '';
+    final speciesCount =
+        _seedSpeciesActive.length + _customSpecies.length;
+    return SingleChildScrollView(
+      child: Padding(
+        padding: AppSizes.screenPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Tu es prêt !',
+              style: theme.typography.xl3
+                  .copyWith(color: theme.colors.foreground),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Tu vas gérer $speciesCount espèce(s) depuis $city.',
+              style: theme.typography.md
+                  .copyWith(color: theme.colors.mutedForeground),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            AppSectionCard(
+              icon: FIcons.userPlus,
+              title: 'Premiers pas',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: const [
+                  Text('• Ajouter ton premier client'),
+                  SizedBox(height: AppSpacing.xs),
+                  Text('• Planifier ta première tournée'),
+                  SizedBox(height: AppSpacing.xs),
+                  Text('• Ouvrir le catalogue de prestations'),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
