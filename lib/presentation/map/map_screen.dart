@@ -714,7 +714,10 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    return Container(
+    final dur = const Duration(milliseconds: 120);
+    return AnimatedContainer(
+      duration: dur,
+      curve: Curves.easeOut,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.xs,
@@ -730,7 +733,8 @@ class _StatusChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
+          AnimatedContainer(
+            duration: dur,
             width: 8,
             height: 8,
             decoration: BoxDecoration(
@@ -739,19 +743,21 @@ class _StatusChip extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.xxs),
-          Text(
-            '$count',
+          AnimatedDefaultTextStyle(
+            duration: dur,
             style: theme.typography.sm.copyWith(
               color: active ? theme.colors.foreground : theme.colors.mutedForeground,
               fontWeight: FontWeight.w600,
             ),
+            child: Text('$count'),
           ),
           const SizedBox(width: AppSpacing.xxs),
-          Text(
-            label,
+          AnimatedDefaultTextStyle(
+            duration: dur,
             style: theme.typography.xs.copyWith(
               color: active ? theme.colors.foreground : theme.colors.mutedForeground,
             ),
+            child: Text(label),
           ),
         ],
       ),

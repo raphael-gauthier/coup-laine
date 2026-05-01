@@ -180,7 +180,17 @@ class _ShellScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.colors.background,
       resizeToAvoidBottomInset: true,
-      body: shell,
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 120),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeOut,
+        transitionBuilder: (child, anim) =>
+            FadeTransition(opacity: anim, child: child),
+        child: KeyedSubtree(
+          key: ValueKey(shell.currentIndex),
+          child: shell,
+        ),
+      ),
       bottomNavigationBar: FBottomNavigationBar(
         index: shell.currentIndex,
         onChange: (i) => shell.goBranch(i, initialLocation: true),

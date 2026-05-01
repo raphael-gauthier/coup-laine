@@ -21,7 +21,7 @@ enum AppListTileVariant {
 /// padding 14×16. Remplace les usages directs de `FTile`.
 ///
 /// `metadata` n'est utilisé qu'en variant `rich`.
-class AppListTile extends StatelessWidget {
+class AppListTile extends StatefulWidget {
   final AppListTileVariant variant;
   final Widget? prefix;
   final String title;
@@ -44,8 +44,29 @@ class AppListTile extends StatelessWidget {
   });
 
   @override
+  State<AppListTile> createState() => _AppListTileState();
+}
+
+class _AppListTileState extends State<AppListTile> {
+  bool _pressed = false;
+
+  void _setPressed(bool v) {
+    if (widget.onTap == null && widget.onLongPress == null) return;
+    if (mounted) setState(() => _pressed = v);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = context.theme;
+    // Aliases for the previous Stateless API to minimize the diff below.
+    final variant = widget.variant;
+    final prefix = widget.prefix;
+    final title = widget.title;
+    final subtitle = widget.subtitle;
+    final metadata = widget.metadata;
+    final suffix = widget.suffix;
+    final onTap = widget.onTap;
+    final onLongPress = widget.onLongPress;
 
     final titleStyle = theme.typography.lg.copyWith(
       color: theme.colors.foreground,
@@ -62,7 +83,7 @@ class AppListTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (prefix != null) ...[
-              prefix!,
+              prefix,
               const SizedBox(width: AppSpacing.sm),
             ],
             Expanded(
@@ -75,7 +96,7 @@ class AppListTile extends StatelessWidget {
             ),
             if (suffix != null) ...[
               const SizedBox(width: AppSpacing.sm),
-              suffix!,
+              suffix,
             ],
           ],
         );
@@ -86,7 +107,7 @@ class AppListTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (prefix != null) ...[
-              prefix!,
+              prefix,
               const SizedBox(width: AppSpacing.sm),
             ],
             Expanded(
@@ -100,7 +121,7 @@ class AppListTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis),
                   if (subtitle != null) ...[
                     const SizedBox(height: AppSpacing.xxxs),
-                    Text(subtitle!,
+                    Text(subtitle,
                         style: subtitleStyle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
@@ -110,7 +131,7 @@ class AppListTile extends StatelessWidget {
             ),
             if (suffix != null) ...[
               const SizedBox(width: AppSpacing.sm),
-              suffix!,
+              suffix,
             ],
           ],
         );
@@ -121,7 +142,7 @@ class AppListTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (prefix != null) ...[
-              prefix!,
+              prefix,
               const SizedBox(width: AppSpacing.sm),
             ],
             Expanded(
@@ -135,21 +156,21 @@ class AppListTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis),
                   if (subtitle != null) ...[
                     const SizedBox(height: AppSpacing.xxxs),
-                    Text(subtitle!,
+                    Text(subtitle,
                         style: subtitleStyle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis),
                   ],
                   if (metadata != null) ...[
                     const SizedBox(height: AppSpacing.xs),
-                    metadata!,
+                    metadata,
                   ],
                 ],
               ),
             ),
             if (suffix != null) ...[
               const SizedBox(width: AppSpacing.sm),
-              suffix!,
+              suffix,
             ],
           ],
         );
@@ -158,29 +179,42 @@ class AppListTile extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => _setPressed(true),
+      onTapUp: (_) => _setPressed(false),
+      onTapCancel: () => _setPressed(false),
       onTap: onTap == null
           ? null
           : () {
               HapticFeedback.selectionClick();
-              onTap!();
+              onTap();
             },
       onLongPress: onLongPress == null
           ? null
           : () {
               HapticFeedback.lightImpact();
-              onLongPress!();
+              onLongPress();
             },
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.colors.card,
-          borderRadius: BorderRadius.circular(AppBorderRadius.md),
-          border: Border.all(
-            color: theme.colors.border,
-            width: AppSizes.hairlineBorder,
+      child: AnimatedScale(
+        scale: _pressed ? 0.98 : 1.0,
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        child: AnimatedOpacity(
+          opacity: _pressed ? 0.95 : 1.0,
+          duration: const Duration(milliseconds: 80),
+          curve: Curves.easeOut,
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.colors.card,
+              borderRadius: BorderRadius.circular(AppBorderRadius.md),
+              border: Border.all(
+                color: theme.colors.border,
+                width: AppSizes.hairlineBorder,
+              ),
+            ),
+            padding: AppSizes.listTilePadding,
+            child: content,
           ),
         ),
-        padding: AppSizes.listTilePadding,
-        child: content,
       ),
     );
   }

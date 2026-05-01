@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:forui/forui.dart';
 
 import '../../core/design_tokens.dart';
+import '../../core/motion.dart';
 import '../../core/theme/app_typography.dart';
 
 /// Une « cellule » de KpiRow : valeur tabular + label caption.
@@ -60,12 +61,18 @@ class AppKpiRow extends StatelessWidget {
               FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.center,
-                child: Text(
-                  c.value,
-                  maxLines: 1,
-                  softWrap: false,
-                  style: valueStyle.copyWith(
-                    color: c.valueColor ?? theme.colors.foreground,
+                child: AnimatedSwitcher(
+                  duration: AppMotion.normal,
+                  transitionBuilder: (child, anim) =>
+                      FadeTransition(opacity: anim, child: child),
+                  child: Text(
+                    c.value,
+                    key: ValueKey(c.value),
+                    maxLines: 1,
+                    softWrap: false,
+                    style: valueStyle.copyWith(
+                      color: c.valueColor ?? theme.colors.foreground,
+                    ),
                   ),
                 ),
               ),

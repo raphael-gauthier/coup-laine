@@ -4,6 +4,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
+import '../../core/motion.dart';
 
 /// Action décrite côté caller. Si la largeur disponible permet le label,
 /// on rend `[icon] label` ; sinon on rend juste l'icône (touch target 44dp,
@@ -114,8 +115,6 @@ class AppHeader extends StatelessWidget {
           )
         : FButton.icon(onPress: a.onPress, child: Icon(a.icon));
 
-    if (!a.active) return button;
-
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -123,13 +122,22 @@ class AppHeader extends StatelessWidget {
         Positioned(
           right: -2,
           top: -2,
-          child: Container(
-            width: 8,
-            height: 8,
-            decoration: BoxDecoration(
-              color: theme.colors.primary,
-              shape: BoxShape.circle,
-              border: Border.all(color: theme.colors.background, width: 1),
+          child: AnimatedScale(
+            scale: a.active ? 1.0 : 0.0,
+            duration: AppMotion.fast,
+            curve: AppMotion.fastCurve,
+            child: AnimatedOpacity(
+              opacity: a.active ? 1.0 : 0.0,
+              duration: AppMotion.fast,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: theme.colors.primary,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: theme.colors.background, width: 1),
+                ),
+              ),
             ),
           ),
         ),
