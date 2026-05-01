@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/legacy.dart';
 
 import '../domain/models/client.dart';
 import '../domain/models/distance_matrix_entry.dart';
+import '../domain/models/tour_stop_prestation.dart';
 import '../domain/use_cases/build_tour_draft.dart';
 import 'providers.dart';
 
@@ -23,6 +24,24 @@ class TourDraftInput {
 
 final tourDraftInputProvider = StateProvider<TourDraftInput?>((_) => null);
 
+/// Per-client picker selections owned by the draft screen. Keys are client ids;
+/// values are the prestations chosen for that client at this stop. Updates here
+/// invalidate the recomputed [tourDraftProvider].
+final tourDraftPrestationsProvider = StateNotifierProvider<
+    TourDraftPrestationsController,
+    Map<int, List<TourStopPrestation>>>((_) => TourDraftPrestationsController());
+
+class TourDraftPrestationsController
+    extends StateNotifier<Map<int, List<TourStopPrestation>>> {
+  TourDraftPrestationsController() : super(const {});
+
+  void setForClient(int clientId, List<TourStopPrestation> list) {
+    state = {...state, clientId: list};
+  }
+
+  void clear() => state = const {};
+}
+
 class TourDraftBundle {
   final TourDraftResult result;
   final List<Client> orderedClients;
@@ -39,6 +58,7 @@ final tourDraftProvider =
   final clients = ref.watch(clientRepositoryProvider);
   final matrix = ref.watch(distanceMatrixRepositoryProvider);
   final settingsRepo = ref.watch(settingsRepositoryProvider);
+  final prestationsByClientId = ref.watch(tourDraftPrestationsProvider);
 
   final settings = await settingsRepo.read();
   if (settings == null) return null;
@@ -73,7 +93,7 @@ final tourDraftProvider =
     candidates: all,
     matrix: entries,
     settings: settings,
-    prestationsPerClient: const {},
+    prestationsPerClient: prestationsByClientId,
     startTimeMinutes: input.startTimeMinutes,
     presetOrder: input.overrideOrder,
   );

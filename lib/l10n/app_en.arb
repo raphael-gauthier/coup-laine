@@ -284,5 +284,23 @@
   "prestationPickerCancel": "Cancel",
   "@prestationPickerCancel": {},
   "prestationPickerValidate": "Confirm",
-  "@prestationPickerValidate": {}
+  "@prestationPickerValidate": {},
+  "tourDraftStopNoPrestation": "No service",
+  "@tourDraftStopNoPrestation": {},
+  "tourDraftStopNPrestationsFmt": "{n} service(s) · {minutes} · {amount}",
+  "@tourDraftStopNPrestationsFmt": {
+    "placeholders": {
+      "n": {"type": "int"},
+      "minutes": {"type": "String"},
+      "amount": {"type": "String"}
+    }
+  },
+  "tourDraftSummaryRevenue": "Revenue: {amount}",
+  "@tourDraftSummaryRevenue": {
+    "placeholders": {"amount": {"type": "String"}}
+  },
+  "tourDraftSummaryNet": "Net (estimate): {amount}",
+  "@tourDraftSummaryNet": {
+    "placeholders": {"amount": {"type": "String"}}
+  }
 }
