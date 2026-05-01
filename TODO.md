@@ -15,9 +15,6 @@ Les statuts (`waiting`, `scheduled`, `done`, `noSheep`, `banned`) ont libellés 
 ### 4. Tarification par animal — priorité moyenne
 Aujourd'hui une tournée n'affiche que les frais de déplacement. Ajouter prix par catégorie d'animal (`defaultPriceSmallCents` / `LargeCents`), snapshot dans `tour_stops`, et un calcul revenu / net dans `BuildTourDraft`. **Sera probablement absorbé par #6** si on y va direct — utile uniquement comme phase 1 minimale si #5/#6 sont repoussés.
 
-### 5. Pivot multi-praticien (espèces à l'onboarding) — priorité haute (prérequis à #6 et #7)
-L'app est mono-vertical : tonte de moutons (`sheepCountSmall/Large`, libellés, mascotte, l10n — tout est en dur). Élargir à tout praticien animalier itinérant (dentistes équins, ostéopathes animaliers, vétérinaires de campagne, maréchaux-ferrants, parage…). À l'onboarding, l'utilisateur choisit ses espèces ; les compteurs adaptés se débloquent. **Refactor lourd** côté domaine, l10n, branding (`Coup'Laine` est explicitement orienté tonte — rebrand à discuter). À trancher au brainstorming : compteurs par espèce, par catégorie générique, ou hybride.
-
 ### 6. Catalogue de prestations et tarifs — priorité haute (dépend de #5, supersede #4)
 Une fois multi-praticien, l'utilisateur définit son catalogue de prestations (label, prix, durée estimée, espèces applicables). À la planification, sélection par arrêt avec quantité — un arrêt peut combiner plusieurs prestations. Snapshot dans `tour_stops` pour figer les valeurs. Base nécessaire à #7. Catalogues préconfigurés selon les espèces actives au gain de temps initial.
 
@@ -124,3 +121,65 @@ PDF facture par client par tournée, conforme légalement : numérotation contin
 - Champs livrés : date, petits moutons, grands moutons, note. Durée et prix non livrés (pas de besoin formulé).
 - Saisie en lot : volontairement hors scope.
 - Critère « les entrées historiques ne déclenchent aucune logique métier » : non respecté à dessein — choix produit explicite. Une entrée manuelle plus récente écrase `lastShearingDate` + compteurs et compte pour la saison. Sinon le backfill rétroactif n'aurait servi à rien.
+
+---
+
+### Pivot multi-praticien (espèces & catégories)
+**Mergé sur `main`** — 2026-05-01 (commit de merge `9a7c687` ; 47 commits)
+**Spec :** `docs/superpowers/specs/2026-04-30-multi-praticien-pivot-design.md`
+**Plan :** `docs/superpowers/plans/2026-04-30-multi-praticien-pivot.md`
+
+#### Ce qui a été livré
+
+**Domaine — taxonomie à deux niveaux**
+- Nouveaux value types : `Species` (id, name, iconKey, archivedAt), `AnimalCategory` (id, speciesId, name, defaultMinutes, defaultPriceCents, archivedAt). Archive plutôt que delete pour préserver les FK historiques.
+- `AnimalCount` (categoryId + count) pour l'état courant client.
+- `TourStopAnimal` snapshot riche (categoryId + count + categoryNameSnapshot + speciesNameSnapshot + minutesSnapshot) côté tournée et historique manuel — préserve l'affichage si une catégorie est renommée plus tard.
+- `Client.animals: List<AnimalCount>` remplace `sheepCountSmall/Large`.
+- `ClientStatus.noSheep` → `noAnimals` ; `markerNoSheepColor` → `markerNoAnimalsColor`.
+- `Settings` drops `defaultMinutesPerSmall/Large` (la durée vit désormais sur `AnimalCategory.defaultMinutes`).
+
+**Data — Drift schema reset v9 → v11**
+- Nouvelles tables `species` + `animal_categories` (FK cascade `onDelete`).
+- `clients.animals` (TEXT JSON via `AnimalCountListConverter`).
+- `tour_stops.plannedAnimals` / `actualAnimals` (TEXT JSON via `TourStopAnimalListConverter`).
+- `manual_history_entries.animals` (TEXT JSON via `TourStopAnimalListConverter`).
+- Repos `SpeciesRepository` et `AnimalCategoryRepository` (CRUD + archive).
+- Templates seed (`Mouton`, `Cheval`, `Bovin`, `Caprin`) dans `species_seeds.dart`.
+- Reset migration `if (from < 11)` (pas d'utilisateurs en prod).
+
+**Use cases & state**
+- `BuildTourDraft` + `TourDurationEstimator` consomment des `List<TourStopAnimal>` snapshots.
+- `TourDurationResult.totalShearingMinutes` → `totalInterventionMinutes` (vestige mono-vertical neutralisé).
+- Providers `activeSpeciesProvider`, `activeCategoriesBySpeciesProvider`, `allCategoriesByIdProvider`, `categoryLookup` câblés dans `state/providers.dart`.
+
+**UI — onboarding & paramètres**
+- Onboarding 2-étapes : adresse → sélection des espèces (templates seed + ajout perso via `CustomSpeciesFormSheet`).
+- `SpeciesManagementScreen` + `SpeciesEditScreen` : CRUD espèces et catégories, archive/désarchive, restauration de templates.
+- `AnimalCategoryFormSheet` : édition de catégorie (nom, durée par défaut, prix indicatif HT, archive).
+
+**UI — widgets signature**
+- `AnimalCountsEditor` : input numérique par catégorie, regroupé par espèce (accordéon), section "archivées" si l'utilisateur a des compteurs sur des catégories désormais archivées.
+- `AnimalCountsBadges` : modes compact (`"5 Moutons, 4 Chevaux"`) et detailed (breakdown par espèce + catégorie).
+- Branchement transversal : fiche client, liste, fiche détail, fiche historique, popup carte, sheet historique manuel, draft de tournée, picker, écran de complétion.
+
+**Helpers & infra**
+- `pluralizeFr(word, count)` : pluralisation FR (régulière `+s`, `-al/-aux`, `-au/-eau/-eu/+x`, mots invariables, composés).
+- `normalizeAnimalCounts` (drop zeros, dedup par categoryId, sort) appliqué à tous les writes — même pattern que `normalizePhones`.
+- `JsonExportService` round-trip pour `animals` (export/import).
+
+**Cleanup post-pivot**
+- Neutralisation lexicale exhaustive : `lastShearingDate` → `lastInterventionDate` (DB + domaine + repos + UI), clés l10n `clientsLastShearing*` → `clientsLastIntervention*`, placeholder `{shear}` → `{intervention}` dans `tourDraftSummaryTotal`, `_StatusPin.sheepCount` → `animalCount`, EN string "shearing tour companion" → "tour companion", FR/EN "sans-moutons"/"no-sheep" → "sans animaux"/"no-animals".
+- Drop de la feature "Logo de l'app" (`appAvatarKey` + `AvatarPicker` + 4 clés l10n + 3 fichiers + tests) — feature dormante : sélectionnable mais le choix n'était jamais affiché. Surface absente, à reprendre proprement le jour où on aura besoin d'un vrai logo custom (image picker + vraie surface splash/header).
+- Refonte du marqueur de l'adresse de départ : drop-pin 48×56 en `theme.colors.primary` avec icône `home`, `_PinPainter` rendu size-aware. Avant : étoile grise 36×36 quasi-invisible.
+
+**Tests**
+- 90+ tests ajoutés couvrant les nouveaux types domain, converters, repos species/category, widgets `AnimalCountsEditor` et `AnimalCountsBadges`.
+- 186/186 verts à la fin (vs 140 avant le pivot).
+
+#### Écarts vs périmètre initial
+
+- **Branding `Coup'Laine` non touché** : volontairement hors scope. Le rebrand impacte le package Dart (`coup_laine`), `userAgentPackageName`, l'asset `sheep-mascot.png`, le filename `coup_laine.sqlite`, l'asset launcher — autre chantier. Mascotte mouton conservée à l'étape 1 de l'onboarding en attendant.
+- **Avatar/Logo de l'app** : initialement prévu dans la spec (`appAvatarKey` + `AvatarPicker` à 6 icônes forui), implémenté **puis retiré** post-merge. Sélectionnable à l'onboarding et aux Settings, mais le choix n'était lu nulle part. Picker incomplet → décision de drop pour ne pas laisser de dette ouverte. Si besoin d'un vrai logo custom plus tard, refonte propre (image picker + vraie surface au démarrage).
+- **`AnimalCategory.defaultPriceCents`** : champ en place mais dormant — sera consommé par #6 (catalogue de prestations).
+- **Tarification par animal (#4)** : superseded par #6. La donnée de prix vit désormais au niveau catégorie ; reste à brancher la facturation et le calcul revenu/net.
