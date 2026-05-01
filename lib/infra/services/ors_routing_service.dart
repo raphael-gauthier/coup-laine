@@ -96,7 +96,7 @@ class OrsRoutingService {
         throw OrsException('Missing coordinates in directions geometry');
       }
       // GeoJSON returns [lon, lat] pairs — swap to our [lat, lon] convention.
-      return [
+      final polyline = <Coordinates>[
         for (final p in coords)
           if (p is List && p.length >= 2)
             Coordinates(
@@ -104,6 +104,29 @@ class OrsRoutingService {
               lon: (p[0] as num).toDouble(),
             ),
       ];
+
+      // Defensive close-loop : si le dernier waypoint demandé est le même
+      // que le premier (typique : tournée qui revient à la base), on
+      // s'assure que la polyline retournée se termine bien sur ce point —
+      // ORS peut tronquer le doublon de fin, ce qui laisse le trajet de
+      // retour visiblement absent.
+      if (polyline.isNotEmpty && waypoints.length >= 2) {
+        final firstWp = waypoints.first;
+        final lastWp = waypoints.last;
+        final loopClosed = firstWp.lat == lastWp.lat && firstWp.lon == lastWp.lon;
+        if (loopClosed) {
+          final endpoint = polyline.last;
+          // ~100m threshold (~0.001° lat ≈ 111m). Si la fin de polyline est
+          // déjà à proximité de la base, pas besoin d'ajouter.
+          final dLat = (endpoint.lat - lastWp.lat).abs();
+          final dLon = (endpoint.lon - lastWp.lon).abs();
+          if (dLat > 0.001 || dLon > 0.001) {
+            polyline.add(lastWp);
+          }
+        }
+      }
+
+      return polyline;
     } on OrsException {
       rethrow;
     } on SocketException catch (e) {
