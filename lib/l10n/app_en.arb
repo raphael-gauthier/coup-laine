@@ -238,5 +238,11 @@
   "prestationCatalogCountFmt": "{n} active service(s)",
   "@prestationCatalogCountFmt": {
     "placeholders": {"n": {"type": "int"}}
-  }
+  },
+  "prestationCatalogAddCta": "+ Add a service",
+  "@prestationCatalogAddCta": {},
+  "prestationCatalogArchivedSection": "Archived",
+  "@prestationCatalogArchivedSection": {},
+  "prestationCatalogFreeGroup": "Standalone",
+  "@prestationCatalogFreeGroup": {}
 }

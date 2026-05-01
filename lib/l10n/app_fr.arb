@@ -238,5 +238,11 @@
   "prestationCatalogCountFmt": "{n} prestation(s) active(s)",
   "@prestationCatalogCountFmt": {
     "placeholders": {"n": {"type": "int"}}
-  }
+  },
+  "prestationCatalogAddCta": "+ Ajouter une prestation",
+  "@prestationCatalogAddCta": {},
+  "prestationCatalogArchivedSection": "Archivées",
+  "@prestationCatalogArchivedSection": {},
+  "prestationCatalogFreeGroup": "Libres",
+  "@prestationCatalogFreeGroup": {}
 }
