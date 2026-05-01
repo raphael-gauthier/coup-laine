@@ -8,9 +8,6 @@ import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
 import '../../core/design_tokens.dart';
 import '../../core/ui/confirm_dialog.dart';
@@ -407,13 +404,18 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                         onPress: () async {
                           final svc = ref.read(jsonExportServiceProvider);
                           final body = await svc.exportToJsonString();
-                          final dir = await getTemporaryDirectory();
-                          final file = File(p.join(dir.path,
-                              'coup-laine-${DateTime.now().millisecondsSinceEpoch}.json'));
-                          await file.writeAsString(body);
-                          await SharePlus.instance.share(
-                            ShareParams(files: [XFile(file.path)]),
+                          final location = await getSaveLocation(
+                            suggestedName:
+                                'coup-laine-${DateTime.now().millisecondsSinceEpoch}.json',
+                            acceptedTypeGroups: const [
+                              XTypeGroup(
+                                label: 'JSON',
+                                extensions: ['json'],
+                              ),
+                            ],
                           );
+                          if (location == null) return;
+                          await File(location.path).writeAsString(body);
                         },
                       ),
                       const SizedBox(height: AppSpacing.sm),

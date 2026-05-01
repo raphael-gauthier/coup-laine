@@ -6,7 +6,6 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:share_plus/share_plus.dart' show ShareParams, SharePlus;
 
 import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
@@ -73,13 +72,6 @@ class TourDetailScreen extends ConsumerWidget {
                   title: dateStr,
                   subtitle:
                       '${dayStr[0].toUpperCase()}${dayStr.substring(1)} · ${bundle.stops.length} stops · $statusLabel',
-                  actions: [
-                    AppHeaderAction(
-                      icon: FIcons.share2,
-                      label: 'Partager',
-                      onPress: () => _share(bundle, context, l),
-                    ),
-                  ],
                 ),
                 Expanded(
                   child: _Body(bundle: bundle, tourId: tourId),
@@ -96,21 +88,6 @@ class TourDetailScreen extends ConsumerWidget {
           },
         ),
       ),
-    );
-  }
-
-  Future<void> _share(
-      TourWithStops bundle, BuildContext context, AppLocalizations l) async {
-    final dateLine = DateFormat('dd/MM/yyyy').format(bundle.tour.plannedDate);
-    final lines = <String>[
-      'Tournée du $dateLine',
-      ...bundle.stops.map(
-        (s) => '- ${s.clientNameSnapshot} : ${formatEuros(s.feeShareCents)}',
-      ),
-      'Total : ${formatEuros(bundle.tour.totalTravelFeeCents)}',
-    ];
-    await SharePlus.instance.share(
-      ShareParams(text: lines.join('\n'), subject: 'Tournée du $dateLine'),
     );
   }
 }
