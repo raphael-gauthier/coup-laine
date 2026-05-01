@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'animal_count_list_converter.dart';
 import 'phone_list_converter.dart';
 import 'tour_stop_animal_list_converter.dart';
+import 'tour_stop_prestation_list_converter.dart';
 
 @DataClassName('SettingsRow')
 class SettingsTable extends Table {
@@ -144,6 +145,12 @@ class TourStopsTable extends Table {
   TextColumn get actualAnimals => text()
       .map(const TourStopAnimalListConverter())
       .nullable()();
+  TextColumn get plannedPrestations => text()
+      .map(const TourStopPrestationListConverter())
+      .withDefault(const Constant('[]'))();
+  TextColumn get actualPrestations => text()
+      .map(const TourStopPrestationListConverter())
+      .nullable()();
   TextColumn get interventionNote => text().nullable()();
   IntColumn get feeShareCents => integer()();
 }
@@ -160,7 +167,25 @@ class ManualHistoryEntriesTable extends Table {
   TextColumn get animals => text()
       .map(const TourStopAnimalListConverter())
       .withDefault(const Constant('[]'))();
+  TextColumn get prestations => text()
+      .map(const TourStopPrestationListConverter())
+      .withDefault(const Constant('[]'))();
   TextColumn get note => text().nullable()();
   IntColumn get createdAt => integer()();
   IntColumn get updatedAt => integer()();
+}
+
+@DataClassName('PrestationRow')
+class PrestationsTable extends Table {
+  @override
+  String get tableName => 'prestations';
+
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  IntColumn get priceCents => integer().nullable()();
+  IntColumn get minutes => integer().nullable()();
+  IntColumn get categoryId => integer().nullable()
+      .references(AnimalCategoriesTable, #id, onDelete: KeyAction.setNull)();
+  IntColumn get archivedAt => integer().nullable()();
+  IntColumn get createdAt => integer()();
 }

@@ -3148,6 +3148,22 @@ class $TourStopsTableTable extends TourStopsTable
               type: DriftSqlType.string, requiredDuringInsert: false)
           .withConverter<List<TourStopAnimal>?>(
               $TourStopsTableTable.$converteractualAnimalsn);
+  @override
+  late final GeneratedColumnWithTypeConverter<List<TourStopPrestation>, String>
+      plannedPrestations = GeneratedColumn<String>(
+              'planned_prestations', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: const Constant('[]'))
+          .withConverter<List<TourStopPrestation>>(
+              $TourStopsTableTable.$converterplannedPrestations);
+  @override
+  late final GeneratedColumnWithTypeConverter<List<TourStopPrestation>?, String>
+      actualPrestations = GeneratedColumn<String>(
+              'actual_prestations', aliasedName, true,
+              type: DriftSqlType.string, requiredDuringInsert: false)
+          .withConverter<List<TourStopPrestation>?>(
+              $TourStopsTableTable.$converteractualPrestationsn);
   static const VerificationMeta _interventionNoteMeta =
       const VerificationMeta('interventionNote');
   @override
@@ -3171,6 +3187,8 @@ class $TourStopsTableTable extends TourStopsTable
         estimatedDepartureMinutes,
         plannedAnimals,
         actualAnimals,
+        plannedPrestations,
+        actualPrestations,
         interventionNote,
         feeShareCents
       ];
@@ -3276,6 +3294,12 @@ class $TourStopsTableTable extends TourStopsTable
       actualAnimals: $TourStopsTableTable.$converteractualAnimalsn.fromSql(
           attachedDatabase.typeMapping.read(
               DriftSqlType.string, data['${effectivePrefix}actual_animals'])),
+      plannedPrestations: $TourStopsTableTable.$converterplannedPrestations
+          .fromSql(attachedDatabase.typeMapping.read(DriftSqlType.string,
+              data['${effectivePrefix}planned_prestations'])!),
+      actualPrestations: $TourStopsTableTable.$converteractualPrestationsn
+          .fromSql(attachedDatabase.typeMapping.read(DriftSqlType.string,
+              data['${effectivePrefix}actual_prestations'])),
       interventionNote: attachedDatabase.typeMapping.read(
           DriftSqlType.string, data['${effectivePrefix}intervention_note']),
       feeShareCents: attachedDatabase.typeMapping
@@ -3295,6 +3319,13 @@ class $TourStopsTableTable extends TourStopsTable
   static TypeConverter<List<TourStopAnimal>?, String?>
       $converteractualAnimalsn =
       NullAwareTypeConverter.wrap($converteractualAnimals);
+  static TypeConverter<List<TourStopPrestation>, String>
+      $converterplannedPrestations = const TourStopPrestationListConverter();
+  static TypeConverter<List<TourStopPrestation>, String>
+      $converteractualPrestations = const TourStopPrestationListConverter();
+  static TypeConverter<List<TourStopPrestation>?, String?>
+      $converteractualPrestationsn =
+      NullAwareTypeConverter.wrap($converteractualPrestations);
 }
 
 class TourStopRow extends DataClass implements Insertable<TourStopRow> {
@@ -3307,6 +3338,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
   final int estimatedDepartureMinutes;
   final List<TourStopAnimal> plannedAnimals;
   final List<TourStopAnimal>? actualAnimals;
+  final List<TourStopPrestation> plannedPrestations;
+  final List<TourStopPrestation>? actualPrestations;
   final String? interventionNote;
   final int feeShareCents;
   const TourStopRow(
@@ -3319,6 +3352,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       required this.estimatedDepartureMinutes,
       required this.plannedAnimals,
       this.actualAnimals,
+      required this.plannedPrestations,
+      this.actualPrestations,
       this.interventionNote,
       required this.feeShareCents});
   @override
@@ -3342,6 +3377,16 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       map['actual_animals'] = Variable<String>(
           $TourStopsTableTable.$converteractualAnimalsn.toSql(actualAnimals));
     }
+    {
+      map['planned_prestations'] = Variable<String>($TourStopsTableTable
+          .$converterplannedPrestations
+          .toSql(plannedPrestations));
+    }
+    if (!nullToAbsent || actualPrestations != null) {
+      map['actual_prestations'] = Variable<String>($TourStopsTableTable
+          .$converteractualPrestationsn
+          .toSql(actualPrestations));
+    }
     if (!nullToAbsent || interventionNote != null) {
       map['intervention_note'] = Variable<String>(interventionNote);
     }
@@ -3364,6 +3409,10 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       actualAnimals: actualAnimals == null && nullToAbsent
           ? const Value.absent()
           : Value(actualAnimals),
+      plannedPrestations: Value(plannedPrestations),
+      actualPrestations: actualPrestations == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actualPrestations),
       interventionNote: interventionNote == null && nullToAbsent
           ? const Value.absent()
           : Value(interventionNote),
@@ -3389,6 +3438,10 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           serializer.fromJson<List<TourStopAnimal>>(json['plannedAnimals']),
       actualAnimals:
           serializer.fromJson<List<TourStopAnimal>?>(json['actualAnimals']),
+      plannedPrestations: serializer
+          .fromJson<List<TourStopPrestation>>(json['plannedPrestations']),
+      actualPrestations: serializer
+          .fromJson<List<TourStopPrestation>?>(json['actualPrestations']),
       interventionNote: serializer.fromJson<String?>(json['interventionNote']),
       feeShareCents: serializer.fromJson<int>(json['feeShareCents']),
     );
@@ -3408,6 +3461,10 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           serializer.toJson<int>(estimatedDepartureMinutes),
       'plannedAnimals': serializer.toJson<List<TourStopAnimal>>(plannedAnimals),
       'actualAnimals': serializer.toJson<List<TourStopAnimal>?>(actualAnimals),
+      'plannedPrestations':
+          serializer.toJson<List<TourStopPrestation>>(plannedPrestations),
+      'actualPrestations':
+          serializer.toJson<List<TourStopPrestation>?>(actualPrestations),
       'interventionNote': serializer.toJson<String?>(interventionNote),
       'feeShareCents': serializer.toJson<int>(feeShareCents),
     };
@@ -3423,6 +3480,9 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           int? estimatedDepartureMinutes,
           List<TourStopAnimal>? plannedAnimals,
           Value<List<TourStopAnimal>?> actualAnimals = const Value.absent(),
+          List<TourStopPrestation>? plannedPrestations,
+          Value<List<TourStopPrestation>?> actualPrestations =
+              const Value.absent(),
           Value<String?> interventionNote = const Value.absent(),
           int? feeShareCents}) =>
       TourStopRow(
@@ -3438,6 +3498,10 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
         plannedAnimals: plannedAnimals ?? this.plannedAnimals,
         actualAnimals:
             actualAnimals.present ? actualAnimals.value : this.actualAnimals,
+        plannedPrestations: plannedPrestations ?? this.plannedPrestations,
+        actualPrestations: actualPrestations.present
+            ? actualPrestations.value
+            : this.actualPrestations,
         interventionNote: interventionNote.present
             ? interventionNote.value
             : this.interventionNote,
@@ -3465,6 +3529,12 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       actualAnimals: data.actualAnimals.present
           ? data.actualAnimals.value
           : this.actualAnimals,
+      plannedPrestations: data.plannedPrestations.present
+          ? data.plannedPrestations.value
+          : this.plannedPrestations,
+      actualPrestations: data.actualPrestations.present
+          ? data.actualPrestations.value
+          : this.actualPrestations,
       interventionNote: data.interventionNote.present
           ? data.interventionNote.value
           : this.interventionNote,
@@ -3486,6 +3556,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           ..write('estimatedDepartureMinutes: $estimatedDepartureMinutes, ')
           ..write('plannedAnimals: $plannedAnimals, ')
           ..write('actualAnimals: $actualAnimals, ')
+          ..write('plannedPrestations: $plannedPrestations, ')
+          ..write('actualPrestations: $actualPrestations, ')
           ..write('interventionNote: $interventionNote, ')
           ..write('feeShareCents: $feeShareCents')
           ..write(')'))
@@ -3503,6 +3575,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
       estimatedDepartureMinutes,
       plannedAnimals,
       actualAnimals,
+      plannedPrestations,
+      actualPrestations,
       interventionNote,
       feeShareCents);
   @override
@@ -3518,6 +3592,8 @@ class TourStopRow extends DataClass implements Insertable<TourStopRow> {
           other.estimatedDepartureMinutes == this.estimatedDepartureMinutes &&
           other.plannedAnimals == this.plannedAnimals &&
           other.actualAnimals == this.actualAnimals &&
+          other.plannedPrestations == this.plannedPrestations &&
+          other.actualPrestations == this.actualPrestations &&
           other.interventionNote == this.interventionNote &&
           other.feeShareCents == this.feeShareCents);
 }
@@ -3532,6 +3608,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
   final Value<int> estimatedDepartureMinutes;
   final Value<List<TourStopAnimal>> plannedAnimals;
   final Value<List<TourStopAnimal>?> actualAnimals;
+  final Value<List<TourStopPrestation>> plannedPrestations;
+  final Value<List<TourStopPrestation>?> actualPrestations;
   final Value<String?> interventionNote;
   final Value<int> feeShareCents;
   const TourStopsTableCompanion({
@@ -3544,6 +3622,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
     this.estimatedDepartureMinutes = const Value.absent(),
     this.plannedAnimals = const Value.absent(),
     this.actualAnimals = const Value.absent(),
+    this.plannedPrestations = const Value.absent(),
+    this.actualPrestations = const Value.absent(),
     this.interventionNote = const Value.absent(),
     this.feeShareCents = const Value.absent(),
   });
@@ -3557,6 +3637,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
     required int estimatedDepartureMinutes,
     this.plannedAnimals = const Value.absent(),
     this.actualAnimals = const Value.absent(),
+    this.plannedPrestations = const Value.absent(),
+    this.actualPrestations = const Value.absent(),
     this.interventionNote = const Value.absent(),
     required int feeShareCents,
   })  : tourId = Value(tourId),
@@ -3575,6 +3657,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
     Expression<int>? estimatedDepartureMinutes,
     Expression<String>? plannedAnimals,
     Expression<String>? actualAnimals,
+    Expression<String>? plannedPrestations,
+    Expression<String>? actualPrestations,
     Expression<String>? interventionNote,
     Expression<int>? feeShareCents,
   }) {
@@ -3591,6 +3675,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
         'estimated_departure_minutes': estimatedDepartureMinutes,
       if (plannedAnimals != null) 'planned_animals': plannedAnimals,
       if (actualAnimals != null) 'actual_animals': actualAnimals,
+      if (plannedPrestations != null) 'planned_prestations': plannedPrestations,
+      if (actualPrestations != null) 'actual_prestations': actualPrestations,
       if (interventionNote != null) 'intervention_note': interventionNote,
       if (feeShareCents != null) 'fee_share_cents': feeShareCents,
     });
@@ -3606,6 +3692,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
       Value<int>? estimatedDepartureMinutes,
       Value<List<TourStopAnimal>>? plannedAnimals,
       Value<List<TourStopAnimal>?>? actualAnimals,
+      Value<List<TourStopPrestation>>? plannedPrestations,
+      Value<List<TourStopPrestation>?>? actualPrestations,
       Value<String?>? interventionNote,
       Value<int>? feeShareCents}) {
     return TourStopsTableCompanion(
@@ -3620,6 +3708,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
           estimatedDepartureMinutes ?? this.estimatedDepartureMinutes,
       plannedAnimals: plannedAnimals ?? this.plannedAnimals,
       actualAnimals: actualAnimals ?? this.actualAnimals,
+      plannedPrestations: plannedPrestations ?? this.plannedPrestations,
+      actualPrestations: actualPrestations ?? this.actualPrestations,
       interventionNote: interventionNote ?? this.interventionNote,
       feeShareCents: feeShareCents ?? this.feeShareCents,
     );
@@ -3661,6 +3751,16 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
           .$converteractualAnimalsn
           .toSql(actualAnimals.value));
     }
+    if (plannedPrestations.present) {
+      map['planned_prestations'] = Variable<String>($TourStopsTableTable
+          .$converterplannedPrestations
+          .toSql(plannedPrestations.value));
+    }
+    if (actualPrestations.present) {
+      map['actual_prestations'] = Variable<String>($TourStopsTableTable
+          .$converteractualPrestationsn
+          .toSql(actualPrestations.value));
+    }
     if (interventionNote.present) {
       map['intervention_note'] = Variable<String>(interventionNote.value);
     }
@@ -3682,6 +3782,8 @@ class TourStopsTableCompanion extends UpdateCompanion<TourStopRow> {
           ..write('estimatedDepartureMinutes: $estimatedDepartureMinutes, ')
           ..write('plannedAnimals: $plannedAnimals, ')
           ..write('actualAnimals: $actualAnimals, ')
+          ..write('plannedPrestations: $plannedPrestations, ')
+          ..write('actualPrestations: $actualPrestations, ')
           ..write('interventionNote: $interventionNote, ')
           ..write('feeShareCents: $feeShareCents')
           ..write(')'))
@@ -3726,6 +3828,14 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
               defaultValue: const Constant('[]'))
           .withConverter<List<TourStopAnimal>>(
               $ManualHistoryEntriesTableTable.$converteranimals);
+  @override
+  late final GeneratedColumnWithTypeConverter<List<TourStopPrestation>, String>
+      prestations = GeneratedColumn<String>('prestations', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: const Constant('[]'))
+          .withConverter<List<TourStopPrestation>>(
+              $ManualHistoryEntriesTableTable.$converterprestations);
   static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
   late final GeneratedColumn<String> note = GeneratedColumn<String>(
@@ -3745,7 +3855,7 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
       type: DriftSqlType.int, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, clientId, date, animals, note, createdAt, updatedAt];
+      [id, clientId, date, animals, prestations, note, createdAt, updatedAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3806,6 +3916,9 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
       animals: $ManualHistoryEntriesTableTable.$converteranimals.fromSql(
           attachedDatabase.typeMapping
               .read(DriftSqlType.string, data['${effectivePrefix}animals'])!),
+      prestations: $ManualHistoryEntriesTableTable.$converterprestations
+          .fromSql(attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}prestations'])!),
       note: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}note']),
       createdAt: attachedDatabase.typeMapping
@@ -3822,6 +3935,8 @@ class $ManualHistoryEntriesTableTable extends ManualHistoryEntriesTable
 
   static TypeConverter<List<TourStopAnimal>, String> $converteranimals =
       const TourStopAnimalListConverter();
+  static TypeConverter<List<TourStopPrestation>, String> $converterprestations =
+      const TourStopPrestationListConverter();
 }
 
 class ManualHistoryEntryRow extends DataClass
@@ -3830,6 +3945,7 @@ class ManualHistoryEntryRow extends DataClass
   final int clientId;
   final int date;
   final List<TourStopAnimal> animals;
+  final List<TourStopPrestation> prestations;
   final String? note;
   final int createdAt;
   final int updatedAt;
@@ -3838,6 +3954,7 @@ class ManualHistoryEntryRow extends DataClass
       required this.clientId,
       required this.date,
       required this.animals,
+      required this.prestations,
       this.note,
       required this.createdAt,
       required this.updatedAt});
@@ -3850,6 +3967,11 @@ class ManualHistoryEntryRow extends DataClass
     {
       map['animals'] = Variable<String>(
           $ManualHistoryEntriesTableTable.$converteranimals.toSql(animals));
+    }
+    {
+      map['prestations'] = Variable<String>($ManualHistoryEntriesTableTable
+          .$converterprestations
+          .toSql(prestations));
     }
     if (!nullToAbsent || note != null) {
       map['note'] = Variable<String>(note);
@@ -3865,6 +3987,7 @@ class ManualHistoryEntryRow extends DataClass
       clientId: Value(clientId),
       date: Value(date),
       animals: Value(animals),
+      prestations: Value(prestations),
       note: note == null && nullToAbsent ? const Value.absent() : Value(note),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -3879,6 +4002,8 @@ class ManualHistoryEntryRow extends DataClass
       clientId: serializer.fromJson<int>(json['clientId']),
       date: serializer.fromJson<int>(json['date']),
       animals: serializer.fromJson<List<TourStopAnimal>>(json['animals']),
+      prestations:
+          serializer.fromJson<List<TourStopPrestation>>(json['prestations']),
       note: serializer.fromJson<String?>(json['note']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
       updatedAt: serializer.fromJson<int>(json['updatedAt']),
@@ -3892,6 +4017,7 @@ class ManualHistoryEntryRow extends DataClass
       'clientId': serializer.toJson<int>(clientId),
       'date': serializer.toJson<int>(date),
       'animals': serializer.toJson<List<TourStopAnimal>>(animals),
+      'prestations': serializer.toJson<List<TourStopPrestation>>(prestations),
       'note': serializer.toJson<String?>(note),
       'createdAt': serializer.toJson<int>(createdAt),
       'updatedAt': serializer.toJson<int>(updatedAt),
@@ -3903,6 +4029,7 @@ class ManualHistoryEntryRow extends DataClass
           int? clientId,
           int? date,
           List<TourStopAnimal>? animals,
+          List<TourStopPrestation>? prestations,
           Value<String?> note = const Value.absent(),
           int? createdAt,
           int? updatedAt}) =>
@@ -3911,6 +4038,7 @@ class ManualHistoryEntryRow extends DataClass
         clientId: clientId ?? this.clientId,
         date: date ?? this.date,
         animals: animals ?? this.animals,
+        prestations: prestations ?? this.prestations,
         note: note.present ? note.value : this.note,
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
@@ -3922,6 +4050,8 @@ class ManualHistoryEntryRow extends DataClass
       clientId: data.clientId.present ? data.clientId.value : this.clientId,
       date: data.date.present ? data.date.value : this.date,
       animals: data.animals.present ? data.animals.value : this.animals,
+      prestations:
+          data.prestations.present ? data.prestations.value : this.prestations,
       note: data.note.present ? data.note.value : this.note,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -3935,6 +4065,7 @@ class ManualHistoryEntryRow extends DataClass
           ..write('clientId: $clientId, ')
           ..write('date: $date, ')
           ..write('animals: $animals, ')
+          ..write('prestations: $prestations, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -3943,8 +4074,8 @@ class ManualHistoryEntryRow extends DataClass
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, clientId, date, animals, note, createdAt, updatedAt);
+  int get hashCode => Object.hash(
+      id, clientId, date, animals, prestations, note, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3953,6 +4084,7 @@ class ManualHistoryEntryRow extends DataClass
           other.clientId == this.clientId &&
           other.date == this.date &&
           other.animals == this.animals &&
+          other.prestations == this.prestations &&
           other.note == this.note &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -3964,6 +4096,7 @@ class ManualHistoryEntriesTableCompanion
   final Value<int> clientId;
   final Value<int> date;
   final Value<List<TourStopAnimal>> animals;
+  final Value<List<TourStopPrestation>> prestations;
   final Value<String?> note;
   final Value<int> createdAt;
   final Value<int> updatedAt;
@@ -3972,6 +4105,7 @@ class ManualHistoryEntriesTableCompanion
     this.clientId = const Value.absent(),
     this.date = const Value.absent(),
     this.animals = const Value.absent(),
+    this.prestations = const Value.absent(),
     this.note = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -3981,6 +4115,7 @@ class ManualHistoryEntriesTableCompanion
     required int clientId,
     required int date,
     this.animals = const Value.absent(),
+    this.prestations = const Value.absent(),
     this.note = const Value.absent(),
     required int createdAt,
     required int updatedAt,
@@ -3993,6 +4128,7 @@ class ManualHistoryEntriesTableCompanion
     Expression<int>? clientId,
     Expression<int>? date,
     Expression<String>? animals,
+    Expression<String>? prestations,
     Expression<String>? note,
     Expression<int>? createdAt,
     Expression<int>? updatedAt,
@@ -4002,6 +4138,7 @@ class ManualHistoryEntriesTableCompanion
       if (clientId != null) 'client_id': clientId,
       if (date != null) 'date': date,
       if (animals != null) 'animals': animals,
+      if (prestations != null) 'prestations': prestations,
       if (note != null) 'note': note,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -4013,6 +4150,7 @@ class ManualHistoryEntriesTableCompanion
       Value<int>? clientId,
       Value<int>? date,
       Value<List<TourStopAnimal>>? animals,
+      Value<List<TourStopPrestation>>? prestations,
       Value<String?>? note,
       Value<int>? createdAt,
       Value<int>? updatedAt}) {
@@ -4021,6 +4159,7 @@ class ManualHistoryEntriesTableCompanion
       clientId: clientId ?? this.clientId,
       date: date ?? this.date,
       animals: animals ?? this.animals,
+      prestations: prestations ?? this.prestations,
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -4044,6 +4183,11 @@ class ManualHistoryEntriesTableCompanion
           .$converteranimals
           .toSql(animals.value));
     }
+    if (prestations.present) {
+      map['prestations'] = Variable<String>($ManualHistoryEntriesTableTable
+          .$converterprestations
+          .toSql(prestations.value));
+    }
     if (note.present) {
       map['note'] = Variable<String>(note.value);
     }
@@ -4063,9 +4207,399 @@ class ManualHistoryEntriesTableCompanion
           ..write('clientId: $clientId, ')
           ..write('date: $date, ')
           ..write('animals: $animals, ')
+          ..write('prestations: $prestations, ')
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PrestationsTableTable extends PrestationsTable
+    with TableInfo<$PrestationsTableTable, PrestationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PrestationsTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _priceCentsMeta =
+      const VerificationMeta('priceCents');
+  @override
+  late final GeneratedColumn<int> priceCents = GeneratedColumn<int>(
+      'price_cents', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _minutesMeta =
+      const VerificationMeta('minutes');
+  @override
+  late final GeneratedColumn<int> minutes = GeneratedColumn<int>(
+      'minutes', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _categoryIdMeta =
+      const VerificationMeta('categoryId');
+  @override
+  late final GeneratedColumn<int> categoryId = GeneratedColumn<int>(
+      'category_id', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES animal_categories (id) ON DELETE SET NULL'));
+  static const VerificationMeta _archivedAtMeta =
+      const VerificationMeta('archivedAt');
+  @override
+  late final GeneratedColumn<int> archivedAt = GeneratedColumn<int>(
+      'archived_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, name, priceCents, minutes, categoryId, archivedAt, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'prestations';
+  @override
+  VerificationContext validateIntegrity(Insertable<PrestationRow> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('price_cents')) {
+      context.handle(
+          _priceCentsMeta,
+          priceCents.isAcceptableOrUnknown(
+              data['price_cents']!, _priceCentsMeta));
+    }
+    if (data.containsKey('minutes')) {
+      context.handle(_minutesMeta,
+          minutes.isAcceptableOrUnknown(data['minutes']!, _minutesMeta));
+    }
+    if (data.containsKey('category_id')) {
+      context.handle(
+          _categoryIdMeta,
+          categoryId.isAcceptableOrUnknown(
+              data['category_id']!, _categoryIdMeta));
+    }
+    if (data.containsKey('archived_at')) {
+      context.handle(
+          _archivedAtMeta,
+          archivedAt.isAcceptableOrUnknown(
+              data['archived_at']!, _archivedAtMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PrestationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PrestationRow(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      priceCents: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}price_cents']),
+      minutes: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}minutes']),
+      categoryId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}category_id']),
+      archivedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}archived_at']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $PrestationsTableTable createAlias(String alias) {
+    return $PrestationsTableTable(attachedDatabase, alias);
+  }
+}
+
+class PrestationRow extends DataClass implements Insertable<PrestationRow> {
+  final int id;
+  final String name;
+  final int? priceCents;
+  final int? minutes;
+  final int? categoryId;
+  final int? archivedAt;
+  final int createdAt;
+  const PrestationRow(
+      {required this.id,
+      required this.name,
+      this.priceCents,
+      this.minutes,
+      this.categoryId,
+      this.archivedAt,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || priceCents != null) {
+      map['price_cents'] = Variable<int>(priceCents);
+    }
+    if (!nullToAbsent || minutes != null) {
+      map['minutes'] = Variable<int>(minutes);
+    }
+    if (!nullToAbsent || categoryId != null) {
+      map['category_id'] = Variable<int>(categoryId);
+    }
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<int>(archivedAt);
+    }
+    map['created_at'] = Variable<int>(createdAt);
+    return map;
+  }
+
+  PrestationsTableCompanion toCompanion(bool nullToAbsent) {
+    return PrestationsTableCompanion(
+      id: Value(id),
+      name: Value(name),
+      priceCents: priceCents == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priceCents),
+      minutes: minutes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minutes),
+      categoryId: categoryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categoryId),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory PrestationRow.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PrestationRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      priceCents: serializer.fromJson<int?>(json['priceCents']),
+      minutes: serializer.fromJson<int?>(json['minutes']),
+      categoryId: serializer.fromJson<int?>(json['categoryId']),
+      archivedAt: serializer.fromJson<int?>(json['archivedAt']),
+      createdAt: serializer.fromJson<int>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'priceCents': serializer.toJson<int?>(priceCents),
+      'minutes': serializer.toJson<int?>(minutes),
+      'categoryId': serializer.toJson<int?>(categoryId),
+      'archivedAt': serializer.toJson<int?>(archivedAt),
+      'createdAt': serializer.toJson<int>(createdAt),
+    };
+  }
+
+  PrestationRow copyWith(
+          {int? id,
+          String? name,
+          Value<int?> priceCents = const Value.absent(),
+          Value<int?> minutes = const Value.absent(),
+          Value<int?> categoryId = const Value.absent(),
+          Value<int?> archivedAt = const Value.absent(),
+          int? createdAt}) =>
+      PrestationRow(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        priceCents: priceCents.present ? priceCents.value : this.priceCents,
+        minutes: minutes.present ? minutes.value : this.minutes,
+        categoryId: categoryId.present ? categoryId.value : this.categoryId,
+        archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  PrestationRow copyWithCompanion(PrestationsTableCompanion data) {
+    return PrestationRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      priceCents:
+          data.priceCents.present ? data.priceCents.value : this.priceCents,
+      minutes: data.minutes.present ? data.minutes.value : this.minutes,
+      categoryId:
+          data.categoryId.present ? data.categoryId.value : this.categoryId,
+      archivedAt:
+          data.archivedAt.present ? data.archivedAt.value : this.archivedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PrestationRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('priceCents: $priceCents, ')
+          ..write('minutes: $minutes, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, name, priceCents, minutes, categoryId, archivedAt, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PrestationRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.priceCents == this.priceCents &&
+          other.minutes == this.minutes &&
+          other.categoryId == this.categoryId &&
+          other.archivedAt == this.archivedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class PrestationsTableCompanion extends UpdateCompanion<PrestationRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<int?> priceCents;
+  final Value<int?> minutes;
+  final Value<int?> categoryId;
+  final Value<int?> archivedAt;
+  final Value<int> createdAt;
+  const PrestationsTableCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.priceCents = const Value.absent(),
+    this.minutes = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  PrestationsTableCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.priceCents = const Value.absent(),
+    this.minutes = const Value.absent(),
+    this.categoryId = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    required int createdAt,
+  })  : name = Value(name),
+        createdAt = Value(createdAt);
+  static Insertable<PrestationRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<int>? priceCents,
+    Expression<int>? minutes,
+    Expression<int>? categoryId,
+    Expression<int>? archivedAt,
+    Expression<int>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (priceCents != null) 'price_cents': priceCents,
+      if (minutes != null) 'minutes': minutes,
+      if (categoryId != null) 'category_id': categoryId,
+      if (archivedAt != null) 'archived_at': archivedAt,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  PrestationsTableCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? name,
+      Value<int?>? priceCents,
+      Value<int?>? minutes,
+      Value<int?>? categoryId,
+      Value<int?>? archivedAt,
+      Value<int>? createdAt}) {
+    return PrestationsTableCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      priceCents: priceCents ?? this.priceCents,
+      minutes: minutes ?? this.minutes,
+      categoryId: categoryId ?? this.categoryId,
+      archivedAt: archivedAt ?? this.archivedAt,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (priceCents.present) {
+      map['price_cents'] = Variable<int>(priceCents.value);
+    }
+    if (minutes.present) {
+      map['minutes'] = Variable<int>(minutes.value);
+    }
+    if (categoryId.present) {
+      map['category_id'] = Variable<int>(categoryId.value);
+    }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<int>(archivedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<int>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PrestationsTableCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('priceCents: $priceCents, ')
+          ..write('minutes: $minutes, ')
+          ..write('categoryId: $categoryId, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -4085,6 +4619,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TourStopsTableTable tourStopsTable = $TourStopsTableTable(this);
   late final $ManualHistoryEntriesTableTable manualHistoryEntriesTable =
       $ManualHistoryEntriesTableTable(this);
+  late final $PrestationsTableTable prestationsTable =
+      $PrestationsTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4097,7 +4633,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         animalCategoriesTable,
         toursTable,
         tourStopsTable,
-        manualHistoryEntriesTable
+        manualHistoryEntriesTable,
+        prestationsTable
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -4128,6 +4665,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('manual_history_entries', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('animal_categories',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('prestations', kind: UpdateKind.update),
             ],
           ),
         ],
@@ -5463,6 +6007,23 @@ final class $$AnimalCategoriesTableTableReferences extends BaseReferences<
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: [item]));
   }
+
+  static MultiTypedResultKey<$PrestationsTableTable, List<PrestationRow>>
+      _prestationsTableRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.prestationsTable,
+              aliasName: $_aliasNameGenerator(
+                  db.animalCategoriesTable.id, db.prestationsTable.categoryId));
+
+  $$PrestationsTableTableProcessedTableManager get prestationsTableRefs {
+    final manager =
+        $$PrestationsTableTableTableManager($_db, $_db.prestationsTable)
+            .filter((f) => f.categoryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_prestationsTableRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$AnimalCategoriesTableTableFilterComposer
@@ -5512,6 +6073,27 @@ class $$AnimalCategoriesTableTableFilterComposer
                   $removeJoinBuilderFromRootComposer,
             ));
     return composer;
+  }
+
+  Expression<bool> prestationsTableRefs(
+      Expression<bool> Function($$PrestationsTableTableFilterComposer f) f) {
+    final $$PrestationsTableTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.prestationsTable,
+        getReferencedColumn: (t) => t.categoryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PrestationsTableTableFilterComposer(
+              $db: $db,
+              $table: $db.prestationsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
   }
 }
 
@@ -5611,6 +6193,27 @@ class $$AnimalCategoriesTableTableAnnotationComposer
             ));
     return composer;
   }
+
+  Expression<T> prestationsTableRefs<T extends Object>(
+      Expression<T> Function($$PrestationsTableTableAnnotationComposer a) f) {
+    final $$PrestationsTableTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.prestationsTable,
+        getReferencedColumn: (t) => t.categoryId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PrestationsTableTableAnnotationComposer(
+              $db: $db,
+              $table: $db.prestationsTable,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$AnimalCategoriesTableTableTableManager extends RootTableManager<
@@ -5624,7 +6227,7 @@ class $$AnimalCategoriesTableTableTableManager extends RootTableManager<
     $$AnimalCategoriesTableTableUpdateCompanionBuilder,
     (AnimalCategoryRow, $$AnimalCategoriesTableTableReferences),
     AnimalCategoryRow,
-    PrefetchHooks Function({bool speciesId})> {
+    PrefetchHooks Function({bool speciesId, bool prestationsTableRefs})> {
   $$AnimalCategoriesTableTableTableManager(
       _$AppDatabase db, $AnimalCategoriesTableTable table)
       : super(TableManagerState(
@@ -5681,10 +6284,13 @@ class $$AnimalCategoriesTableTableTableManager extends RootTableManager<
                     $$AnimalCategoriesTableTableReferences(db, table, e)
                   ))
               .toList(),
-          prefetchHooksCallback: ({speciesId = false}) {
+          prefetchHooksCallback: (
+              {speciesId = false, prestationsTableRefs = false}) {
             return PrefetchHooks(
               db: db,
-              explicitlyWatchedTables: [],
+              explicitlyWatchedTables: [
+                if (prestationsTableRefs) db.prestationsTable
+              ],
               addJoins: <
                   T extends TableManagerState<
                       dynamic,
@@ -5713,7 +6319,22 @@ class $$AnimalCategoriesTableTableTableManager extends RootTableManager<
                 return state;
               },
               getPrefetchedDataCallback: (items) async {
-                return [];
+                return [
+                  if (prestationsTableRefs)
+                    await $_getPrefetchedData<AnimalCategoryRow,
+                            $AnimalCategoriesTableTable, PrestationRow>(
+                        currentTable: table,
+                        referencedTable: $$AnimalCategoriesTableTableReferences
+                            ._prestationsTableRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$AnimalCategoriesTableTableReferences(
+                                    db, table, p0)
+                                .prestationsTableRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.categoryId == item.id),
+                        typedResults: items)
+                ];
               },
             );
           },
@@ -5732,7 +6353,7 @@ typedef $$AnimalCategoriesTableTableProcessedTableManager
         $$AnimalCategoriesTableTableUpdateCompanionBuilder,
         (AnimalCategoryRow, $$AnimalCategoriesTableTableReferences),
         AnimalCategoryRow,
-        PrefetchHooks Function({bool speciesId})>;
+        PrefetchHooks Function({bool speciesId, bool prestationsTableRefs})>;
 typedef $$ToursTableTableCreateCompanionBuilder = ToursTableCompanion Function({
   Value<int> id,
   required int plannedDate,
@@ -6076,6 +6697,8 @@ typedef $$TourStopsTableTableCreateCompanionBuilder = TourStopsTableCompanion
   required int estimatedDepartureMinutes,
   Value<List<TourStopAnimal>> plannedAnimals,
   Value<List<TourStopAnimal>?> actualAnimals,
+  Value<List<TourStopPrestation>> plannedPrestations,
+  Value<List<TourStopPrestation>?> actualPrestations,
   Value<String?> interventionNote,
   required int feeShareCents,
 });
@@ -6090,6 +6713,8 @@ typedef $$TourStopsTableTableUpdateCompanionBuilder = TourStopsTableCompanion
   Value<int> estimatedDepartureMinutes,
   Value<List<TourStopAnimal>> plannedAnimals,
   Value<List<TourStopAnimal>?> actualAnimals,
+  Value<List<TourStopPrestation>> plannedPrestations,
+  Value<List<TourStopPrestation>?> actualPrestations,
   Value<String?> interventionNote,
   Value<int> feeShareCents,
 });
@@ -6167,6 +6792,18 @@ class $$TourStopsTableTableFilterComposer
           String>
       get actualAnimals => $composableBuilder(
           column: $table.actualAnimals,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<List<TourStopPrestation>,
+          List<TourStopPrestation>, String>
+      get plannedPrestations => $composableBuilder(
+          column: $table.plannedPrestations,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<List<TourStopPrestation>?,
+          List<TourStopPrestation>, String>
+      get actualPrestations => $composableBuilder(
+          column: $table.actualPrestations,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<String> get interventionNote => $composableBuilder(
@@ -6252,6 +6889,14 @@ class $$TourStopsTableTableOrderingComposer
       column: $table.actualAnimals,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get plannedPrestations => $composableBuilder(
+      column: $table.plannedPrestations,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get actualPrestations => $composableBuilder(
+      column: $table.actualPrestations,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get interventionNote => $composableBuilder(
       column: $table.interventionNote,
       builder: (column) => ColumnOrderings(column));
@@ -6333,6 +6978,14 @@ class $$TourStopsTableTableAnnotationComposer
       get actualAnimals => $composableBuilder(
           column: $table.actualAnimals, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<List<TourStopPrestation>, String>
+      get plannedPrestations => $composableBuilder(
+          column: $table.plannedPrestations, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<TourStopPrestation>?, String>
+      get actualPrestations => $composableBuilder(
+          column: $table.actualPrestations, builder: (column) => column);
+
   GeneratedColumn<String> get interventionNote => $composableBuilder(
       column: $table.interventionNote, builder: (column) => column);
 
@@ -6413,6 +7066,10 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             Value<int> estimatedDepartureMinutes = const Value.absent(),
             Value<List<TourStopAnimal>> plannedAnimals = const Value.absent(),
             Value<List<TourStopAnimal>?> actualAnimals = const Value.absent(),
+            Value<List<TourStopPrestation>> plannedPrestations =
+                const Value.absent(),
+            Value<List<TourStopPrestation>?> actualPrestations =
+                const Value.absent(),
             Value<String?> interventionNote = const Value.absent(),
             Value<int> feeShareCents = const Value.absent(),
           }) =>
@@ -6426,6 +7083,8 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             estimatedDepartureMinutes: estimatedDepartureMinutes,
             plannedAnimals: plannedAnimals,
             actualAnimals: actualAnimals,
+            plannedPrestations: plannedPrestations,
+            actualPrestations: actualPrestations,
             interventionNote: interventionNote,
             feeShareCents: feeShareCents,
           ),
@@ -6439,6 +7098,10 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             required int estimatedDepartureMinutes,
             Value<List<TourStopAnimal>> plannedAnimals = const Value.absent(),
             Value<List<TourStopAnimal>?> actualAnimals = const Value.absent(),
+            Value<List<TourStopPrestation>> plannedPrestations =
+                const Value.absent(),
+            Value<List<TourStopPrestation>?> actualPrestations =
+                const Value.absent(),
             Value<String?> interventionNote = const Value.absent(),
             required int feeShareCents,
           }) =>
@@ -6452,6 +7115,8 @@ class $$TourStopsTableTableTableManager extends RootTableManager<
             estimatedDepartureMinutes: estimatedDepartureMinutes,
             plannedAnimals: plannedAnimals,
             actualAnimals: actualAnimals,
+            plannedPrestations: plannedPrestations,
+            actualPrestations: actualPrestations,
             interventionNote: interventionNote,
             feeShareCents: feeShareCents,
           ),
@@ -6527,6 +7192,7 @@ typedef $$ManualHistoryEntriesTableTableCreateCompanionBuilder
   required int clientId,
   required int date,
   Value<List<TourStopAnimal>> animals,
+  Value<List<TourStopPrestation>> prestations,
   Value<String?> note,
   required int createdAt,
   required int updatedAt,
@@ -6537,6 +7203,7 @@ typedef $$ManualHistoryEntriesTableTableUpdateCompanionBuilder
   Value<int> clientId,
   Value<int> date,
   Value<List<TourStopAnimal>> animals,
+  Value<List<TourStopPrestation>> prestations,
   Value<String?> note,
   Value<int> createdAt,
   Value<int> updatedAt,
@@ -6582,6 +7249,12 @@ class $$ManualHistoryEntriesTableTableFilterComposer
           String>
       get animals => $composableBuilder(
           column: $table.animals,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<List<TourStopPrestation>,
+          List<TourStopPrestation>, String>
+      get prestations => $composableBuilder(
+          column: $table.prestations,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
   ColumnFilters<String> get note => $composableBuilder(
@@ -6632,6 +7305,9 @@ class $$ManualHistoryEntriesTableTableOrderingComposer
   ColumnOrderings<String> get animals => $composableBuilder(
       column: $table.animals, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get prestations => $composableBuilder(
+      column: $table.prestations, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get note => $composableBuilder(
       column: $table.note, builder: (column) => ColumnOrderings(column));
 
@@ -6679,6 +7355,10 @@ class $$ManualHistoryEntriesTableTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<List<TourStopAnimal>, String> get animals =>
       $composableBuilder(column: $table.animals, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<TourStopPrestation>, String>
+      get prestations => $composableBuilder(
+          column: $table.prestations, builder: (column) => column);
 
   GeneratedColumn<String> get note =>
       $composableBuilder(column: $table.note, builder: (column) => column);
@@ -6741,6 +7421,7 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             Value<int> clientId = const Value.absent(),
             Value<int> date = const Value.absent(),
             Value<List<TourStopAnimal>> animals = const Value.absent(),
+            Value<List<TourStopPrestation>> prestations = const Value.absent(),
             Value<String?> note = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
             Value<int> updatedAt = const Value.absent(),
@@ -6750,6 +7431,7 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             clientId: clientId,
             date: date,
             animals: animals,
+            prestations: prestations,
             note: note,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -6759,6 +7441,7 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             required int clientId,
             required int date,
             Value<List<TourStopAnimal>> animals = const Value.absent(),
+            Value<List<TourStopPrestation>> prestations = const Value.absent(),
             Value<String?> note = const Value.absent(),
             required int createdAt,
             required int updatedAt,
@@ -6768,6 +7451,7 @@ class $$ManualHistoryEntriesTableTableTableManager extends RootTableManager<
             clientId: clientId,
             date: date,
             animals: animals,
+            prestations: prestations,
             note: note,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -6830,6 +7514,312 @@ typedef $$ManualHistoryEntriesTableTableProcessedTableManager
         (ManualHistoryEntryRow, $$ManualHistoryEntriesTableTableReferences),
         ManualHistoryEntryRow,
         PrefetchHooks Function({bool clientId})>;
+typedef $$PrestationsTableTableCreateCompanionBuilder
+    = PrestationsTableCompanion Function({
+  Value<int> id,
+  required String name,
+  Value<int?> priceCents,
+  Value<int?> minutes,
+  Value<int?> categoryId,
+  Value<int?> archivedAt,
+  required int createdAt,
+});
+typedef $$PrestationsTableTableUpdateCompanionBuilder
+    = PrestationsTableCompanion Function({
+  Value<int> id,
+  Value<String> name,
+  Value<int?> priceCents,
+  Value<int?> minutes,
+  Value<int?> categoryId,
+  Value<int?> archivedAt,
+  Value<int> createdAt,
+});
+
+final class $$PrestationsTableTableReferences extends BaseReferences<
+    _$AppDatabase, $PrestationsTableTable, PrestationRow> {
+  $$PrestationsTableTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $AnimalCategoriesTableTable _categoryIdTable(_$AppDatabase db) =>
+      db.animalCategoriesTable.createAlias($_aliasNameGenerator(
+          db.prestationsTable.categoryId, db.animalCategoriesTable.id));
+
+  $$AnimalCategoriesTableTableProcessedTableManager? get categoryId {
+    final $_column = $_itemColumn<int>('category_id');
+    if ($_column == null) return null;
+    final manager = $$AnimalCategoriesTableTableTableManager(
+            $_db, $_db.animalCategoriesTable)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_categoryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$PrestationsTableTableFilterComposer
+    extends Composer<_$AppDatabase, $PrestationsTableTable> {
+  $$PrestationsTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get priceCents => $composableBuilder(
+      column: $table.priceCents, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get minutes => $composableBuilder(
+      column: $table.minutes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get archivedAt => $composableBuilder(
+      column: $table.archivedAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  $$AnimalCategoriesTableTableFilterComposer get categoryId {
+    final $$AnimalCategoriesTableTableFilterComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.categoryId,
+            referencedTable: $db.animalCategoriesTable,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AnimalCategoriesTableTableFilterComposer(
+                  $db: $db,
+                  $table: $db.animalCategoriesTable,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+}
+
+class $$PrestationsTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $PrestationsTableTable> {
+  $$PrestationsTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get priceCents => $composableBuilder(
+      column: $table.priceCents, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get minutes => $composableBuilder(
+      column: $table.minutes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get archivedAt => $composableBuilder(
+      column: $table.archivedAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  $$AnimalCategoriesTableTableOrderingComposer get categoryId {
+    final $$AnimalCategoriesTableTableOrderingComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.categoryId,
+            referencedTable: $db.animalCategoriesTable,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AnimalCategoriesTableTableOrderingComposer(
+                  $db: $db,
+                  $table: $db.animalCategoriesTable,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+}
+
+class $$PrestationsTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PrestationsTableTable> {
+  $$PrestationsTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get priceCents => $composableBuilder(
+      column: $table.priceCents, builder: (column) => column);
+
+  GeneratedColumn<int> get minutes =>
+      $composableBuilder(column: $table.minutes, builder: (column) => column);
+
+  GeneratedColumn<int> get archivedAt => $composableBuilder(
+      column: $table.archivedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$AnimalCategoriesTableTableAnnotationComposer get categoryId {
+    final $$AnimalCategoriesTableTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.categoryId,
+            referencedTable: $db.animalCategoriesTable,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$AnimalCategoriesTableTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.animalCategoriesTable,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+}
+
+class $$PrestationsTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $PrestationsTableTable,
+    PrestationRow,
+    $$PrestationsTableTableFilterComposer,
+    $$PrestationsTableTableOrderingComposer,
+    $$PrestationsTableTableAnnotationComposer,
+    $$PrestationsTableTableCreateCompanionBuilder,
+    $$PrestationsTableTableUpdateCompanionBuilder,
+    (PrestationRow, $$PrestationsTableTableReferences),
+    PrestationRow,
+    PrefetchHooks Function({bool categoryId})> {
+  $$PrestationsTableTableTableManager(
+      _$AppDatabase db, $PrestationsTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PrestationsTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PrestationsTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PrestationsTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int?> priceCents = const Value.absent(),
+            Value<int?> minutes = const Value.absent(),
+            Value<int?> categoryId = const Value.absent(),
+            Value<int?> archivedAt = const Value.absent(),
+            Value<int> createdAt = const Value.absent(),
+          }) =>
+              PrestationsTableCompanion(
+            id: id,
+            name: name,
+            priceCents: priceCents,
+            minutes: minutes,
+            categoryId: categoryId,
+            archivedAt: archivedAt,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String name,
+            Value<int?> priceCents = const Value.absent(),
+            Value<int?> minutes = const Value.absent(),
+            Value<int?> categoryId = const Value.absent(),
+            Value<int?> archivedAt = const Value.absent(),
+            required int createdAt,
+          }) =>
+              PrestationsTableCompanion.insert(
+            id: id,
+            name: name,
+            priceCents: priceCents,
+            minutes: minutes,
+            categoryId: categoryId,
+            archivedAt: archivedAt,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$PrestationsTableTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({categoryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (categoryId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.categoryId,
+                    referencedTable:
+                        $$PrestationsTableTableReferences._categoryIdTable(db),
+                    referencedColumn: $$PrestationsTableTableReferences
+                        ._categoryIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$PrestationsTableTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $PrestationsTableTable,
+    PrestationRow,
+    $$PrestationsTableTableFilterComposer,
+    $$PrestationsTableTableOrderingComposer,
+    $$PrestationsTableTableAnnotationComposer,
+    $$PrestationsTableTableCreateCompanionBuilder,
+    $$PrestationsTableTableUpdateCompanionBuilder,
+    (PrestationRow, $$PrestationsTableTableReferences),
+    PrestationRow,
+    PrefetchHooks Function({bool categoryId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6851,4 +7841,6 @@ class $AppDatabaseManager {
   $$ManualHistoryEntriesTableTableTableManager get manualHistoryEntriesTable =>
       $$ManualHistoryEntriesTableTableTableManager(
           _db, _db.manualHistoryEntriesTable);
+  $$PrestationsTableTableTableManager get prestationsTable =>
+      $$PrestationsTableTableTableManager(_db, _db.prestationsTable);
 }
