@@ -4,11 +4,15 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
+import '../../core/ui/confirm_dialog.dart';
 import '../../domain/models/animal_category.dart';
 import '../../domain/models/prestation.dart';
 import '../../l10n/app_localizations.dart';
 import '../../state/providers.dart';
+import '../widgets/app_action_bar.dart';
+import '../widgets/app_header.dart';
 import '../widgets/app_primary_button.dart';
+import '../widgets/app_section_card.dart';
 
 /// Create or edit a prestation. Route :
 /// - `/settings/prestations/new`        → create mode (id == null)
@@ -153,6 +157,22 @@ class _PrestationEditScreenState extends ConsumerState<PrestationEditScreen> {
     context.pop();
   }
 
+  Future<void> _confirmArchive() async {
+    if (_existing == null) return;
+    if (_existing!.isArchived) {
+      // Unarchive: no confirmation needed
+      await _toggleArchive();
+      return;
+    }
+    final ok = await showDestructiveConfirm(
+      context,
+      title: 'Archiver la prestation ?',
+      body: 'La prestation ne sera plus proposée dans les nouvelles tournées.',
+      confirmLabel: 'Archiver',
+    );
+    if (ok) await _toggleArchive();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
@@ -162,17 +182,18 @@ class _PrestationEditScreenState extends ConsumerState<PrestationEditScreen> {
     return SafeArea(
       child: FScaffold(
         resizeToAvoidBottomInset: true,
-        header: FHeader.nested(title: Text(headerTitle)),
-        child: _buildContent(context, l, headerTitle),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppHeader(title: headerTitle),
+            Expanded(child: _buildContent(context, l)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildContent(
-    BuildContext context,
-    AppLocalizations l,
-    String headerTitle,
-  ) {
+  Widget _buildContent(BuildContext context, AppLocalizations l) {
     if (widget.isEdit) {
       final activeAsync = ref.watch(activePrestationsProvider);
       final archivedAsync = ref.watch(archivedPrestationsProvider);
@@ -203,101 +224,131 @@ class _PrestationEditScreenState extends ConsumerState<PrestationEditScreen> {
       }
     }
 
-    return SingleChildScrollView(
-      padding: AppSizes.screenPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Name
-          FTextField(
-            control: FTextFieldControl.managed(
-              controller: _nameCtrl,
-              onChange: (_) {
-                if (_nameError != null) setState(() => _nameError = null);
-              },
+    final archiveButton = widget.isEdit && _existing != null
+        ? AppPrimaryButton(
+            label: _existing!.isArchived
+                ? l.prestationFormUnarchive
+                : l.prestationFormArchive,
+            variant: _existing!.isArchived
+                ? FButtonVariant.outline
+                : FButtonVariant.destructive,
+            onPress: _confirmArchive,
+          )
+        : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: AppSizes.screenPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // --- Identité ---
+                AppSectionCard(
+                  icon: FIcons.tag,
+                  title: 'Identité',
+                  child: FTextField(
+                    control: FTextFieldControl.managed(
+                      controller: _nameCtrl,
+                      onChange: (_) {
+                        if (_nameError != null) setState(() => _nameError = null);
+                      },
+                    ),
+                    label: Text(l.prestationFormName),
+                    error: _nameError != null ? Text(_nameError!) : null,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // --- Catégorie ---
+                AppSectionCard(
+                  icon: FIcons.folder,
+                  title: 'Catégorie',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FTile(
+                        title: Text(l.prestationFormBindToCategory),
+                        suffix: FSwitch(
+                          value: _bindToCategory,
+                          onChange: (v) => setState(() {
+                            _bindToCategory = v;
+                            if (!v) {
+                              _selectedSpeciesId = null;
+                              _selectedCategoryId = null;
+                              _categoryError = null;
+                            }
+                          }),
+                        ),
+                      ),
+                      if (_bindToCategory) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        _SpeciesAndCategoryPicker(
+                          selectedSpeciesId: _selectedSpeciesId,
+                          selectedCategoryId: _selectedCategoryId,
+                          onSpeciesChanged: (id) => setState(() {
+                            _selectedSpeciesId = id;
+                            _selectedCategoryId = null;
+                          }),
+                          onCategoryChanged: (id) => setState(() {
+                            _selectedCategoryId = id;
+                            if (_categoryError != null) _categoryError = null;
+                          }),
+                          error: _categoryError,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+
+                // --- Tarif & durée ---
+                AppSectionCard(
+                  icon: FIcons.clock,
+                  title: 'Tarif & durée',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      FTextField(
+                        control: FTextFieldControl.managed(controller: _priceCtrl),
+                        label: Text(l.prestationFormPrice),
+                        description: Text(l.prestationFormPriceHelper),
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      FTextField(
+                        control: FTextFieldControl.managed(controller: _minutesCtrl),
+                        label: Text(l.prestationFormMinutes),
+                        description: Text(l.prestationFormMinutesHelper),
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+              ],
             ),
-            label: Text(l.prestationFormName),
-            error: _nameError != null ? Text(_nameError!) : null,
           ),
-          const SizedBox(height: AppSpacing.md),
+        ),
 
-          // Bind to category switch
-          FTile(
-            title: Text(l.prestationFormBindToCategory),
-            suffix: FSwitch(
-              value: _bindToCategory,
-              onChange: (v) => setState(() {
-                _bindToCategory = v;
-                if (!v) {
-                  _selectedSpeciesId = null;
-                  _selectedCategoryId = null;
-                  _categoryError = null;
-                }
-              }),
-            ),
-          ),
-
-          if (_bindToCategory) ...[
-            const SizedBox(height: AppSpacing.md),
-            _SpeciesAndCategoryPicker(
-              selectedSpeciesId: _selectedSpeciesId,
-              selectedCategoryId: _selectedCategoryId,
-              onSpeciesChanged: (id) => setState(() {
-                _selectedSpeciesId = id;
-                _selectedCategoryId = null;
-              }),
-              onCategoryChanged: (id) => setState(() {
-                _selectedCategoryId = id;
-                if (_categoryError != null) _categoryError = null;
-              }),
-              error: _categoryError,
-            ),
-          ],
-
-          const SizedBox(height: AppSpacing.md),
-
-          // Price
-          FTextField(
-            control: FTextFieldControl.managed(controller: _priceCtrl),
-            label: Text(l.prestationFormPrice),
-            description: Text(l.prestationFormPriceHelper),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // Minutes
-          FTextField(
-            control: FTextFieldControl.managed(controller: _minutesCtrl),
-            label: Text(l.prestationFormMinutes),
-            description: Text(l.prestationFormMinutesHelper),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // Save
-          AppPrimaryButton(
+        // --- Action bar ---
+        AppActionBar(
+          primary: AppPrimaryButton(
             label: l.prestationFormSave,
             onPress: _saving ? null : _save,
             loading: _saving,
           ),
-
-          if (widget.isEdit && _existing != null) ...[
-            const SizedBox(height: AppSpacing.sm),
-            FButton(
-              variant: _existing!.isArchived
-                  ? FButtonVariant.outline
-                  : FButtonVariant.destructive,
-              onPress: _toggleArchive,
-              child: Text(
-                _existing!.isArchived
-                    ? l.prestationFormUnarchive
-                    : l.prestationFormArchive,
-              ),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.md),
-        ],
-      ),
+          secondary: AppPrimaryButton(
+            label: 'Annuler',
+            variant: FButtonVariant.outline,
+            onPress: () => context.pop(),
+          ),
+          tertiary: archiveButton,
+        ),
+      ],
     );
   }
 }
