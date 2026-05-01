@@ -15,6 +15,8 @@ import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
 import '../widgets/address_autocomplete_field.dart';
 import '../widgets/animal_counts_editor.dart';
+import '../widgets/app_action_bar.dart';
+import '../widgets/app_header.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import '../widgets/color_swatch_picker.dart';
@@ -162,117 +164,138 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
 
     if (_loading) {
       return FScaffold(
-        header: FHeader.nested(title: Text(headerTitle)),
-        child: const Center(child: FCircularProgress()),
+        child: SafeArea(
+          top: true,
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppHeader(title: headerTitle),
+              const Expanded(child: Center(child: FCircularProgress())),
+            ],
+          ),
+        ),
       );
     }
 
     return FScaffold(
       resizeToAvoidBottomInset: true,
-      header: FHeader.nested(title: Text(headerTitle)),
       child: SafeArea(
         top: true,
         bottom: false,
-        child: SingleChildScrollView(
-          padding: AppSizes.screenPadding,
-          child: Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Section: Identité
-            AppSectionCard(
-              icon: FIcons.user,
-              title: l.clientFormSectionIdentity,
-              child: Column(
-                children: [
-                  FTextField(
-                    control: FTextFieldControl.managed(
-                      controller: _nameCtrl,
-                      onChange: (_) {
-                        if (_nameError != null) setState(() => _nameError = null);
-                      },
+            AppHeader(title: headerTitle),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: AppSizes.screenPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 1. Identité
+                    AppSectionCard(
+                      icon: FIcons.user,
+                      title: '1. ${l.clientFormSectionIdentity}',
+                      child: FTextField(
+                        control: FTextFieldControl.managed(
+                          controller: _nameCtrl,
+                          onChange: (_) {
+                            if (_nameError != null) setState(() => _nameError = null);
+                          },
+                        ),
+                        label: Text(l.clientFormName),
+                        error: _nameError != null ? Text(_nameError!) : null,
+                      ),
                     ),
-                    label: Text(l.clientFormName),
-                    error: _nameError != null ? Text(_nameError!) : null,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  _PhoneListEditor(
-                    controllers: _phoneCtrls,
-                    label: l.clientFormPhones,
-                    addLabel: l.clientFormAddPhone,
-                    removeTooltip: l.clientFormRemovePhone,
-                    onAdd: () {
-                      setState(() {
-                        _phoneCtrls.add(TextEditingController());
-                      });
-                    },
-                    onRemove: (index) {
-                      setState(() {
-                        _phoneCtrls.removeAt(index).dispose();
-                      });
-                    },
-                    onReorder: (oldIndex, newIndex) {
-                      setState(() {
-                        // ReorderableListView convention: when moving down, newIndex is one
-                        // past the destination, so adjust before the removeAt.
-                        final adjustedNew =
-                            newIndex > oldIndex ? newIndex - 1 : newIndex;
-                        final ctrl = _phoneCtrls.removeAt(oldIndex);
-                        _phoneCtrls.insert(adjustedNew, ctrl);
-                      });
-                    },
-                  ),
-                ],
+                    const SizedBox(height: AppSpacing.md),
+
+                    // 2. Adresse
+                    AppSectionCard(
+                      icon: FIcons.mapPin,
+                      title: '2. ${l.clientFormSectionAddress}',
+                      child: AddressAutocompleteField(
+                        initialLabel: _addressLabel,
+                        onPicked: (r) => setState(() {
+                          _addressLabel = r.label;
+                          _postcode = r.postcode;
+                          _city = r.city;
+                          _coords = r.coordinates;
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    // 3. Téléphones
+                    AppSectionCard(
+                      icon: FIcons.phone,
+                      title: '3. ${l.clientFormPhones}',
+                      child: _PhoneListEditor(
+                        controllers: _phoneCtrls,
+                        addLabel: l.clientFormAddPhone,
+                        removeTooltip: l.clientFormRemovePhone,
+                        onAdd: () {
+                          setState(() {
+                            _phoneCtrls.add(TextEditingController());
+                          });
+                        },
+                        onRemove: (index) {
+                          setState(() {
+                            _phoneCtrls.removeAt(index).dispose();
+                          });
+                        },
+                        onReorder: (oldIndex, newIndex) {
+                          setState(() {
+                            // ReorderableListView convention: when moving down, newIndex is one
+                            // past the destination, so adjust before the removeAt.
+                            final adjustedNew =
+                                newIndex > oldIndex ? newIndex - 1 : newIndex;
+                            final ctrl = _phoneCtrls.removeAt(oldIndex);
+                            _phoneCtrls.insert(adjustedNew, ctrl);
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    // 4. Animaux
+                    AppSectionCard(
+                      icon: FIcons.scissors,
+                      title: '4. ${l.clientFormSectionAnimals}',
+                      child: AnimalCountsEditor(
+                        value: _animals,
+                        onChanged: (next) => setState(() => _animals = next),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+
+                    // 5. Couleur du marqueur
+                    AppSectionCard(
+                      icon: FIcons.palette,
+                      title: '5. Couleur du marqueur',
+                      child: _MarkerColorEditor(
+                        currentHex: _markerColorHex,
+                        onChanged: (hex) => setState(() => _markerColorHex = hex),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Section: Adresse
-            AppSectionCard(
-              icon: FIcons.mapPin,
-              title: l.clientFormSectionAddress,
-              child: AddressAutocompleteField(
-                initialLabel: _addressLabel,
-                onPicked: (r) => setState(() {
-                  _addressLabel = r.label;
-                  _postcode = r.postcode;
-                  _city = r.city;
-                  _coords = r.coordinates;
-                }),
+            AppActionBar(
+              primary: AppPrimaryButton(
+                label: l.clientFormSave,
+                onPress: _saving ? null : _submit,
+                loading: _saving,
+              ),
+              secondary: AppPrimaryButton(
+                label: 'Annuler',
+                variant: FButtonVariant.outline,
+                onPress: () => context.pop(),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Section: Animaux
-            AppSectionCard(
-              icon: FIcons.scissors,
-              title: l.clientFormSectionAnimals,
-              child: AnimalCountsEditor(
-                value: _animals,
-                onChanged: (next) => setState(() => _animals = next),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Section: Couleur sur la carte
-            AppSectionCard(
-              icon: FIcons.palette,
-              title: 'Couleur sur la carte',
-              child: _MarkerColorEditor(
-                currentHex: _markerColorHex,
-                onChanged: (hex) => setState(() => _markerColorHex = hex),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Save button
-            AppPrimaryButton(
-              label: l.clientFormSave,
-              onPress: _saving ? null : _submit,
-              loading: _saving,
-            ),
-            const SizedBox(height: AppSpacing.md),
           ],
-          ),
         ),
       ),
     );
@@ -325,7 +348,6 @@ class _MarkerColorEditor extends StatelessWidget {
 
 class _PhoneListEditor extends StatelessWidget {
   final List<TextEditingController> controllers;
-  final String label;
   final String addLabel;
   final String removeTooltip;
   final VoidCallback onAdd;
@@ -334,7 +356,6 @@ class _PhoneListEditor extends StatelessWidget {
 
   const _PhoneListEditor({
     required this.controllers,
-    required this.label,
     required this.addLabel,
     required this.removeTooltip,
     required this.onAdd,
@@ -348,15 +369,6 @@ class _PhoneListEditor extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-          child: Text(
-            label,
-            style: theme.typography.sm.copyWith(
-              color: theme.colors.mutedForeground,
-            ),
-          ),
-        ),
         if (controllers.isNotEmpty)
           ReorderableListView.builder(
             shrinkWrap: true,
