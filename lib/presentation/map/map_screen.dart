@@ -21,6 +21,7 @@ import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
 import '../widgets/app_option_tile.dart';
 import '../widgets/map_pins.dart';
+import '../widgets/osm_tile_layer.dart';
 import 'client_pin_popup.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -239,11 +240,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                           },
                         ),
                         children: [
-                          TileLayer(
-                            urlTemplate:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'fr.raphaelgauthier.couplaine',
-                          ),
+                          osmTileLayer(),
                           MarkerLayer(
                             rotate: true,
                             markers: [

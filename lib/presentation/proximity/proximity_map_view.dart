@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import '../../state/providers.dart';
 import '../../state/proximity_controller.dart';
 import '../widgets/map_pins.dart';
+import '../widgets/osm_tile_layer.dart';
 
 class ProximityMapView extends ConsumerWidget {
   final int pivotId;
@@ -41,10 +42,7 @@ class ProximityMapView extends ConsumerWidget {
         initialZoom: 11,
       ),
       children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'fr.raphaelgauthier.couplaine',
-        ),
+        osmTileLayer(),
         MarkerLayer(
           rotate: true,
           markers: [

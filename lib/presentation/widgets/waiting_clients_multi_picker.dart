@@ -13,6 +13,7 @@ import '../../state/providers.dart';
 import 'animal_counts_badges.dart';
 import 'app_empty_state.dart';
 import 'map_pins.dart';
+import 'osm_tile_layer.dart';
 
 /// One-shot loader for a fixed set of client ids. Used by
 /// [WaitingClientsMultiPicker] to surface clients that don't satisfy the
@@ -330,10 +331,7 @@ class _MapTab extends ConsumerWidget {
         initialZoom: 9,
       ),
       children: [
-        TileLayer(
-          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-          userAgentPackageName: 'fr.raphaelgauthier.couplaine',
-        ),
+        osmTileLayer(),
         MarkerLayer(
           rotate: true,
           markers: [

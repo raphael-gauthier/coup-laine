@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../core/design_tokens.dart';
+import 'osm_tile_layer.dart';
 
 /// MiniMap non-interactif (gestures disabled). Affiche une route polyline
 /// (ordonnée) + des pins numérotés à chaque waypoint + un pin home pour
@@ -127,10 +128,7 @@ class _MiniMapState extends State<MiniMap> {
             ),
           ),
           children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'fr.raphaelgauthier.couplaine',
-            ),
+            osmTileLayer(),
             if (widget.waypoints.length >= 2)
               PolylineLayer(
                 polylines: [
