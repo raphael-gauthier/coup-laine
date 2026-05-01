@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show TextCapitalization;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
 import '../../state/providers.dart';
@@ -57,6 +58,15 @@ class _CloudLoginScreenState extends ConsumerState<CloudLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Pop when the magic link callback validates and we become opted-in.
+    ref.listen<bool>(isCloudOptedInProvider, (prev, curr) {
+      if (prev == false && curr == true && mounted) {
+        if (context.canPop()) {
+          context.pop();
+        }
+      }
+    });
+
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
 
