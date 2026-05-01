@@ -28,6 +28,9 @@ class SettingsRepository {
       markerNoAnimalsColor: row.markerNoAnimalsColor,
       markerBannedColor: row.markerBannedColor,
       seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(row.seasonStartedAt),
+      lastBackupAt: row.lastBackupAt == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(row.lastBackupAt!),
     );
   }
 
@@ -51,8 +54,17 @@ class SettingsRepository {
             seasonStartedAt: Value(
               settings.seasonStartedAt.millisecondsSinceEpoch,
             ),
+            lastBackupAt: Value(settings.lastBackupAt?.millisecondsSinceEpoch),
           ),
         );
+  }
+
+  Future<void> setLastBackupAt(DateTime timestamp) async {
+    await (_db.update(_db.settingsTable)..where((t) => t.id.equals(1))).write(
+      SettingsTableCompanion(
+        lastBackupAt: Value(timestamp.millisecondsSinceEpoch),
+      ),
+    );
   }
 
   Future<void> updateMarkerColor(ClientStatus status, String hex) async {

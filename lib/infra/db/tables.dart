@@ -31,6 +31,7 @@ class SettingsTable extends Table {
   TextColumn get markerBannedColor =>
       text().withDefault(const Constant('#B91C1C'))();
   IntColumn get seasonStartedAt => integer().withDefault(const Constant(0))();
+  IntColumn get lastBackupAt => integer().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

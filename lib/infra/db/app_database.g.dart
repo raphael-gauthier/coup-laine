@@ -122,6 +122,12 @@ class $SettingsTableTable extends SettingsTable
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
+  static const VerificationMeta _lastBackupAtMeta =
+      const VerificationMeta('lastBackupAt');
+  @override
+  late final GeneratedColumn<int> lastBackupAt = GeneratedColumn<int>(
+      'last_backup_at', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -138,7 +144,8 @@ class $SettingsTableTable extends SettingsTable
         markerDoneColor,
         markerNoAnimalsColor,
         markerBannedColor,
-        seasonStartedAt
+        seasonStartedAt,
+        lastBackupAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -236,6 +243,12 @@ class $SettingsTableTable extends SettingsTable
           seasonStartedAt.isAcceptableOrUnknown(
               data['season_started_at']!, _seasonStartedAtMeta));
     }
+    if (data.containsKey('last_backup_at')) {
+      context.handle(
+          _lastBackupAtMeta,
+          lastBackupAt.isAcceptableOrUnknown(
+              data['last_backup_at']!, _lastBackupAtMeta));
+    }
     return context;
   }
 
@@ -278,6 +291,8 @@ class $SettingsTableTable extends SettingsTable
           DriftSqlType.string, data['${effectivePrefix}marker_banned_color'])!,
       seasonStartedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}season_started_at'])!,
+      lastBackupAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}last_backup_at']),
     );
   }
 
@@ -303,6 +318,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   final String markerNoAnimalsColor;
   final String markerBannedColor;
   final int seasonStartedAt;
+  final int? lastBackupAt;
   const SettingsRow(
       {required this.id,
       required this.baseAddressLabel,
@@ -318,7 +334,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       required this.markerDoneColor,
       required this.markerNoAnimalsColor,
       required this.markerBannedColor,
-      required this.seasonStartedAt});
+      required this.seasonStartedAt,
+      this.lastBackupAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -338,6 +355,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['marker_no_animals_color'] = Variable<String>(markerNoAnimalsColor);
     map['marker_banned_color'] = Variable<String>(markerBannedColor);
     map['season_started_at'] = Variable<int>(seasonStartedAt);
+    if (!nullToAbsent || lastBackupAt != null) {
+      map['last_backup_at'] = Variable<int>(lastBackupAt);
+    }
     return map;
   }
 
@@ -358,6 +378,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       markerNoAnimalsColor: Value(markerNoAnimalsColor),
       markerBannedColor: Value(markerBannedColor),
       seasonStartedAt: Value(seasonStartedAt),
+      lastBackupAt: lastBackupAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastBackupAt),
     );
   }
 
@@ -385,6 +408,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           serializer.fromJson<String>(json['markerNoAnimalsColor']),
       markerBannedColor: serializer.fromJson<String>(json['markerBannedColor']),
       seasonStartedAt: serializer.fromJson<int>(json['seasonStartedAt']),
+      lastBackupAt: serializer.fromJson<int?>(json['lastBackupAt']),
     );
   }
   @override
@@ -407,6 +431,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'markerNoAnimalsColor': serializer.toJson<String>(markerNoAnimalsColor),
       'markerBannedColor': serializer.toJson<String>(markerBannedColor),
       'seasonStartedAt': serializer.toJson<int>(seasonStartedAt),
+      'lastBackupAt': serializer.toJson<int?>(lastBackupAt),
     };
   }
 
@@ -425,7 +450,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           String? markerDoneColor,
           String? markerNoAnimalsColor,
           String? markerBannedColor,
-          int? seasonStartedAt}) =>
+          int? seasonStartedAt,
+          Value<int?> lastBackupAt = const Value.absent()}) =>
       SettingsRow(
         id: id ?? this.id,
         baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -443,6 +469,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
         markerNoAnimalsColor: markerNoAnimalsColor ?? this.markerNoAnimalsColor,
         markerBannedColor: markerBannedColor ?? this.markerBannedColor,
         seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
+        lastBackupAt:
+            lastBackupAt.present ? lastBackupAt.value : this.lastBackupAt,
       );
   SettingsRow copyWithCompanion(SettingsTableCompanion data) {
     return SettingsRow(
@@ -481,6 +509,9 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       seasonStartedAt: data.seasonStartedAt.present
           ? data.seasonStartedAt.value
           : this.seasonStartedAt,
+      lastBackupAt: data.lastBackupAt.present
+          ? data.lastBackupAt.value
+          : this.lastBackupAt,
     );
   }
 
@@ -501,7 +532,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('markerDoneColor: $markerDoneColor, ')
           ..write('markerNoAnimalsColor: $markerNoAnimalsColor, ')
           ..write('markerBannedColor: $markerBannedColor, ')
-          ..write('seasonStartedAt: $seasonStartedAt')
+          ..write('seasonStartedAt: $seasonStartedAt, ')
+          ..write('lastBackupAt: $lastBackupAt')
           ..write(')'))
         .toString();
   }
@@ -522,7 +554,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       markerDoneColor,
       markerNoAnimalsColor,
       markerBannedColor,
-      seasonStartedAt);
+      seasonStartedAt,
+      lastBackupAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -541,7 +574,8 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.markerDoneColor == this.markerDoneColor &&
           other.markerNoAnimalsColor == this.markerNoAnimalsColor &&
           other.markerBannedColor == this.markerBannedColor &&
-          other.seasonStartedAt == this.seasonStartedAt);
+          other.seasonStartedAt == this.seasonStartedAt &&
+          other.lastBackupAt == this.lastBackupAt);
 }
 
 class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
@@ -560,6 +594,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
   final Value<String> markerNoAnimalsColor;
   final Value<String> markerBannedColor;
   final Value<int> seasonStartedAt;
+  final Value<int?> lastBackupAt;
   const SettingsTableCompanion({
     this.id = const Value.absent(),
     this.baseAddressLabel = const Value.absent(),
@@ -576,6 +611,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.markerNoAnimalsColor = const Value.absent(),
     this.markerBannedColor = const Value.absent(),
     this.seasonStartedAt = const Value.absent(),
+    this.lastBackupAt = const Value.absent(),
   });
   SettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -593,6 +629,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.markerNoAnimalsColor = const Value.absent(),
     this.markerBannedColor = const Value.absent(),
     this.seasonStartedAt = const Value.absent(),
+    this.lastBackupAt = const Value.absent(),
   })  : baseAddressLabel = Value(baseAddressLabel),
         baseLat = Value(baseLat),
         baseLon = Value(baseLon);
@@ -612,6 +649,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     Expression<String>? markerNoAnimalsColor,
     Expression<String>? markerBannedColor,
     Expression<int>? seasonStartedAt,
+    Expression<int>? lastBackupAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -634,6 +672,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
         'marker_no_animals_color': markerNoAnimalsColor,
       if (markerBannedColor != null) 'marker_banned_color': markerBannedColor,
       if (seasonStartedAt != null) 'season_started_at': seasonStartedAt,
+      if (lastBackupAt != null) 'last_backup_at': lastBackupAt,
     });
   }
 
@@ -652,7 +691,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       Value<String>? markerDoneColor,
       Value<String>? markerNoAnimalsColor,
       Value<String>? markerBannedColor,
-      Value<int>? seasonStartedAt}) {
+      Value<int>? seasonStartedAt,
+      Value<int?>? lastBackupAt}) {
     return SettingsTableCompanion(
       id: id ?? this.id,
       baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -670,6 +710,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       markerNoAnimalsColor: markerNoAnimalsColor ?? this.markerNoAnimalsColor,
       markerBannedColor: markerBannedColor ?? this.markerBannedColor,
       seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
+      lastBackupAt: lastBackupAt ?? this.lastBackupAt,
     );
   }
 
@@ -724,6 +765,9 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     if (seasonStartedAt.present) {
       map['season_started_at'] = Variable<int>(seasonStartedAt.value);
     }
+    if (lastBackupAt.present) {
+      map['last_backup_at'] = Variable<int>(lastBackupAt.value);
+    }
     return map;
   }
 
@@ -744,7 +788,8 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
           ..write('markerDoneColor: $markerDoneColor, ')
           ..write('markerNoAnimalsColor: $markerNoAnimalsColor, ')
           ..write('markerBannedColor: $markerBannedColor, ')
-          ..write('seasonStartedAt: $seasonStartedAt')
+          ..write('seasonStartedAt: $seasonStartedAt, ')
+          ..write('lastBackupAt: $lastBackupAt')
           ..write(')'))
         .toString();
   }
@@ -4513,6 +4558,7 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   Value<String> markerNoAnimalsColor,
   Value<String> markerBannedColor,
   Value<int> seasonStartedAt,
+  Value<int?> lastBackupAt,
 });
 typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
     Function({
@@ -4531,6 +4577,7 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<String> markerNoAnimalsColor,
   Value<String> markerBannedColor,
   Value<int> seasonStartedAt,
+  Value<int?> lastBackupAt,
 });
 
 class $$SettingsTableTableFilterComposer
@@ -4596,6 +4643,9 @@ class $$SettingsTableTableFilterComposer
   ColumnFilters<int> get seasonStartedAt => $composableBuilder(
       column: $table.seasonStartedAt,
       builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get lastBackupAt => $composableBuilder(
+      column: $table.lastBackupAt, builder: (column) => ColumnFilters(column));
 }
 
 class $$SettingsTableTableOrderingComposer
@@ -4661,6 +4711,10 @@ class $$SettingsTableTableOrderingComposer
   ColumnOrderings<int> get seasonStartedAt => $composableBuilder(
       column: $table.seasonStartedAt,
       builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get lastBackupAt => $composableBuilder(
+      column: $table.lastBackupAt,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$SettingsTableTableAnnotationComposer
@@ -4716,6 +4770,9 @@ class $$SettingsTableTableAnnotationComposer
 
   GeneratedColumn<int> get seasonStartedAt => $composableBuilder(
       column: $table.seasonStartedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get lastBackupAt => $composableBuilder(
+      column: $table.lastBackupAt, builder: (column) => column);
 }
 
 class $$SettingsTableTableTableManager extends RootTableManager<
@@ -4759,6 +4816,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> markerNoAnimalsColor = const Value.absent(),
             Value<String> markerBannedColor = const Value.absent(),
             Value<int> seasonStartedAt = const Value.absent(),
+            Value<int?> lastBackupAt = const Value.absent(),
           }) =>
               SettingsTableCompanion(
             id: id,
@@ -4776,6 +4834,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             markerNoAnimalsColor: markerNoAnimalsColor,
             markerBannedColor: markerBannedColor,
             seasonStartedAt: seasonStartedAt,
+            lastBackupAt: lastBackupAt,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -4793,6 +4852,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> markerNoAnimalsColor = const Value.absent(),
             Value<String> markerBannedColor = const Value.absent(),
             Value<int> seasonStartedAt = const Value.absent(),
+            Value<int?> lastBackupAt = const Value.absent(),
           }) =>
               SettingsTableCompanion.insert(
             id: id,
@@ -4810,6 +4870,7 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             markerNoAnimalsColor: markerNoAnimalsColor,
             markerBannedColor: markerBannedColor,
             seasonStartedAt: seasonStartedAt,
+            lastBackupAt: lastBackupAt,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
