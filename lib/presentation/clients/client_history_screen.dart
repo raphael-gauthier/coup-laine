@@ -201,16 +201,14 @@ class ClientHistoryScreen extends ConsumerWidget {
                                           width: AppSpacing.xxs),
                                       Expanded(
                                         child: Text(
-                                          note,
+                                          _truncateNotePreview(note),
                                           style: theme.typography.sm
                                               .copyWith(
                                             color: theme
                                                 .colors.mutedForeground,
                                             fontStyle: FontStyle.italic,
+                                            height: 1.35,
                                           ),
-                                          maxLines: 3,
-                                          overflow:
-                                              TextOverflow.ellipsis,
                                         ),
                                       ),
                                     ],
@@ -285,4 +283,13 @@ class _MonthHeaderTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String _truncateNotePreview(String s, {int maxChars = 120}) {
+  final flat = s.replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (flat.length <= maxChars) return flat;
+  final cut = flat.substring(0, maxChars);
+  final lastSpace = cut.lastIndexOf(' ');
+  final base = lastSpace > maxChars ~/ 2 ? cut.substring(0, lastSpace) : cut;
+  return '$base…';
 }
