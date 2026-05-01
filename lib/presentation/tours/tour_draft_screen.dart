@@ -368,7 +368,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         // "Étapes" heading
         Padding(
           padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
+              AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxs),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -437,7 +437,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                     bundle.result.revenueCentsPerStop[i];
                 return Padding(
                   key: ValueKey(c.id),
-                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                   child: FTile(
                     onPress: () => _openPicker(context, c, stopPres),
                     prefix: Container(
