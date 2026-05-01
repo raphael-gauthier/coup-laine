@@ -19,6 +19,7 @@ import '../../l10n/app_localizations.dart';
 import '../../state/map_controller.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
+import '../widgets/app_option_tile.dart';
 import 'client_pin_popup.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -590,7 +591,6 @@ class _LayerToggleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.theme;
     final color = switch (status) {
       ClientStatus.defaultStatus => _hex(settings.markerDefaultColor),
       ClientStatus.waiting => _hex(settings.markerWaitingColor),
@@ -599,25 +599,18 @@ class _LayerToggleRow extends StatelessWidget {
       ClientStatus.noAnimals => _hex(settings.markerNoAnimalsColor),
       ClientStatus.banned => _hex(settings.markerBannedColor),
     };
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        children: [
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(label, style: theme.typography.md),
-          ),
-          FSwitch(value: isOn, onChange: onChanged),
-        ],
+    return AppOptionTile(
+      leading: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+        ),
       ),
+      title: label,
+      checked: isOn,
+      onChanged: onChanged,
     );
   }
 }

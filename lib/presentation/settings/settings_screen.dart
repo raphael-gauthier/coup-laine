@@ -23,6 +23,7 @@ import '../widgets/address_autocomplete_field.dart';
 import '../widgets/app_action_bar.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_list_tile.dart';
+import '../widgets/app_option_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import '../widgets/color_swatch_picker.dart';
@@ -496,17 +497,18 @@ class _ThemeOption extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = context.theme;
     final settingsAsync = ref.watch(_settingsAsyncProvider);
     final currentMode = settingsAsync.value?.themeMode ?? ThemeModePreference.system;
     final isActive = currentMode == mode;
 
-    return FTile(
-      prefix: Icon(icon),
-      title: Text(label),
-      selected: isActive,
-      onPress: isActive
+    return AppOptionTile(
+      leading: Icon(icon, size: 18, color: theme.colors.foreground),
+      title: label,
+      checked: isActive,
+      onChanged: isActive
           ? null
-          : () async {
+          : (_) async {
               await ref.read(settingsRepositoryProvider).setThemeMode(mode);
               ref.invalidate(themeModeProvider);
               ref.invalidate(_settingsAsyncProvider);

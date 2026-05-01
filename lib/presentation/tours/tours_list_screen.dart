@@ -17,6 +17,7 @@ import '../widgets/app_empty_state.dart';
 import '../widgets/app_fab.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_list_tile.dart';
+import '../widgets/app_option_tile.dart';
 import '../widgets/app_stat.dart';
 
 final _visibleTourStatusesProvider = StateProvider<Set<TourStatus>>(
@@ -194,8 +195,8 @@ String _statusLabel(AppLocalizations l, TourStatus s) => switch (s) {
       TourStatus.completed => l.toursStatusCompleted,
     };
 
-/// Single row inside the tour status filter dialog. Mirrors the clients
-/// list filter dialog: 16 px colored dot, label, trailing FSwitch.
+/// Single row inside the tour status filter dialog. Visual unifié v3 :
+/// dot coloré 16dp + label + checkbox carré 22dp via `AppOptionTile`.
 class _TourStatusToggleRow extends StatelessWidget {
   final TourStatus status;
   final String label;
@@ -213,21 +214,15 @@ class _TourStatusToggleRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.theme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        children: [
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(label, style: theme.typography.md)),
-          FSwitch(value: isOn, onChange: onChanged),
-        ],
+    return AppOptionTile(
+      leading: Container(
+        width: 16,
+        height: 16,
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
+      title: label,
+      checked: isOn,
+      onChanged: onChanged,
     );
   }
 }
