@@ -436,8 +436,8 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                           final ok = await showDestructiveConfirm(
                             context, // ignore: use_build_context_synchronously
                             title: l.settingsImportConfirmTitle,
-                            body: 'Cette action remplace toutes les données actuelles. Continuer ?',
-                            confirmLabel: 'Importer',
+                            body: l.settingsImportConfirmBody,
+                            confirmLabel: l.settingsImportConfirmAction,
                           );
                           if (ok) {
                             await ref

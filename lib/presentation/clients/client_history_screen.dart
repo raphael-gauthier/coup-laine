@@ -112,17 +112,17 @@ class ClientHistoryScreen extends ConsumerWidget {
                   cells: [
                     AppKpiCell(
                       value: '${kpis.interventionCount}',
-                      label: 'interventions',
+                      label: l.kpiLabelInterventions,
                     ),
                     AppKpiCell(
                       value: formatEuros(kpis.totalRevenueCents),
-                      label: 'revenu cumulé',
+                      label: l.kpiLabelRevenue,
                     ),
                     AppKpiCell(
                       value: kpis.lastInterventionDate != null
                           ? _relativeShort(kpis.lastInterventionDate!)
                           : '–',
-                      label: 'dernière visite',
+                      label: l.kpiLabelLastVisit,
                     ),
                   ],
                 ),
@@ -138,8 +138,8 @@ class ClientHistoryScreen extends ConsumerWidget {
                     error: (e, _) => Center(child: Text('$e')),
                     data: (items) {
                       if (items.isEmpty) {
-                        return const Center(
-                          child: Text('Aucune intervention'),
+                        return Center(
+                          child: Text(l.clientDetailHistoryEmpty),
                         );
                       }
                       final flat = _buildFlatList(items);
@@ -180,7 +180,7 @@ class ClientHistoryScreen extends ConsumerWidget {
                     bottom: 16,
                     child: AppFAB(
                       icon: FIcons.plus,
-                      label: 'Tonte manuelle',
+                      label: l.clientHistoryAddAction,
                       extended: true,
                       onPress: () => showManualHistoryEntrySheet(
                         context,

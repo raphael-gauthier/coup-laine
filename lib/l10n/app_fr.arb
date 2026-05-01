@@ -329,5 +329,7 @@
     "placeholders": {
       "n": {"type": "int"}
     }
-  }
+  },
+  "settingsImportConfirmBody": "Cette action remplace toutes les données actuelles. Continuer ?",
+  "settingsImportConfirmAction": "Importer"
 }
