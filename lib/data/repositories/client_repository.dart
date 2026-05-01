@@ -1,12 +1,13 @@
 import 'package:drift/drift.dart';
 
+import '../../core/animal_counts_from_prestations.dart';
 import '../../core/animal_counts_normalizer.dart';
 import '../../core/phone_normalizer.dart';
 import '../../domain/models/animal_count.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
 import '../../domain/models/intervention.dart';
-import '../../domain/models/tour_stop_animal.dart';
+import '../../domain/models/tour_stop_prestation.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../infra/db/app_database.dart';
 import 'manual_history_repository.dart';
@@ -276,7 +277,7 @@ class ClientRepository {
         () {
           final stop = r.readTable(_db.tourStopsTable);
           final tour = r.readTable(_db.toursTable);
-          final hasBilan = stop.actualAnimals != null;
+          final hasBilan = stop.actualPrestations != null;
           final utc = DateTime.fromMillisecondsSinceEpoch(
             tour.plannedDate * 86400000,
             isUtc: true,
@@ -286,7 +287,7 @@ class ClientRepository {
             tourId: tour.id,
             stopId: stop.id,
             date: DateTime(utc.year, utc.month, utc.day),
-            animals: stop.actualAnimals ?? stop.plannedAnimals,
+            prestations: stop.actualPrestations ?? stop.plannedPrestations,
             note: stop.interventionNote,
             hasBilan: hasBilan,
           );
@@ -294,6 +295,8 @@ class ClientRepository {
     ];
 
     // Source 2 — manual entries.
+    // TEMP for T7: T9 will replace this with e.prestations once ManualHistoryEntry
+    // is migrated. Keeps the build green and tests for tour interventions valid.
     final manualEntries = await _manualHistory.listForClient(clientId);
     final manualInterventions = <Intervention>[
       for (final e in manualEntries)
@@ -301,7 +304,7 @@ class ClientRepository {
           kind: InterventionKind.manual,
           manualEntryId: e.id,
           date: e.date,
-          animals: e.animals,
+          prestations: const [], // FIXME(T9): use e.prestations once renamed
           note: e.note,
           hasBilan: true,
         ),
@@ -358,12 +361,13 @@ class ClientRepository {
   /// derives from completed tour membership).
   Future<void> applyInterventionActuals(
     int clientId, {
-    required List<TourStopAnimal> actuals,
+    required List<TourStopPrestation> actuals,
     required DateTime tourDate,
   }) async {
     final c = await findById(clientId);
     if (c == null) return;
-    final merged = _mergePerCategory(c.animals, actuals);
+    final derived = animalCountsFromPrestations(actuals);
+    final merged = _mergePerCategory(c.animals, derived);
     await (_db.update(_db.clientsTable)
           ..where((t) => t.id.equals(clientId)))
         .write(
@@ -384,7 +388,7 @@ class ClientRepository {
   Future<void> applyManualEntryToClient(
     int clientId, {
     required DateTime date,
-    required List<TourStopAnimal> animals,
+    required List<TourStopPrestation> prestations,
   }) async {
     final c = await findById(clientId);
     if (c == null) return;
@@ -393,7 +397,8 @@ class ClientRepository {
     final currentMs = c.lastInterventionDate?.millisecondsSinceEpoch;
     if (currentMs != null && entryMs <= currentMs) return;
 
-    final merged = _mergePerCategory(c.animals, animals);
+    final derived = animalCountsFromPrestations(prestations);
+    final merged = _mergePerCategory(c.animals, derived);
     await (_db.update(_db.clientsTable)
           ..where((t) => t.id.equals(clientId)))
         .write(
@@ -428,10 +433,12 @@ class ClientRepository {
     }
 
     // listInterventionsForClient is sorted desc by date — for each categoryId,
-    // the first occurrence wins (= most recent).
+    // the first occurrence wins (= most recent). Counts are derived from the
+    // intervention's prestations via the MAX rule (libres ignored).
     final byId = <int, int>{};
     for (final iv in list) {
-      for (final a in iv.animals) {
+      final derived = animalCountsFromPrestations(iv.prestations);
+      for (final a in derived) {
         byId.putIfAbsent(a.categoryId, () => a.count);
       }
     }
@@ -488,7 +495,7 @@ class ClientRepository {
   /// Result is normalized (sorted, zeros dropped, dedup-summed).
   List<AnimalCount> _mergePerCategory(
     List<AnimalCount> existing,
-    List<TourStopAnimal> incoming,
+    List<AnimalCount> incoming,
   ) {
     final byId = <int, int>{
       for (final a in existing) a.categoryId: a.count,

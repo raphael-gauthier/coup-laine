@@ -1,4 +1,4 @@
-import 'tour_stop_animal.dart';
+import 'tour_stop_prestation.dart';
 
 class TourStop {
   final int id;
@@ -8,8 +8,8 @@ class TourStop {
   final int orderIndex;
   final int estimatedArrivalMinutes;
   final int estimatedDepartureMinutes;
-  final List<TourStopAnimal> planned;
-  final List<TourStopAnimal>? actual;
+  final List<TourStopPrestation> plannedPrestations;
+  final List<TourStopPrestation>? actualPrestations;
   final String? interventionNote;
   final int feeShareCents;
 
@@ -21,8 +21,8 @@ class TourStop {
     required this.orderIndex,
     required this.estimatedArrivalMinutes,
     required this.estimatedDepartureMinutes,
-    required this.planned,
-    this.actual,
+    required this.plannedPrestations,
+    this.actualPrestations,
     this.interventionNote,
     required this.feeShareCents,
   });
