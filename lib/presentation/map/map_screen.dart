@@ -20,6 +20,7 @@ import '../../state/map_controller.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart' show clientsAsyncProvider;
 import '../widgets/app_option_tile.dart';
+import '../widgets/map_pins.dart';
 import 'client_pin_popup.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
@@ -255,7 +256,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                 width: 48,
                                 height: 56,
                                 alignment: Alignment.bottomCenter,
-                                child: _BasePin(color: theme.colors.primary),
+                                child: MapBasePin(color: theme.colors.primary),
                               ),
                               // Client pins
                               for (final r in visibleClients)
@@ -283,7 +284,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                         );
                                       }
                                     },
-                                    child: _StatusPin(
+                                    child: MapStatusPin(
                                       color: _resolveColor(r.$1, r.$2, settings),
                                       animalCount: r.$1.animalsTotal,
                                     ),
@@ -464,110 +465,8 @@ class _MapIconButton extends StatelessWidget {
   }
 }
 
-class _StatusPin extends StatelessWidget {
-  final Color color;
-  final int animalCount;
-
-  const _StatusPin({required this.color, required this.animalCount});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 40,
-      height: 48,
-      child: CustomPaint(
-        painter: _PinPainter(color: color),
-        child: Align(
-          alignment: const Alignment(0, -0.25),
-          child: Text(
-            '$animalCount',
-            style: const TextStyle(
-              color: Color(0xFFFFFFFF),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              height: 1,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BasePin extends StatelessWidget {
-  final Color color;
-
-  const _BasePin({required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 48,
-      height: 56,
-      child: CustomPaint(
-        painter: _PinPainter(color: color),
-        child: const Align(
-          // Disc center is at y = 22; nudge ~2px up to compensate for the
-          // icon-font baseline offset so the glyph reads as truly centered.
-          alignment: Alignment(0, -0.286),
-          child: Icon(
-            FIcons.house,
-            color: Color(0xFFFFFFFF),
-            size: 20,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PinPainter extends CustomPainter {
-  final Color color;
-
-  _PinPainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    // 2px margin each side leaves room for the white outline.
-    final discRadius = (size.width - 4) / 2;
-    final discCenter = Offset(cx, discRadius);
-    final tip = Offset(cx, size.height);
-    // Tail proportions match the original 40×48 pin (8/18 ≈ 0.444).
-    final tailHalf = discRadius * 8.0 / 18.0;
-    final tailY = discRadius + tailHalf;
-
-    final circle = Path()
-      ..addOval(Rect.fromCircle(center: discCenter, radius: discRadius));
-    final tail = Path()
-      ..moveTo(cx - tailHalf, tailY)
-      ..lineTo(tip.dx, tip.dy)
-      ..lineTo(cx + tailHalf, tailY)
-      ..close();
-    final pin = Path.combine(PathOperation.union, circle, tail);
-
-    canvas.drawShadow(pin, const Color(0x66000000), 2, false);
-
-    canvas.drawPath(
-      pin,
-      Paint()
-        ..color = color
-        ..style = PaintingStyle.fill,
-    );
-
-    canvas.drawPath(
-      pin,
-      Paint()
-        ..color = const Color(0xFFFFFFFF)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..strokeJoin = StrokeJoin.round,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _PinPainter old) => old.color != color;
-}
+// Pins extracted to `lib/presentation/widgets/map_pins.dart` so they're
+// shared with the proximity Map view (tour creation flow).
 
 class _LayerToggleRow extends StatelessWidget {
   final ClientStatus status;
