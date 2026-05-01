@@ -570,7 +570,10 @@ class _InterventionsCard extends ConsumerWidget {
                     onTap: () => _openIntervention(context, ref, it),
                   ),
                   if (it != visible.last)
-                    const SizedBox(height: AppSpacing.xs),
+                    Container(
+                      height: AppSizes.hairlineBorder,
+                      color: theme.colors.border,
+                    ),
                 ],
               if (hasMore) ...[
                 const SizedBox(height: AppSpacing.sm),
@@ -700,99 +703,91 @@ class _InterventionTileState extends State<_InterventionTile> {
       );
     }
 
+    final note = it.note?.trim();
+    final hasNote = note != null && note.isNotEmpty;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
       onTap: widget.onTap,
-      child: AnimatedScale(
-        scale: _pressed ? 0.98 : 1.0,
+      child: AnimatedOpacity(
+        opacity: _pressed ? 0.6 : 1.0,
         duration: const Duration(milliseconds: 80),
-        curve: Curves.easeOut,
-        child: AnimatedOpacity(
-          opacity: _pressed ? 0.95 : 1.0,
-          duration: const Duration(milliseconds: 80),
-          child: Container(
-            padding: AppSizes.listTilePadding,
-            decoration: BoxDecoration(
-              color: theme.colors.card,
-              borderRadius: BorderRadius.circular(AppBorderRadius.md),
-              border: Border.all(
-                color: theme.colors.border,
-                width: AppSizes.hairlineBorder,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    kindIcon,
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            mainTitle,
-                            style: theme.typography.lg.copyWith(
-                              color: theme.colors.foreground,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            dateStr,
-                            style: theme.typography.sm.copyWith(
-                              color: theme.colors.mutedForeground,
-                              fontStyle: FontStyle.italic,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    rightCol,
-                  ],
-                ),
-                if (it.note != null && it.note!.trim().isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 40),
-                    child: Row(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  kindIcon,
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          FIcons.stickyNote,
-                          size: 13,
-                          color: theme.colors.mutedForeground,
-                        ),
-                        const SizedBox(width: AppSpacing.xxs),
-                        Expanded(
-                          child: Text(
-                            it.note!.trim(),
-                            style: theme.typography.sm.copyWith(
-                              color: theme.colors.mutedForeground,
-                              fontStyle: FontStyle.italic,
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          mainTitle,
+                          style: theme.typography.lg.copyWith(
+                            color: theme.colors.foreground,
+                            fontWeight: FontWeight.w600,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          dateStr,
+                          style: theme.typography.sm.copyWith(
+                            color: theme.colors.mutedForeground,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: AppSpacing.sm),
+                  rightCol,
                 ],
+              ),
+              if (hasNote) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Padding(
+                  padding: const EdgeInsets.only(left: 40),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        FIcons.stickyNote,
+                        size: 13,
+                        color: theme.colors.mutedForeground,
+                      ),
+                      const SizedBox(width: AppSpacing.xxs),
+                      Expanded(
+                        child: Text(
+                          note,
+                          style: theme.typography.sm.copyWith(
+                            color: theme.colors.mutedForeground,
+                            fontStyle: FontStyle.italic,
+                            height: 1.35,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
-            ),
+            ],
           ),
         ),
       ),
