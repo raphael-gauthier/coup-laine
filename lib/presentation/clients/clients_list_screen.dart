@@ -101,7 +101,7 @@ class ClientsListScreen extends ConsumerWidget {
                 actions: [
                   AppHeaderAction(
                     icon: FIcons.listFilter,
-                    label: l.clientsFilterByStatus,
+                    label: 'Filtrer',
                     active: hasActiveFilter,
                     onPress: () =>
                         _StatusFilterButton.openFilterDialog(context, ref),
