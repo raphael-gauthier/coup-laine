@@ -145,8 +145,30 @@ class AppRouter {
           pageBuilder: (_, state) =>
               _fadeSlidePage(state, const TourOptimizedConfigScreen()),
         ),
-        StatefulShellRoute.indexedStack(
+        StatefulShellRoute(
           builder: (context, state, shell) => _ShellScaffold(shell: shell),
+          // Custom container : on garde toutes les branches mountées (Stack +
+          // Offstage) pour préserver l'état par tab, et on fade-in la branche
+          // active. Pas d'`indexedStack` par défaut (qui ne s'anime pas).
+          navigatorContainerBuilder: (context, shell, children) {
+            return Stack(
+              children: [
+                for (var i = 0; i < children.length; i++)
+                  Offstage(
+                    offstage: shell.currentIndex != i,
+                    child: TickerMode(
+                      enabled: shell.currentIndex == i,
+                      child: AnimatedOpacity(
+                        opacity: shell.currentIndex == i ? 1.0 : 0.0,
+                        duration: const Duration(milliseconds: 140),
+                        curve: Curves.easeOut,
+                        child: children[i],
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
           branches: [
             StatefulShellBranch(routes: [
               GoRoute(
