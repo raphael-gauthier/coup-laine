@@ -368,7 +368,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         // "Étapes" heading
         Padding(
           padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxs),
+              AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
