@@ -1,9 +1,8 @@
 import 'package:drift/drift.dart';
 
 import '../../core/animal_counts_from_prestations.dart';
-import '../../core/animal_counts_normalizer.dart';
+import '../../core/animal_counts_merge.dart';
 import '../../core/tour_stop_prestations_normalizer.dart';
-import '../../domain/models/animal_count.dart';
 import '../../domain/models/tour.dart';
 import '../../domain/models/tour_stop.dart';
 import '../../domain/models/tour_stop_prestation.dart';
@@ -172,16 +171,10 @@ class TourRepository {
                 ..where((c) => c.id.equals(cid)))
               .getSingleOrNull();
           if (clientRow != null) {
-            final byId = <int, int>{
-              for (final a in clientRow.animals) a.categoryId: a.count,
-            };
-            for (final a in derived) {
-              byId[a.categoryId] = a.count;
-            }
-            final mergedAnimals = normalizeAnimalCounts([
-              for (final entry in byId.entries)
-                AnimalCount(categoryId: entry.key, count: entry.value),
-            ]);
+            final mergedAnimals = mergeAnimalCountsByCategory(
+              clientRow.animals,
+              derived,
+            );
             await (_db.update(_db.clientsTable)
                   ..where((c) => c.id.equals(cid)))
                 .write(

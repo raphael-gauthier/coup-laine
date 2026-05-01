@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../../core/animal_counts_from_prestations.dart';
+import '../../core/animal_counts_merge.dart';
 import '../../core/animal_counts_normalizer.dart';
 import '../../core/phone_normalizer.dart';
 import '../../domain/models/animal_count.dart';
@@ -355,10 +356,13 @@ class ClientRepository {
   }
 
   /// Persists the actuals captured during a tour completion onto the client's
-  /// stored animal counts, merging per `categoryId` (entries in [actuals]
-  /// overwrite the matching category, others untouched). Bumps
-  /// `lastInterventionDate` to [tourDate]. Does not mutate `isWaiting` (status now
-  /// derives from completed tour membership).
+  /// stored animal counts.
+  ///
+  /// Each prestation in [actuals] is converted to a per-category count via the
+  /// MAX rule (libres ignored, max qty wins per category). The derived counts
+  /// then merge into `client.animals` (per-category overwrite, others untouched).
+  /// Bumps `lastInterventionDate` to [tourDate]. Does not mutate `isWaiting`
+  /// (status now derives from completed tour membership).
   Future<void> applyInterventionActuals(
     int clientId, {
     required List<TourStopPrestation> actuals,
@@ -496,16 +500,6 @@ class ClientRepository {
   List<AnimalCount> _mergePerCategory(
     List<AnimalCount> existing,
     List<AnimalCount> incoming,
-  ) {
-    final byId = <int, int>{
-      for (final a in existing) a.categoryId: a.count,
-    };
-    for (final a in incoming) {
-      byId[a.categoryId] = a.count;
-    }
-    return normalizeAnimalCounts([
-      for (final entry in byId.entries)
-        AnimalCount(categoryId: entry.key, count: entry.value),
-    ]);
-  }
+  ) =>
+      mergeAnimalCountsByCategory(existing, incoming);
 }
