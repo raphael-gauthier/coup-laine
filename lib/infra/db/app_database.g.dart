@@ -2174,18 +2174,6 @@ class $AnimalCategoriesTableTable extends AnimalCategoriesTable
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _defaultMinutesMeta =
-      const VerificationMeta('defaultMinutes');
-  @override
-  late final GeneratedColumn<int> defaultMinutes = GeneratedColumn<int>(
-      'default_minutes', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
-  static const VerificationMeta _defaultPriceCentsMeta =
-      const VerificationMeta('defaultPriceCents');
-  @override
-  late final GeneratedColumn<int> defaultPriceCents = GeneratedColumn<int>(
-      'default_price_cents', aliasedName, true,
-      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _archivedAtMeta =
       const VerificationMeta('archivedAt');
   @override
@@ -2199,15 +2187,8 @@ class $AnimalCategoriesTableTable extends AnimalCategoriesTable
       'created_at', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
   @override
-  List<GeneratedColumn> get $columns => [
-        id,
-        speciesId,
-        name,
-        defaultMinutes,
-        defaultPriceCents,
-        archivedAt,
-        createdAt
-      ];
+  List<GeneratedColumn> get $columns =>
+      [id, speciesId, name, archivedAt, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -2232,18 +2213,6 @@ class $AnimalCategoriesTableTable extends AnimalCategoriesTable
           _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
     } else if (isInserting) {
       context.missing(_nameMeta);
-    }
-    if (data.containsKey('default_minutes')) {
-      context.handle(
-          _defaultMinutesMeta,
-          defaultMinutes.isAcceptableOrUnknown(
-              data['default_minutes']!, _defaultMinutesMeta));
-    }
-    if (data.containsKey('default_price_cents')) {
-      context.handle(
-          _defaultPriceCentsMeta,
-          defaultPriceCents.isAcceptableOrUnknown(
-              data['default_price_cents']!, _defaultPriceCentsMeta));
     }
     if (data.containsKey('archived_at')) {
       context.handle(
@@ -2272,10 +2241,6 @@ class $AnimalCategoriesTableTable extends AnimalCategoriesTable
           .read(DriftSqlType.int, data['${effectivePrefix}species_id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      defaultMinutes: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}default_minutes']),
-      defaultPriceCents: attachedDatabase.typeMapping.read(
-          DriftSqlType.int, data['${effectivePrefix}default_price_cents']),
       archivedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}archived_at']),
       createdAt: attachedDatabase.typeMapping
@@ -2294,16 +2259,12 @@ class AnimalCategoryRow extends DataClass
   final int id;
   final int speciesId;
   final String name;
-  final int? defaultMinutes;
-  final int? defaultPriceCents;
   final int? archivedAt;
   final int createdAt;
   const AnimalCategoryRow(
       {required this.id,
       required this.speciesId,
       required this.name,
-      this.defaultMinutes,
-      this.defaultPriceCents,
       this.archivedAt,
       required this.createdAt});
   @override
@@ -2312,12 +2273,6 @@ class AnimalCategoryRow extends DataClass
     map['id'] = Variable<int>(id);
     map['species_id'] = Variable<int>(speciesId);
     map['name'] = Variable<String>(name);
-    if (!nullToAbsent || defaultMinutes != null) {
-      map['default_minutes'] = Variable<int>(defaultMinutes);
-    }
-    if (!nullToAbsent || defaultPriceCents != null) {
-      map['default_price_cents'] = Variable<int>(defaultPriceCents);
-    }
     if (!nullToAbsent || archivedAt != null) {
       map['archived_at'] = Variable<int>(archivedAt);
     }
@@ -2330,12 +2285,6 @@ class AnimalCategoryRow extends DataClass
       id: Value(id),
       speciesId: Value(speciesId),
       name: Value(name),
-      defaultMinutes: defaultMinutes == null && nullToAbsent
-          ? const Value.absent()
-          : Value(defaultMinutes),
-      defaultPriceCents: defaultPriceCents == null && nullToAbsent
-          ? const Value.absent()
-          : Value(defaultPriceCents),
       archivedAt: archivedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(archivedAt),
@@ -2350,8 +2299,6 @@ class AnimalCategoryRow extends DataClass
       id: serializer.fromJson<int>(json['id']),
       speciesId: serializer.fromJson<int>(json['speciesId']),
       name: serializer.fromJson<String>(json['name']),
-      defaultMinutes: serializer.fromJson<int?>(json['defaultMinutes']),
-      defaultPriceCents: serializer.fromJson<int?>(json['defaultPriceCents']),
       archivedAt: serializer.fromJson<int?>(json['archivedAt']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
     );
@@ -2363,8 +2310,6 @@ class AnimalCategoryRow extends DataClass
       'id': serializer.toJson<int>(id),
       'speciesId': serializer.toJson<int>(speciesId),
       'name': serializer.toJson<String>(name),
-      'defaultMinutes': serializer.toJson<int?>(defaultMinutes),
-      'defaultPriceCents': serializer.toJson<int?>(defaultPriceCents),
       'archivedAt': serializer.toJson<int?>(archivedAt),
       'createdAt': serializer.toJson<int>(createdAt),
     };
@@ -2374,19 +2319,12 @@ class AnimalCategoryRow extends DataClass
           {int? id,
           int? speciesId,
           String? name,
-          Value<int?> defaultMinutes = const Value.absent(),
-          Value<int?> defaultPriceCents = const Value.absent(),
           Value<int?> archivedAt = const Value.absent(),
           int? createdAt}) =>
       AnimalCategoryRow(
         id: id ?? this.id,
         speciesId: speciesId ?? this.speciesId,
         name: name ?? this.name,
-        defaultMinutes:
-            defaultMinutes.present ? defaultMinutes.value : this.defaultMinutes,
-        defaultPriceCents: defaultPriceCents.present
-            ? defaultPriceCents.value
-            : this.defaultPriceCents,
         archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
         createdAt: createdAt ?? this.createdAt,
       );
@@ -2395,12 +2333,6 @@ class AnimalCategoryRow extends DataClass
       id: data.id.present ? data.id.value : this.id,
       speciesId: data.speciesId.present ? data.speciesId.value : this.speciesId,
       name: data.name.present ? data.name.value : this.name,
-      defaultMinutes: data.defaultMinutes.present
-          ? data.defaultMinutes.value
-          : this.defaultMinutes,
-      defaultPriceCents: data.defaultPriceCents.present
-          ? data.defaultPriceCents.value
-          : this.defaultPriceCents,
       archivedAt:
           data.archivedAt.present ? data.archivedAt.value : this.archivedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
@@ -2413,8 +2345,6 @@ class AnimalCategoryRow extends DataClass
           ..write('id: $id, ')
           ..write('speciesId: $speciesId, ')
           ..write('name: $name, ')
-          ..write('defaultMinutes: $defaultMinutes, ')
-          ..write('defaultPriceCents: $defaultPriceCents, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -2422,8 +2352,7 @@ class AnimalCategoryRow extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, speciesId, name, defaultMinutes,
-      defaultPriceCents, archivedAt, createdAt);
+  int get hashCode => Object.hash(id, speciesId, name, archivedAt, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2431,8 +2360,6 @@ class AnimalCategoryRow extends DataClass
           other.id == this.id &&
           other.speciesId == this.speciesId &&
           other.name == this.name &&
-          other.defaultMinutes == this.defaultMinutes &&
-          other.defaultPriceCents == this.defaultPriceCents &&
           other.archivedAt == this.archivedAt &&
           other.createdAt == this.createdAt);
 }
@@ -2442,16 +2369,12 @@ class AnimalCategoriesTableCompanion
   final Value<int> id;
   final Value<int> speciesId;
   final Value<String> name;
-  final Value<int?> defaultMinutes;
-  final Value<int?> defaultPriceCents;
   final Value<int?> archivedAt;
   final Value<int> createdAt;
   const AnimalCategoriesTableCompanion({
     this.id = const Value.absent(),
     this.speciesId = const Value.absent(),
     this.name = const Value.absent(),
-    this.defaultMinutes = const Value.absent(),
-    this.defaultPriceCents = const Value.absent(),
     this.archivedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
   });
@@ -2459,8 +2382,6 @@ class AnimalCategoriesTableCompanion
     this.id = const Value.absent(),
     required int speciesId,
     required String name,
-    this.defaultMinutes = const Value.absent(),
-    this.defaultPriceCents = const Value.absent(),
     this.archivedAt = const Value.absent(),
     required int createdAt,
   })  : speciesId = Value(speciesId),
@@ -2470,8 +2391,6 @@ class AnimalCategoriesTableCompanion
     Expression<int>? id,
     Expression<int>? speciesId,
     Expression<String>? name,
-    Expression<int>? defaultMinutes,
-    Expression<int>? defaultPriceCents,
     Expression<int>? archivedAt,
     Expression<int>? createdAt,
   }) {
@@ -2479,8 +2398,6 @@ class AnimalCategoriesTableCompanion
       if (id != null) 'id': id,
       if (speciesId != null) 'species_id': speciesId,
       if (name != null) 'name': name,
-      if (defaultMinutes != null) 'default_minutes': defaultMinutes,
-      if (defaultPriceCents != null) 'default_price_cents': defaultPriceCents,
       if (archivedAt != null) 'archived_at': archivedAt,
       if (createdAt != null) 'created_at': createdAt,
     });
@@ -2490,16 +2407,12 @@ class AnimalCategoriesTableCompanion
       {Value<int>? id,
       Value<int>? speciesId,
       Value<String>? name,
-      Value<int?>? defaultMinutes,
-      Value<int?>? defaultPriceCents,
       Value<int?>? archivedAt,
       Value<int>? createdAt}) {
     return AnimalCategoriesTableCompanion(
       id: id ?? this.id,
       speciesId: speciesId ?? this.speciesId,
       name: name ?? this.name,
-      defaultMinutes: defaultMinutes ?? this.defaultMinutes,
-      defaultPriceCents: defaultPriceCents ?? this.defaultPriceCents,
       archivedAt: archivedAt ?? this.archivedAt,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -2517,12 +2430,6 @@ class AnimalCategoriesTableCompanion
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (defaultMinutes.present) {
-      map['default_minutes'] = Variable<int>(defaultMinutes.value);
-    }
-    if (defaultPriceCents.present) {
-      map['default_price_cents'] = Variable<int>(defaultPriceCents.value);
-    }
     if (archivedAt.present) {
       map['archived_at'] = Variable<int>(archivedAt.value);
     }
@@ -2538,8 +2445,6 @@ class AnimalCategoriesTableCompanion
           ..write('id: $id, ')
           ..write('speciesId: $speciesId, ')
           ..write('name: $name, ')
-          ..write('defaultMinutes: $defaultMinutes, ')
-          ..write('defaultPriceCents: $defaultPriceCents, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -5972,8 +5877,6 @@ typedef $$AnimalCategoriesTableTableCreateCompanionBuilder
   Value<int> id,
   required int speciesId,
   required String name,
-  Value<int?> defaultMinutes,
-  Value<int?> defaultPriceCents,
   Value<int?> archivedAt,
   required int createdAt,
 });
@@ -5982,8 +5885,6 @@ typedef $$AnimalCategoriesTableTableUpdateCompanionBuilder
   Value<int> id,
   Value<int> speciesId,
   Value<String> name,
-  Value<int?> defaultMinutes,
-  Value<int?> defaultPriceCents,
   Value<int?> archivedAt,
   Value<int> createdAt,
 });
@@ -6040,14 +5941,6 @@ class $$AnimalCategoriesTableTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get defaultMinutes => $composableBuilder(
-      column: $table.defaultMinutes,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<int> get defaultPriceCents => $composableBuilder(
-      column: $table.defaultPriceCents,
-      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get archivedAt => $composableBuilder(
       column: $table.archivedAt, builder: (column) => ColumnFilters(column));
@@ -6112,14 +6005,6 @@ class $$AnimalCategoriesTableTableOrderingComposer
   ColumnOrderings<String> get name => $composableBuilder(
       column: $table.name, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get defaultMinutes => $composableBuilder(
-      column: $table.defaultMinutes,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<int> get defaultPriceCents => $composableBuilder(
-      column: $table.defaultPriceCents,
-      builder: (column) => ColumnOrderings(column));
-
   ColumnOrderings<int> get archivedAt => $composableBuilder(
       column: $table.archivedAt, builder: (column) => ColumnOrderings(column));
 
@@ -6161,12 +6046,6 @@ class $$AnimalCategoriesTableTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumn<int> get defaultMinutes => $composableBuilder(
-      column: $table.defaultMinutes, builder: (column) => column);
-
-  GeneratedColumn<int> get defaultPriceCents => $composableBuilder(
-      column: $table.defaultPriceCents, builder: (column) => column);
 
   GeneratedColumn<int> get archivedAt => $composableBuilder(
       column: $table.archivedAt, builder: (column) => column);
@@ -6246,8 +6125,6 @@ class $$AnimalCategoriesTableTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<int> speciesId = const Value.absent(),
             Value<String> name = const Value.absent(),
-            Value<int?> defaultMinutes = const Value.absent(),
-            Value<int?> defaultPriceCents = const Value.absent(),
             Value<int?> archivedAt = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
           }) =>
@@ -6255,8 +6132,6 @@ class $$AnimalCategoriesTableTableTableManager extends RootTableManager<
             id: id,
             speciesId: speciesId,
             name: name,
-            defaultMinutes: defaultMinutes,
-            defaultPriceCents: defaultPriceCents,
             archivedAt: archivedAt,
             createdAt: createdAt,
           ),
@@ -6264,8 +6139,6 @@ class $$AnimalCategoriesTableTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             required int speciesId,
             required String name,
-            Value<int?> defaultMinutes = const Value.absent(),
-            Value<int?> defaultPriceCents = const Value.absent(),
             Value<int?> archivedAt = const Value.absent(),
             required int createdAt,
           }) =>
@@ -6273,8 +6146,6 @@ class $$AnimalCategoriesTableTableTableManager extends RootTableManager<
             id: id,
             speciesId: speciesId,
             name: name,
-            defaultMinutes: defaultMinutes,
-            defaultPriceCents: defaultPriceCents,
             archivedAt: archivedAt,
             createdAt: createdAt,
           ),

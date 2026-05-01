@@ -10,15 +10,11 @@ class AnimalCategoryRepository {
   Future<int> insert({
     required int speciesId,
     required String name,
-    int? defaultMinutes,
-    int? defaultPriceCents,
   }) {
     return _db.into(_db.animalCategoriesTable).insert(
           AnimalCategoriesTableCompanion.insert(
             speciesId: speciesId,
             name: name,
-            defaultMinutes: Value(defaultMinutes),
-            defaultPriceCents: Value(defaultPriceCents),
             createdAt: DateTime.now().millisecondsSinceEpoch,
           ),
         );
@@ -28,19 +24,6 @@ class AnimalCategoryRepository {
     await (_db.update(_db.animalCategoriesTable)
           ..where((c) => c.id.equals(id)))
         .write(AnimalCategoriesTableCompanion(name: Value(name)));
-  }
-
-  Future<void> updateDefaults({
-    required int id,
-    int? defaultMinutes,
-    int? defaultPriceCents,
-  }) async {
-    await (_db.update(_db.animalCategoriesTable)
-          ..where((c) => c.id.equals(id)))
-        .write(AnimalCategoriesTableCompanion(
-      defaultMinutes: Value(defaultMinutes),
-      defaultPriceCents: Value(defaultPriceCents),
-    ));
   }
 
   Future<void> archive(int id) async {
@@ -92,8 +75,6 @@ class AnimalCategoryRepository {
         id: row.id,
         speciesId: row.speciesId,
         name: row.name,
-        defaultMinutes: row.defaultMinutes,
-        defaultPriceCents: row.defaultPriceCents,
         archivedAt: row.archivedAt == null
             ? null
             : DateTime.fromMillisecondsSinceEpoch(row.archivedAt!),

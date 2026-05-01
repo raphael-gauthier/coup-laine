@@ -25,14 +25,10 @@ Future<AnimalFixtures> seedTestSpeciesAndCategories(AppDatabase db) async {
   final cats = AnimalCategoryRepository(db);
   final mouton = await species.insert(name: 'Mouton');
   final cheval = await species.insert(name: 'Cheval');
-  final petit =
-      await cats.insert(speciesId: mouton, name: 'Petit', defaultMinutes: 8);
-  final grand =
-      await cats.insert(speciesId: mouton, name: 'Grand', defaultMinutes: 25);
-  final poulain =
-      await cats.insert(speciesId: cheval, name: 'Poulain', defaultMinutes: 30);
-  final adulte =
-      await cats.insert(speciesId: cheval, name: 'Adulte', defaultMinutes: 45);
+  final petit = await cats.insert(speciesId: mouton, name: 'Petit');
+  final grand = await cats.insert(speciesId: mouton, name: 'Grand');
+  final poulain = await cats.insert(speciesId: cheval, name: 'Poulain');
+  final adulte = await cats.insert(speciesId: cheval, name: 'Adulte');
   return AnimalFixtures(
     moutonId: mouton,
     chevalId: cheval,

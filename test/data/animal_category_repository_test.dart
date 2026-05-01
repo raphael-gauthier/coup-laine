@@ -19,25 +19,12 @@ void main() {
 
   tearDown(() async => db.close());
 
-  test('insert with no defaults; listActiveBySpecies returns it', () async {
+  test('insert; listActiveBySpecies returns it', () async {
     final id = await repo.insert(speciesId: speciesId, name: 'Petit');
     final list = await repo.listActiveBySpecies(speciesId);
     expect(list, hasLength(1));
     expect(list.first.id, id);
-    expect(list.first.defaultMinutes, isNull);
-    expect(list.first.defaultPriceCents, isNull);
-  });
-
-  test('updateDefaults changes minutes and price', () async {
-    final id = await repo.insert(speciesId: speciesId, name: 'Petit');
-    await repo.updateDefaults(
-      id: id,
-      defaultMinutes: 8,
-      defaultPriceCents: 800,
-    );
-    final c = (await repo.listActiveBySpecies(speciesId)).single;
-    expect(c.defaultMinutes, 8);
-    expect(c.defaultPriceCents, 800);
+    expect(list.first.name, 'Petit');
   });
 
   test('archive excludes from listActiveBySpecies', () async {

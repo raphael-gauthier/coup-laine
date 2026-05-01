@@ -101,8 +101,6 @@ class AnimalCategoriesTable extends Table {
   IntColumn get speciesId => integer()
       .references(SpeciesTable, #id, onDelete: KeyAction.cascade)();
   TextColumn get name => text()();
-  IntColumn get defaultMinutes => integer().nullable()();
-  IntColumn get defaultPriceCents => integer().nullable()();
   IntColumn get archivedAt => integer().nullable()();
   IntColumn get createdAt => integer()();
 }

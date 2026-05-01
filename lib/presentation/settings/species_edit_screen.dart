@@ -160,8 +160,6 @@ class _SpeciesEditBodyState extends ConsumerState<_SpeciesEditBody> {
     await ref.read(animalCategoryRepositoryProvider).insert(
           speciesId: widget.data.species!.id,
           name: result.name,
-          defaultMinutes: result.defaultMinutes,
-          defaultPriceCents: result.defaultPriceCents,
         );
     widget.onMutated();
   }
@@ -172,8 +170,6 @@ class _SpeciesEditBodyState extends ConsumerState<_SpeciesEditBody> {
       isScrollControlled: true,
       builder: (_) => AnimalCategoryFormSheet(
         initialName: cat.name,
-        initialDefaultMinutes: cat.defaultMinutes,
-        initialDefaultPriceCents: cat.defaultPriceCents,
       ),
     );
     if (result == null) return;
@@ -181,11 +177,6 @@ class _SpeciesEditBodyState extends ConsumerState<_SpeciesEditBody> {
     if (result.name != cat.name) {
       await repo.rename(id: cat.id, name: result.name);
     }
-    await repo.updateDefaults(
-      id: cat.id,
-      defaultMinutes: result.defaultMinutes,
-      defaultPriceCents: result.defaultPriceCents,
-    );
     widget.onMutated();
   }
 
@@ -312,12 +303,6 @@ class _CategoryActiveRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.theme;
-    final priceLabel = category.defaultPriceCents == null
-        ? '—'
-        : '${(category.defaultPriceCents! / 100).toStringAsFixed(2)} €';
-    final minutesLabel = category.defaultMinutes == null
-        ? '—'
-        : '${category.defaultMinutes} min';
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -332,24 +317,12 @@ class _CategoryActiveRow extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    category.name,
-                    style: theme.typography.md.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colors.foreground,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    '$minutesLabel · $priceLabel',
-                    style: theme.typography.sm.copyWith(
-                      color: theme.colors.mutedForeground,
-                    ),
-                  ),
-                ],
+              child: Text(
+                category.name,
+                style: theme.typography.md.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colors.foreground,
+                ),
               ),
             ),
             IconButton(

@@ -94,7 +94,7 @@ final activeCategoriesBySpeciesProvider =
 /// Convenience: the species + category info needed to build TourStopAnimal
 /// snapshots when constructing a TourDraft. Built once per provider read.
 /// Keys are categoryIds; values include speciesName, categoryName, and
-/// minutesSnapshot (defaulting to 0 if the user hasn't set defaultMinutes).
+/// minutesSnapshot (always 0 here — minutes now come from selected prestations).
 /// Includes archived categories so historic clients still resolve.
 final categoryLookupProvider = FutureProvider<
     Map<int, ({String speciesName, String categoryName, int minutes})>>(
@@ -109,7 +109,7 @@ final categoryLookupProvider = FutureProvider<
       c.id: (
         speciesName: speciesById[c.speciesId]?.name ?? '',
         categoryName: c.name,
-        minutes: c.defaultMinutes ?? 0,
+        minutes: 0,
       ),
   };
 });

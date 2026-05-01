@@ -2,10 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:coup_laine/domain/models/animal_category.dart';
 
 void main() {
-  test('defaults: minutes/price/archivedAt are null', () {
+  test('defaults: archivedAt is null', () {
     const c = AnimalCategory(id: 1, speciesId: 1, name: 'Petit');
-    expect(c.defaultMinutes, isNull);
-    expect(c.defaultPriceCents, isNull);
     expect(c.archivedAt, isNull);
     expect(c.isArchived, isFalse);
   });
