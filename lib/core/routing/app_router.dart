@@ -180,17 +180,11 @@ class _ShellScaffold extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.colors.background,
       resizeToAvoidBottomInset: true,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 120),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeOut,
-        transitionBuilder: (child, anim) =>
-            FadeTransition(opacity: anim, child: child),
-        child: KeyedSubtree(
-          key: ValueKey(shell.currentIndex),
-          child: shell,
-        ),
-      ),
+      // Note: pas d'AnimatedSwitcher autour de `shell` — StatefulNavigationShell
+      // est une instance unique avec un GlobalKey interne ; le wrapper duplique
+      // le key pendant la transition. Les transitions inter-tabs restent
+      // instantanées (Material/Forui par défaut).
+      body: shell,
       bottomNavigationBar: FBottomNavigationBar(
         index: shell.currentIndex,
         onChange: (i) => shell.goBranch(i, initialLocation: true),
