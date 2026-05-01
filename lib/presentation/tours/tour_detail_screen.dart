@@ -158,6 +158,12 @@ class _Body extends ConsumerWidget {
                   child: MiniMap(
                     base: LatLng(base.lat, base.lon),
                     waypoints: wps,
+                    routeGeometry: bundle.tour.routeGeometry == null
+                        ? null
+                        : [
+                            for (final c in bundle.tour.routeGeometry!)
+                              LatLng(c.lat, c.lon),
+                          ],
                     height: 160,
                     onTap: () {
                       ref.read(mapPendingFocusProvider.notifier).state = null;

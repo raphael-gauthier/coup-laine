@@ -12,7 +12,9 @@ import '../../core/design_tokens.dart';
 import '../../core/format_minutes.dart';
 import '../../data/repositories/tour_repository.dart';
 import '../../domain/models/client.dart';
+import '../../domain/models/coordinates.dart';
 import '../../domain/models/tour_stop_prestation.dart';
+import '../../infra/services/ors_routing_service.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
@@ -184,6 +186,27 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         feeShareCents: bundle.result.feeShareCents[i],
       ));
     }
+
+    // Try to fetch the route geometry from ORS — best-effort. If offline /
+    // quota / error, persist null and the map falls back to straight lines.
+    List<Coordinates>? routeGeometry;
+    final settings = await ref.read(settingsRepositoryProvider).read();
+    if (settings != null && bundle.orderedClients.isNotEmpty) {
+      final waypoints = <Coordinates>[
+        settings.baseCoordinates,
+        for (final c in bundle.orderedClients) c.coordinates,
+        settings.baseCoordinates,
+      ];
+      try {
+        routeGeometry = await ref
+            .read(orsRoutingServiceProvider)
+            .getRouteGeometry(waypoints: waypoints);
+      } on OrsException catch (_) {
+        // Silent fallback — UI will show straight lines.
+        routeGeometry = null;
+      }
+    }
+
     final draft = TourDraft(
       plannedDate: _date,
       startTimeMinutes: _startMinutes,
@@ -191,6 +214,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
       totalDriveSeconds: bundle.result.totalDriveSeconds,
       totalTravelFeeCents: bundle.result.totalFeeCents,
       stops: stops,
+      routeGeometry: routeGeometry,
     );
 
     final repo = ref.read(tourRepositoryProvider);

@@ -33,13 +33,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 12;
+  int get schemaVersion => 13;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
-      if (from < 12) {
+      if (from < 13) {
         // Reset complet — pas d'utilisateurs en prod, pas de migration data.
         for (final table in allTables.toList().reversed) {
           await m.deleteTable(table.actualTableName);

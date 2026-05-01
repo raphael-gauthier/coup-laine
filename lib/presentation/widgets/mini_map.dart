@@ -26,12 +26,18 @@ class MiniMap extends StatefulWidget {
   /// Optional tap callback — lance typiquement une vue plein-écran.
   final VoidCallback? onTap;
 
+  /// Géométrie complète de la route (issue d'ORS). Si non-null, on trace
+  /// cette polyline. Sinon, fallback sur des lignes droites entre `base`
+  /// et `waypoints` (et retour à `base`).
+  final List<LatLng>? routeGeometry;
+
   const MiniMap({
     super.key,
     required this.base,
     required this.waypoints,
     this.height = 160,
     this.onTap,
+    this.routeGeometry,
   });
 
   @override
@@ -129,7 +135,21 @@ class _MiniMapState extends State<MiniMap> {
           ),
           children: [
             osmTileLayer(),
-            if (widget.waypoints.length >= 2)
+            // Route polyline : si `routeGeometry` est fourni, on trace la
+            // vraie route ORS ; sinon fallback sur des segments droits
+            // entre la base et les waypoints (et retour).
+            if (widget.routeGeometry != null &&
+                widget.routeGeometry!.length >= 2)
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: widget.routeGeometry!,
+                    color: theme.colors.primary,
+                    strokeWidth: 3,
+                  ),
+                ],
+              )
+            else if (widget.waypoints.length >= 2)
               PolylineLayer(
                 polylines: [
                   Polyline(

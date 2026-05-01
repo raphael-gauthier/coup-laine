@@ -119,6 +119,11 @@ class ToursTable extends Table {
   TextColumn get notes => text().nullable()();
   IntColumn get completedAt => integer().nullable()();
   IntColumn get createdAt => integer()();
+
+  /// Polyline ORS de la tournée — JSON `[[lat, lon], ...]`. Nullable :
+  /// les tournées créées sans réseau (ou avant cette feature) tombent en
+  /// fallback "lignes droites" côté UI.
+  TextColumn get routeGeometry => text().nullable()();
 }
 
 @DataClassName('TourStopRow')

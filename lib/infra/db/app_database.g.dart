@@ -2519,6 +2519,12 @@ class $ToursTableTable extends ToursTable
   late final GeneratedColumn<int> createdAt = GeneratedColumn<int>(
       'created_at', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _routeGeometryMeta =
+      const VerificationMeta('routeGeometry');
+  @override
+  late final GeneratedColumn<String> routeGeometry = GeneratedColumn<String>(
+      'route_geometry', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -2530,7 +2536,8 @@ class $ToursTableTable extends ToursTable
         totalTravelFeeCents,
         notes,
         completedAt,
-        createdAt
+        createdAt,
+        routeGeometry
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2607,6 +2614,12 @@ class $ToursTableTable extends ToursTable
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('route_geometry')) {
+      context.handle(
+          _routeGeometryMeta,
+          routeGeometry.isAcceptableOrUnknown(
+              data['route_geometry']!, _routeGeometryMeta));
+    }
     return context;
   }
 
@@ -2636,6 +2649,8 @@ class $ToursTableTable extends ToursTable
           .read(DriftSqlType.int, data['${effectivePrefix}completed_at']),
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}created_at'])!,
+      routeGeometry: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}route_geometry']),
     );
   }
 
@@ -2656,6 +2671,11 @@ class TourRow extends DataClass implements Insertable<TourRow> {
   final String? notes;
   final int? completedAt;
   final int createdAt;
+
+  /// Polyline ORS de la tournée — JSON `[[lat, lon], ...]`. Nullable :
+  /// les tournées créées sans réseau (ou avant cette feature) tombent en
+  /// fallback "lignes droites" côté UI.
+  final String? routeGeometry;
   const TourRow(
       {required this.id,
       required this.plannedDate,
@@ -2666,7 +2686,8 @@ class TourRow extends DataClass implements Insertable<TourRow> {
       required this.totalTravelFeeCents,
       this.notes,
       this.completedAt,
-      required this.createdAt});
+      required this.createdAt,
+      this.routeGeometry});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -2684,6 +2705,9 @@ class TourRow extends DataClass implements Insertable<TourRow> {
       map['completed_at'] = Variable<int>(completedAt);
     }
     map['created_at'] = Variable<int>(createdAt);
+    if (!nullToAbsent || routeGeometry != null) {
+      map['route_geometry'] = Variable<String>(routeGeometry);
+    }
     return map;
   }
 
@@ -2702,6 +2726,9 @@ class TourRow extends DataClass implements Insertable<TourRow> {
           ? const Value.absent()
           : Value(completedAt),
       createdAt: Value(createdAt),
+      routeGeometry: routeGeometry == null && nullToAbsent
+          ? const Value.absent()
+          : Value(routeGeometry),
     );
   }
 
@@ -2721,6 +2748,7 @@ class TourRow extends DataClass implements Insertable<TourRow> {
       notes: serializer.fromJson<String?>(json['notes']),
       completedAt: serializer.fromJson<int?>(json['completedAt']),
       createdAt: serializer.fromJson<int>(json['createdAt']),
+      routeGeometry: serializer.fromJson<String?>(json['routeGeometry']),
     );
   }
   @override
@@ -2737,6 +2765,7 @@ class TourRow extends DataClass implements Insertable<TourRow> {
       'notes': serializer.toJson<String?>(notes),
       'completedAt': serializer.toJson<int?>(completedAt),
       'createdAt': serializer.toJson<int>(createdAt),
+      'routeGeometry': serializer.toJson<String?>(routeGeometry),
     };
   }
 
@@ -2750,7 +2779,8 @@ class TourRow extends DataClass implements Insertable<TourRow> {
           int? totalTravelFeeCents,
           Value<String?> notes = const Value.absent(),
           Value<int?> completedAt = const Value.absent(),
-          int? createdAt}) =>
+          int? createdAt,
+          Value<String?> routeGeometry = const Value.absent()}) =>
       TourRow(
         id: id ?? this.id,
         plannedDate: plannedDate ?? this.plannedDate,
@@ -2762,6 +2792,8 @@ class TourRow extends DataClass implements Insertable<TourRow> {
         notes: notes.present ? notes.value : this.notes,
         completedAt: completedAt.present ? completedAt.value : this.completedAt,
         createdAt: createdAt ?? this.createdAt,
+        routeGeometry:
+            routeGeometry.present ? routeGeometry.value : this.routeGeometry,
       );
   TourRow copyWithCompanion(ToursTableCompanion data) {
     return TourRow(
@@ -2785,6 +2817,9 @@ class TourRow extends DataClass implements Insertable<TourRow> {
       completedAt:
           data.completedAt.present ? data.completedAt.value : this.completedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      routeGeometry: data.routeGeometry.present
+          ? data.routeGeometry.value
+          : this.routeGeometry,
     );
   }
 
@@ -2800,7 +2835,8 @@ class TourRow extends DataClass implements Insertable<TourRow> {
           ..write('totalTravelFeeCents: $totalTravelFeeCents, ')
           ..write('notes: $notes, ')
           ..write('completedAt: $completedAt, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('routeGeometry: $routeGeometry')
           ..write(')'))
         .toString();
   }
@@ -2816,7 +2852,8 @@ class TourRow extends DataClass implements Insertable<TourRow> {
       totalTravelFeeCents,
       notes,
       completedAt,
-      createdAt);
+      createdAt,
+      routeGeometry);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2830,7 +2867,8 @@ class TourRow extends DataClass implements Insertable<TourRow> {
           other.totalTravelFeeCents == this.totalTravelFeeCents &&
           other.notes == this.notes &&
           other.completedAt == this.completedAt &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.routeGeometry == this.routeGeometry);
 }
 
 class ToursTableCompanion extends UpdateCompanion<TourRow> {
@@ -2844,6 +2882,7 @@ class ToursTableCompanion extends UpdateCompanion<TourRow> {
   final Value<String?> notes;
   final Value<int?> completedAt;
   final Value<int> createdAt;
+  final Value<String?> routeGeometry;
   const ToursTableCompanion({
     this.id = const Value.absent(),
     this.plannedDate = const Value.absent(),
@@ -2855,6 +2894,7 @@ class ToursTableCompanion extends UpdateCompanion<TourRow> {
     this.notes = const Value.absent(),
     this.completedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.routeGeometry = const Value.absent(),
   });
   ToursTableCompanion.insert({
     this.id = const Value.absent(),
@@ -2867,6 +2907,7 @@ class ToursTableCompanion extends UpdateCompanion<TourRow> {
     this.notes = const Value.absent(),
     this.completedAt = const Value.absent(),
     required int createdAt,
+    this.routeGeometry = const Value.absent(),
   })  : plannedDate = Value(plannedDate),
         startTimeMinutes = Value(startTimeMinutes),
         status = Value(status),
@@ -2885,6 +2926,7 @@ class ToursTableCompanion extends UpdateCompanion<TourRow> {
     Expression<String>? notes,
     Expression<int>? completedAt,
     Expression<int>? createdAt,
+    Expression<String>? routeGeometry,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2899,6 +2941,7 @@ class ToursTableCompanion extends UpdateCompanion<TourRow> {
       if (notes != null) 'notes': notes,
       if (completedAt != null) 'completed_at': completedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (routeGeometry != null) 'route_geometry': routeGeometry,
     });
   }
 
@@ -2912,7 +2955,8 @@ class ToursTableCompanion extends UpdateCompanion<TourRow> {
       Value<int>? totalTravelFeeCents,
       Value<String?>? notes,
       Value<int?>? completedAt,
-      Value<int>? createdAt}) {
+      Value<int>? createdAt,
+      Value<String?>? routeGeometry}) {
     return ToursTableCompanion(
       id: id ?? this.id,
       plannedDate: plannedDate ?? this.plannedDate,
@@ -2924,6 +2968,7 @@ class ToursTableCompanion extends UpdateCompanion<TourRow> {
       notes: notes ?? this.notes,
       completedAt: completedAt ?? this.completedAt,
       createdAt: createdAt ?? this.createdAt,
+      routeGeometry: routeGeometry ?? this.routeGeometry,
     );
   }
 
@@ -2960,6 +3005,9 @@ class ToursTableCompanion extends UpdateCompanion<TourRow> {
     if (createdAt.present) {
       map['created_at'] = Variable<int>(createdAt.value);
     }
+    if (routeGeometry.present) {
+      map['route_geometry'] = Variable<String>(routeGeometry.value);
+    }
     return map;
   }
 
@@ -2975,7 +3023,8 @@ class ToursTableCompanion extends UpdateCompanion<TourRow> {
           ..write('totalTravelFeeCents: $totalTravelFeeCents, ')
           ..write('notes: $notes, ')
           ..write('completedAt: $completedAt, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('routeGeometry: $routeGeometry')
           ..write(')'))
         .toString();
   }
@@ -6100,6 +6149,7 @@ typedef $$ToursTableTableCreateCompanionBuilder = ToursTableCompanion Function({
   Value<String?> notes,
   Value<int?> completedAt,
   required int createdAt,
+  Value<String?> routeGeometry,
 });
 typedef $$ToursTableTableUpdateCompanionBuilder = ToursTableCompanion Function({
   Value<int> id,
@@ -6112,6 +6162,7 @@ typedef $$ToursTableTableUpdateCompanionBuilder = ToursTableCompanion Function({
   Value<String?> notes,
   Value<int?> completedAt,
   Value<int> createdAt,
+  Value<String?> routeGeometry,
 });
 
 final class $$ToursTableTableReferences
@@ -6177,6 +6228,9 @@ class $$ToursTableTableFilterComposer
   ColumnFilters<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<String> get routeGeometry => $composableBuilder(
+      column: $table.routeGeometry, builder: (column) => ColumnFilters(column));
+
   Expression<bool> tourStopsTableRefs(
       Expression<bool> Function($$TourStopsTableTableFilterComposer f) f) {
     final $$TourStopsTableTableFilterComposer composer = $composerBuilder(
@@ -6241,6 +6295,10 @@ class $$ToursTableTableOrderingComposer
 
   ColumnOrderings<int> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get routeGeometry => $composableBuilder(
+      column: $table.routeGeometry,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$ToursTableTableAnnotationComposer
@@ -6281,6 +6339,9 @@ class $$ToursTableTableAnnotationComposer
 
   GeneratedColumn<int> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get routeGeometry => $composableBuilder(
+      column: $table.routeGeometry, builder: (column) => column);
 
   Expression<T> tourStopsTableRefs<T extends Object>(
       Expression<T> Function($$TourStopsTableTableAnnotationComposer a) f) {
@@ -6337,6 +6398,7 @@ class $$ToursTableTableTableManager extends RootTableManager<
             Value<String?> notes = const Value.absent(),
             Value<int?> completedAt = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
+            Value<String?> routeGeometry = const Value.absent(),
           }) =>
               ToursTableCompanion(
             id: id,
@@ -6349,6 +6411,7 @@ class $$ToursTableTableTableManager extends RootTableManager<
             notes: notes,
             completedAt: completedAt,
             createdAt: createdAt,
+            routeGeometry: routeGeometry,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -6361,6 +6424,7 @@ class $$ToursTableTableTableManager extends RootTableManager<
             Value<String?> notes = const Value.absent(),
             Value<int?> completedAt = const Value.absent(),
             required int createdAt,
+            Value<String?> routeGeometry = const Value.absent(),
           }) =>
               ToursTableCompanion.insert(
             id: id,
@@ -6373,6 +6437,7 @@ class $$ToursTableTableTableManager extends RootTableManager<
             notes: notes,
             completedAt: completedAt,
             createdAt: createdAt,
+            routeGeometry: routeGeometry,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (
