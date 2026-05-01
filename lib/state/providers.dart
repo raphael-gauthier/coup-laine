@@ -47,6 +47,10 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
   return SettingsRepository(ref.watch(appDatabaseProvider));
 });
 
+final settingsRepositoryFutureProvider = FutureProvider.autoDispose((ref) {
+  return ref.watch(settingsRepositoryProvider).read();
+});
+
 final manualHistoryRepositoryProvider =
     Provider<ManualHistoryRepository>((ref) {
   return ManualHistoryRepository(ref.watch(appDatabaseProvider));
