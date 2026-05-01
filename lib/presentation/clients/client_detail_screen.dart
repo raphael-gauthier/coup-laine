@@ -24,10 +24,8 @@ import '../widgets/app_action_bar.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_header.dart';
 import '../widgets/app_kpi_row.dart';
-import '../widgets/app_list_tile.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
-import '../widgets/app_stat.dart';
 import 'clients_list_screen.dart' show clientsAsyncProvider, clientsPendingProvider;
 
 final _clientByIdProvider =
@@ -612,10 +610,11 @@ class _InterventionsCard extends ConsumerWidget {
   }
 }
 
-/// Tile riche pour une intervention dans la card historique de la fiche
-/// client : badge date à gauche (jour bold + mois muted), titre, breakdown
-/// italique, metadata (revenu + durée), chevron à droite.
-class _InterventionTile extends StatelessWidget {
+/// Tile pour une intervention dans la card historique de la fiche client.
+/// Layout 2 colonnes :
+/// - Gauche  : icône kind + breakdown (bold) + date avec année (muted italic)
+/// - Droite  : revenu (bold accent) + durée (muted) en tabular
+class _InterventionTile extends StatefulWidget {
   final Intervention intervention;
   final VoidCallback onTap;
 
@@ -624,15 +623,22 @@ class _InterventionTile extends StatelessWidget {
     required this.onTap,
   });
 
+  @override
+  State<_InterventionTile> createState() => _InterventionTileState();
+}
+
+class _InterventionTileState extends State<_InterventionTile> {
+  bool _pressed = false;
+
   String _breakdown(AppLocalizations l) {
     final parts = <String>[];
-    for (final p in intervention.prestations) {
+    for (final p in widget.intervention.prestations) {
       parts.add('${p.qty} ${p.nameSnapshot}');
       if (parts.length >= 3) break;
     }
-    if (intervention.prestations.length > 3) {
+    if (widget.intervention.prestations.length > 3) {
       parts.add(l.clientHistoryAndOthersFmt(
-          intervention.prestations.length - 3));
+          widget.intervention.prestations.length - 3));
     }
     return parts.join(' · ');
   }
@@ -641,74 +647,121 @@ class _InterventionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = context.theme;
-    final it = intervention;
+    final it = widget.intervention;
     final breakdown = _breakdown(l);
+    final dateStr = DateFormat('EEE d MMM yyyy', 'fr').format(it.date);
+    final mainTitle = breakdown.isEmpty
+        ? (it.kind == InterventionKind.tour
+            ? l.clientHistoryKindTour
+            : l.clientHistoryKindManual)
+        : breakdown;
 
-    final dateBadge = Container(
-      width: 48,
-      height: 48,
+    final kindIcon = Container(
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         color: theme.colors.muted,
-        borderRadius: BorderRadius.circular(AppBorderRadius.sm),
+        shape: BoxShape.circle,
       ),
       alignment: Alignment.center,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            DateFormat('d', 'fr').format(it.date),
-            style: theme.typography.lg.copyWith(
-              color: theme.colors.foreground,
-              fontWeight: FontWeight.w700,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            DateFormat('MMM', 'fr').format(it.date).toUpperCase(),
-            style: theme.typography.xs.copyWith(
-              color: theme.colors.mutedForeground,
-              height: 1.1,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ],
+      child: Icon(
+        it.kind == InterventionKind.manual
+            ? FIcons.pencil
+            : FIcons.scissors,
+        size: 14,
+        color: theme.colors.foreground,
       ),
     );
 
-    final title = it.kind == InterventionKind.tour
-        ? l.clientHistoryKindTour
-        : l.clientHistoryKindManual;
-
-    final metaChildren = <Widget>[];
-    if (it.totalRevenueCents > 0) {
-      metaChildren.add(AppStat(
-        icon: FIcons.banknote,
-        value: formatEuros(it.totalRevenueCents),
-      ));
-    }
-    if (it.totalMinutes > 0) {
-      metaChildren.add(AppStat(
-        icon: FIcons.clock,
-        value: formatDuration(it.totalMinutes),
-      ));
-    }
-
-    return AppListTile(
-      variant: AppListTileVariant.rich,
-      prefix: dateBadge,
-      title: title,
-      subtitle: breakdown.isEmpty ? null : breakdown,
-      metadata: metaChildren.isEmpty
-          ? null
-          : Wrap(
-              spacing: AppSpacing.md,
-              runSpacing: AppSpacing.xxs,
-              children: metaChildren,
+    Widget rightCol = const SizedBox.shrink();
+    if (it.totalRevenueCents > 0 || it.totalMinutes > 0) {
+      rightCol = Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (it.totalRevenueCents > 0)
+            Text(
+              formatEuros(it.totalRevenueCents),
+              style: tabularStyle(theme.typography.lg).copyWith(
+                color: theme.colors.secondary,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-      suffix: Icon(FIcons.chevronRight,
-          color: theme.colors.mutedForeground, size: 16),
-      onTap: onTap,
+          if (it.totalMinutes > 0) ...[
+            const SizedBox(height: 2),
+            Text(
+              formatDuration(it.totalMinutes),
+              style: tabularStyle(theme.typography.sm).copyWith(
+                color: theme.colors.mutedForeground,
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _pressed ? 0.98 : 1.0,
+        duration: const Duration(milliseconds: 80),
+        curve: Curves.easeOut,
+        child: AnimatedOpacity(
+          opacity: _pressed ? 0.95 : 1.0,
+          duration: const Duration(milliseconds: 80),
+          child: Container(
+            padding: AppSizes.listTilePadding,
+            decoration: BoxDecoration(
+              color: theme.colors.card,
+              borderRadius: BorderRadius.circular(AppBorderRadius.md),
+              border: Border.all(
+                color: theme.colors.border,
+                width: AppSizes.hairlineBorder,
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                kindIcon,
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        mainTitle,
+                        style: theme.typography.lg.copyWith(
+                          color: theme.colors.foreground,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        dateStr,
+                        style: theme.typography.sm.copyWith(
+                          color: theme.colors.mutedForeground,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                rightCol,
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
