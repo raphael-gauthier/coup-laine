@@ -437,7 +437,7 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                     bundle.result.revenueCentsPerStop[i];
                 return Padding(
                   key: ValueKey(c.id),
-                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xxs),
                   child: FTile(
                     onPress: () => _openPicker(context, c, stopPres),
                     prefix: Container(
