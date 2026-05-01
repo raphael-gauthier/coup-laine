@@ -144,8 +144,8 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
           style: style,
           animation: animation,
           body: const Text(
-            "L'adresse de base a changé. Recalculer toutes les distances "
-            'depuis la nouvelle base ?',
+            "L'adresse de départ a changé. Recalculer toutes les distances "
+            'depuis le nouveau point de départ ?',
           ),
           actions: [
             FButton(

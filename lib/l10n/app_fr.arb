@@ -13,7 +13,7 @@
   "settingsThemeSystem": "Système",
   "settingsThemeLight": "Clair",
   "settingsThemeDark": "Sombre",
-  "settingsBaseAddressTitle": "Adresse de base",
+  "settingsBaseAddressTitle": "Adresse de départ",
   "settingsBaseAddressEdit": "Modifier l'adresse",
   "settingsDefaultsTitle": "Valeurs par défaut",
   "settingsRadiusLabel": "Rayon par défaut (km)",
