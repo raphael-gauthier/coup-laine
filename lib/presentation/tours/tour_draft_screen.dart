@@ -15,7 +15,7 @@ import '../../domain/models/tour_stop_prestation.dart';
 import '../../state/proximity_controller.dart';
 import '../../state/providers.dart';
 import '../../state/tour_draft_controller.dart';
-import '../widgets/app_hero_card.dart';
+import '../widgets/app_kpi_row.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import '../widgets/waiting_clients_multi_picker.dart';
@@ -436,28 +436,35 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                   ),
                 ),
               ),
-              // Summary footer
+              // Summary footer (KpiRow)
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                     AppSpacing.md, AppSpacing.sm, AppSpacing.md, 0),
-                child: AppHeroCard(
-                  bigNumber:
-                      (bundle.result.totalDistanceMeters / 1000).toStringAsFixed(0),
-                  label: 'km au total',
-                  subtitle:
-                      '${formatDuration(bundle.result.totalDriveSeconds ~/ 60)} de trajet · Fin ${formatHm(bundle.result.endTimeMinutes)}',
+                child: AppKpiRow(
+                  cells: [
+                    AppKpiCell(
+                      value: (bundle.result.totalDistanceMeters / 1000)
+                          .toStringAsFixed(0),
+                      label: 'km',
+                    ),
+                    AppKpiCell(
+                      value: formatDuration(
+                          bundle.result.totalDriveSeconds ~/ 60),
+                      label: 'durée',
+                    ),
+                    if (bundle.result.totalRevenueCents > 0)
+                      AppKpiCell(
+                        value: formatEuros(bundle.result.totalRevenueCents),
+                        label: 'revenu',
+                        valueColor: theme.colors.secondary,
+                      ),
+                    AppKpiCell(
+                      value: formatHm(bundle.result.endTimeMinutes),
+                      label: 'fin',
+                    ),
+                  ],
                 ),
               ),
-              if (bundle.result.totalRevenueCents > 0)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
-                  child: Text(
-                    l.tourDraftSummaryRevenue(
-                        formatEuros(bundle.result.totalRevenueCents)),
-                    style: theme.typography.sm,
-                  ),
-                ),
               // Action row
               SafeArea(
                 child: Padding(
