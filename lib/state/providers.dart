@@ -27,6 +27,7 @@ import '../domain/use_cases/client_status.dart';
 import '../domain/use_cases/find_clients_near_anchors.dart';
 import '../domain/use_cases/find_communes_with_waiting.dart';
 import '../infra/cloud/auth_service.dart';
+import '../infra/cloud/backup_scheduler.dart';
 import '../infra/cloud/backup_service.dart';
 import '../infra/cloud/backups_repository.dart';
 import '../infra/db/app_database.dart';
@@ -417,4 +418,15 @@ final backupServiceProvider = Provider<BackupService>((ref) {
     exporter: ref.watch(jsonExportServiceProvider),
     settings: ref.watch(settingsRepositoryProvider),
   );
+});
+
+final backupSchedulerProvider = Provider<BackupScheduler>((ref) {
+  final scheduler = BackupScheduler(
+    ref.watch(backupServiceProvider),
+    ref.watch(settingsRepositoryProvider),
+    ref,
+  );
+  scheduler.start();
+  ref.onDispose(scheduler.stop);
+  return scheduler;
 });

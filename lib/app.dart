@@ -12,6 +12,8 @@ class CoupeLaineApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Démarrer le scheduler (effet de bord : s'abonne au lifecycle).
+    ref.watch(backupSchedulerProvider);
     final router = ref.watch(goRouterProvider);
     final modeAsync = ref.watch(themeModeProvider);
     final mode = modeAsync.value ?? ThemeMode.system;
