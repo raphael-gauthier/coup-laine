@@ -2,6 +2,7 @@ import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/config/env.dart';
 import '../core/routing/app_router.dart';
@@ -26,6 +27,7 @@ import '../domain/use_cases/build_optimized_tour_proposal.dart';
 import '../domain/use_cases/client_status.dart';
 import '../domain/use_cases/find_clients_near_anchors.dart';
 import '../domain/use_cases/find_communes_with_waiting.dart';
+import '../infra/cloud/auth_service.dart';
 import '../infra/db/app_database.dart';
 import '../infra/services/ban_geocoding_service.dart';
 import '../infra/services/json_export_service.dart';
@@ -376,4 +378,33 @@ final optimizedProposalProvider = FutureProvider.autoDispose
     matrix: entries,
     settings: settings,
   );
+});
+
+final supabaseClientProvider = Provider<SupabaseClient>((ref) {
+  return Supabase.instance.client;
+});
+
+final authServiceProvider = Provider<AuthService>((ref) {
+  return AuthService(ref.watch(supabaseClientProvider));
+});
+
+/// Stream de l'état d'auth Supabase. Émet à chaque sign-in/sign-out
+/// et à chaque refresh JWT.
+final authStateChangesProvider = StreamProvider<AuthState>((ref) {
+  return ref.watch(authServiceProvider).authStateChanges;
+});
+
+/// Session courante (anon ou email). Null pendant l'init de Supabase.
+final currentSessionProvider = Provider<Session?>((ref) {
+  // Réagit au stream pour rebuild quand l'état change.
+  ref.watch(authStateChangesProvider);
+  return ref.watch(authServiceProvider).currentSession;
+});
+
+/// `true` ssi une session non-anonyme est active. Pilote l'affichage
+/// des fonctionnalités cloud (bouton « Sauvegarder maintenant », liste
+/// des backups, etc.).
+final isCloudOptedInProvider = Provider<bool>((ref) {
+  ref.watch(authStateChangesProvider);
+  return ref.watch(authServiceProvider).isCloudOptedIn;
 });
