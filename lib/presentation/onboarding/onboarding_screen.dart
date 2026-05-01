@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/avatar_icons.dart';
 import '../../core/design_tokens.dart';
 import '../../data/seeds/species_seeds.dart';
 import '../../domain/models/settings.dart';
@@ -15,7 +14,6 @@ import '../../state/providers.dart';
 import '../widgets/address_autocomplete_field.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
-import '../widgets/avatar_picker.dart';
 import 'custom_species_form_sheet.dart';
 
 class _CustomSpeciesDraft {
@@ -39,7 +37,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   GeocodingResult? _picked;
   final Set<int> _seedSpeciesActive = {};
   final List<_CustomSpeciesDraft> _customSpecies = [];
-  String _avatarKey = kDefaultAvatarKey;
   bool _saving = false;
 
   bool get _step1Ready => _picked != null;
@@ -74,7 +71,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           baseCoordinates: picked.coordinates,
           baseAddressLabel: picked.label,
           seasonStartedAt: DateTime.now(),
-          appAvatarKey: _avatarKey,
         ));
       });
       if (!mounted) return;
@@ -252,29 +248,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           onPress: _openCustomSpeciesSheet,
                           child: Text(l.onboardingAddCustomSpecies),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-
-                // Avatar card.
-                AppSectionCard(
-                  icon: FIcons.image,
-                  title: l.onboardingAvatarTitle,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        l.onboardingAvatarSubtitle,
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      AvatarPicker(
-                        selectedKey: _avatarKey,
-                        onSelect: (k) => setState(() => _avatarKey = k),
                       ),
                     ],
                   ),

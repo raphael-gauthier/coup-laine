@@ -122,12 +122,6 @@ class $SettingsTableTable extends SettingsTable
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       defaultValue: const Constant(0));
-  static const VerificationMeta _appAvatarKeyMeta =
-      const VerificationMeta('appAvatarKey');
-  @override
-  late final GeneratedColumn<String> appAvatarKey = GeneratedColumn<String>(
-      'app_avatar_key', aliasedName, true,
-      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -144,8 +138,7 @@ class $SettingsTableTable extends SettingsTable
         markerDoneColor,
         markerNoAnimalsColor,
         markerBannedColor,
-        seasonStartedAt,
-        appAvatarKey
+        seasonStartedAt
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -243,12 +236,6 @@ class $SettingsTableTable extends SettingsTable
           seasonStartedAt.isAcceptableOrUnknown(
               data['season_started_at']!, _seasonStartedAtMeta));
     }
-    if (data.containsKey('app_avatar_key')) {
-      context.handle(
-          _appAvatarKeyMeta,
-          appAvatarKey.isAcceptableOrUnknown(
-              data['app_avatar_key']!, _appAvatarKeyMeta));
-    }
     return context;
   }
 
@@ -291,8 +278,6 @@ class $SettingsTableTable extends SettingsTable
           DriftSqlType.string, data['${effectivePrefix}marker_banned_color'])!,
       seasonStartedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}season_started_at'])!,
-      appAvatarKey: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}app_avatar_key']),
     );
   }
 
@@ -318,7 +303,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
   final String markerNoAnimalsColor;
   final String markerBannedColor;
   final int seasonStartedAt;
-  final String? appAvatarKey;
   const SettingsRow(
       {required this.id,
       required this.baseAddressLabel,
@@ -334,8 +318,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       required this.markerDoneColor,
       required this.markerNoAnimalsColor,
       required this.markerBannedColor,
-      required this.seasonStartedAt,
-      this.appAvatarKey});
+      required this.seasonStartedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -355,9 +338,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
     map['marker_no_animals_color'] = Variable<String>(markerNoAnimalsColor);
     map['marker_banned_color'] = Variable<String>(markerBannedColor);
     map['season_started_at'] = Variable<int>(seasonStartedAt);
-    if (!nullToAbsent || appAvatarKey != null) {
-      map['app_avatar_key'] = Variable<String>(appAvatarKey);
-    }
     return map;
   }
 
@@ -378,9 +358,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       markerNoAnimalsColor: Value(markerNoAnimalsColor),
       markerBannedColor: Value(markerBannedColor),
       seasonStartedAt: Value(seasonStartedAt),
-      appAvatarKey: appAvatarKey == null && nullToAbsent
-          ? const Value.absent()
-          : Value(appAvatarKey),
     );
   }
 
@@ -408,7 +385,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           serializer.fromJson<String>(json['markerNoAnimalsColor']),
       markerBannedColor: serializer.fromJson<String>(json['markerBannedColor']),
       seasonStartedAt: serializer.fromJson<int>(json['seasonStartedAt']),
-      appAvatarKey: serializer.fromJson<String?>(json['appAvatarKey']),
     );
   }
   @override
@@ -431,7 +407,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       'markerNoAnimalsColor': serializer.toJson<String>(markerNoAnimalsColor),
       'markerBannedColor': serializer.toJson<String>(markerBannedColor),
       'seasonStartedAt': serializer.toJson<int>(seasonStartedAt),
-      'appAvatarKey': serializer.toJson<String?>(appAvatarKey),
     };
   }
 
@@ -450,8 +425,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           String? markerDoneColor,
           String? markerNoAnimalsColor,
           String? markerBannedColor,
-          int? seasonStartedAt,
-          Value<String?> appAvatarKey = const Value.absent()}) =>
+          int? seasonStartedAt}) =>
       SettingsRow(
         id: id ?? this.id,
         baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -469,8 +443,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
         markerNoAnimalsColor: markerNoAnimalsColor ?? this.markerNoAnimalsColor,
         markerBannedColor: markerBannedColor ?? this.markerBannedColor,
         seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
-        appAvatarKey:
-            appAvatarKey.present ? appAvatarKey.value : this.appAvatarKey,
       );
   SettingsRow copyWithCompanion(SettingsTableCompanion data) {
     return SettingsRow(
@@ -509,9 +481,6 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       seasonStartedAt: data.seasonStartedAt.present
           ? data.seasonStartedAt.value
           : this.seasonStartedAt,
-      appAvatarKey: data.appAvatarKey.present
-          ? data.appAvatarKey.value
-          : this.appAvatarKey,
     );
   }
 
@@ -532,8 +501,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           ..write('markerDoneColor: $markerDoneColor, ')
           ..write('markerNoAnimalsColor: $markerNoAnimalsColor, ')
           ..write('markerBannedColor: $markerBannedColor, ')
-          ..write('seasonStartedAt: $seasonStartedAt, ')
-          ..write('appAvatarKey: $appAvatarKey')
+          ..write('seasonStartedAt: $seasonStartedAt')
           ..write(')'))
         .toString();
   }
@@ -554,8 +522,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
       markerDoneColor,
       markerNoAnimalsColor,
       markerBannedColor,
-      seasonStartedAt,
-      appAvatarKey);
+      seasonStartedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -574,8 +541,7 @@ class SettingsRow extends DataClass implements Insertable<SettingsRow> {
           other.markerDoneColor == this.markerDoneColor &&
           other.markerNoAnimalsColor == this.markerNoAnimalsColor &&
           other.markerBannedColor == this.markerBannedColor &&
-          other.seasonStartedAt == this.seasonStartedAt &&
-          other.appAvatarKey == this.appAvatarKey);
+          other.seasonStartedAt == this.seasonStartedAt);
 }
 
 class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
@@ -594,7 +560,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
   final Value<String> markerNoAnimalsColor;
   final Value<String> markerBannedColor;
   final Value<int> seasonStartedAt;
-  final Value<String?> appAvatarKey;
   const SettingsTableCompanion({
     this.id = const Value.absent(),
     this.baseAddressLabel = const Value.absent(),
@@ -611,7 +576,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.markerNoAnimalsColor = const Value.absent(),
     this.markerBannedColor = const Value.absent(),
     this.seasonStartedAt = const Value.absent(),
-    this.appAvatarKey = const Value.absent(),
   });
   SettingsTableCompanion.insert({
     this.id = const Value.absent(),
@@ -629,7 +593,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     this.markerNoAnimalsColor = const Value.absent(),
     this.markerBannedColor = const Value.absent(),
     this.seasonStartedAt = const Value.absent(),
-    this.appAvatarKey = const Value.absent(),
   })  : baseAddressLabel = Value(baseAddressLabel),
         baseLat = Value(baseLat),
         baseLon = Value(baseLon);
@@ -649,7 +612,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     Expression<String>? markerNoAnimalsColor,
     Expression<String>? markerBannedColor,
     Expression<int>? seasonStartedAt,
-    Expression<String>? appAvatarKey,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -672,7 +634,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
         'marker_no_animals_color': markerNoAnimalsColor,
       if (markerBannedColor != null) 'marker_banned_color': markerBannedColor,
       if (seasonStartedAt != null) 'season_started_at': seasonStartedAt,
-      if (appAvatarKey != null) 'app_avatar_key': appAvatarKey,
     });
   }
 
@@ -691,8 +652,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       Value<String>? markerDoneColor,
       Value<String>? markerNoAnimalsColor,
       Value<String>? markerBannedColor,
-      Value<int>? seasonStartedAt,
-      Value<String?>? appAvatarKey}) {
+      Value<int>? seasonStartedAt}) {
     return SettingsTableCompanion(
       id: id ?? this.id,
       baseAddressLabel: baseAddressLabel ?? this.baseAddressLabel,
@@ -710,7 +670,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
       markerNoAnimalsColor: markerNoAnimalsColor ?? this.markerNoAnimalsColor,
       markerBannedColor: markerBannedColor ?? this.markerBannedColor,
       seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
-      appAvatarKey: appAvatarKey ?? this.appAvatarKey,
     );
   }
 
@@ -765,9 +724,6 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
     if (seasonStartedAt.present) {
       map['season_started_at'] = Variable<int>(seasonStartedAt.value);
     }
-    if (appAvatarKey.present) {
-      map['app_avatar_key'] = Variable<String>(appAvatarKey.value);
-    }
     return map;
   }
 
@@ -788,8 +744,7 @@ class SettingsTableCompanion extends UpdateCompanion<SettingsRow> {
           ..write('markerDoneColor: $markerDoneColor, ')
           ..write('markerNoAnimalsColor: $markerNoAnimalsColor, ')
           ..write('markerBannedColor: $markerBannedColor, ')
-          ..write('seasonStartedAt: $seasonStartedAt, ')
-          ..write('appAvatarKey: $appAvatarKey')
+          ..write('seasonStartedAt: $seasonStartedAt')
           ..write(')'))
         .toString();
   }
@@ -873,11 +828,11 @@ class $ClientsTableTable extends ClientsTable
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_waiting" IN (0, 1))'),
       defaultValue: const Constant(false));
-  static const VerificationMeta _lastShearingDateMeta =
-      const VerificationMeta('lastShearingDate');
+  static const VerificationMeta _lastInterventionDateMeta =
+      const VerificationMeta('lastInterventionDate');
   @override
-  late final GeneratedColumn<int> lastShearingDate = GeneratedColumn<int>(
-      'last_shearing_date', aliasedName, true,
+  late final GeneratedColumn<int> lastInterventionDate = GeneratedColumn<int>(
+      'last_intervention_date', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _needsDistanceRecomputeMeta =
       const VerificationMeta('needsDistanceRecompute');
@@ -924,7 +879,7 @@ class $ClientsTableTable extends ClientsTable
         animals,
         markerColorHex,
         isWaiting,
-        lastShearingDate,
+        lastInterventionDate,
         needsDistanceRecompute,
         isBanned,
         createdAt,
@@ -991,11 +946,11 @@ class $ClientsTableTable extends ClientsTable
       context.handle(_isWaitingMeta,
           isWaiting.isAcceptableOrUnknown(data['is_waiting']!, _isWaitingMeta));
     }
-    if (data.containsKey('last_shearing_date')) {
+    if (data.containsKey('last_intervention_date')) {
       context.handle(
-          _lastShearingDateMeta,
-          lastShearingDate.isAcceptableOrUnknown(
-              data['last_shearing_date']!, _lastShearingDateMeta));
+          _lastInterventionDateMeta,
+          lastInterventionDate.isAcceptableOrUnknown(
+              data['last_intervention_date']!, _lastInterventionDateMeta));
     }
     if (data.containsKey('needs_distance_recompute')) {
       context.handle(
@@ -1052,8 +1007,8 @@ class $ClientsTableTable extends ClientsTable
           DriftSqlType.string, data['${effectivePrefix}marker_color_hex']),
       isWaiting: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_waiting'])!,
-      lastShearingDate: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}last_shearing_date']),
+      lastInterventionDate: attachedDatabase.typeMapping.read(
+          DriftSqlType.int, data['${effectivePrefix}last_intervention_date']),
       needsDistanceRecompute: attachedDatabase.typeMapping.read(
           DriftSqlType.bool,
           data['${effectivePrefix}needs_distance_recompute'])!,
@@ -1089,7 +1044,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
   final List<AnimalCount> animals;
   final String? markerColorHex;
   final bool isWaiting;
-  final int? lastShearingDate;
+  final int? lastInterventionDate;
   final bool needsDistanceRecompute;
   final bool isBanned;
   final int createdAt;
@@ -1106,7 +1061,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       required this.animals,
       this.markerColorHex,
       required this.isWaiting,
-      this.lastShearingDate,
+      this.lastInterventionDate,
       required this.needsDistanceRecompute,
       required this.isBanned,
       required this.createdAt,
@@ -1133,8 +1088,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       map['marker_color_hex'] = Variable<String>(markerColorHex);
     }
     map['is_waiting'] = Variable<bool>(isWaiting);
-    if (!nullToAbsent || lastShearingDate != null) {
-      map['last_shearing_date'] = Variable<int>(lastShearingDate);
+    if (!nullToAbsent || lastInterventionDate != null) {
+      map['last_intervention_date'] = Variable<int>(lastInterventionDate);
     }
     map['needs_distance_recompute'] = Variable<bool>(needsDistanceRecompute);
     map['is_banned'] = Variable<bool>(isBanned);
@@ -1158,9 +1113,9 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           ? const Value.absent()
           : Value(markerColorHex),
       isWaiting: Value(isWaiting),
-      lastShearingDate: lastShearingDate == null && nullToAbsent
+      lastInterventionDate: lastInterventionDate == null && nullToAbsent
           ? const Value.absent()
-          : Value(lastShearingDate),
+          : Value(lastInterventionDate),
       needsDistanceRecompute: Value(needsDistanceRecompute),
       isBanned: Value(isBanned),
       createdAt: Value(createdAt),
@@ -1183,7 +1138,8 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       animals: serializer.fromJson<List<AnimalCount>>(json['animals']),
       markerColorHex: serializer.fromJson<String?>(json['markerColorHex']),
       isWaiting: serializer.fromJson<bool>(json['isWaiting']),
-      lastShearingDate: serializer.fromJson<int?>(json['lastShearingDate']),
+      lastInterventionDate:
+          serializer.fromJson<int?>(json['lastInterventionDate']),
       needsDistanceRecompute:
           serializer.fromJson<bool>(json['needsDistanceRecompute']),
       isBanned: serializer.fromJson<bool>(json['isBanned']),
@@ -1206,7 +1162,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       'animals': serializer.toJson<List<AnimalCount>>(animals),
       'markerColorHex': serializer.toJson<String?>(markerColorHex),
       'isWaiting': serializer.toJson<bool>(isWaiting),
-      'lastShearingDate': serializer.toJson<int?>(lastShearingDate),
+      'lastInterventionDate': serializer.toJson<int?>(lastInterventionDate),
       'needsDistanceRecompute': serializer.toJson<bool>(needsDistanceRecompute),
       'isBanned': serializer.toJson<bool>(isBanned),
       'createdAt': serializer.toJson<int>(createdAt),
@@ -1226,7 +1182,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           List<AnimalCount>? animals,
           Value<String?> markerColorHex = const Value.absent(),
           bool? isWaiting,
-          Value<int?> lastShearingDate = const Value.absent(),
+          Value<int?> lastInterventionDate = const Value.absent(),
           bool? needsDistanceRecompute,
           bool? isBanned,
           int? createdAt,
@@ -1244,9 +1200,9 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
         markerColorHex:
             markerColorHex.present ? markerColorHex.value : this.markerColorHex,
         isWaiting: isWaiting ?? this.isWaiting,
-        lastShearingDate: lastShearingDate.present
-            ? lastShearingDate.value
-            : this.lastShearingDate,
+        lastInterventionDate: lastInterventionDate.present
+            ? lastInterventionDate.value
+            : this.lastInterventionDate,
         needsDistanceRecompute:
             needsDistanceRecompute ?? this.needsDistanceRecompute,
         isBanned: isBanned ?? this.isBanned,
@@ -1270,9 +1226,9 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           ? data.markerColorHex.value
           : this.markerColorHex,
       isWaiting: data.isWaiting.present ? data.isWaiting.value : this.isWaiting,
-      lastShearingDate: data.lastShearingDate.present
-          ? data.lastShearingDate.value
-          : this.lastShearingDate,
+      lastInterventionDate: data.lastInterventionDate.present
+          ? data.lastInterventionDate.value
+          : this.lastInterventionDate,
       needsDistanceRecompute: data.needsDistanceRecompute.present
           ? data.needsDistanceRecompute.value
           : this.needsDistanceRecompute,
@@ -1296,7 +1252,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           ..write('animals: $animals, ')
           ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
-          ..write('lastShearingDate: $lastShearingDate, ')
+          ..write('lastInterventionDate: $lastInterventionDate, ')
           ..write('needsDistanceRecompute: $needsDistanceRecompute, ')
           ..write('isBanned: $isBanned, ')
           ..write('createdAt: $createdAt, ')
@@ -1318,7 +1274,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
       animals,
       markerColorHex,
       isWaiting,
-      lastShearingDate,
+      lastInterventionDate,
       needsDistanceRecompute,
       isBanned,
       createdAt,
@@ -1338,7 +1294,7 @@ class ClientRow extends DataClass implements Insertable<ClientRow> {
           other.animals == this.animals &&
           other.markerColorHex == this.markerColorHex &&
           other.isWaiting == this.isWaiting &&
-          other.lastShearingDate == this.lastShearingDate &&
+          other.lastInterventionDate == this.lastInterventionDate &&
           other.needsDistanceRecompute == this.needsDistanceRecompute &&
           other.isBanned == this.isBanned &&
           other.createdAt == this.createdAt &&
@@ -1357,7 +1313,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
   final Value<List<AnimalCount>> animals;
   final Value<String?> markerColorHex;
   final Value<bool> isWaiting;
-  final Value<int?> lastShearingDate;
+  final Value<int?> lastInterventionDate;
   final Value<bool> needsDistanceRecompute;
   final Value<bool> isBanned;
   final Value<int> createdAt;
@@ -1374,7 +1330,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     this.animals = const Value.absent(),
     this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
-    this.lastShearingDate = const Value.absent(),
+    this.lastInterventionDate = const Value.absent(),
     this.needsDistanceRecompute = const Value.absent(),
     this.isBanned = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -1392,7 +1348,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     this.animals = const Value.absent(),
     this.markerColorHex = const Value.absent(),
     this.isWaiting = const Value.absent(),
-    this.lastShearingDate = const Value.absent(),
+    this.lastInterventionDate = const Value.absent(),
     this.needsDistanceRecompute = const Value.absent(),
     this.isBanned = const Value.absent(),
     required int createdAt,
@@ -1417,7 +1373,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     Expression<String>? animals,
     Expression<String>? markerColorHex,
     Expression<bool>? isWaiting,
-    Expression<int>? lastShearingDate,
+    Expression<int>? lastInterventionDate,
     Expression<bool>? needsDistanceRecompute,
     Expression<bool>? isBanned,
     Expression<int>? createdAt,
@@ -1435,7 +1391,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       if (animals != null) 'animals': animals,
       if (markerColorHex != null) 'marker_color_hex': markerColorHex,
       if (isWaiting != null) 'is_waiting': isWaiting,
-      if (lastShearingDate != null) 'last_shearing_date': lastShearingDate,
+      if (lastInterventionDate != null)
+        'last_intervention_date': lastInterventionDate,
       if (needsDistanceRecompute != null)
         'needs_distance_recompute': needsDistanceRecompute,
       if (isBanned != null) 'is_banned': isBanned,
@@ -1456,7 +1413,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       Value<List<AnimalCount>>? animals,
       Value<String?>? markerColorHex,
       Value<bool>? isWaiting,
-      Value<int?>? lastShearingDate,
+      Value<int?>? lastInterventionDate,
       Value<bool>? needsDistanceRecompute,
       Value<bool>? isBanned,
       Value<int>? createdAt,
@@ -1473,7 +1430,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
       animals: animals ?? this.animals,
       markerColorHex: markerColorHex ?? this.markerColorHex,
       isWaiting: isWaiting ?? this.isWaiting,
-      lastShearingDate: lastShearingDate ?? this.lastShearingDate,
+      lastInterventionDate: lastInterventionDate ?? this.lastInterventionDate,
       needsDistanceRecompute:
           needsDistanceRecompute ?? this.needsDistanceRecompute,
       isBanned: isBanned ?? this.isBanned,
@@ -1520,8 +1477,8 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
     if (isWaiting.present) {
       map['is_waiting'] = Variable<bool>(isWaiting.value);
     }
-    if (lastShearingDate.present) {
-      map['last_shearing_date'] = Variable<int>(lastShearingDate.value);
+    if (lastInterventionDate.present) {
+      map['last_intervention_date'] = Variable<int>(lastInterventionDate.value);
     }
     if (needsDistanceRecompute.present) {
       map['needs_distance_recompute'] =
@@ -1553,7 +1510,7 @@ class ClientsTableCompanion extends UpdateCompanion<ClientRow> {
           ..write('animals: $animals, ')
           ..write('markerColorHex: $markerColorHex, ')
           ..write('isWaiting: $isWaiting, ')
-          ..write('lastShearingDate: $lastShearingDate, ')
+          ..write('lastInterventionDate: $lastInterventionDate, ')
           ..write('needsDistanceRecompute: $needsDistanceRecompute, ')
           ..write('isBanned: $isBanned, ')
           ..write('createdAt: $createdAt, ')
@@ -4194,7 +4151,6 @@ typedef $$SettingsTableTableCreateCompanionBuilder = SettingsTableCompanion
   Value<String> markerNoAnimalsColor,
   Value<String> markerBannedColor,
   Value<int> seasonStartedAt,
-  Value<String?> appAvatarKey,
 });
 typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
     Function({
@@ -4213,7 +4169,6 @@ typedef $$SettingsTableTableUpdateCompanionBuilder = SettingsTableCompanion
   Value<String> markerNoAnimalsColor,
   Value<String> markerBannedColor,
   Value<int> seasonStartedAt,
-  Value<String?> appAvatarKey,
 });
 
 class $$SettingsTableTableFilterComposer
@@ -4279,9 +4234,6 @@ class $$SettingsTableTableFilterComposer
   ColumnFilters<int> get seasonStartedAt => $composableBuilder(
       column: $table.seasonStartedAt,
       builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get appAvatarKey => $composableBuilder(
-      column: $table.appAvatarKey, builder: (column) => ColumnFilters(column));
 }
 
 class $$SettingsTableTableOrderingComposer
@@ -4347,10 +4299,6 @@ class $$SettingsTableTableOrderingComposer
   ColumnOrderings<int> get seasonStartedAt => $composableBuilder(
       column: $table.seasonStartedAt,
       builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get appAvatarKey => $composableBuilder(
-      column: $table.appAvatarKey,
-      builder: (column) => ColumnOrderings(column));
 }
 
 class $$SettingsTableTableAnnotationComposer
@@ -4406,9 +4354,6 @@ class $$SettingsTableTableAnnotationComposer
 
   GeneratedColumn<int> get seasonStartedAt => $composableBuilder(
       column: $table.seasonStartedAt, builder: (column) => column);
-
-  GeneratedColumn<String> get appAvatarKey => $composableBuilder(
-      column: $table.appAvatarKey, builder: (column) => column);
 }
 
 class $$SettingsTableTableTableManager extends RootTableManager<
@@ -4452,7 +4397,6 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> markerNoAnimalsColor = const Value.absent(),
             Value<String> markerBannedColor = const Value.absent(),
             Value<int> seasonStartedAt = const Value.absent(),
-            Value<String?> appAvatarKey = const Value.absent(),
           }) =>
               SettingsTableCompanion(
             id: id,
@@ -4470,7 +4414,6 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             markerNoAnimalsColor: markerNoAnimalsColor,
             markerBannedColor: markerBannedColor,
             seasonStartedAt: seasonStartedAt,
-            appAvatarKey: appAvatarKey,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
@@ -4488,7 +4431,6 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             Value<String> markerNoAnimalsColor = const Value.absent(),
             Value<String> markerBannedColor = const Value.absent(),
             Value<int> seasonStartedAt = const Value.absent(),
-            Value<String?> appAvatarKey = const Value.absent(),
           }) =>
               SettingsTableCompanion.insert(
             id: id,
@@ -4506,7 +4448,6 @@ class $$SettingsTableTableTableManager extends RootTableManager<
             markerNoAnimalsColor: markerNoAnimalsColor,
             markerBannedColor: markerBannedColor,
             seasonStartedAt: seasonStartedAt,
-            appAvatarKey: appAvatarKey,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
@@ -4543,7 +4484,7 @@ typedef $$ClientsTableTableCreateCompanionBuilder = ClientsTableCompanion
   Value<List<AnimalCount>> animals,
   Value<String?> markerColorHex,
   Value<bool> isWaiting,
-  Value<int?> lastShearingDate,
+  Value<int?> lastInterventionDate,
   Value<bool> needsDistanceRecompute,
   Value<bool> isBanned,
   required int createdAt,
@@ -4562,7 +4503,7 @@ typedef $$ClientsTableTableUpdateCompanionBuilder = ClientsTableCompanion
   Value<List<AnimalCount>> animals,
   Value<String?> markerColorHex,
   Value<bool> isWaiting,
-  Value<int?> lastShearingDate,
+  Value<int?> lastInterventionDate,
   Value<bool> needsDistanceRecompute,
   Value<bool> isBanned,
   Value<int> createdAt,
@@ -4655,8 +4596,8 @@ class $$ClientsTableTableFilterComposer
   ColumnFilters<bool> get isWaiting => $composableBuilder(
       column: $table.isWaiting, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<int> get lastShearingDate => $composableBuilder(
-      column: $table.lastShearingDate,
+  ColumnFilters<int> get lastInterventionDate => $composableBuilder(
+      column: $table.lastInterventionDate,
       builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get needsDistanceRecompute => $composableBuilder(
@@ -4762,8 +4703,8 @@ class $$ClientsTableTableOrderingComposer
   ColumnOrderings<bool> get isWaiting => $composableBuilder(
       column: $table.isWaiting, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<int> get lastShearingDate => $composableBuilder(
-      column: $table.lastShearingDate,
+  ColumnOrderings<int> get lastInterventionDate => $composableBuilder(
+      column: $table.lastInterventionDate,
       builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<bool> get needsDistanceRecompute => $composableBuilder(
@@ -4822,8 +4763,8 @@ class $$ClientsTableTableAnnotationComposer
   GeneratedColumn<bool> get isWaiting =>
       $composableBuilder(column: $table.isWaiting, builder: (column) => column);
 
-  GeneratedColumn<int> get lastShearingDate => $composableBuilder(
-      column: $table.lastShearingDate, builder: (column) => column);
+  GeneratedColumn<int> get lastInterventionDate => $composableBuilder(
+      column: $table.lastInterventionDate, builder: (column) => column);
 
   GeneratedColumn<bool> get needsDistanceRecompute => $composableBuilder(
       column: $table.needsDistanceRecompute, builder: (column) => column);
@@ -4918,7 +4859,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             Value<List<AnimalCount>> animals = const Value.absent(),
             Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
-            Value<int?> lastShearingDate = const Value.absent(),
+            Value<int?> lastInterventionDate = const Value.absent(),
             Value<bool> needsDistanceRecompute = const Value.absent(),
             Value<bool> isBanned = const Value.absent(),
             Value<int> createdAt = const Value.absent(),
@@ -4936,7 +4877,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             animals: animals,
             markerColorHex: markerColorHex,
             isWaiting: isWaiting,
-            lastShearingDate: lastShearingDate,
+            lastInterventionDate: lastInterventionDate,
             needsDistanceRecompute: needsDistanceRecompute,
             isBanned: isBanned,
             createdAt: createdAt,
@@ -4954,7 +4895,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             Value<List<AnimalCount>> animals = const Value.absent(),
             Value<String?> markerColorHex = const Value.absent(),
             Value<bool> isWaiting = const Value.absent(),
-            Value<int?> lastShearingDate = const Value.absent(),
+            Value<int?> lastInterventionDate = const Value.absent(),
             Value<bool> needsDistanceRecompute = const Value.absent(),
             Value<bool> isBanned = const Value.absent(),
             required int createdAt,
@@ -4972,7 +4913,7 @@ class $$ClientsTableTableTableManager extends RootTableManager<
             animals: animals,
             markerColorHex: markerColorHex,
             isWaiting: isWaiting,
-            lastShearingDate: lastShearingDate,
+            lastInterventionDate: lastInterventionDate,
             needsDistanceRecompute: needsDistanceRecompute,
             isBanned: isBanned,
             createdAt: createdAt,

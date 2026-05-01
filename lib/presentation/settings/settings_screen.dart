@@ -21,7 +21,6 @@ import '../tours/tours_list_screen.dart' show toursAsyncProvider;
 import '../widgets/address_autocomplete_field.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
-import '../widgets/avatar_picker.dart';
 import '../widgets/color_swatch_picker.dart';
 
 Color _hexToColor(String hex) {
@@ -211,32 +210,6 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                   mode: ThemeModePreference.dark,
                   icon: FIcons.moon,
                   label: l.settingsThemeDark,
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  l.settingsAppAvatarTitle,
-                  style: theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colors.foreground,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  l.settingsAppAvatarSubtitle,
-                  style: theme.typography.sm.copyWith(
-                    color: theme.colors.mutedForeground,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                AvatarPicker(
-                  selectedKey: _draft.appAvatarKey,
-                  onSelect: (key) async {
-                    final next = _draft.copyWith(appAvatarKey: key);
-                    setState(() => _draft = next);
-                    await ref.read(settingsRepositoryProvider).save(next);
-                    ref.invalidate(themeModeProvider);
-                    ref.invalidate(_settingsAsyncProvider);
-                  },
                 ),
               ],
             ),

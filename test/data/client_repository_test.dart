@@ -304,7 +304,7 @@ void main() {
     expect(byName['C7'], ClientStatus.defaultStatus);
   });
 
-  test('applyInterventionActuals updates animal counts and lastShearingDate',
+  test('applyInterventionActuals updates animal counts and lastInterventionDate',
       () async {
     final id = await repo.insert(
       _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
@@ -319,7 +319,7 @@ void main() {
       AnimalCount(categoryId: 1, count: 6),
       AnimalCount(categoryId: 2, count: 3),
     ]);
-    expect(c.lastShearingDate, DateTime(2026, 5, 12));
+    expect(c.lastInterventionDate, DateTime(2026, 5, 12));
   });
 
   test(
@@ -577,12 +577,12 @@ void main() {
   });
 
   group('applyManualEntryToClient', () {
-    test('lastShearingDate null → applies', () async {
+    test('lastInterventionDate null → applies', () async {
       final cId = await repo.insert(
         _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
       );
-      // Sanity: lastShearingDate is null on a fresh client.
-      expect((await repo.findById(cId))!.lastShearingDate, isNull);
+      // Sanity: lastInterventionDate is null on a fresh client.
+      expect((await repo.findById(cId))!.lastInterventionDate, isNull);
 
       await repo.applyManualEntryToClient(
         cId,
@@ -590,14 +590,14 @@ void main() {
         animals: [_small(6), _large(2)],
       );
       final c = (await repo.findById(cId))!;
-      expect(c.lastShearingDate, DateTime(2025, 5, 1));
+      expect(c.lastInterventionDate, DateTime(2025, 5, 1));
       expect(c.animals, const [
         AnimalCount(categoryId: 1, count: 6),
         AnimalCount(categoryId: 2, count: 2),
       ]);
     });
 
-    test('entry.date > lastShearingDate → applies', () async {
+    test('entry.date > lastInterventionDate → applies', () async {
       final cId = await repo.insert(
         _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
       );
@@ -612,14 +612,14 @@ void main() {
         animals: [_small(7), _large(1)],
       );
       final c = (await repo.findById(cId))!;
-      expect(c.lastShearingDate, DateTime(2025, 6, 1));
+      expect(c.lastInterventionDate, DateTime(2025, 6, 1));
       expect(c.animals, const [
         AnimalCount(categoryId: 1, count: 7),
         AnimalCount(categoryId: 2, count: 1),
       ]);
     });
 
-    test('entry.date == lastShearingDate → no-op (strict greater-than)',
+    test('entry.date == lastInterventionDate → no-op (strict greater-than)',
         () async {
       final cId = await repo.insert(
         _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
@@ -639,7 +639,7 @@ void main() {
       expect(c.animals, const [AnimalCount(categoryId: 1, count: 5)]);
     });
 
-    test('entry.date < lastShearingDate → no-op', () async {
+    test('entry.date < lastInterventionDate → no-op', () async {
       final cId = await repo.insert(
         _newClient(animals: const [AnimalCount(categoryId: 1, count: 8)]),
       );
@@ -654,7 +654,7 @@ void main() {
         animals: [_small(99), _large(99)],
       );
       final c = (await repo.findById(cId))!;
-      expect(c.lastShearingDate, DateTime(2025, 5, 1));
+      expect(c.lastInterventionDate, DateTime(2025, 5, 1));
       expect(c.animals, const [AnimalCount(categoryId: 1, count: 5)]);
     });
   });
@@ -717,11 +717,11 @@ void main() {
       await manual.delete(manualId);
       await repo.recomputeClientFromHistory(cId);
       final c = (await repo.findById(cId))!;
-      expect(c.lastShearingDate, DateTime(2025, 5, 1));
+      expect(c.lastInterventionDate, DateTime(2025, 5, 1));
       expect(c.animals, const [AnimalCount(categoryId: 1, count: 5)]);
     });
 
-    test('no source → lastShearingDate becomes null, animals empty',
+    test('no source → lastInterventionDate becomes null, animals empty',
         () async {
       final manual = ManualHistoryRepository(db);
       final cId = await repo.insert(_newClient(
@@ -750,7 +750,7 @@ void main() {
       await repo.recomputeClientFromHistory(cId);
 
       final c = (await repo.findById(cId))!;
-      expect(c.lastShearingDate, isNull);
+      expect(c.lastInterventionDate, isNull);
       // No source to rebuild from → animals cleared.
       expect(c.animals, const <AnimalCount>[]);
     });

@@ -87,17 +87,6 @@ void main() {
     expect(read.markerDefaultColor, '#9CA3AF');
   });
 
-  test('appAvatarKey round-trips', () async {
-    await repo.save(Settings(
-      baseCoordinates: const Coordinates(lat: 48.0, lon: 2.0),
-      baseAddressLabel: 'Foo',
-      seasonStartedAt: DateTime(2026),
-      appAvatarKey: 'scissors',
-    ));
-    final s = await repo.read();
-    expect(s!.appAvatarKey, 'scissors');
-  });
-
   test('bumpSeasonStartedAt updates the timestamp', () async {
     await repo.save(Settings(
       baseCoordinates: const Coordinates(lat: 48.0, lon: -3.0),

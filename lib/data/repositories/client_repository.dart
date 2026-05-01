@@ -33,8 +33,8 @@ class ClientRepository {
             animals: Value(normalizeAnimalCounts(c.animals)),
             isWaiting: Value(c.isWaiting),
             isBanned: Value(c.isBanned),
-            lastShearingDate: Value(
-              c.lastShearingDate?.millisecondsSinceEpoch,
+            lastInterventionDate: Value(
+              c.lastInterventionDate?.millisecondsSinceEpoch,
             ),
             markerColorHex: Value(c.markerColorHex),
             needsDistanceRecompute:
@@ -354,7 +354,7 @@ class ClientRepository {
   /// Persists the actuals captured during a tour completion onto the client's
   /// stored animal counts, merging per `categoryId` (entries in [actuals]
   /// overwrite the matching category, others untouched). Bumps
-  /// `lastShearingDate` to [tourDate]. Does not mutate `isWaiting` (status now
+  /// `lastInterventionDate` to [tourDate]. Does not mutate `isWaiting` (status now
   /// derives from completed tour membership).
   Future<void> applyInterventionActuals(
     int clientId, {
@@ -369,7 +369,7 @@ class ClientRepository {
         .write(
       ClientsTableCompanion(
         animals: Value(merged),
-        lastShearingDate: Value(tourDate.millisecondsSinceEpoch),
+        lastInterventionDate: Value(tourDate.millisecondsSinceEpoch),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
@@ -377,10 +377,10 @@ class ClientRepository {
 
   /// Applies a manual history entry's effects to the client's denormalized
   /// state, BUT only if the entry's date is strictly more recent than the
-  /// current `lastShearingDate` (or the client has never been shorn).
+  /// current `lastInterventionDate` (or the client has no prior intervention).
   ///
   /// Strict `>` is intentional: an entry on the same day as an existing
-  /// `lastShearingDate` is treated as a no-op to keep behavior idempotent.
+  /// `lastInterventionDate` is treated as a no-op to keep behavior idempotent.
   Future<void> applyManualEntryToClient(
     int clientId, {
     required DateTime date,
@@ -390,7 +390,7 @@ class ClientRepository {
     if (c == null) return;
     final entryMs = DateTime(date.year, date.month, date.day)
         .millisecondsSinceEpoch;
-    final currentMs = c.lastShearingDate?.millisecondsSinceEpoch;
+    final currentMs = c.lastInterventionDate?.millisecondsSinceEpoch;
     if (currentMs != null && entryMs <= currentMs) return;
 
     final merged = _mergePerCategory(c.animals, animals);
@@ -399,7 +399,7 @@ class ClientRepository {
         .write(
       ClientsTableCompanion(
         animals: Value(merged),
-        lastShearingDate: Value(entryMs),
+        lastInterventionDate: Value(entryMs),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
@@ -408,8 +408,8 @@ class ClientRepository {
   /// Recomputes the client's denormalized state from the union of
   /// {tour-stops on completed tours, manual history entries}. For each
   /// `categoryId` involved, picks the count from the most recent intervention
-  /// that mentions it. `lastShearingDate` is set to the newest date. If no
-  /// source exists, animals become empty and `lastShearingDate` is null.
+  /// that mentions it. `lastInterventionDate` is set to the newest date. If no
+  /// source exists, animals become empty and `lastInterventionDate` is null.
   Future<void> recomputeClientFromHistory(int clientId) async {
     final list = await listInterventionsForClient(clientId);
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -420,7 +420,7 @@ class ClientRepository {
           .write(
         ClientsTableCompanion(
           animals: const Value([]),
-          lastShearingDate: const Value(null),
+          lastInterventionDate: const Value(null),
           updatedAt: Value(now),
         ),
       );
@@ -450,7 +450,7 @@ class ClientRepository {
           for (final e in byId.entries)
             AnimalCount(categoryId: e.key, count: e.value),
         ])),
-        lastShearingDate: Value(newestMs),
+        lastInterventionDate: Value(newestMs),
         updatedAt: Value(now),
       ),
     );
@@ -477,9 +477,9 @@ class ClientRepository {
         markerColorHex: row.markerColorHex,
         isWaiting: row.isWaiting,
         isBanned: row.isBanned,
-        lastShearingDate: row.lastShearingDate == null
+        lastInterventionDate: row.lastInterventionDate == null
             ? null
-            : DateTime.fromMillisecondsSinceEpoch(row.lastShearingDate!),
+            : DateTime.fromMillisecondsSinceEpoch(row.lastInterventionDate!),
         needsDistanceRecompute: row.needsDistanceRecompute,
       );
 

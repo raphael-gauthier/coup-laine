@@ -130,13 +130,13 @@ void main() {
 
     final c = await clients.findById(c1);
     // The client was waiting before completion and stays waiting — only
-    // the animal counts and lastShearingDate change.
+    // the animal counts and lastInterventionDate change.
     expect(c!.isWaiting, isTrue);
     expect(c.animals, [
       AnimalCount(categoryId: fix.catPetit, count: 4),
       AnimalCount(categoryId: fix.catGrand, count: 1),
     ]);
-    expect(c.lastShearingDate, DateTime(2026, 5, 12));
+    expect(c.lastInterventionDate, DateTime(2026, 5, 12));
   });
 
   test('soft FK preserves stop after client delete', () async {

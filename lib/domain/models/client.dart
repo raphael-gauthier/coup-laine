@@ -14,7 +14,7 @@ class Client {
   final String? markerColorHex;
   final bool isWaiting;
   final bool isBanned;
-  final DateTime? lastShearingDate;
+  final DateTime? lastInterventionDate;
   final bool needsDistanceRecompute;
 
   const Client({
@@ -29,7 +29,7 @@ class Client {
     this.markerColorHex,
     this.isWaiting = false,
     this.isBanned = false,
-    this.lastShearingDate,
+    this.lastInterventionDate,
     this.needsDistanceRecompute = false,
   });
 

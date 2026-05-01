@@ -33,10 +33,10 @@ class ClientPinPopup extends ConsumerWidget {
     final hasPhone = principalPhone != null;
     final distanceAsync = ref.watch(clientDistanceFromBaseProvider(client.id));
 
-    final lastInterventionLabel = client.lastShearingDate == null
-        ? l.clientsLastShearingNever
-        : l.clientsLastShearingFmt(
-            DateFormat('d MMM yyyy', 'fr').format(client.lastShearingDate!),
+    final lastInterventionLabel = client.lastInterventionDate == null
+        ? l.clientsLastInterventionNever
+        : l.clientsLastInterventionFmt(
+            DateFormat('d MMM yyyy', 'fr').format(client.lastInterventionDate!),
           );
 
     final addressLine = StringBuffer('${client.postcode} ${client.city}');

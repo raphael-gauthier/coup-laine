@@ -287,7 +287,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                                     },
                                     child: _StatusPin(
                                       color: _resolveColor(r.$1, r.$2, settings),
-                                      sheepCount: r.$1.animalsTotal,
+                                      animalCount: r.$1.animalsTotal,
                                     ),
                                   ),
                                 ),
@@ -461,9 +461,9 @@ class _MapIconButton extends StatelessWidget {
 
 class _StatusPin extends StatelessWidget {
   final Color color;
-  final int sheepCount;
+  final int animalCount;
 
-  const _StatusPin({required this.color, required this.sheepCount});
+  const _StatusPin({required this.color, required this.animalCount});
 
   @override
   Widget build(BuildContext context) {
@@ -475,7 +475,7 @@ class _StatusPin extends StatelessWidget {
         child: Align(
           alignment: const Alignment(0, -0.25),
           child: Text(
-            '$sheepCount',
+            '$animalCount',
             style: const TextStyle(
               color: Color(0xFFFFFFFF),
               fontSize: 13,

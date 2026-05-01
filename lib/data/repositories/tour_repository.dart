@@ -116,7 +116,7 @@ class TourRepository {
   /// containing the actual animal counts and an optional note. For each stop
   /// with a non-null `clientId`, the corresponding client's stored animals
   /// are merged per `categoryId` (actuals overwrite per-category, other
-  /// categories untouched) and `lastShearingDate` is bumped to the tour's
+  /// categories untouched) and `lastInterventionDate` is bumped to the tour's
   /// planned date.
   Future<void> markCompleted(
     int id,
@@ -183,7 +183,7 @@ class TourRepository {
                 .write(
               ClientsTableCompanion(
                 animals: Value(mergedAnimals),
-                lastShearingDate: Value(tourDate.millisecondsSinceEpoch),
+                lastInterventionDate: Value(tourDate.millisecondsSinceEpoch),
                 updatedAt: Value(now),
               ),
             );

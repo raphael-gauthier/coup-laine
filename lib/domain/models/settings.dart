@@ -16,7 +16,6 @@ class Settings {
   final String markerNoAnimalsColor;
   final String markerBannedColor;
   final DateTime seasonStartedAt;
-  final String? appAvatarKey;
 
   const Settings({
     required this.baseCoordinates,
@@ -32,7 +31,6 @@ class Settings {
     this.markerDoneColor = '#166534',
     this.markerNoAnimalsColor = '#1F2937',
     this.markerBannedColor = '#B91C1C',
-    this.appAvatarKey,
   });
 
   Settings copyWith({
@@ -49,7 +47,6 @@ class Settings {
     String? markerNoAnimalsColor,
     String? markerBannedColor,
     DateTime? seasonStartedAt,
-    String? appAvatarKey,
   }) =>
       Settings(
         baseCoordinates: baseCoordinates ?? this.baseCoordinates,
@@ -68,6 +65,5 @@ class Settings {
             markerNoAnimalsColor ?? this.markerNoAnimalsColor,
         markerBannedColor: markerBannedColor ?? this.markerBannedColor,
         seasonStartedAt: seasonStartedAt ?? this.seasonStartedAt,
-        appAvatarKey: appAvatarKey ?? this.appAvatarKey,
       );
 }

@@ -31,7 +31,6 @@ class SettingsTable extends Table {
   TextColumn get markerBannedColor =>
       text().withDefault(const Constant('#B91C1C'))();
   IntColumn get seasonStartedAt => integer().withDefault(const Constant(0))();
-  TextColumn get appAvatarKey => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -57,7 +56,7 @@ class ClientsTable extends Table {
       .withDefault(const Constant('[]'))();
   TextColumn get markerColorHex => text().nullable()();
   BoolColumn get isWaiting => boolean().withDefault(const Constant(false))();
-  IntColumn get lastShearingDate => integer().nullable()();
+  IntColumn get lastInterventionDate => integer().nullable()();
   BoolColumn get needsDistanceRecompute =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get isBanned => boolean().withDefault(const Constant(false))();

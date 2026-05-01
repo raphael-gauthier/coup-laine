@@ -28,7 +28,6 @@ class SettingsRepository {
       markerNoAnimalsColor: row.markerNoAnimalsColor,
       markerBannedColor: row.markerBannedColor,
       seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(row.seasonStartedAt),
-      appAvatarKey: row.appAvatarKey,
     );
   }
 
@@ -49,7 +48,6 @@ class SettingsRepository {
             markerDoneColor: Value(settings.markerDoneColor),
             markerNoAnimalsColor: Value(settings.markerNoAnimalsColor),
             markerBannedColor: Value(settings.markerBannedColor),
-            appAvatarKey: Value(settings.appAvatarKey),
             seasonStartedAt: Value(
               settings.seasonStartedAt.millisecondsSinceEpoch,
             ),
