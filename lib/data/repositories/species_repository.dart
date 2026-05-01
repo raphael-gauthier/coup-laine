@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 
 import '../../domain/models/species.dart';
 import '../../infra/db/app_database.dart';
-import '../../infra/db/tables.dart';
 
 class SpeciesRepository {
   final AppDatabase _db;

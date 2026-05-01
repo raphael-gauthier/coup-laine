@@ -8,7 +8,7 @@ import 'package:coup_laine/state/providers.dart';
 
 void main() {
   Map<int, ({String speciesName, String categoryName, int minutes})>
-      _stubLookup() => {
+      stubLookup() => {
             1: (speciesName: 'Mouton', categoryName: 'Petit', minutes: 8),
             2: (speciesName: 'Mouton', categoryName: 'Grand', minutes: 25),
             3: (speciesName: 'Cheval', categoryName: 'Adulte', minutes: 45),
@@ -18,7 +18,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          categoryLookupProvider.overrideWith((ref) async => _stubLookup()),
+          categoryLookupProvider.overrideWith((ref) async => stubLookup()),
         ],
         child: const MaterialApp(
           home: Scaffold(
@@ -42,7 +42,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          categoryLookupProvider.overrideWith((ref) async => _stubLookup()),
+          categoryLookupProvider.overrideWith((ref) async => stubLookup()),
         ],
         child: const MaterialApp(
           home: Scaffold(
@@ -67,7 +67,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          categoryLookupProvider.overrideWith((ref) async => _stubLookup()),
+          categoryLookupProvider.overrideWith((ref) async => stubLookup()),
         ],
         child: const MaterialApp(
           home: Scaffold(
@@ -88,7 +88,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          categoryLookupProvider.overrideWith((ref) async => _stubLookup()),
+          categoryLookupProvider.overrideWith((ref) async => stubLookup()),
         ],
         child: const MaterialApp(
           home: Scaffold(

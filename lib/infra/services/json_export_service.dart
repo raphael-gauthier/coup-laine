@@ -6,7 +6,20 @@ import '../../data/repositories/client_repository.dart';
 import '../../data/repositories/distance_matrix_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../data/repositories/tour_repository.dart';
+import '../../domain/models/animal_count.dart';
+import '../../domain/models/tour_stop_animal.dart';
 import '../db/app_database.dart';
+
+List<TourStopAnimal> _coerceTourStopAnimals(List raw) => [
+      for (final e in raw)
+        TourStopAnimal(
+          categoryId: (e as Map<String, dynamic>)['categoryId'] as int,
+          count: e['count'] as int,
+          categoryNameSnapshot: e['categoryNameSnapshot'] as String,
+          speciesNameSnapshot: e['speciesNameSnapshot'] as String,
+          minutesSnapshot: e['minutesSnapshot'] as int,
+        ),
+    ];
 
 class JsonImportException implements Exception {
   final String message;
@@ -71,10 +84,20 @@ class JsonExportService {
       }
       for (final c in (json['clients'] as List)) {
         final row = Map<String, dynamic>.from(c as Map<String, dynamic>);
-        // Drift's default serializer cannot cast List<dynamic> → List<String>;
-        // coerce the phones field manually before handing to fromJson.
+        // Drift's default serializer cannot cast List<dynamic> to List<String>
+        // or to List<AnimalCount>; coerce typed-list fields manually before
+        // handing to fromJson.
         if (row['phones'] is List) {
           row['phones'] = (row['phones'] as List).cast<String>();
+        }
+        if (row['animals'] is List) {
+          row['animals'] = [
+            for (final e in row['animals'] as List)
+              AnimalCount(
+                categoryId: (e as Map<String, dynamic>)['categoryId'] as int,
+                count: e['count'] as int,
+              ),
+          ];
         }
         await database.into(database.clientsTable).insert(
               ClientRow.fromJson(row),
@@ -94,8 +117,15 @@ class JsonExportService {
             );
       }
       for (final st in (json['tourStops'] as List)) {
+        final row = Map<String, dynamic>.from(st as Map<String, dynamic>);
+        if (row['plannedAnimals'] is List) {
+          row['plannedAnimals'] = _coerceTourStopAnimals(row['plannedAnimals'] as List);
+        }
+        if (row['actualAnimals'] is List) {
+          row['actualAnimals'] = _coerceTourStopAnimals(row['actualAnimals'] as List);
+        }
         await database.into(database.tourStopsTable).insert(
-              TourStopRow.fromJson(st as Map<String, dynamic>),
+              TourStopRow.fromJson(row),
               mode: InsertMode.insertOrReplace,
             );
       }

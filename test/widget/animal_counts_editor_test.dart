@@ -105,6 +105,7 @@ void main() {
           ),
         ],
         child: MaterialApp(
+          locale: const Locale('fr'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
