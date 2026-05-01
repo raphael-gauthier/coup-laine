@@ -9,12 +9,14 @@ import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
 import 'client_actions.dart';
+import '../../domain/models/animal_count.dart';
 import '../../domain/models/client.dart';
 import 'manual_history_entry_sheet.dart';
 import '../../domain/models/intervention.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
+import '../widgets/animal_counts_badges.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_hero_card.dart';
 import '../widgets/app_primary_button.dart';
@@ -112,18 +114,23 @@ class _Body extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Hero card: sheep count
+          // Hero card: animal count
           AppHeroCard(
             badge: AppBadge.fromStatus(
               context,
               status: status,
               label: _statusLabel(l, status),
             ),
-            bigNumber: '${client.sheepCountTotal}',
-            label: 'moutons',
-            subtitle:
-                '${client.sheepCountSmall} ${l.clientFormSheepCountSmall} · '
-                '${client.sheepCountLarge} ${l.clientFormSheepCountLarge}',
+            bigNumber: '${client.animalsTotal}',
+            label: 'animaux',
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          AnimalCountsBadges(
+            counts: client.animals,
+            mode: AnimalCountsBadgesMode.detailed,
+            style: theme.typography.sm.copyWith(
+              color: theme.colors.mutedForeground,
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
 
@@ -329,7 +336,7 @@ String _statusLabel(AppLocalizations l, ClientStatus status) => switch (status) 
       ClientStatus.waiting => l.clientStatusWaiting,
       ClientStatus.scheduled => l.clientStatusScheduled,
       ClientStatus.done => l.clientStatusDone,
-      ClientStatus.noAnimals => l.clientStatusNoSheep,
+      ClientStatus.noAnimals => l.clientStatusNoAnimals,
       ClientStatus.banned => l.clientStatusBanned,
     };
 
@@ -515,10 +522,11 @@ class _InterventionRow extends StatelessWidget {
     final theme = context.theme;
     final isManual = item.kind == InterventionKind.manual;
     final dateStr = DateFormat('d MMM yyyy', 'fr').format(item.date);
-    final breakdown =
-        '${item.small} ${l.clientFormSheepCountSmall} · '
-        '${item.large} ${l.clientFormSheepCountLarge}';
     final note = item.note;
+    final counts = [
+      for (final a in item.animals)
+        AnimalCount(categoryId: a.categoryId, count: a.count),
+    ];
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -539,8 +547,9 @@ class _InterventionRow extends StatelessWidget {
                   color: theme.colors.foreground,
                 ),
               ),
-              Text(
-                breakdown,
+              AnimalCountsBadges(
+                counts: counts,
+                mode: AnimalCountsBadgesMode.detailed,
                 style: theme.typography.xs.copyWith(
                   color: theme.colors.mutedForeground,
                 ),
@@ -573,14 +582,14 @@ class _InterventionRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
-              '${item.total}',
+              '${item.animalsTotal}',
               style: theme.typography.lg.copyWith(
                 fontWeight: FontWeight.w700,
                 color: theme.colors.foreground,
               ),
             ),
             Text(
-              'moutons',
+              'animaux',
               style: theme.typography.xs.copyWith(
                 color: theme.colors.mutedForeground,
               ),

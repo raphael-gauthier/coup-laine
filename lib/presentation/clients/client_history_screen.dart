@@ -6,8 +6,10 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_tokens.dart';
+import '../../domain/models/animal_count.dart';
 import '../../domain/models/intervention.dart';
 import '../../state/providers.dart';
+import '../widgets/animal_counts_badges.dart';
 import 'manual_history_entry_sheet.dart';
 
 class ClientHistoryScreen extends ConsumerWidget {
@@ -59,9 +61,10 @@ class ClientHistoryScreen extends ConsumerWidget {
                 final isManual = it.kind == InterventionKind.manual;
                 final dateStr =
                     DateFormat('d MMM yyyy', 'fr').format(it.date);
-                final breakdown =
-                    '${it.small} ${l.clientFormSheepCountSmall} · '
-                    '${it.large} ${l.clientFormSheepCountLarge}';
+                final counts = [
+                  for (final a in it.animals)
+                    AnimalCount(categoryId: a.categoryId, count: a.count),
+                ];
                 return GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () async {
@@ -116,8 +119,9 @@ class ClientHistoryScreen extends ConsumerWidget {
                                   color: theme.colors.foreground,
                                 ),
                               ),
-                              Text(
-                                breakdown,
+                              AnimalCountsBadges(
+                                counts: counts,
+                                mode: AnimalCountsBadgesMode.detailed,
                                 style: theme.typography.sm.copyWith(
                                   color: theme.colors.mutedForeground,
                                 ),
@@ -148,14 +152,14 @@ class ClientHistoryScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              '${it.total}',
+                              '${it.animalsTotal}',
                               style: theme.typography.xl.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: theme.colors.foreground,
                               ),
                             ),
                             Text(
-                              'moutons',
+                              'animaux',
                               style: theme.typography.xs.copyWith(
                                 color: theme.colors.mutedForeground,
                               ),

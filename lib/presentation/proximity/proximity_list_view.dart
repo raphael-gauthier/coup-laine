@@ -6,6 +6,7 @@ import 'package:forui/forui.dart';
 
 import '../../core/design_tokens.dart';
 import '../../state/proximity_controller.dart';
+import '../widgets/animal_counts_badges.dart';
 import '../widgets/app_empty_state.dart';
 
 class ProximityListView extends ConsumerWidget {
@@ -47,7 +48,10 @@ class ProximityListView extends ConsumerWidget {
                   (r.durationSeconds / 60).round(),
                 )}',
               ),
-              details: Text('${r.client.sheepCountTotal} moutons'),
+              details: AnimalCountsBadges(
+                counts: r.client.animals,
+                mode: AnimalCountsBadgesMode.compact,
+              ),
               suffix: Container(
                 width: 24,
                 height: 24,

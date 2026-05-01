@@ -5,6 +5,7 @@ import 'package:forui/forui.dart';
 import '../../core/design_tokens.dart';
 import '../../domain/models/client.dart';
 import '../clients/client_actions.dart';
+import '../widgets/animal_counts_badges.dart';
 
 class ClientPinPopup extends StatelessWidget {
   final Client client;
@@ -63,7 +64,14 @@ class ClientPinPopup extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.hairline),
             Text(
-              '${client.city} · ${client.sheepCountTotal} moutons',
+              client.city,
+              style: theme.typography.sm.copyWith(
+                color: theme.colors.mutedForeground,
+              ),
+            ),
+            AnimalCountsBadges(
+              counts: client.animals,
+              mode: AnimalCountsBadgesMode.compact,
               style: theme.typography.sm.copyWith(
                 color: theme.colors.mutedForeground,
               ),

@@ -13,6 +13,7 @@ import '../../domain/models/client.dart';
 import '../../domain/models/settings.dart';
 import '../../domain/use_cases/client_status.dart';
 import '../../state/providers.dart';
+import '../widgets/animal_counts_badges.dart';
 import '../widgets/app_badge.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_primary_button.dart';
@@ -268,7 +269,6 @@ class _ClientTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l = AppLocalizations.of(context)!;
     final theme = context.theme;
     final settingsAsync = ref.watch(_settingsForChipProvider);
     final hex = settingsAsync.value == null
@@ -284,7 +284,10 @@ class _ClientTile extends ConsumerWidget {
       ),
       title: Text(client.name),
       subtitle: Text(client.city),
-      details: Text(l.clientsListSheepCountFmt(client.sheepCountTotal)),
+      details: AnimalCountsBadges(
+        counts: client.animals,
+        mode: AnimalCountsBadgesMode.compact,
+      ),
       suffix: client.needsDistanceRecompute
           ? AppBadge.recompute(context)
           : Icon(FIcons.chevronRight, color: theme.colors.mutedForeground),
@@ -298,7 +301,7 @@ String _statusLabel(AppLocalizations l, ClientStatus s) => switch (s) {
       ClientStatus.waiting => l.clientStatusWaiting,
       ClientStatus.scheduled => l.clientStatusScheduled,
       ClientStatus.done => l.clientStatusDone,
-      ClientStatus.noAnimals => l.clientStatusNoSheep,
+      ClientStatus.noAnimals => l.clientStatusNoAnimals,
       ClientStatus.banned => l.clientStatusBanned,
     };
 
