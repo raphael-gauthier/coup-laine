@@ -354,22 +354,42 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
         Padding(
           padding: const EdgeInsets.fromLTRB(
               AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xxs),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Text(
-                  l.tourDraftStepsTitle,
-                  style: theme.typography.lg.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: theme.colors.foreground,
-                  ),
+              Text(
+                l.tourDraftStepsTitle,
+                style: theme.typography.lg.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colors.foreground,
                 ),
               ),
-              FButton(
-                variant: FButtonVariant.outline,
-                prefix: const Icon(FIcons.pencil, size: 16),
-                onPress: () => _openEditSelection(context, bundle),
-                child: Text(l.tourDraftEditSelection),
+              const SizedBox(height: AppSpacing.xs),
+              Row(
+                children: [
+                  if (_manualOrder != null) ...[
+                    Expanded(
+                      child: FButton(
+                        variant: FButtonVariant.outline,
+                        prefix: const Icon(FIcons.zap, size: 16),
+                        onPress: () {
+                          setState(() => _manualOrder = null);
+                          _refresh();
+                        },
+                        child: Text(l.tourDraftOptimizeOrder),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                  ],
+                  Expanded(
+                    child: FButton(
+                      variant: FButtonVariant.outline,
+                      prefix: const Icon(FIcons.pencil, size: 16),
+                      onPress: () => _openEditSelection(context, bundle),
+                      child: Text(l.tourDraftEditSelection),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

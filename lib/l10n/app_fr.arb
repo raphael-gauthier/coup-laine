@@ -334,5 +334,6 @@
   "settingsImportConfirmAction": "Importer",
   "tourDraftStepDate": "Date",
   "tourDraftStepClients": "Clients",
-  "tourDraftStepPrestations": "Prestations"
+  "tourDraftStepPrestations": "Prestations",
+  "tourDraftOptimizeOrder": "Optimiser l'ordre"
 }
