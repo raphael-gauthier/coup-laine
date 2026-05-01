@@ -1,6 +1,5 @@
 // lib/presentation/clients/client_form_screen.dart
 import 'package:flutter/material.dart' show IconButton, ReorderableListView, ReorderableDragStartListener;
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:coup_laine/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,11 +8,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/design_tokens.dart';
 import '../../core/phone_formatter.dart';
+import '../../domain/models/animal_count.dart';
 import '../../domain/models/client.dart';
 import '../../domain/models/coordinates.dart';
 import '../../infra/services/ors_routing_service.dart';
 import '../../state/providers.dart';
 import '../widgets/address_autocomplete_field.dart';
+import '../widgets/animal_counts_editor.dart';
 import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 import '../widgets/color_swatch_picker.dart';
@@ -32,8 +33,7 @@ class ClientFormScreen extends ConsumerStatefulWidget {
 class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
   final _nameCtrl = TextEditingController();
   final List<TextEditingController> _phoneCtrls = [];
-  final _sheepSmallCtrl = TextEditingController(text: '0');
-  final _sheepLargeCtrl = TextEditingController(text: '0');
+  List<AnimalCount> _animals = const [];
 
   String? _addressLabel;
   String? _postcode;
@@ -45,8 +45,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
 
   // Manual validation errors
   String? _nameError;
-  String? _sheepSmallError;
-  String? _sheepLargeError;
 
   @override
   void initState() {
@@ -64,8 +62,6 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
     for (final c in _phoneCtrls) {
       c.dispose();
     }
-    _sheepSmallCtrl.dispose();
-    _sheepLargeCtrl.dispose();
     super.dispose();
   }
 
@@ -79,8 +75,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
       ..addAll(c.phones.map(
         (p) => TextEditingController(text: formatPhoneInput(p)),
       ));
-    _sheepSmallCtrl.text = c.sheepCountSmall.toString();
-    _sheepLargeCtrl.text = c.sheepCountLarge.toString();
+    _animals = List.of(c.animals);
     _addressLabel = c.addressLabel;
     _postcode = c.postcode;
     _city = c.city;
@@ -91,30 +86,16 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
 
   bool _validate() {
     String? nameError;
-    String? sheepSmallError;
-    String? sheepLargeError;
 
     if (_nameCtrl.text.trim().isEmpty) {
       nameError = 'Requis';
     }
-    final small = int.tryParse(_sheepSmallCtrl.text);
-    if (small == null || small < 0) {
-      sheepSmallError = 'Nombre invalide';
-    }
-    final large = int.tryParse(_sheepLargeCtrl.text);
-    if (large == null || large < 0) {
-      sheepLargeError = 'Nombre invalide';
-    }
 
     setState(() {
       _nameError = nameError;
-      _sheepSmallError = sheepSmallError;
-      _sheepLargeError = sheepLargeError;
     });
 
-    return nameError == null &&
-        sheepSmallError == null &&
-        sheepLargeError == null;
+    return nameError == null;
   }
 
   Future<void> _submit() async {
@@ -135,8 +116,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         id: id,
         name: _nameCtrl.text.trim(),
         phones: _phoneCtrls.map((c) => c.text).toList(),
-        sheepCountSmall: int.parse(_sheepSmallCtrl.text),
-        sheepCountLarge: int.parse(_sheepLargeCtrl.text),
+        animals: _animals,
       );
       await repo.updateAddress(
         id: id,
@@ -154,8 +134,7 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
         postcode: _postcode!,
         city: _city!,
         coordinates: _coords!,
-        sheepCountSmall: int.parse(_sheepSmallCtrl.text),
-        sheepCountLarge: int.parse(_sheepLargeCtrl.text),
+        animals: _animals,
       ));
     }
 
@@ -263,46 +242,13 @@ class _ClientFormScreenState extends ConsumerState<ClientFormScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Section: Tonte
+            // Section: Animaux
             AppSectionCard(
               icon: FIcons.scissors,
-              title: l.clientFormSectionShearing,
-              child: Column(
-                children: [
-                  FTextField(
-                    control: FTextFieldControl.managed(
-                      controller: _sheepSmallCtrl,
-                      onChange: (_) {
-                        if (_sheepSmallError != null) {
-                          setState(() => _sheepSmallError = null);
-                        }
-                      },
-                    ),
-                    label: Text(l.clientFormSheepCountSmall),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    error: _sheepSmallError != null
-                        ? Text(_sheepSmallError!)
-                        : null,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  FTextField(
-                    control: FTextFieldControl.managed(
-                      controller: _sheepLargeCtrl,
-                      onChange: (_) {
-                        if (_sheepLargeError != null) {
-                          setState(() => _sheepLargeError = null);
-                        }
-                      },
-                    ),
-                    label: Text(l.clientFormSheepCountLarge),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    error: _sheepLargeError != null
-                        ? Text(_sheepLargeError!)
-                        : null,
-                  ),
-                ],
+              title: l.clientFormSectionAnimals,
+              child: AnimalCountsEditor(
+                value: _animals,
+                onChanged: (next) => setState(() => _animals = next),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
