@@ -452,22 +452,10 @@ class _TourDraftScreenState extends ConsumerState<TourDraftScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
                       AppSpacing.md, AppSpacing.xs, AppSpacing.md, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l.tourDraftSummaryRevenue(
-                            formatEuros(bundle.result.totalRevenueCents)),
-                        style: theme.typography.sm,
-                      ),
-                      Text(
-                        l.tourDraftSummaryNet(
-                            formatEuros(bundle.result.totalNetCents)),
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    l.tourDraftSummaryRevenue(
+                        formatEuros(bundle.result.totalRevenueCents)),
+                    style: theme.typography.sm,
                   ),
                 ),
               // Action row

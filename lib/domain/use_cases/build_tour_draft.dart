@@ -22,7 +22,6 @@ class TourDraftResult {
   final int feeInterCents;
   final List<int> revenueCentsPerStop;
   final int totalRevenueCents;
-  final int totalNetCents;
 
   const TourDraftResult({
     required this.orderedClientIds,
@@ -39,7 +38,6 @@ class TourDraftResult {
     required this.feeInterCents,
     required this.revenueCentsPerStop,
     required this.totalRevenueCents,
-    required this.totalNetCents,
   });
 }
 
@@ -156,7 +154,6 @@ class BuildTourDraft {
       feeInterCents: split.feeInterCents,
       revenueCentsPerStop: revenuePerStop,
       totalRevenueCents: totalRevenue,
-      totalNetCents: totalRevenue - split.totalFeeCents,
     );
   }
 }

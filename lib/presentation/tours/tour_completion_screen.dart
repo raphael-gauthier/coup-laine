@@ -202,7 +202,6 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
                 bundle.stops.where((s) => s.clientId != null).toList();
             final totals = _liveTotals();
             final feeCents = bundle.tour.totalTravelFeeCents;
-            final netCents = totals.revenueCents - feeCents;
             return Column(
               children: [
                 Expanded(
@@ -278,12 +277,6 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
                       ),
                       Text(
                         'Frais déplacement : ${formatEuros(feeCents)}',
-                        style: theme.typography.sm.copyWith(
-                          color: theme.colors.mutedForeground,
-                        ),
-                      ),
-                      Text(
-                        l.tourDraftSummaryNet(formatEuros(netCents)),
                         style: theme.typography.sm.copyWith(
                           color: theme.colors.mutedForeground,
                         ),

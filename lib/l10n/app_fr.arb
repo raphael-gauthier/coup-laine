@@ -296,10 +296,6 @@
   "@tourDraftSummaryRevenue": {
     "placeholders": {"amount": {"type": "String"}}
   },
-  "tourDraftSummaryNet": "Net (indicatif) : {amount}",
-  "@tourDraftSummaryNet": {
-    "placeholders": {"amount": {"type": "String"}}
-  },
   "tourCompletionAddOffPlan": "+ Ajouter une prestation hors plan",
   "@tourCompletionAddOffPlan": {},
   "tourCompletionRevenueRealized": "Revenu réalisé",

@@ -97,7 +97,7 @@ void main() {
     expect(draft.plannedPrestationsPerStop[2].first.qty, 8);
   });
 
-  test('revenue and net are computed from prestation snapshots', () {
+  test('revenue is computed from prestation snapshots', () {
     final clients = [_c(1, 'A', 5), _c(2, 'B', 3)];
     final matrix = [
       _e(0, 1, 5000, 600), _e(1, 0, 5000, 600),
@@ -123,7 +123,6 @@ void main() {
     expect(draft.orderedClientIds, [1, 2]);
     expect(draft.revenueCentsPerStop, [5000, 8000]);
     expect(draft.totalRevenueCents, 13000);
-    expect(draft.totalNetCents, 13000 - draft.totalFeeCents);
   });
 
   test('revenue is 0 when no prestation provided', () {
@@ -143,8 +142,6 @@ void main() {
     expect(draft.totalRevenueCents, 0);
     expect(draft.revenueCentsPerStop, [0]);
     expect(draft.totalInterventionMinutes, 0);
-    // Net is just -fee in that case.
-    expect(draft.totalNetCents, -draft.totalFeeCents);
   });
 
   test('intervention duration is 0 when prestationsPerClient lacks an entry '
