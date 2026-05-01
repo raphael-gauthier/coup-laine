@@ -80,7 +80,16 @@ class _ProximityScreenState extends ConsumerState<ProximityScreen> {
         primary: AppPrimaryButton(
           label: '${l.proximityPlanTour} (${selection.length})',
           prefixIcon: FIcons.route,
-          onPress: () => context.push('/tours/draft?pivot=${widget.pivotId}'),
+          onPress: () {
+            // Make sure the pivot client is part of the tour selection so the
+            // draft picker reflects it as already-included (it's also added
+            // implicitly at the head by tourDraftProvider, but having it in
+            // the selection set keeps the UI/state consistent).
+            ref
+                .read(tourSelectionProvider.notifier)
+                .include(widget.pivotId);
+            context.push('/tours/draft?pivot=${widget.pivotId}');
+          },
         ),
       );
     }
