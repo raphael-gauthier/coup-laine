@@ -296,8 +296,6 @@ class ClientRepository {
     ];
 
     // Source 2 — manual entries.
-    // TEMP for T7: T9 will replace this with e.prestations once ManualHistoryEntry
-    // is migrated. Keeps the build green and tests for tour interventions valid.
     final manualEntries = await _manualHistory.listForClient(clientId);
     final manualInterventions = <Intervention>[
       for (final e in manualEntries)
@@ -305,7 +303,7 @@ class ClientRepository {
           kind: InterventionKind.manual,
           manualEntryId: e.id,
           date: e.date,
-          prestations: const [], // FIXME(T9): use e.prestations once renamed
+          prestations: e.prestations,
           note: e.note,
           hasBilan: true,
         ),

@@ -2,7 +2,7 @@ import 'package:coup_laine/data/repositories/client_repository.dart';
 import 'package:coup_laine/data/repositories/manual_history_repository.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
-import 'package:coup_laine/domain/models/tour_stop_animal.dart';
+import 'package:coup_laine/domain/models/tour_stop_prestation.dart';
 import 'package:coup_laine/infra/db/app_database.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -40,20 +40,26 @@ void main() {
     await repo.insert(
       clientId: cId,
       date: DateTime(2024, 5, 1),
-      animals: [
-        TourStopAnimal(
-          categoryId: fix.catPetit,
-          count: 4,
+      prestations: [
+        TourStopPrestation(
+          prestationId: 11,
+          qty: 4,
+          nameSnapshot: 'Tonte petit',
+          priceCentsSnapshot: 800,
+          minutesSnapshot: 8,
+          categoryIdSnapshot: fix.catPetit,
           categoryNameSnapshot: 'Petit',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 8,
         ),
-        TourStopAnimal(
-          categoryId: fix.catGrand,
-          count: 1,
+        TourStopPrestation(
+          prestationId: 12,
+          qty: 1,
+          nameSnapshot: 'Tonte grand',
+          priceCentsSnapshot: 2500,
+          minutesSnapshot: 25,
+          categoryIdSnapshot: fix.catGrand,
           categoryNameSnapshot: 'Grand',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 25,
         ),
       ],
       note: 'older',
@@ -61,13 +67,16 @@ void main() {
     await repo.insert(
       clientId: cId,
       date: DateTime(2025, 5, 1),
-      animals: [
-        TourStopAnimal(
-          categoryId: fix.catPetit,
-          count: 5,
+      prestations: [
+        TourStopPrestation(
+          prestationId: 11,
+          qty: 5,
+          nameSnapshot: 'Tonte petit',
+          priceCentsSnapshot: 800,
+          minutesSnapshot: 8,
+          categoryIdSnapshot: fix.catPetit,
           categoryNameSnapshot: 'Petit',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 8,
         ),
       ],
       note: 'newer',
@@ -83,20 +92,26 @@ void main() {
     final id = await repo.insert(
       clientId: cId,
       date: DateTime(2024, 5, 1),
-      animals: [
-        TourStopAnimal(
-          categoryId: fix.catPetit,
-          count: 4,
+      prestations: [
+        TourStopPrestation(
+          prestationId: 11,
+          qty: 4,
+          nameSnapshot: 'Tonte petit',
+          priceCentsSnapshot: 800,
+          minutesSnapshot: 8,
+          categoryIdSnapshot: fix.catPetit,
           categoryNameSnapshot: 'Petit',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 8,
         ),
-        TourStopAnimal(
-          categoryId: fix.catGrand,
-          count: 1,
+        TourStopPrestation(
+          prestationId: 12,
+          qty: 1,
+          nameSnapshot: 'Tonte grand',
+          priceCentsSnapshot: 2500,
+          minutesSnapshot: 25,
+          categoryIdSnapshot: fix.catGrand,
           categoryNameSnapshot: 'Grand',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 25,
         ),
       ],
       note: 'old',
@@ -104,32 +119,40 @@ void main() {
     await repo.update(
       id,
       date: DateTime(2024, 6, 1),
-      animals: [
-        TourStopAnimal(
-          categoryId: fix.catGrand,
-          count: 7,
+      prestations: [
+        TourStopPrestation(
+          prestationId: 12,
+          qty: 7,
+          nameSnapshot: 'Tonte grand',
+          priceCentsSnapshot: 2500,
+          minutesSnapshot: 25,
+          categoryIdSnapshot: fix.catGrand,
           categoryNameSnapshot: 'Grand',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 25,
         ),
-        TourStopAnimal(
-          categoryId: fix.catAdulte,
-          count: 2,
+        TourStopPrestation(
+          prestationId: 21,
+          qty: 2,
+          nameSnapshot: 'Soin adulte',
+          priceCentsSnapshot: 4500,
+          minutesSnapshot: 45,
+          categoryIdSnapshot: fix.catAdulte,
           categoryNameSnapshot: 'Adulte',
           speciesNameSnapshot: 'Cheval',
-          minutesSnapshot: 45,
         ),
       ],
       note: 'new',
     );
     final entry = (await repo.listForClient(cId)).single;
     expect(entry.date, DateTime(2024, 6, 1));
-    expect(entry.animalsTotal, 9);
-    expect(entry.animals.length, 2);
-    expect(entry.animals[0].categoryId, fix.catGrand);
-    expect(entry.animals[0].count, 7);
-    expect(entry.animals[1].categoryId, fix.catAdulte);
-    expect(entry.animals[1].count, 2);
+    expect(entry.prestationsQtyTotal, 9);
+    expect(entry.prestations.length, 2);
+    expect(entry.prestations[0].prestationId, 12);
+    expect(entry.prestations[0].categoryIdSnapshot, fix.catGrand);
+    expect(entry.prestations[0].qty, 7);
+    expect(entry.prestations[1].prestationId, 21);
+    expect(entry.prestations[1].categoryIdSnapshot, fix.catAdulte);
+    expect(entry.prestations[1].qty, 2);
     expect(entry.note, 'new');
   });
 
@@ -138,13 +161,16 @@ void main() {
     final id = await repo.insert(
       clientId: cId,
       date: DateTime(2024, 5, 1),
-      animals: [
-        TourStopAnimal(
-          categoryId: fix.catPetit,
-          count: 4,
+      prestations: [
+        TourStopPrestation(
+          prestationId: 11,
+          qty: 4,
+          nameSnapshot: 'Tonte petit',
+          priceCentsSnapshot: 800,
+          minutesSnapshot: 8,
+          categoryIdSnapshot: fix.catPetit,
           categoryNameSnapshot: 'Petit',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 8,
         ),
       ],
     );
@@ -157,13 +183,16 @@ void main() {
     await repo.insert(
       clientId: cId,
       date: DateTime(2024, 5, 1),
-      animals: [
-        TourStopAnimal(
-          categoryId: fix.catPetit,
-          count: 4,
+      prestations: [
+        TourStopPrestation(
+          prestationId: 11,
+          qty: 4,
+          nameSnapshot: 'Tonte petit',
+          priceCentsSnapshot: 800,
+          minutesSnapshot: 8,
+          categoryIdSnapshot: fix.catPetit,
           categoryNameSnapshot: 'Petit',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 8,
         ),
       ],
     );
@@ -178,26 +207,32 @@ void main() {
     await repo.insert(
       clientId: cId,
       date: beforeSeason,
-      animals: [
-        TourStopAnimal(
-          categoryId: fix.catPetit,
-          count: 1,
+      prestations: [
+        TourStopPrestation(
+          prestationId: 11,
+          qty: 1,
+          nameSnapshot: 'Tonte petit',
+          priceCentsSnapshot: 800,
+          minutesSnapshot: 8,
+          categoryIdSnapshot: fix.catPetit,
           categoryNameSnapshot: 'Petit',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 8,
         ),
       ],
     );
     await repo.insert(
       clientId: cId,
       date: afterSeason,
-      animals: [
-        TourStopAnimal(
-          categoryId: fix.catPetit,
-          count: 1,
+      prestations: [
+        TourStopPrestation(
+          prestationId: 11,
+          qty: 1,
+          nameSnapshot: 'Tonte petit',
+          priceCentsSnapshot: 800,
+          minutesSnapshot: 8,
+          categoryIdSnapshot: fix.catPetit,
           categoryNameSnapshot: 'Petit',
           speciesNameSnapshot: 'Mouton',
-          minutesSnapshot: 8,
         ),
       ],
     );

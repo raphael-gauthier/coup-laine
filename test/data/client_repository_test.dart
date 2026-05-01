@@ -5,7 +5,6 @@ import 'package:coup_laine/domain/models/animal_count.dart';
 import 'package:coup_laine/domain/models/client.dart';
 import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:coup_laine/domain/models/intervention.dart';
-import 'package:coup_laine/domain/models/tour_stop_animal.dart';
 import 'package:coup_laine/domain/models/tour_stop_prestation.dart';
 import 'package:coup_laine/domain/use_cases/client_status.dart';
 import 'package:coup_laine/infra/db/app_database.dart';
@@ -38,23 +37,6 @@ TourStopPrestation _large(int n, {int prestationId = 12}) =>
       categoryIdSnapshot: 2,
       categoryNameSnapshot: 'Gros',
       speciesNameSnapshot: 'Mouton',
-    );
-
-// Manual-history insert still operates on TourStopAnimal (T9 will migrate).
-TourStopAnimal _smallAnimal(int n) => TourStopAnimal(
-      categoryId: 1,
-      count: n,
-      categoryNameSnapshot: 'Petit',
-      speciesNameSnapshot: 'Mouton',
-      minutesSnapshot: 8,
-    );
-
-TourStopAnimal _largeAnimal(int n) => TourStopAnimal(
-      categoryId: 2,
-      count: n,
-      categoryNameSnapshot: 'Gros',
-      speciesNameSnapshot: 'Mouton',
-      minutesSnapshot: 25,
     );
 
 Client _newClient({
@@ -449,7 +431,7 @@ void main() {
     await manual.insert(
       clientId: cId,
       date: DateTime(2026, 5, 1),
-      animals: [_smallAnimal(4)],
+      prestations: [_small(4)],
     );
 
     final all = await repo.listAllWithStatus(season);
@@ -467,7 +449,7 @@ void main() {
       await manual.insert(
         clientId: cId,
         date: DateTime(2025, 9, 1), // before season
-        animals: [_smallAnimal(4)],
+        prestations: [_small(4)],
       );
 
       final all = await repo.listAllWithStatus(season);
@@ -512,14 +494,14 @@ void main() {
     await manual.insert(
       clientId: cId,
       date: DateTime(2025, 9, 10),
-      animals: [_smallAnimal(3), _largeAnimal(1)],
+      prestations: [_small(3), _large(1)],
       note: 'manual older',
     );
     // Manual entry on 2026-06-01 (newest)
     final newestId = await manual.insert(
       clientId: cId,
       date: DateTime(2026, 6, 1),
-      animals: [_smallAnimal(4)],
+      prestations: [_small(4)],
       note: 'manual newer',
     );
 
@@ -575,7 +557,7 @@ void main() {
     await manual.insert(
       clientId: a,
       date: DateTime(2024, 6, 1),
-      animals: [_smallAnimal(3), _largeAnimal(1)],
+      prestations: [_small(3), _large(1)],
       note: 'manual-note-A',
     );
 
@@ -583,7 +565,7 @@ void main() {
     await manual.insert(
       clientId: b,
       date: DateTime(2024, 6, 1),
-      animals: [_smallAnimal(3), _largeAnimal(1)],
+      prestations: [_small(3), _large(1)],
       note: 'manual-note-B',
     );
 
@@ -592,7 +574,7 @@ void main() {
     await manual.insert(
       clientId: c,
       date: DateTime(2024, 6, 1),
-      animals: [_smallAnimal(3), _largeAnimal(1)],
+      prestations: [_small(3), _large(1)],
     );
 
     final map = await repo.loadClientNotesMap();
@@ -727,7 +709,7 @@ void main() {
       final manualId = await manual.insert(
         clientId: cId,
         date: DateTime(2026, 5, 1),
-        animals: [_smallAnimal(8), _largeAnimal(2)],
+        prestations: [_small(8), _large(2)],
       );
       await repo.applyManualEntryToClient(
         cId,
@@ -759,7 +741,7 @@ void main() {
       final id = await manual.insert(
         clientId: cId,
         date: DateTime(2026, 5, 1),
-        animals: [_smallAnimal(4)],
+        prestations: [_small(4)],
       );
       await repo.applyManualEntryToClient(
         cId,
