@@ -45,14 +45,14 @@ String _relativeShort(DateTime d) {
   return 'il y a ${y}an${y > 1 ? 's' : ''}';
 }
 
-String _breakdown(Intervention it) {
+String _breakdown(Intervention it, AppLocalizations l) {
   final parts = <String>[];
   for (final p in it.prestations) {
     parts.add('${p.qty} ${p.nameSnapshot}');
     if (parts.length >= 3) break;
   }
   if (it.prestations.length > 3) {
-    parts.add('et ${it.prestations.length - 3} autre(s)');
+    parts.add(l.clientHistoryAndOthersFmt(it.prestations.length - 3));
   }
   return parts.join(' · ');
 }
@@ -81,6 +81,7 @@ class ClientHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = AppLocalizations.of(context)!;
     final clientAsync = ref.watch(_clientByIdProvider(clientId));
     final kpisAsync = ref.watch(clientKpisProvider(clientId));
     final historyAsync = ref.watch(historyForClientProvider(clientId));
@@ -98,7 +99,7 @@ class ClientHistoryScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AppHeader(
-              title: AppLocalizations.of(context)!.clientHistoryTitleFmt(clientName),
+              title: l.clientHistoryTitleFmt(clientName),
               subtitle: subtitle,
             ),
             // KPI row — shown once kpis are available
@@ -159,9 +160,9 @@ class ClientHistoryScreen extends ConsumerWidget {
                                 ? FIcons.pencil
                                 : FIcons.scissors,
                             title: it.kind == InterventionKind.tour
-                                ? 'Tournée'
-                                : 'Saisie manuelle',
-                            breakdown: _breakdown(it),
+                                ? l.clientHistoryKindTour
+                                : l.clientHistoryKindManual,
+                            breakdown: _breakdown(it, l),
                             amount: it.totalRevenueCents == 0
                                 ? null
                                 : formatEuros(it.totalRevenueCents),

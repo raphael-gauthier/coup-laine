@@ -275,5 +275,59 @@
   "onboardingStep3Tip1": "• Add your first client",
   "onboardingStep3Tip2": "• Plan your first tour",
   "onboardingStep3Tip3": "• Open the service catalog",
-  "onboardingStep3CtaStart": "Start"
+  "onboardingStep3CtaStart": "Start",
+  "commonCall": "Call",
+  "commonSms": "SMS",
+  "commonRecompute": "Recompute",
+  "commonLater": "Later",
+  "commonNoStatusSelected": "No status selected",
+  "commonDistancesTitle": "Distances",
+  "tourStatusCompleted": "completed",
+  "tourStatusPlanned": "planned",
+  "kpiLabelKm": "km",
+  "kpiLabelDuration": "duration",
+  "kpiLabelRevenue": "revenue",
+  "kpiLabelAnimals": "animals",
+  "kpiLabelInterventions": "interv",
+  "kpiLabelLastVisit": "last",
+  "kpiLabelYears": "year(s)",
+  "kpiLabelStops": "stops",
+  "kpiLabelDeltaVsPlanned": "Δ vs planned",
+  "onboardingStep1Label": "Address",
+  "onboardingStep2Label": "Species",
+  "onboardingStep3Label": "Welcome",
+  "clientDetailNextActionTitle": "Next action",
+  "clientDetailNoPlannedTour": "No planned tour",
+  "clientDetailPlannedTourFmt": "Tour planned on {date}",
+  "@clientDetailPlannedTourFmt": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "clientDetailPhonePrincipal": "primary",
+  "clientHistoryKindTour": "Tour",
+  "clientHistoryKindManual": "Manual entry",
+  "clientHistoryAndOthersFmt": "and {n} other(s)",
+  "@clientHistoryAndOthersFmt": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "tourDetailFraisDeplacement": "Travel fees",
+  "tourDetailTotal": "Total",
+  "toursListItemTitleFmt": "Tour of {date}",
+  "@toursListItemTitleFmt": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "settingsBaseAddressChangedDialogBody": "The base address has changed. Recompute all distances from the new starting point?",
+  "settingsMarkerColorsTitle": "Marker colors",
+  "settingsImportConfirmTitle": "Import data?",
+  "clientsRecomputePendingFmt": "{n} client(s) without computed distances",
+  "@clientsRecomputePendingFmt": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  }
 }

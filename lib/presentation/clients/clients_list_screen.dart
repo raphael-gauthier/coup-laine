@@ -123,12 +123,12 @@ class ClientsListScreen extends ConsumerWidget {
                   child: AppSectionCard(
                     icon: FIcons.triangleAlert,
                     iconBackground: theme.colors.destructive,
-                    title: 'Distances',
+                    title: l.commonDistancesTitle,
                     child: Row(
                       children: [
                         Expanded(
                           child: Text(
-                            '$pending client(s) sans distances calculées',
+                            l.clientsRecomputePendingFmt(pending),
                             style: theme.typography.sm,
                           ),
                         ),
@@ -148,7 +148,7 @@ class ClientsListScreen extends ConsumerWidget {
                               );
                             }
                           },
-                          child: const Text('Recalculer'),
+                          child: Text(l.commonRecompute),
                         ),
                       ],
                     ),
@@ -172,7 +172,7 @@ class ClientsListScreen extends ConsumerWidget {
                                 child: Padding(
                                   padding: const EdgeInsets.all(AppSpacing.lg),
                                   child: Text(
-                                    'Aucun statut sélectionné',
+                                    l.commonNoStatusSelected,
                                     style: theme.typography.sm,
                                     textAlign: TextAlign.center,
                                   ),

@@ -145,19 +145,16 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
         builder: (context, style, animation) => FDialog(
           style: style,
           animation: animation,
-          body: const Text(
-            "L'adresse de départ a changé. Recalculer toutes les distances "
-            'depuis le nouveau point de départ ?',
-          ),
+          body: Text(l.settingsBaseAddressChangedDialogBody),
           actions: [
             FButton(
               variant: FButtonVariant.outline,
               onPress: () => Navigator.of(context).pop(false),
-              child: const Text('Plus tard'),
+              child: Text(l.commonLater),
             ),
             FButton(
               onPress: () => Navigator.of(context).pop(true),
-              child: const Text('Recalculer'),
+              child: Text(l.commonRecompute),
             ),
           ],
         ),
@@ -246,7 +243,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                 // --- Couleurs des marqueurs ---
                 AppSectionCard(
                   icon: FIcons.droplet,
-                  title: 'Couleurs des marqueurs',
+                  title: l.settingsMarkerColorsTitle,
                   child: Column(
                     children: [
                       _MarkerColorRow(
@@ -438,7 +435,7 @@ class _SettingsFormState extends ConsumerState<_SettingsForm> {
                           if (!mounted) return;
                           final ok = await showDestructiveConfirm(
                             context, // ignore: use_build_context_synchronously
-                            title: 'Importer les données ?',
+                            title: l.settingsImportConfirmTitle,
                             body: 'Cette action remplace toutes les données actuelles. Continuer ?',
                             confirmLabel: 'Importer',
                           );

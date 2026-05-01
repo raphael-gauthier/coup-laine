@@ -120,7 +120,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           children: [
             AppStepper(
               currentIndex: _step,
-              labels: const ['Adresse', 'Espèces', 'Bienvenue'],
+              labels: [l.onboardingStep1Label, l.onboardingStep2Label, l.onboardingStep3Label],
             ),
             Expanded(
               child: IndexedStack(

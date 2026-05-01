@@ -65,7 +65,7 @@ class TourDetailScreen extends ConsumerWidget {
                 .format(bundle.tour.plannedDate);
             final dayStr = DateFormat('EEEE', 'fr')
                 .format(bundle.tour.plannedDate);
-            final statusLabel = completed ? 'complétée' : 'planifiée';
+            final statusLabel = completed ? l.tourStatusCompleted : l.tourStatusPlanned;
             return Column(
               children: [
                 AppHeader(
@@ -133,14 +133,14 @@ class _Body extends ConsumerWidget {
         children: [
           AppKpiRow(
             cells: [
-              AppKpiCell(value: km, label: 'km'),
-              AppKpiCell(value: formatDuration(totalMin), label: 'durée'),
+              AppKpiCell(value: km, label: l.kpiLabelKm),
+              AppKpiCell(value: formatDuration(totalMin), label: l.kpiLabelDuration),
               AppKpiCell(
                 value: formatEuros(totalCents),
-                label: 'revenu',
+                label: l.kpiLabelRevenue,
                 valueColor: theme.colors.secondary,
               ),
-              AppKpiCell(value: '$totalAnimals', label: 'animaux'),
+              AppKpiCell(value: '$totalAnimals', label: l.kpiLabelAnimals),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -238,7 +238,7 @@ class _Body extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Frais déplacement',
+                            l.tourDetailFraisDeplacement,
                             style: theme.typography.sm.copyWith(
                               color: theme.colors.mutedForeground,
                               fontStyle: FontStyle.italic,
@@ -266,7 +266,7 @@ class _Body extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          'Total',
+                          l.tourDetailTotal,
                           style: theme.typography.lg.copyWith(
                             color: theme.colors.foreground,
                             fontWeight: FontWeight.w600,

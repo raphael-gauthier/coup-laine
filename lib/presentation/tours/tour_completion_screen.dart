@@ -238,20 +238,20 @@ class _TourCompletionScreenState extends ConsumerState<TourCompletionScreen> {
                     cells: [
                       AppKpiCell(
                         value: '$stopsValidated/${visibleStops.length}',
-                        label: 'stops',
+                        label: l.kpiLabelStops,
                       ),
                       AppKpiCell(
                         value: formatEuros(actualRevenue),
-                        label: 'revenu',
+                        label: l.kpiLabelRevenue,
                         valueColor: theme.colors.secondary,
                       ),
                       AppKpiCell(
                         value: formatDuration(totals.minutes),
-                        label: 'durée',
+                        label: l.kpiLabelDuration,
                       ),
                       AppKpiCell(
                         value: delta == 0 ? '0 €' : deltaLabel,
-                        label: 'Δ vs prévu',
+                        label: l.kpiLabelDeltaVsPlanned,
                         valueColor: delta == 0
                             ? theme.colors.mutedForeground
                             : (delta > 0

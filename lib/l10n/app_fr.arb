@@ -275,5 +275,59 @@
   "onboardingStep3Tip1": "• Ajouter ton premier client",
   "onboardingStep3Tip2": "• Planifier ta première tournée",
   "onboardingStep3Tip3": "• Ouvrir le catalogue de prestations",
-  "onboardingStep3CtaStart": "Démarrer"
+  "onboardingStep3CtaStart": "Démarrer",
+  "commonCall": "Appeler",
+  "commonSms": "SMS",
+  "commonRecompute": "Recalculer",
+  "commonLater": "Plus tard",
+  "commonNoStatusSelected": "Aucun statut sélectionné",
+  "commonDistancesTitle": "Distances",
+  "tourStatusCompleted": "complétée",
+  "tourStatusPlanned": "planifiée",
+  "kpiLabelKm": "km",
+  "kpiLabelDuration": "durée",
+  "kpiLabelRevenue": "revenu",
+  "kpiLabelAnimals": "animaux",
+  "kpiLabelInterventions": "interv",
+  "kpiLabelLastVisit": "dernière",
+  "kpiLabelYears": "an(s)",
+  "kpiLabelStops": "stops",
+  "kpiLabelDeltaVsPlanned": "Δ vs prévu",
+  "onboardingStep1Label": "Adresse",
+  "onboardingStep2Label": "Espèces",
+  "onboardingStep3Label": "Bienvenue",
+  "clientDetailNextActionTitle": "Prochaine action",
+  "clientDetailNoPlannedTour": "Aucune tournée planifiée",
+  "clientDetailPlannedTourFmt": "Tournée planifiée le {date}",
+  "@clientDetailPlannedTourFmt": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "clientDetailPhonePrincipal": "principal",
+  "clientHistoryKindTour": "Tournée",
+  "clientHistoryKindManual": "Saisie manuelle",
+  "clientHistoryAndOthersFmt": "et {n} autre(s)",
+  "@clientHistoryAndOthersFmt": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  },
+  "tourDetailFraisDeplacement": "Frais déplacement",
+  "tourDetailTotal": "Total",
+  "toursListItemTitleFmt": "Tournée du {date}",
+  "@toursListItemTitleFmt": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "settingsBaseAddressChangedDialogBody": "L'adresse de départ a changé. Recalculer toutes les distances depuis le nouveau point de départ ?",
+  "settingsMarkerColorsTitle": "Couleurs des marqueurs",
+  "settingsImportConfirmTitle": "Importer les données ?",
+  "clientsRecomputePendingFmt": "{n} client(s) sans distances calculées",
+  "@clientsRecomputePendingFmt": {
+    "placeholders": {
+      "n": {"type": "int"}
+    }
+  }
 }

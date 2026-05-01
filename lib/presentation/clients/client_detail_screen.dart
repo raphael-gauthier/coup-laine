@@ -140,26 +140,26 @@ class _Body extends ConsumerWidget {
               cells: [
                 AppKpiCell(
                   value: '${kpis.interventionCount}',
-                  label: 'interv',
+                  label: l.kpiLabelInterventions,
                 ),
                 AppKpiCell(
                   value: kpis.totalRevenueCents == 0
                       ? '—'
                       : formatEuros(kpis.totalRevenueCents),
-                  label: 'revenu',
+                  label: l.kpiLabelRevenue,
                   valueColor: theme.colors.secondary,
                 ),
                 AppKpiCell(
                   value: kpis.lastInterventionDate == null
                       ? '—'
                       : _relativeShort(kpis.lastInterventionDate!),
-                  label: 'dernière',
+                  label: l.kpiLabelLastVisit,
                 ),
                 AppKpiCell(
                   value: kpis.firstInterventionDate == null
                       ? '—'
                       : '${DateTime.now().year - kpis.firstInterventionDate!.year + 1}',
-                  label: 'an(s)',
+                  label: l.kpiLabelYears,
                 ),
               ],
             ),
@@ -184,13 +184,13 @@ class _Body extends ConsumerWidget {
             error: (_, __) => const SizedBox.shrink(),
             data: (date) => AppSectionCard(
               icon: FIcons.calendar,
-              title: 'Prochaine action',
+              title: l.clientDetailNextActionTitle,
               child: date == null
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Aucune tournée planifiée',
+                          l.clientDetailNoPlannedTour,
                           style: theme.typography.md.copyWith(
                             color: theme.colors.mutedForeground,
                           ),
@@ -205,7 +205,8 @@ class _Body extends ConsumerWidget {
                       ],
                     )
                   : Text(
-                      'Tournée planifiée le ${DateFormat('EEEE d MMMM', 'fr').format(date)}',
+                      l.clientDetailPlannedTourFmt(
+                          DateFormat('EEEE d MMMM', 'fr').format(date)),
                       style: theme.typography.md.copyWith(
                         color: theme.colors.foreground,
                       ),
@@ -218,7 +219,7 @@ class _Body extends ConsumerWidget {
           if (client.needsDistanceRecompute) ...[
             AppSectionCard(
               icon: FIcons.triangleAlert,
-              title: 'Distances',
+              title: l.commonDistancesTitle,
               child: Row(
                 children: [
                   Expanded(
@@ -310,7 +311,7 @@ class _Body extends ConsumerWidget {
                         ),
                         if (i == 0)
                           Text(
-                            'principal',
+                            l.clientDetailPhonePrincipal,
                             style: theme.typography.xs.copyWith(
                               color: theme.colors.mutedForeground,
                               fontStyle: FontStyle.italic,
@@ -327,7 +328,7 @@ class _Body extends ConsumerWidget {
                             prefix: const Icon(FIcons.phone),
                             onPress: () =>
                                 callPhone(context, client.phones[i]),
-                            child: const Text('Appeler'),
+                            child: Text(l.commonCall),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
@@ -337,7 +338,7 @@ class _Body extends ConsumerWidget {
                             prefix: const Icon(FIcons.messageCircle),
                             onPress: () =>
                                 sendSms(context, client.phones[i]),
-                            child: const Text('SMS'),
+                            child: Text(l.commonSms),
                           ),
                         ),
                       ],
@@ -570,9 +571,9 @@ class _InterventionsCard extends ConsumerWidget {
                         ? FIcons.pencil
                         : FIcons.scissors,
                     title: it.kind == InterventionKind.tour
-                        ? 'Tournée'
-                        : 'Saisie manuelle',
-                    breakdown: _breakdown(it),
+                        ? l.clientHistoryKindTour
+                        : l.clientHistoryKindManual,
+                    breakdown: _breakdown(it, l),
                     amount: it.totalRevenueCents == 0
                         ? null
                         : formatEuros(it.totalRevenueCents),
@@ -629,14 +630,14 @@ class _InterventionsCard extends ConsumerWidget {
     );
   }
 
-  String _breakdown(Intervention it) {
+  String _breakdown(Intervention it, AppLocalizations l) {
     final parts = <String>[];
     for (final p in it.prestations) {
       parts.add('${p.qty} ${p.nameSnapshot}');
       if (parts.length >= 3) break;
     }
     if (it.prestations.length > 3) {
-      parts.add('et ${it.prestations.length - 3} autre(s)');
+      parts.add(l.clientHistoryAndOthersFmt(it.prestations.length - 3));
     }
     return parts.join(' · ');
   }

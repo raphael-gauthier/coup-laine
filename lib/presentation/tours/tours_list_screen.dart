@@ -79,7 +79,7 @@ class ToursListScreen extends ConsumerWidget {
                             child: Padding(
                               padding: const EdgeInsets.all(AppSpacing.lg),
                               child: Text(
-                                'Aucun statut sélectionné',
+                                l.commonNoStatusSelected,
                                 style: context.theme.typography.sm,
                                 textAlign: TextAlign.center,
                               ),
@@ -233,12 +233,13 @@ class _TourTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final theme = context.theme;
     final date = tour.plannedDate;
     final km = (tour.totalDistanceMeters / 1000).toStringAsFixed(1);
     final driveMin = tour.totalDriveSeconds ~/ 60;
     final title =
-        'Tournée du ${DateFormat('d MMM', 'fr').format(date)}';
+        l.toursListItemTitleFmt(DateFormat('d MMM', 'fr').format(date));
 
     final prefix = Container(
       width: 40,
