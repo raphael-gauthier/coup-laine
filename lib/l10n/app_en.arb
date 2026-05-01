@@ -302,5 +302,11 @@
   "tourDraftSummaryNet": "Net (estimate): {amount}",
   "@tourDraftSummaryNet": {
     "placeholders": {"amount": {"type": "String"}}
-  }
+  },
+  "tourCompletionAddOffPlan": "+ Add an off-plan service",
+  "@tourCompletionAddOffPlan": {},
+  "tourCompletionRevenueRealized": "Realized revenue",
+  "@tourCompletionRevenueRealized": {},
+  "tourCompletionInterventionReal": "Actual intervention",
+  "@tourCompletionInterventionReal": {}
 }
