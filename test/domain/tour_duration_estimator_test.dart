@@ -1,35 +1,41 @@
-import 'package:coup_laine/domain/models/tour_stop_animal.dart';
+import 'package:coup_laine/domain/models/tour_stop_prestation.dart';
 import 'package:coup_laine/domain/use_cases/tour_duration_estimator.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-TourStopAnimal _a({
-  int categoryId = 1,
-  required int count,
+TourStopPrestation _p({
+  int prestationId = 1,
+  required int qty,
   required int minutes,
-  String species = 'Mouton',
-  String category = 'Adulte',
+  String name = 'Tonte',
+  int priceCents = 1000,
+  int? categoryId = 1,
+  String? category = 'Adulte',
+  String? species = 'Mouton',
 }) =>
-    TourStopAnimal(
-      categoryId: categoryId,
-      count: count,
+    TourStopPrestation(
+      prestationId: prestationId,
+      qty: qty,
+      nameSnapshot: name,
+      priceCentsSnapshot: priceCents,
+      minutesSnapshot: minutes,
+      categoryIdSnapshot: categoryId,
       categoryNameSnapshot: category,
       speciesNameSnapshot: species,
-      minutesSnapshot: minutes,
     );
 
 void main() {
   group('TourDurationEstimator', () {
     final estimator = const TourDurationEstimator();
 
-    test('one stop, mixed categories, drives 30 min each way', () {
+    test('one stop, mixed prestations, drives 30 min each way', () {
       final result = estimator.estimate(
         startTimeMinutes: 8 * 60,
         driveSecondsToStops: const [1800],
         driveSecondsBackToBase: 1800,
         stops: [
           [
-            _a(categoryId: 1, count: 10, minutes: 8),
-            _a(categoryId: 2, count: 0, minutes: 25),
+            _p(prestationId: 1, qty: 10, minutes: 8),
+            _p(prestationId: 2, qty: 0, minutes: 25),
           ],
         ],
       );
@@ -40,17 +46,17 @@ void main() {
       expect(result.totalInterventionMinutes, 80);
     });
 
-    test('three stops accumulate per-category intervention + drive', () {
+    test('three stops accumulate per-prestation intervention + drive', () {
       final result = estimator.estimate(
         startTimeMinutes: 8 * 60,
         driveSecondsToStops: const [600, 900, 1200],
         driveSecondsBackToBase: 1500,
         stops: [
-          [_a(categoryId: 1, count: 5, minutes: 8)],
-          [_a(categoryId: 2, count: 3, minutes: 25)],
+          [_p(prestationId: 1, qty: 5, minutes: 8)],
+          [_p(prestationId: 2, qty: 3, minutes: 25)],
           [
-            _a(categoryId: 1, count: 4, minutes: 8),
-            _a(categoryId: 2, count: 4, minutes: 25),
+            _p(prestationId: 1, qty: 4, minutes: 8),
+            _p(prestationId: 2, qty: 4, minutes: 25),
           ],
         ],
       );
@@ -69,13 +75,37 @@ void main() {
         driveSecondsToStops: const [600],
         driveSecondsBackToBase: 600,
         stops: [
-          [_a(categoryId: 1, count: 5, minutes: 0)],
+          [_p(prestationId: 1, qty: 5, minutes: 0)],
         ],
       );
       expect(result.totalInterventionMinutes, 0);
       expect(result.stopArrivalMinutes, [8 * 60 + 10]);
       expect(result.stopDepartureMinutes, [8 * 60 + 10]);
       expect(result.endTimeMinutes, 8 * 60 + 20);
+    });
+
+    test('libre prestation (categoryIdSnapshot null) still contributes its '
+        'qty × minutesSnapshot', () {
+      final result = estimator.estimate(
+        startTimeMinutes: 8 * 60,
+        driveSecondsToStops: const [600],
+        driveSecondsBackToBase: 600,
+        stops: [
+          [
+            _p(
+              prestationId: 99,
+              qty: 3,
+              minutes: 12,
+              categoryId: null,
+              category: null,
+              species: null,
+            ),
+          ],
+        ],
+      );
+      // 3 × 12 = 36 contributed even though libre (no category binding).
+      expect(result.totalInterventionMinutes, 36);
+      expect(result.stopDepartureMinutes, [8 * 60 + 10 + 36]);
     });
 
     test('rejects mismatched stops vs driveSecondsToStops length', () {
@@ -85,7 +115,7 @@ void main() {
           driveSecondsToStops: const [60, 60],
           driveSecondsBackToBase: 60,
           stops: [
-            [_a(categoryId: 1, count: 1, minutes: 8)],
+            [_p(prestationId: 1, qty: 1, minutes: 8)],
           ],
         ),
         throwsArgumentError,

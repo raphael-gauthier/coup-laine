@@ -6,6 +6,12 @@ import 'package:coup_laine/domain/models/settings.dart';
 import 'package:coup_laine/domain/use_cases/build_optimized_tour_proposal.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+// NOTE: with the prestation pivot, the optimizer no longer knows per-client
+// prestations at proposal time, so intervention duration is 0 in every draft
+// it builds. Trip duration is therefore drive-time only. Targets/distances
+// here are tuned so the optimizer's branching (extension vs contraction) is
+// still exercised under that constraint.
+
 Client _c(
   int id,
   String city, {
@@ -39,11 +45,6 @@ Settings _settings() => Settings(
       seasonStartedAt: DateTime.fromMillisecondsSinceEpoch(0),
     );
 
-const _categoryLookup = <int,
-    ({String speciesName, String categoryName, int minutes})>{
-  1: (speciesName: 'Mouton', categoryName: 'Adulte', minutes: 8),
-};
-
 /// Build a fully-symmetric matrix between every pair in [ids] (incl. base 0).
 List<DistanceMatrixEntry> _fullMatrix(
   List<int> ids,
@@ -66,14 +67,14 @@ void main() {
       [0, 1, 2],
       (a, b) => 8000, // 8 km between any pair → ~10 min drive
     );
+    // Drive-only trip: 0→1→2→0 ≈ 30 min. Target 30 puts it dead centre.
     final result = const BuildOptimizedTourProposal().call(
       communeName: 'Quimper',
-      targetMinutes: 90, // generous → seed fits well
+      targetMinutes: 30,
       startTimeMinutes: 8 * 60,
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
-      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds.toSet(), {1, 2});
     expect(result.isUnderTarget, isFalse);
@@ -81,8 +82,9 @@ void main() {
   });
 
   test('extension: under-target seed picks up nearest waiting outsiders', () {
-    // Seed is 1 client → ~25 min, target 4h. Extension must add the closest
-    // outsider (id=10, same coords) before the farther one (id=20).
+    // Seed is 1 client → ~12 min, target 60. Extension must add the cheap
+    // outsider (id=10) before the far one (id=20). The far edges are sized
+    // so the second extension step blows past target+tolerance.
     final clients = [
       _c(1, 'Quimper', lat: 48.0, lon: -4.0),
       _c(10, 'Plomelin', lat: 48.0, lon: -4.0), // close
@@ -91,21 +93,19 @@ void main() {
     final matrix = _fullMatrix(
       [0, 1, 10, 20],
       (a, b) {
-        // Define a metric that makes (0,1,10) cheap and 20 expensive.
-        const cheap = 5000;
-        const far = 25000;
+        const cheap = 5000;     // ~6 min
+        const far = 60000;      // ~71 min
         if (a == 20 || b == 20) return far;
         return cheap;
       },
     );
     final result = const BuildOptimizedTourProposal().call(
       communeName: 'Quimper',
-      targetMinutes: 90, // ~1h30, fits seed + 1 cheap outsider
+      targetMinutes: 60,
       startTimeMinutes: 8 * 60,
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
-      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds, contains(1));
     expect(result.selectedClientIds, contains(10));
@@ -113,8 +113,9 @@ void main() {
   });
 
   test('extension stops when adding next candidate would exceed tolerance', () {
-    // Seed = 1 client. Target = small. Two candidates: the first fits, the
+    // Seed = 1 client. Two outsider candidates: the first fits, the
     // second pushes us past target+30.
+    // 0↔1, 0↔10, 1↔10 = 8 km (~10 min) | anything with 20 = 40 km (~48 min)
     final clients = [
       _c(1, 'Quimper'),
       _c(10, 'Plomelin'),
@@ -122,16 +123,18 @@ void main() {
     ];
     final matrix = _fullMatrix(
       [0, 1, 10, 20],
-      (a, b) => 8000,
+      (a, b) {
+        if (a == 20 || b == 20) return 40000;
+        return 8000;
+      },
     );
     final result = const BuildOptimizedTourProposal().call(
       communeName: 'Quimper',
-      targetMinutes: 70, // tight: roughly fits 2 stops
+      targetMinutes: 70,
       startTimeMinutes: 8 * 60,
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
-      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds.length, lessThanOrEqualTo(2));
   });
@@ -140,7 +143,7 @@ void main() {
     final clients = [
       _c(1, 'Quimper', small: 1),
       _c(2, 'Quimper', small: 1),
-    ]; // tiny seed → under-target
+    ]; // tiny seed → drive-only ~18 min, way under target
     final matrix = _fullMatrix([0, 1, 2], (a, b) => 5000);
     final result = const BuildOptimizedTourProposal().call(
       communeName: 'Quimper',
@@ -149,7 +152,6 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
-      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds.toSet(), {1, 2});
     expect(result.isUnderTarget, isTrue);
@@ -157,7 +159,9 @@ void main() {
 
   test('contraction: over-target seed sheds the farthest from barycentre', () {
     // Seed of 4 clients in Quimper, three clustered tightly + one outlier.
-    // Target small enough that the outlier must be removed.
+    // Cluster pair drives 4 km (~5 min), outlier 30 km (~36 min). Drive-only
+    // trip with all four ≈ 87 min, far above target+30=60 → contraction.
+    // Removing the outlier brings it down to ~20 min, in range.
     final clients = [
       _c(1, 'Quimper', lat: 48.00, lon: -4.10, small: 5),
       _c(2, 'Quimper', lat: 48.00, lon: -4.11, small: 5),
@@ -167,19 +171,17 @@ void main() {
     final matrix = _fullMatrix(
       [0, 1, 2, 3, 4],
       (a, b) {
-        // Cluster 1/2/3 close, 4 far from everyone.
         if (a == 4 || b == 4) return 30000;
         return 4000;
       },
     );
     final result = const BuildOptimizedTourProposal().call(
       communeName: 'Quimper',
-      targetMinutes: 120,
+      targetMinutes: 30,
       startTimeMinutes: 8 * 60,
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
-      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds, isNot(contains(4)));
     expect(result.selectedClientIds.length, greaterThanOrEqualTo(1));
@@ -198,7 +200,6 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
-      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds.length, 1);
     expect(result.isOverTarget, isTrue);
@@ -214,7 +215,6 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
-      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds, isEmpty);
   });
@@ -242,8 +242,23 @@ void main() {
       waitingClients: clients,
       matrix: matrix,
       settings: _settings(),
-      categoryLookup: _categoryLookup,
     );
     expect(result.selectedClientIds, [1]);
+  });
+
+  test('intervention duration is 0 in proposal (prestations not yet picked)',
+      () {
+    final clients = [_c(1, 'Quimper'), _c(2, 'Quimper')];
+    final matrix = _fullMatrix([0, 1, 2], (a, b) => 8000);
+    final result = const BuildOptimizedTourProposal().call(
+      communeName: 'Quimper',
+      targetMinutes: 30,
+      startTimeMinutes: 8 * 60,
+      waitingClients: clients,
+      matrix: matrix,
+      settings: _settings(),
+    );
+    // Drive-only ≈ 30 min total; no per-stop intervention contribution.
+    expect(result.estimatedDurationMinutes, 30);
   });
 }

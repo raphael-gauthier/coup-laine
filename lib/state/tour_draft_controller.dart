@@ -39,7 +39,6 @@ final tourDraftProvider =
   final clients = ref.watch(clientRepositoryProvider);
   final matrix = ref.watch(distanceMatrixRepositoryProvider);
   final settingsRepo = ref.watch(settingsRepositoryProvider);
-  final categoryLookupFuture = ref.watch(categoryLookupProvider.future);
 
   final settings = await settingsRepo.read();
   if (settings == null) return null;
@@ -69,13 +68,12 @@ final tourDraftProvider =
     }
   }
 
-  final categoryLookup = await categoryLookupFuture;
   final result = const BuildTourDraft().build(
     candidateIds: ids,
     candidates: all,
     matrix: entries,
     settings: settings,
-    categoryLookup: categoryLookup,
+    prestationsPerClient: const {},
     startTimeMinutes: input.startTimeMinutes,
     presetOrder: input.overrideOrder,
   );
