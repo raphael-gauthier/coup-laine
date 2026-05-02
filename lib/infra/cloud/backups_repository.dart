@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -42,7 +43,12 @@ class BackupsRepository {
     final userId = _requireUserId();
     final timestamp = DateTime.now().toUtc();
     final iso = timestamp.toIso8601String().replaceAll(':', '-');
-    final storagePath = '$userId/$iso.json.gz';
+    // Suffixe hex aléatoire (Random.secure) entre timestamp et .json.gz pour
+    // éviter une collision théorique en Phase 2 multi-device (deux uploads
+    // à la même ms). Le suffixe est dans le nom de fichier — la RLS Storage
+    // sur `(storage.foldername(name))[1]` (= userId) reste inchangée.
+    final suffix = _randomSuffix(6);
+    final storagePath = '$userId/$iso-$suffix.json.gz';
 
     await _supabase.storage.from(_bucketName).uploadBinary(
           storagePath,
@@ -83,6 +89,15 @@ class BackupsRepository {
       // manuellement si besoin.
     }
     await _supabase.from(_tableName).delete().eq('id', meta.id);
+  }
+
+  String _randomSuffix(int chars) {
+    const alphabet = '0123456789abcdef';
+    final rng = Random.secure();
+    return String.fromCharCodes(List.generate(
+      chars,
+      (_) => alphabet.codeUnitAt(rng.nextInt(alphabet.length)),
+    ));
   }
 
   String _requireUserId() {
