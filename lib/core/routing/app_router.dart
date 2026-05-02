@@ -64,6 +64,17 @@ class AppRouter {
     return GoRouter(
       initialLocation: '/clients',
       redirect: (context, state) async {
+        // Magic link callback : le SDK Supabase capture le token depuis
+        // le launch URI lui-même (hors go_router). Notre seul boulot ici est
+        // d'absorber l'URI proprement ; les listeners (cloud_login_screen
+        // T21, _FirstSigninResolverHost T23, onboarding T24) feront le reste.
+        // Match défensif : selon la version de go_router, l'URI peut arriver
+        // comme `coupelaine://auth/callback?...`, `/auth/callback`, ou
+        // `/callback` (si `auth` est parsé comme host).
+        final loc = state.uri.toString();
+        if (loc.contains('auth/callback') || loc.contains('://auth')) {
+          return '/';
+        }
         if (state.matchedLocation.startsWith('/onboarding')) return null;
         final s = await ref.read(settingsRepositoryProvider).read();
         if (s == null) return '/onboarding';
