@@ -54,7 +54,8 @@ void main() {
   });
 
   group('signInWithMagicLink', () {
-    test('appelle signInWithOtp avec emailRedirectTo', () async {
+    test('sans session existante : appelle signInWithOtp directement', () async {
+      when(() => auth.currentSession).thenReturn(null);
       when(() => auth.signInWithOtp(
             email: any(named: 'email'),
             emailRedirectTo: any(named: 'emailRedirectTo'),
@@ -62,10 +63,40 @@ void main() {
 
       await service.signInWithMagicLink('user@example.com');
 
+      verifyNever(() => auth.signOut());
       verify(() => auth.signInWithOtp(
             email: 'user@example.com',
             emailRedirectTo: 'coupelaine://auth/callback',
           )).called(1);
+    });
+
+    test(
+        'avec session existante (anon) : signOut puis signInWithOtp pour éviter linkIdentity',
+        () async {
+      final anonUser = User(
+        id: 'u1',
+        appMetadata: const {},
+        userMetadata: null,
+        aud: 'authenticated',
+        createdAt: '2026-01-01T00:00:00Z',
+        isAnonymous: true,
+      );
+      when(() => auth.currentSession).thenReturn(_fakeSession(anonUser));
+      when(() => auth.signOut()).thenAnswer((_) async {});
+      when(() => auth.signInWithOtp(
+            email: any(named: 'email'),
+            emailRedirectTo: any(named: 'emailRedirectTo'),
+          )).thenAnswer((_) async {});
+
+      await service.signInWithMagicLink('user@example.com');
+
+      verifyInOrder([
+        () => auth.signOut(),
+        () => auth.signInWithOtp(
+              email: 'user@example.com',
+              emailRedirectTo: 'coupelaine://auth/callback',
+            ),
+      ]);
     });
   });
 

@@ -21,7 +21,21 @@ class AuthService {
   /// Envoie un magic link à l'email donné. Au clic dans l'email,
   /// l'app s'ouvre sur `coupelaine://auth/callback` et le SDK valide
   /// le token automatiquement.
+  ///
+  /// Si une session existe déjà (anonyme ou email), on signOut d'abord :
+  /// `signInWithOtp` tente sinon une `linkIdentity` vers l'email donné,
+  /// qui peut échouer (rate-limited, email déjà pris par un autre user,
+  /// etc.). Le signOut garantit qu'on part d'une session vide.
+  ///
+  /// Conséquence : entre l'envoi du lien et le clic dans l'email,
+  /// l'utilisateur n'a pas de session — l'ORS proxy ne fonctionnera pas
+  /// pendant cette fenêtre. Le bootstrap de `main.dart` rouvre une
+  /// session anonyme au prochain démarrage si l'utilisateur abandonne
+  /// le flow.
   Future<void> signInWithMagicLink(String email) async {
+    if (_supabase.auth.currentSession != null) {
+      await _supabase.auth.signOut();
+    }
     await _supabase.auth.signInWithOtp(
       email: email,
       emailRedirectTo: _redirectUrl,
