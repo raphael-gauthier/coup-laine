@@ -64,23 +64,37 @@ class AppRouter {
     return GoRouter(
       initialLocation: '/clients',
       redirect: (context, state) async {
+        final uri = state.uri.toString();
         // Magic link callback : le SDK Supabase capture le token depuis
-        // le launch URI lui-même (hors go_router). Notre seul boulot ici est
-        // d'absorber l'URI proprement ; les listeners (cloud_login_screen
-        // T21, _FirstSigninResolverHost T23, onboarding T24) feront le reste.
+        // le launch URI lui-même (hors go_router). On redirige direct vers
+        // la destination finale ; les listeners (cloud_login_screen T21,
+        // _FirstSigninResolverHost T23, onboarding T24) feront le reste.
         // Match défensif : selon la version de go_router, l'URI peut arriver
         // comme `coupelaine://auth/callback?...`, `/auth/callback`, ou
         // `/callback` (si `auth` est parsé comme host).
-        final loc = state.uri.toString();
-        if (loc.contains('auth/callback') || loc.contains('://auth')) {
-          return '/';
+        final isAuthCallback =
+            uri.contains('auth/callback') || uri.contains('://auth');
+
+        // Onboarding et ses sub-routes : pass-through (l'OnboardingScreen
+        // gère son listener post-callback localement).
+        if (!isAuthCallback &&
+            state.matchedLocation.startsWith('/onboarding')) {
+          return null;
         }
-        if (state.matchedLocation.startsWith('/onboarding')) return null;
+
         final s = await ref.read(settingsRepositoryProvider).read();
+
+        // Auth callback : bypass au tab par défaut (ou onboarding si pas
+        // encore de settings, cas du restore depuis nouveau device).
+        if (isAuthCallback) {
+          return s == null ? '/onboarding' : '/clients';
+        }
+
         if (s == null) return '/onboarding';
         // After a restore, BackupPickerScreen calls `context.go('/')` to pop
         // back to the root. There's no `/` route — bounce to the default tab.
-        if (state.matchedLocation == '/') return '/clients';
+        final path = state.uri.path;
+        if (path == '/' || path.isEmpty) return '/clients';
         return null;
       },
       routes: [
