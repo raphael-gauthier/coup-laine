@@ -5,15 +5,40 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../domain/models/backup_meta.dart';
 
-class BackupsRepository {
+/// Interface des opérations cloud sur les backups (index DB + Storage).
+/// Permet de fournir une fake en mémoire pour les tests sans avoir
+/// besoin d'instancier un client Supabase.
+abstract class BackupsRepository {
+  /// Liste les backups du user courant, triés par `created_at desc`.
+  Future<List<BackupMeta>> listForCurrentUser();
+
+  /// Compte les backups du user courant.
+  Future<int> countForCurrentUser();
+
+  /// Upload un blob gzippé vers Storage et insère la ligne d'index.
+  /// Retourne la `BackupMeta` créée.
+  Future<BackupMeta> create({
+    required Uint8List gzippedBytes,
+    required int schemaVersion,
+  });
+
+  /// Télécharge le contenu d'un backup. Retourne les bytes gzippés.
+  Future<Uint8List> download(String storagePath);
+
+  /// Supprime une ligne d'index ET le fichier Storage associé.
+  Future<void> delete(BackupMeta meta);
+}
+
+/// Implémentation Supabase de [BackupsRepository].
+class BackupsRepositoryImpl implements BackupsRepository {
   static const String _bucketName = 'backups';
   static const String _tableName = 'backups';
 
   final SupabaseClient _supabase;
 
-  BackupsRepository(this._supabase);
+  BackupsRepositoryImpl(this._supabase);
 
-  /// Liste les backups du user courant, triés par `created_at desc`.
+  @override
   Future<List<BackupMeta>> listForCurrentUser() async {
     final userId = _requireUserId();
     final rows = await _supabase
@@ -24,7 +49,7 @@ class BackupsRepository {
     return [for (final r in rows as List) _toDomain(r as Map<String, dynamic>)];
   }
 
-  /// Compte les backups du user courant.
+  @override
   Future<int> countForCurrentUser() async {
     final userId = _requireUserId();
     final rows = await _supabase
@@ -34,8 +59,7 @@ class BackupsRepository {
     return (rows as List).length;
   }
 
-  /// Upload un blob gzippé vers Storage et insère la ligne d'index.
-  /// Retourne la `BackupMeta` créée.
+  @override
   Future<BackupMeta> create({
     required Uint8List gzippedBytes,
     required int schemaVersion,
@@ -73,7 +97,7 @@ class BackupsRepository {
     return _toDomain(inserted);
   }
 
-  /// Télécharge le contenu d'un backup. Retourne les bytes gzippés.
+  @override
   Future<Uint8List> download(String storagePath) async {
     return _supabase.storage.from(_bucketName).download(storagePath);
   }
@@ -81,6 +105,7 @@ class BackupsRepository {
   /// Supprime une ligne d'index ET le fichier Storage associé.
   /// Best-effort : si la suppression Storage échoue mais la row existe
   /// encore, on la supprime quand même pour ne pas laisser d'incohérence.
+  @override
   Future<void> delete(BackupMeta meta) async {
     try {
       await _supabase.storage.from(_bucketName).remove([meta.storagePath]);

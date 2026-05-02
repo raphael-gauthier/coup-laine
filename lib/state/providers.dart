@@ -409,7 +409,7 @@ final isCloudOptedInProvider = Provider<bool>((ref) {
 });
 
 final backupsRepositoryProvider = Provider<BackupsRepository>((ref) {
-  return BackupsRepository(ref.watch(supabaseClientProvider));
+  return BackupsRepositoryImpl(ref.watch(supabaseClientProvider));
 });
 
 final backupServiceProvider = Provider<BackupService>((ref) {
