@@ -1,105 +1,383 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:coup_laine/domain/models/coordinates.dart';
 import 'package:coup_laine/infra/services/ors_routing_service.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class _MockFunctions extends Mock implements FunctionsClient {}
 
 void main() {
-  group('OrsRoutingService.matrix', () {
-    late String fixture;
+  late _MockFunctions functions;
+  late OrsRoutingService service;
 
-    setUpAll(() {
-      fixture = File('test/infra/fixtures/ors_matrix_response.json')
-          .readAsStringSync();
+  setUpAll(() {
+    registerFallbackValue(HttpMethod.post);
+  });
+
+  setUp(() {
+    functions = _MockFunctions();
+    service = OrsRoutingService(functions: functions);
+  });
+
+  FunctionResponse okResponse(Map<String, dynamic> data) =>
+      FunctionResponse(status: 200, data: data);
+
+  // Stubs the next invoke call to return [data] (or throw [error]).
+  void stubInvokeOk(Map<String, dynamic> data) {
+    when(() => functions.invoke(
+          any(),
+          body: any(named: 'body'),
+          method: any(named: 'method'),
+        )).thenAnswer((_) async => okResponse(data));
+  }
+
+  void stubInvokeThrows(Object error) {
+    when(() => functions.invoke(
+          any(),
+          body: any(named: 'body'),
+          method: any(named: 'method'),
+        )).thenThrow(error);
+  }
+
+  group('getRouteGeometry', () {
+    test('throws ArgumentError when fewer than 2 waypoints', () async {
+      expect(
+        () => service.getRouteGeometry(
+          waypoints: const [Coordinates(lat: 48.85, lon: 2.35)],
+        ),
+        throwsA(isA<ArgumentError>()),
+      );
     });
 
-    final locations = const [
-      Coordinates(lat: 48.5092, lon: -2.7676),
-      Coordinates(lat: 48.7500, lon: -3.5821),
-      Coordinates(lat: 48.4014, lon: -4.0855),
-    ];
-
-    test('sends key and parses distances/durations', () async {
-      late http.Request captured;
-      final client = MockClient((req) async {
-        captured = req;
-        return http.Response(fixture, 200,
-            headers: {'content-type': 'application/json'});
-      });
-      final svc = OrsRoutingService(apiKey: 'TESTKEY', httpClient: client);
-      final result = await svc.matrix(locations: locations);
-      expect(captured.headers['authorization'], 'TESTKEY');
-      expect(captured.method, 'POST');
-      expect(captured.url.path, '/v2/matrix/driving-car');
-      final body = jsonDecode(captured.body) as Map<String, dynamic>;
-      expect(body['locations'], hasLength(3));
-      expect(result.distances.length, 3);
-      expect(result.distances[0].length, 3);
-      expect(result.distances[0][0], 0); // self-distance
-    });
-
-    test('passes sources/destinations when provided', () async {
-      final empty = jsonEncode({
-        'distances': [
-          [0.0, 5000.0]
+    test('parses GeoJSON and swaps lon/lat to lat/lon', () async {
+      stubInvokeOk({
+        'features': [
+          {
+            'geometry': {
+              'coordinates': [
+                [2.35, 48.85],
+                [2.36, 48.86],
+              ],
+            },
+          },
         ],
-        'durations': [
-          [0.0, 600.0]
+      });
+
+      final r = await service.getRouteGeometry(waypoints: const [
+        Coordinates(lat: 48.85, lon: 2.35),
+        Coordinates(lat: 48.86, lon: 2.36),
+      ]);
+
+      expect(r, hasLength(2));
+      expect(r.first.lat, 48.85);
+      expect(r.first.lon, 2.35);
+      expect(r.last.lat, 48.86);
+      expect(r.last.lon, 2.36);
+    });
+
+    test('sends [lon, lat] coordinates to ors-proxy directions', () async {
+      stubInvokeOk({
+        'features': [
+          {
+            'geometry': {
+              'coordinates': [
+                [2.35, 48.85],
+                [2.36, 48.86],
+              ],
+            },
+          },
         ],
       });
-      late http.Request captured;
-      final client = MockClient((req) async {
-        captured = req;
-        return http.Response(empty, 200);
+
+      await service.getRouteGeometry(waypoints: const [
+        Coordinates(lat: 48.85, lon: 2.35),
+        Coordinates(lat: 48.86, lon: 2.36),
+      ]);
+
+      final captured = verify(() => functions.invoke(
+            captureAny(),
+            body: captureAny(named: 'body'),
+            method: HttpMethod.post,
+          )).captured;
+      expect(captured[0], 'ors-proxy/v2/directions/driving-car/geojson');
+      final body = captured[1] as Map<String, dynamic>;
+      expect(body['coordinates'], [
+        [2.35, 48.85],
+        [2.36, 48.86],
+      ]);
+    });
+
+    test(
+        'close-loop fallback adds last waypoint when polyline does not reach back',
+        () async {
+      // first == last, polyline ends far from base (> 0.001°).
+      stubInvokeOk({
+        'features': [
+          {
+            'geometry': {
+              'coordinates': [
+                [2.35, 48.85], // base
+                [2.40, 48.90], // far point
+                [2.39, 48.89], // ends well away from base
+              ],
+            },
+          },
+        ],
       });
-      final svc = OrsRoutingService(apiKey: 'KEY', httpClient: client);
-      await svc.matrix(
-        locations: locations,
-        sources: const [0],
-        destinations: const [0, 1],
-      );
-      final body = jsonDecode(captured.body) as Map<String, dynamic>;
-      expect(body['sources'], [0]);
-      expect(body['destinations'], [0, 1]);
+
+      final r = await service.getRouteGeometry(waypoints: const [
+        Coordinates(lat: 48.85, lon: 2.35),
+        Coordinates(lat: 48.90, lon: 2.40),
+        Coordinates(lat: 48.85, lon: 2.35),
+      ]);
+
+      // Original 3 polyline points + appended base = 4.
+      expect(r, hasLength(4));
+      expect(r.last.lat, 48.85);
+      expect(r.last.lon, 2.35);
     });
 
-    test('throws OrsAuthException on 403', () async {
-      final client = MockClient((_) async => http.Response('forbidden', 403));
-      final svc = OrsRoutingService(apiKey: 'KEY', httpClient: client);
-      expect(
-        svc.matrix(locations: locations),
-        throwsA(isA<OrsAuthException>()),
-      );
+    test(
+        'close-loop fallback skipped when polyline ends within ~0.001° of base',
+        () async {
+      stubInvokeOk({
+        'features': [
+          {
+            'geometry': {
+              'coordinates': [
+                [2.35, 48.85],
+                [2.40, 48.90],
+                [2.3505, 48.8505], // within threshold of base
+              ],
+            },
+          },
+        ],
+      });
+
+      final r = await service.getRouteGeometry(waypoints: const [
+        Coordinates(lat: 48.85, lon: 2.35),
+        Coordinates(lat: 48.90, lon: 2.40),
+        Coordinates(lat: 48.85, lon: 2.35),
+      ]);
+
+      expect(r, hasLength(3));
     });
 
-    test('throws OrsQuotaException on 429', () async {
-      final client = MockClient((_) async => http.Response('limit', 429));
-      final svc = OrsRoutingService(apiKey: 'KEY', httpClient: client);
+    test('throws OrsException on response missing features', () async {
+      stubInvokeOk({'something': 'else'});
       expect(
-        svc.matrix(locations: locations),
-        throwsA(isA<OrsQuotaException>()),
-      );
-    });
-
-    test('throws OrsException on 5xx', () async {
-      final client = MockClient((_) async => http.Response('boom', 500));
-      final svc = OrsRoutingService(apiKey: 'KEY', httpClient: client);
-      expect(
-        svc.matrix(locations: locations),
+        () => service.getRouteGeometry(waypoints: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
         throwsA(isA<OrsException>()),
       );
     });
 
-    test('throws OrsException on socket failure', () async {
-      final client = MockClient((_) async {
-        throw const SocketException('down');
+    test('throws OrsException on missing coordinates in geometry', () async {
+      stubInvokeOk({
+        'features': [
+          {'geometry': <String, dynamic>{}}
+        ],
       });
-      final svc = OrsRoutingService(apiKey: 'KEY', httpClient: client);
       expect(
-        svc.matrix(locations: locations),
+        () => service.getRouteGeometry(waypoints: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(isA<OrsException>()),
+      );
+    });
+  });
+
+  group('matrix', () {
+    test('parses distances and durations, rounding to int', () async {
+      stubInvokeOk({
+        'distances': [
+          [0, 1234.7],
+          [1234.2, 0],
+        ],
+        'durations': [
+          [0, 60.4],
+          [60.6, 0],
+        ],
+      });
+
+      final r = await service.matrix(locations: const [
+        Coordinates(lat: 48.85, lon: 2.35),
+        Coordinates(lat: 48.86, lon: 2.36),
+      ]);
+
+      expect(r.distances, [
+        [0, 1235],
+        [1234, 0],
+      ]);
+      expect(r.durations, [
+        [0, 60],
+        [61, 0],
+      ]);
+    });
+
+    test('maps null cells to -1', () async {
+      stubInvokeOk({
+        'distances': [
+          [0, null],
+          [null, 0],
+        ],
+        'durations': [
+          [0, null],
+          [null, 0],
+        ],
+      });
+
+      final r = await service.matrix(locations: const [
+        Coordinates(lat: 48.85, lon: 2.35),
+        Coordinates(lat: 48.86, lon: 2.36),
+      ]);
+
+      expect(r.distances, [
+        [0, -1],
+        [-1, 0],
+      ]);
+      expect(r.durations, [
+        [0, -1],
+        [-1, 0],
+      ]);
+    });
+
+    test('passes sources/destinations and locations as [lon, lat]', () async {
+      stubInvokeOk({
+        'distances': [
+          [0]
+        ],
+        'durations': [
+          [0]
+        ],
+      });
+
+      await service.matrix(
+        locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ],
+        sources: const [0],
+        destinations: const [1],
+      );
+
+      final captured = verify(() => functions.invoke(
+            captureAny(),
+            body: captureAny(named: 'body'),
+            method: HttpMethod.post,
+          )).captured;
+      expect(captured[0], 'ors-proxy/v2/matrix/driving-car');
+      final body = captured[1] as Map<String, dynamic>;
+      expect(body['locations'], [
+        [2.35, 48.85],
+        [2.36, 48.86],
+      ]);
+      expect(body['metrics'], ['distance', 'duration']);
+      expect(body['sources'], [0]);
+      expect(body['destinations'], [1]);
+    });
+
+    test('throws OrsException when distances/durations missing', () async {
+      stubInvokeOk({'something': 'else'});
+      expect(
+        () => service.matrix(locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(isA<OrsException>()),
+      );
+    });
+
+    test('throws OrsException when matrix rows are malformed', () async {
+      stubInvokeOk({
+        'distances': 'not-a-list-of-lists',
+        'durations': [[0]],
+      });
+      expect(
+        () => service.matrix(locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(isA<OrsException>()),
+      );
+    });
+
+  });
+
+  group('error mapping', () {
+    test('FunctionException 401 -> OrsAuthException', () async {
+      stubInvokeThrows(const FunctionException(status: 401));
+      expect(
+        () => service.matrix(locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(isA<OrsAuthException>()),
+      );
+    });
+
+    test('FunctionException 403 -> OrsAuthException', () async {
+      stubInvokeThrows(const FunctionException(status: 403));
+      expect(
+        () => service.getRouteGeometry(waypoints: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(isA<OrsAuthException>()),
+      );
+    });
+
+    test('FunctionException 429 -> OrsQuotaException', () async {
+      stubInvokeThrows(const FunctionException(status: 429));
+      expect(
+        () => service.matrix(locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(isA<OrsQuotaException>()),
+      );
+    });
+
+    test('FunctionException 500 -> plain OrsException (not auth/quota)',
+        () async {
+      stubInvokeThrows(const FunctionException(status: 500));
+      await expectLater(
+        () => service.matrix(locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(allOf(
+          isA<OrsException>(),
+          isNot(isA<OrsAuthException>()),
+          isNot(isA<OrsQuotaException>()),
+        )),
+      );
+    });
+
+    test('SocketException -> OrsException', () async {
+      stubInvokeThrows(const SocketException('offline'));
+      expect(
+        () => service.matrix(locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(isA<OrsException>()),
+      );
+    });
+
+    test('TimeoutException -> OrsException', () async {
+      stubInvokeThrows(TimeoutException('slow'));
+      expect(
+        () => service.matrix(locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
         throwsA(isA<OrsException>()),
       );
     });

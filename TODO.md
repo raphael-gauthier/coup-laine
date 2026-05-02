@@ -6,11 +6,14 @@ Index des fonctionnalités. Le brief détaillé (périmètre, critères d'accept
 
 ## À venir
 
-### 1. Synchronisation cloud — priorité haute
-Sauvegarde + restauration sur un nouveau device, à terme multi-device. Prérequis : choix du backend (Firebase / Supabase / custom), push-only vs bidirectionnel, auth, mode offline avec sync différée. À articuler avec la migration `ORS_API_KEY` côté backend (cf. memory).
+### 2. Gestion du RGPD — priorité haute
+Mise en conformité RGPD pour les données clients stockées (coordonnées, téléphones, historique de tonte, notes). À couvrir : politique de confidentialité, mentions de collecte, consentement, droit d'accès / rectification / suppression / portabilité (export JSON déjà en place — à compléter par une suppression totale), durée de conservation, mentions légales. À articuler avec la sync cloud (#1) qui change la nature du traitement (du local-only au cloud).
 
 ### 3. Personnalisation des statuts client — priorité moyenne
 Les statuts (`waiting`, `scheduled`, `done`, `noSheep`, `banned`) ont libellés et couleurs en dur. À l'onboarding + dans Réglages, l'utilisateur doit pouvoir les nommer et choisir leurs couleurs. Les couleurs sont déjà persistées (`Settings.markerXxxColor`) ; il faut ajouter les libellés en base et brancher l'UI dessus partout (badges, légende carte, filtres, fiche).
+
+### 4. Création du business model — priorité moyenne
+Définir le modèle économique de l'app : gratuit / freemium / abonnement / one-shot, segmentation par features (sync cloud, multi-device, catalogue avancé…), pricing, canaux de distribution. Travail produit + business, pas un sujet code. À cadrer avant d'ouvrir l'app au public et de basculer la clé ORS côté backend (coût serveur).
 
 ### 7. Génération de facture + envoi client — long terme (non prioritaire)
 PDF facture par client par tournée. Reportée : pas de plan court terme.
@@ -20,6 +23,56 @@ source quand le sujet sera repris.
 ---
 
 ## Livrées
+
+### Synchronisation cloud Phase 1 — backup/restore + ORS proxy
+**Mergé sur `main`** — 2026-05-XX (à compléter avec le SHA de merge)
+**Spec :** `docs/superpowers/specs/2026-05-01-cloud-sync-design.md`
+**Plan :** `docs/superpowers/plans/2026-05-01-cloud-sync.md`
+
+#### Ce qui a été livré
+
+**Backend Supabase**
+- Projet Supabase `eu-west-3` (Paris). Auth magic link + sessions anonymes activées. Bucket Storage `backups` privé + table `backups` indexée, RLS scoped sur `auth.uid()` côté Postgres et `(storage.foldername(name))[1]` côté Storage.
+- Edge Function `ors-proxy` (Deno/TypeScript) : forward authentifié vers OpenRouteService avec la clé serveur-side, CORS preflight + relais transparent du status. **Résolution de la dette `ORS_API_KEY`** : la clé n'est plus dans le bundle app, plus de `flutter_dotenv`.
+- Email template magic link en français (Modern Craft palette) versionné dans `supabase/email-templates/`.
+
+**Couche cloud côté app (`lib/infra/cloud/` nouveau namespace)**
+- `AuthService` : magic link sign-in (`signInWithOtp` avec deep-link `coupelaine://auth/callback`), sign-out qui rouvre une session anonyme pour garder l'ORS proxy accessible. `isCloudOptedIn` distingue session anonyme vs email.
+- `BackupsRepository` : CRUD sur Storage + table `backups` (list/count/create/download/delete avec orphelins Storage best-effort).
+- `BackupService` : orchestre snapshot Drift (`JsonExportService.exportToJsonString`) → gzip → upload + index → rotation 3 backups glissants. Restore = download → gunzip → import. Helper pur `shouldRunAutoBackup` testé.
+- `BackupScheduler` : `WidgetsBindingObserver`, déclenche un auto-backup au resume si `cloudOptIn ET lastBackupAt > 24h`. Erreurs silencieuses (debugPrint), best-effort sur la connectivité (laisse le SDK Supabase échouer).
+
+**Schema Drift v13 → v14**
+- Ajout `Settings.lastBackupAt` (epoch ms nullable) + `SettingsRepository.setLastBackupAt`.
+- Transition de la stratégie de migration : passage de wipe-and-recreate à incrémentale (`m.addColumn`) — branche legacy `from < 13` préservée pour les installs de dev pré-prod, branche `from < 14` ajoute la colonne en préservant les données utilisateur. Première vraie migration incrémentale du projet.
+
+**Bug latent corrigé**
+- `JsonExportService` ne couvrait que 5 tables sur 9 — les 4 ajoutées par les pivots récents (`species`, `animal_categories`, `prestations`, `manual_history_entries`) étaient ignorées. Schema bump v1 → v2, ordre FK descendant pour les wipes / ascendant pour les inserts. Forward-compat (`?? []` sur les nouvelles clés).
+- En passant : fix d'un crash latent sur `jsonEncode` quand les champs `List<TourStopPrestation>` ou `List<AnimalCount>` étaient non-vides (ajout de `_serializeTourStopPrestations` et `_serializeAnimalCounts` symétriques aux helpers d'import existants). Sans ce fix, un export/import sur un compte chargé aurait silencieusement perdu toutes les prestations et animaux.
+
+**UI**
+- Section « Compte cloud » dans Réglages : email connecté, dernière sauvegarde (relative), boutons Sauvegarder maintenant / Restaurer un backup / Se déconnecter du cloud.
+- `CloudLoginScreen` : magic link, message « lien envoyé », auto-pop quand `isCloudOptedIn` devient true (post-callback deep-link).
+- `BackupPickerScreen` : liste des backups (today/yesterday/date FR + taille ko), restore avec confirmation typée RESTAURER (uniquement depuis Réglages — bypass dans le flow onboarding qui considère que le user a déjà choisi explicitement).
+- `_FirstSigninResolverHost` (`lib/app.dart`) : à la première connexion non-anonyme, push automatique du backup si compte cloud vide, sinon modal de choix « garder local / restaurer cloud ». Garde sur `/onboarding` pour ne pas double-fire avec le listener local de l'onboarding.
+- Étape « Bienvenue » dans l'onboarding (zéro vs restaurer) — l'app a maintenant 4 steps. Listener local sur `isCloudOptedInProvider` pilote la résolution post-login en mode onboarding.
+
+**Routing**
+- 4 nouvelles routes : `/settings/cloud-login`, `/settings/backups`, `/onboarding/cloud-login`, `/onboarding/restore-pick`.
+- Redirect global étendu : `startsWith('/onboarding')` au lieu de `==`, ajout de `/` → `/clients` pour que `context.go('/')` post-restore ne 404 pas.
+- Deep-link Android : `coupelaine://auth/callback` enregistré dans `AndroidManifest.xml`.
+
+**Tests**
+- 293 tests verts (vs 285 avant le chantier). Nouveaux tests : `JsonExportService` round-trip 4 tables + complet + schema versioning + state-preservation à la rejection (8 tests), migration v13 → v14, `BackupMeta` equality, `gzipString`/`gunzipString` (3 tests dont garbage input), `AuthService` (5 tests mocktail), `shouldRunAutoBackup` (5 tests purs).
+- Note : les anciens tests `OrsRoutingService` ont été supprimés (mockaient `http.Client` qui n'existe plus côté ORS). À recréer quand un fake propre du `FunctionsClient` Supabase sera en place.
+
+#### Écarts vs périmètre initial
+
+- **Phase 2 (multi-device bidirectionnel) hors scope**, comme prévu. L'architecture choisie (Postgres + Storage + Auth) ne préempte pas Phase 2 — l'identité Supabase est stable d'une phase à l'autre.
+- **Pas de Sentry/Crashlytics**. Les erreurs sont loguées via `debugPrint` ; la spec l'a explicitement déféré à un follow-up dédié.
+- **Pas de connectivity check** côté app. Le SDK Supabase échoue silencieusement en absence de réseau, l'auto-backup retentera au prochain resume.
+- **Pas de tests d'intégration Supabase**. Les couches Auth / Storage / Functions sont validées manuellement contre l'environnement réel.
+- **Polish UX onboarding flaggé** (3 items mineurs notés en T24) : bouton « Précédent » désactivé sur step 1, pas de spinner pendant la résolution post-login async, edge case dialog null si user back-press. À traiter dans une passe de polish ultérieure.
 
 ### Édition d'une tournée planifiée + suggestions à proximité
 **Mergé sur `main`** — 2026-04-30 (commit de merge `6b59e4a`)

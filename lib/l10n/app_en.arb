@@ -82,8 +82,10 @@
   "tourDetailScheduleTitle": "Schedule",
   "tourDetailDeleted": "(client deleted)",
   "onboardingHeroSubtitle": "Your tour companion",
-  "onboardingWelcomeTitle": "Welcome",
+  "onboardingWelcomeTitle": "Welcome to Coup'Laine",
   "onboardingWelcomeBody": "To get started, enter the address you leave from each morning. All distances will be calculated from this point.",
+  "onboardingWelcomeStartFresh": "Start fresh",
+  "onboardingWelcomeRestore": "Restore from backup",
   "onboardingAddressTitle": "Starting address",
   "onboardingStep1Cta": "Next",
   "onboardingStep2Title": "Your species",
@@ -335,5 +337,63 @@
   "tourDraftStepDate": "Date",
   "tourDraftStepClients": "Clients",
   "tourDraftStepPrestations": "Prestations",
-  "tourDraftOptimizeOrder": "Optimize order"
+  "tourDraftOptimizeOrder": "Optimize order",
+  "settingsCloudSection": "Cloud account",
+  "settingsCloudActivate": "Enable cloud backup",
+  "settingsCloudConnectedAs": "Signed in as {email}",
+  "@settingsCloudConnectedAs": {
+    "placeholders": {"email": {"type": "String"}}
+  },
+  "settingsCloudLastBackupNever": "No backup yet",
+  "settingsCloudLastBackupAgo": "Last backup: {when}",
+  "@settingsCloudLastBackupAgo": {
+    "placeholders": {"when": {"type": "String"}}
+  },
+  "settingsCloudBackupNow": "Back up now",
+  "settingsCloudBackupSuccess": "Backup successful",
+  "settingsCloudBackupFailed": "Backup failed. Try again.",
+  "settingsCloudBackupNoNetwork": "No connection.",
+  "settingsCloudRestore": "Restore a backup",
+  "settingsCloudSignOut": "Sign out of cloud",
+  "settingsCloudSignOutConfirm": "This will not delete your local data. You can sign back in at any time.",
+  "cloudLoginTitle": "Cloud sign-in",
+  "cloudLoginEmailLabel": "Email address",
+  "cloudLoginEmailHint": "you@example.com",
+  "cloudLoginEmailInvalid": "Invalid email",
+  "cloudLoginSendButton": "Send link",
+  "cloudLoginCheckEmail": "Link sent. Check your inbox and tap the link to sign in.",
+  "cloudLoginNoNetwork": "No connection.",
+  "cloudLoginGenericError": "Error. Try again later.",
+  "cloudLoginRateLimit": "Too many recent requests. Try again in a few minutes.",
+  "cloudLoginIntro": "Your clients, tours and history are copied to your private cloud account every day. The last 3 backups are kept.",
+  "cloudLoginIntroRestore": "On a new device, sign in with the same email to restore everything.",
+  "cloudLoginIntroNoPassword": "No password needed: a sign-in link will be sent to your email.",
+  "backupPickerTitle": "Available backups",
+  "backupPickerEmpty": "No backup for this account.",
+  "backupPickerToday": "Today at {time}",
+  "@backupPickerToday": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "backupPickerYesterday": "Yesterday at {time}",
+  "@backupPickerYesterday": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "backupPickerSizeKb": "{kb} KB",
+  "@backupPickerSizeKb": {
+    "placeholders": {"kb": {"type": "int"}}
+  },
+  "restoreConfirmTitleSettings": "Restore this backup?",
+  "restoreConfirmMessageSettings": "This will overwrite all current data on this device. Cannot be undone.",
+  "restoreConfirmTypePromptSettings": "Type RESTORE to confirm",
+  "restoreConfirmConfirmButton": "Restore",
+  "restoreConfirmCancelButton": "Cancel",
+  "restoreInProgress": "Restoring…",
+  "restoreSuccess": "Restore complete",
+  "restoreFailedFutureSchema": "This backup was created by a newer version. Please update the app.",
+  "restoreFailedGeneric": "Restore failed.",
+  "firstSigninTitle": "Existing backups detected",
+  "firstSigninMessage": "This cloud account already has backups. What would you like to do?",
+  "firstSigninKeepLocal": "Keep this device's data",
+  "firstSigninRestoreCloud": "Restore from cloud",
+  "firstSigninInitialBackup": "Initial backup completed"
 }

@@ -191,7 +191,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   Widget build(BuildContext context) {
     final theme = context.theme;
     final clientsAsync = ref.watch(clientsAsyncProvider);
-    final settingsAsync = ref.watch(_settingsForMapProvider);
+    final settingsAsync = ref.watch(settingsForMapProvider);
 
     return FScaffold(
       child: Material(
@@ -365,8 +365,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 }
 
-/// Local provider — reads Settings as an AsyncValue, used only by MapScreen.
-final _settingsForMapProvider = FutureProvider<Settings?>(
+/// Provider — reads Settings as an AsyncValue, used by MapScreen. Public
+/// (et non `_settingsForMapProvider`) pour permettre l'invalidation depuis
+/// le restore cloud (`backup_picker_screen._runRestore`) — sans ça, l'onglet
+/// Carte (gardé monté via Offstage par le shell route) afficherait l'ancienne
+/// adresse de base après une restauration.
+final settingsForMapProvider = FutureProvider<Settings?>(
   (ref) => ref.watch(settingsRepositoryProvider).read(),
 );
 

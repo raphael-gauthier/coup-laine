@@ -82,8 +82,10 @@
   "tourDetailScheduleTitle": "Planning",
   "tourDetailDeleted": "(client supprimé)",
   "onboardingHeroSubtitle": "Votre compagnon de tournée",
-  "onboardingWelcomeTitle": "Bienvenue",
+  "onboardingWelcomeTitle": "Bienvenue dans Coup'Laine",
   "onboardingWelcomeBody": "Pour commencer, indiquez l'adresse d'où vous partez chaque matin. Toutes les distances seront calculées depuis ce point.",
+  "onboardingWelcomeStartFresh": "Démarrer à zéro",
+  "onboardingWelcomeRestore": "Restaurer depuis une sauvegarde",
   "onboardingAddressTitle": "Adresse de départ",
   "onboardingStep1Cta": "Suivant",
   "onboardingStep2Title": "Vos espèces",
@@ -335,5 +337,63 @@
   "tourDraftStepDate": "Date",
   "tourDraftStepClients": "Clients",
   "tourDraftStepPrestations": "Prestations",
-  "tourDraftOptimizeOrder": "Optimiser l'ordre"
+  "tourDraftOptimizeOrder": "Optimiser l'ordre",
+  "settingsCloudSection": "Compte cloud",
+  "settingsCloudActivate": "Activer la sauvegarde cloud",
+  "settingsCloudConnectedAs": "Connecté avec {email}",
+  "@settingsCloudConnectedAs": {
+    "placeholders": {"email": {"type": "String"}}
+  },
+  "settingsCloudLastBackupNever": "Aucune sauvegarde",
+  "settingsCloudLastBackupAgo": "Dernière sauvegarde : {when}",
+  "@settingsCloudLastBackupAgo": {
+    "placeholders": {"when": {"type": "String"}}
+  },
+  "settingsCloudBackupNow": "Sauvegarder maintenant",
+  "settingsCloudBackupSuccess": "Sauvegarde effectuée",
+  "settingsCloudBackupFailed": "Sauvegarde échouée. Réessayez.",
+  "settingsCloudBackupNoNetwork": "Pas de connexion.",
+  "settingsCloudRestore": "Restaurer un backup",
+  "settingsCloudSignOut": "Se déconnecter du cloud",
+  "settingsCloudSignOutConfirm": "Cela ne supprimera pas vos données locales. Vous pourrez vous reconnecter à tout moment.",
+  "cloudLoginTitle": "Connexion cloud",
+  "cloudLoginEmailLabel": "Adresse email",
+  "cloudLoginEmailHint": "vous@exemple.fr",
+  "cloudLoginEmailInvalid": "Email invalide",
+  "cloudLoginSendButton": "Envoyer le lien",
+  "cloudLoginCheckEmail": "Lien envoyé. Vérifiez votre boîte mail puis tapez sur le lien dans cet email.",
+  "cloudLoginNoNetwork": "Pas de connexion.",
+  "cloudLoginGenericError": "Erreur. Réessayez plus tard.",
+  "cloudLoginRateLimit": "Trop de demandes récentes. Réessayez dans quelques minutes.",
+  "cloudLoginIntro": "Vos clients, tournées et historique sont copiés chaque jour vers votre compte privé. Les 3 dernières sauvegardes sont conservées.",
+  "cloudLoginIntroRestore": "Sur un nouvel appareil, connectez-vous avec le même email pour tout restaurer.",
+  "cloudLoginIntroNoPassword": "Pas de mot de passe : un lien de connexion vous sera envoyé par email.",
+  "backupPickerTitle": "Sauvegardes disponibles",
+  "backupPickerEmpty": "Aucune sauvegarde pour ce compte.",
+  "backupPickerToday": "Aujourd'hui à {time}",
+  "@backupPickerToday": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "backupPickerYesterday": "Hier à {time}",
+  "@backupPickerYesterday": {
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "backupPickerSizeKb": "{kb} ko",
+  "@backupPickerSizeKb": {
+    "placeholders": {"kb": {"type": "int"}}
+  },
+  "restoreConfirmTitleSettings": "Restaurer ce backup ?",
+  "restoreConfirmMessageSettings": "Cela écrasera toutes les données actuelles de cet appareil. Action irréversible.",
+  "restoreConfirmTypePromptSettings": "Tapez RESTAURER pour confirmer",
+  "restoreConfirmConfirmButton": "Restaurer",
+  "restoreConfirmCancelButton": "Annuler",
+  "restoreInProgress": "Restauration en cours…",
+  "restoreSuccess": "Restauration terminée",
+  "restoreFailedFutureSchema": "Cette sauvegarde a été créée par une version plus récente. Mettez à jour l'app.",
+  "restoreFailedGeneric": "Restauration échouée.",
+  "firstSigninTitle": "Sauvegardes existantes détectées",
+  "firstSigninMessage": "Ce compte cloud contient déjà des sauvegardes. Que souhaitez-vous faire ?",
+  "firstSigninKeepLocal": "Garder les données de cet appareil",
+  "firstSigninRestoreCloud": "Restaurer depuis le cloud",
+  "firstSigninInitialBackup": "Sauvegarde initiale effectuée"
 }

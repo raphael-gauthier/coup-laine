@@ -33,18 +33,25 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 13;
+  int get schemaVersion => 14;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
       if (from < 13) {
-        // Reset complet — pas d'utilisateurs en prod, pas de migration data.
+        // Branche legacy pré-prod : wipe-and-recreate. Conservée pour
+        // gérer les éventuels installs de dev encore en v < 13.
         for (final table in allTables.toList().reversed) {
           await m.deleteTable(table.actualTableName);
         }
         await m.createAll();
+        return;
+      }
+      if (from < 14) {
+        // v13 → v14 : ajout de Settings.lastBackupAt.
+        // Migration incrémentale — préserve les données utilisateur.
+        await m.addColumn(settingsTable, settingsTable.lastBackupAt);
       }
     },
     beforeOpen: (details) async {

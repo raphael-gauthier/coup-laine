@@ -285,7 +285,7 @@ class _ClientTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = context.theme;
-    final settingsAsync = ref.watch(_settingsForChipProvider);
+    final settingsAsync = ref.watch(settingsForChipProvider);
     final hex = settingsAsync.value == null
         ? '#9CA3AF'
         : _hexForStatus(settingsAsync.value!, status);
@@ -340,7 +340,7 @@ class _StatusFilterButton {
           child: Consumer(
             builder: (context, ref, _) {
               final visible = ref.watch(_visibleStatusesProvider);
-              final settingsAsync = ref.watch(_settingsForChipProvider);
+              final settingsAsync = ref.watch(settingsForChipProvider);
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -427,6 +427,9 @@ Color _hexToColor(String hex) {
   return Color(int.parse(cleaned, radix: 16) | 0xFF000000);
 }
 
-final _settingsForChipProvider = FutureProvider<Settings?>(
+/// Public (et non `_settingsForChipProvider`) pour permettre l'invalidation
+/// depuis le restore cloud (`backup_picker_screen._runRestore`) — sans ça,
+/// le chip d'adresse de base afficherait l'ancienne valeur après restauration.
+final settingsForChipProvider = FutureProvider<Settings?>(
   (ref) => ref.watch(settingsRepositoryProvider).read(),
 );
