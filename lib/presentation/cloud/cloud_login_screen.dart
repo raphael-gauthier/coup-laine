@@ -26,6 +26,43 @@ bool _isRateLimit(Object e) {
   return false;
 }
 
+/// Ligne d'intro sur l'écran de connexion : icône à gauche, texte à droite.
+/// Les 3 bullets pédagogisent ce qu'est la sauvegarde cloud avant que le
+/// user tape son email.
+class _IntroBullet extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _IntroBullet({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.theme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            icon,
+            size: 16,
+            color: theme.colors.mutedForeground,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Text(
+            text,
+            style: theme.typography.sm.copyWith(
+              color: theme.colors.mutedForeground,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class CloudLoginScreen extends ConsumerStatefulWidget {
   const CloudLoginScreen({super.key});
 
@@ -108,23 +145,43 @@ class _CloudLoginScreenState extends ConsumerState<CloudLoginScreen> {
                             color: theme.colors.foreground,
                           ),
                         )
-                      : FTextField(
-                          control: FTextFieldControl.managed(
-                            controller: _emailCtrl,
-                            onChange: (_) {
-                              if (_emailError != null) {
-                                setState(() => _emailError = null);
-                              }
-                            },
-                          ),
-                          label: Text(l.cloudLoginEmailLabel),
-                          hint: l.cloudLoginEmailHint,
-                          keyboardType: TextInputType.emailAddress,
-                          autocorrect: false,
-                          textCapitalization: TextCapitalization.none,
-                          error: _emailError != null
-                              ? Text(_emailError!)
-                              : null,
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _IntroBullet(
+                              icon: FIcons.cloudUpload,
+                              text: l.cloudLoginIntro,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            _IntroBullet(
+                              icon: FIcons.refreshCw,
+                              text: l.cloudLoginIntroRestore,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            _IntroBullet(
+                              icon: FIcons.mail,
+                              text: l.cloudLoginIntroNoPassword,
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            FTextField(
+                              control: FTextFieldControl.managed(
+                                controller: _emailCtrl,
+                                onChange: (_) {
+                                  if (_emailError != null) {
+                                    setState(() => _emailError = null);
+                                  }
+                                },
+                              ),
+                              label: Text(l.cloudLoginEmailLabel),
+                              hint: l.cloudLoginEmailHint,
+                              keyboardType: TextInputType.emailAddress,
+                              autocorrect: false,
+                              textCapitalization: TextCapitalization.none,
+                              error: _emailError != null
+                                  ? Text(_emailError!)
+                                  : null,
+                            ),
+                          ],
                         ),
                 ),
               ),
