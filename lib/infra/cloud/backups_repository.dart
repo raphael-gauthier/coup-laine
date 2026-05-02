@@ -138,9 +138,34 @@ class BackupsRepositoryImpl implements BackupsRepository {
       id: row['id'] as String,
       userId: row['user_id'] as String,
       storagePath: row['storage_path'] as String,
-      createdAt: DateTime.parse(row['created_at'] as String),
+      createdAt: parsePostgresTimestamp(row['created_at'] as String),
       schemaVersion: row['schema_version'] as int,
       sizeBytes: row['size_bytes'] as int,
     );
   }
+
+}
+
+/// Postgres `timestamptz` est conceptuellement toujours UTC, mais selon
+/// la sérialisation côté PostgREST la string peut arriver sans offset
+/// (ni `Z` ni `+02:00`). `DateTime.parse` interprète alors comme local,
+/// et le `.toLocal()` du formatter devient un no-op → l'utilisateur
+/// voit l'heure UTC au lieu de son heure locale.
+///
+/// On force l'interprétation UTC quand la string n'a pas d'indicateur
+/// timezone, en reconstruisant un DateTime UTC avec les mêmes
+/// composants wall-clock.
+DateTime parsePostgresTimestamp(String raw) {
+  final parsed = DateTime.parse(raw);
+  if (parsed.isUtc) return parsed;
+  return DateTime.utc(
+    parsed.year,
+    parsed.month,
+    parsed.day,
+    parsed.hour,
+    parsed.minute,
+    parsed.second,
+    parsed.millisecond,
+    parsed.microsecond,
+  );
 }
