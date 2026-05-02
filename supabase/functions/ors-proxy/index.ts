@@ -17,7 +17,13 @@ serve(async (req: Request) => {
   }
 
   if (!ORS_API_KEY) {
-    return new Response('ORS_API_KEY not configured', { status: 500 });
+    return new Response('ORS_API_KEY not configured', {
+      status: 500,
+      headers: {
+        'Content-Type': 'text/plain',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 
   // Le path après /ors-proxy/ — ex. "v2/directions/driving-car/geojson",
@@ -25,7 +31,13 @@ serve(async (req: Request) => {
   const url = new URL(req.url);
   const subPath = url.pathname.replace(/^\/ors-proxy\/?/, '');
   if (!subPath) {
-    return new Response('Missing ORS sub-path', { status: 400 });
+    return new Response('Missing ORS sub-path', {
+      status: 400,
+      headers: {
+        'Content-Type': 'text/plain',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 
   const targetUrl = `${ORS_BASE}/${subPath}`;
@@ -42,15 +54,28 @@ serve(async (req: Request) => {
       body,
     });
   } catch (e) {
-    return new Response(`Upstream fetch failed: ${e}`, { status: 502 });
+    return new Response(`Upstream fetch failed: ${e}`, {
+      status: 502,
+      headers: {
+        'Content-Type': 'text/plain',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   }
 
-  // Relayer la réponse telle quelle (status + body)
+  // Relayer la réponse telle quelle (status + body + content-type)
+  const upstreamContentType =
+    orsResponse.headers.get('content-type') ?? 'application/json';
+  const relayedHeaders: Record<string, string> = {
+    'Content-Type': upstreamContentType,
+    'Access-Control-Allow-Origin': '*',
+  };
+  const upstreamCacheControl = orsResponse.headers.get('cache-control');
+  if (upstreamCacheControl) {
+    relayedHeaders['Cache-Control'] = upstreamCacheControl;
+  }
   return new Response(await orsResponse.text(), {
     status: orsResponse.status,
-    headers: {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
-    },
+    headers: relayedHeaders,
   });
 });
