@@ -120,17 +120,27 @@ class OrsRoutingService {
 
     final json = await _invokeOrs('v2/matrix/driving-car', body);
 
-    final distances = (json['distances'] as List)
-        .map((row) => (row as List)
-            .map((v) => v == null ? -1 : (v as num).round())
-            .toList())
-        .toList();
-    final durations = (json['durations'] as List)
-        .map((row) => (row as List)
-            .map((v) => v == null ? -1 : (v as num).round())
-            .toList())
-        .toList();
-    return OrsMatrixResult(distances: distances, durations: durations);
+    final rawDistances = json['distances'];
+    final rawDurations = json['durations'];
+    if (rawDistances is! List || rawDurations is! List) {
+      throw OrsException('Missing distances/durations in matrix response');
+    }
+
+    try {
+      final distances = rawDistances
+          .map((row) => (row as List)
+              .map((v) => v == null ? -1 : (v as num).round())
+              .toList())
+          .toList();
+      final durations = rawDurations
+          .map((row) => (row as List)
+              .map((v) => v == null ? -1 : (v as num).round())
+              .toList())
+          .toList();
+      return OrsMatrixResult(distances: distances, durations: durations);
+    } on TypeError catch (e) {
+      throw OrsException('Malformed matrix response shape', e);
+    }
   }
 
   /// Appel commun via l'Edge Function `ors-proxy`. Le SDK Supabase ajoute

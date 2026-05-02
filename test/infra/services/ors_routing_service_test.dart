@@ -283,6 +283,31 @@ void main() {
       expect(body['destinations'], [1]);
     });
 
+    test('throws OrsException when distances/durations missing', () async {
+      stubInvokeOk({'something': 'else'});
+      expect(
+        () => service.matrix(locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(isA<OrsException>()),
+      );
+    });
+
+    test('throws OrsException when matrix rows are malformed', () async {
+      stubInvokeOk({
+        'distances': 'not-a-list-of-lists',
+        'durations': [[0]],
+      });
+      expect(
+        () => service.matrix(locations: const [
+          Coordinates(lat: 48.85, lon: 2.35),
+          Coordinates(lat: 48.86, lon: 2.36),
+        ]),
+        throwsA(isA<OrsException>()),
+      );
+    });
+
   });
 
   group('error mapping', () {
