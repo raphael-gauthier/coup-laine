@@ -364,6 +364,7 @@
   "cloudLoginCheckEmail": "Lien envoyé. Vérifiez votre boîte mail puis tapez sur le lien dans cet email.",
   "cloudLoginNoNetwork": "Pas de connexion.",
   "cloudLoginGenericError": "Erreur. Réessayez plus tard.",
+  "cloudLoginRateLimit": "Trop de demandes récentes. Réessayez dans quelques minutes.",
   "backupPickerTitle": "Sauvegardes disponibles",
   "backupPickerEmpty": "Aucune sauvegarde pour ce compte.",
   "backupPickerToday": "Aujourd'hui à {time}",

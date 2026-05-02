@@ -364,6 +364,7 @@
   "cloudLoginCheckEmail": "Link sent. Check your inbox and tap the link to sign in.",
   "cloudLoginNoNetwork": "No connection.",
   "cloudLoginGenericError": "Error. Try again later.",
+  "cloudLoginRateLimit": "Too many recent requests. Try again in a few minutes.",
   "backupPickerTitle": "Available backups",
   "backupPickerEmpty": "No backup for this account.",
   "backupPickerToday": "Today at {time}",

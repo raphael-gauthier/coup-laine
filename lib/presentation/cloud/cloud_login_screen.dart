@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthApiException;
 
 import '../../core/design_tokens.dart';
 import '../../state/providers.dart';
@@ -13,6 +14,17 @@ import '../widgets/app_primary_button.dart';
 import '../widgets/app_section_card.dart';
 
 final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+/// Détecte les erreurs de rate-limit Supabase pour adapter le message UX.
+/// Couvre `over_email_send_rate_limit` (free tier ~4 emails/h) et tout
+/// autre 429.
+bool _isRateLimit(Object e) {
+  if (e is AuthApiException) {
+    if (e.code == 'over_email_send_rate_limit') return true;
+    if (e.statusCode == '429') return true;
+  }
+  return false;
+}
 
 class CloudLoginScreen extends ConsumerStatefulWidget {
   const CloudLoginScreen({super.key});
@@ -49,13 +61,12 @@ class _CloudLoginScreenState extends ConsumerState<CloudLoginScreen> {
       if (!mounted) return;
       setState(() => _sent = true);
     } catch (e, st) {
-      // Log l'exception réelle — sinon on perd toute info de diagnostic.
-      // Cf. issue : Supabase a parfois confirm-signup côté serveur mais
-      // le SDK throw quand même côté client (état transitoire post-signOut,
-      // rate limit côté API, etc.).
       debugPrint('signInWithMagicLink failed: $e\n$st');
       if (!mounted) return;
-      showFToast(context: context, title: Text(l.cloudLoginGenericError));
+      final message = _isRateLimit(e)
+          ? l.cloudLoginRateLimit
+          : l.cloudLoginGenericError;
+      showFToast(context: context, title: Text(message));
     } finally {
       if (mounted) setState(() => _sending = false);
     }
