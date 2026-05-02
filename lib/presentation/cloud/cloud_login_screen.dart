@@ -48,7 +48,12 @@ class _CloudLoginScreenState extends ConsumerState<CloudLoginScreen> {
       await ref.read(authServiceProvider).signInWithMagicLink(email);
       if (!mounted) return;
       setState(() => _sent = true);
-    } catch (_) {
+    } catch (e, st) {
+      // Log l'exception réelle — sinon on perd toute info de diagnostic.
+      // Cf. issue : Supabase a parfois confirm-signup côté serveur mais
+      // le SDK throw quand même côté client (état transitoire post-signOut,
+      // rate limit côté API, etc.).
+      debugPrint('signInWithMagicLink failed: $e\n$st');
       if (!mounted) return;
       showFToast(context: context, title: Text(l.cloudLoginGenericError));
     } finally {
