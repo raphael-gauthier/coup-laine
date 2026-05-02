@@ -178,7 +178,9 @@ final banGeocodingServiceProvider = Provider<BanGeocodingService>((ref) {
 });
 
 final orsRoutingServiceProvider = Provider<OrsRoutingService>((ref) {
-  return OrsRoutingService(supabase: ref.watch(supabaseClientProvider));
+  return OrsRoutingService(
+    functions: ref.watch(supabaseClientProvider).functions,
+  );
 });
 
 final distanceMatrixSyncProvider = Provider<DistanceMatrixSync>((ref) {

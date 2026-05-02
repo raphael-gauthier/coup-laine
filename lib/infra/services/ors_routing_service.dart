@@ -34,9 +34,10 @@ class OrsMatrixResult {
 }
 
 class OrsRoutingService {
-  final SupabaseClient _supabase;
+  final FunctionsClient _functions;
 
-  OrsRoutingService({required SupabaseClient supabase}) : _supabase = supabase;
+  OrsRoutingService({required FunctionsClient functions})
+      : _functions = functions;
 
   /// Récupère la géométrie de route entre N waypoints (≥ 2). Retourne la
   /// liste de points lat/lon de la polyline. Lance [OrsException] sur
@@ -141,7 +142,7 @@ class OrsRoutingService {
     Map<String, dynamic> body,
   ) async {
     try {
-      final response = await _supabase.functions
+      final response = await _functions
           .invoke(
             'ors-proxy/$orsSubPath',
             body: body,
