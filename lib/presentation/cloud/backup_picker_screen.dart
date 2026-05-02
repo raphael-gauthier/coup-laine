@@ -127,14 +127,18 @@ class _BackupList extends ConsumerWidget {
 
 String _formatLabel(BuildContext context, DateTime when) {
   final l = AppLocalizations.of(context)!;
+  // `when` est UTC (cf. parsePostgresTimestamp côté repo). On convertit en
+  // local AVANT formatage : DateFormat lit les composants tels quels, sans
+  // appliquer de conversion — formater une UTC donnerait l'heure UTC.
+  final whenLocal = when.toLocal();
   final now = DateTime.now();
   final today = DateTime(now.year, now.month, now.day);
-  final whenDay = DateTime(when.year, when.month, when.day);
-  final hm = DateFormat.Hm().format(when);
+  final whenDay = DateTime(whenLocal.year, whenLocal.month, whenLocal.day);
+  final hm = DateFormat.Hm().format(whenLocal);
   if (whenDay == today) return l.backupPickerToday(hm);
   final yesterday = today.subtract(const Duration(days: 1));
   if (whenDay == yesterday) return l.backupPickerYesterday(hm);
-  return DateFormat.yMMMMd().add_Hm().format(when);
+  return DateFormat.yMMMMd().add_Hm().format(whenLocal);
 }
 
 /// Lance la restauration : spinner non-dismissible, await restore, invalide
