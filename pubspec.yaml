@@ -1,7 +1,7 @@
 name: coup_laine
 description: Compagnon quotidien du tondeur de mouton.
 publish_to: 'none'
-version: 0.6.0+4
+version: 0.7.0+5
 
 environment:
   sdk: ^3.6.0
