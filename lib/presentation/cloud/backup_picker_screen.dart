@@ -10,7 +10,12 @@ import '../../domain/models/backup_meta.dart';
 import '../../infra/services/json_export_service.dart';
 import '../../state/providers.dart';
 import '../clients/clients_list_screen.dart'
-    show clientsAsyncProvider, clientsPendingProvider;
+    show
+        clientsAsyncProvider,
+        clientsPendingProvider,
+        clientNotesMapProvider,
+        settingsForChipProvider;
+import '../map/map_screen.dart' show settingsForMapProvider;
 import '../tours/tours_list_screen.dart' show toursAsyncProvider;
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error_state.dart';
@@ -166,8 +171,11 @@ Future<void> _runRestore(
     // Invalide les providers root qui lisent les tables affectées par
     // l'import. Liste explicite — pas de "invalidate everything".
     ref.invalidate(settingsRepositoryFutureProvider);
+    ref.invalidate(settingsForMapProvider);
+    ref.invalidate(settingsForChipProvider);
     ref.invalidate(clientsAsyncProvider);
     ref.invalidate(clientsPendingProvider);
+    ref.invalidate(clientNotesMapProvider);
     ref.invalidate(toursAsyncProvider);
     ref.invalidate(activeSpeciesProvider);
     ref.invalidate(archivedSpeciesProvider);
