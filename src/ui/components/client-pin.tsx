@@ -29,8 +29,7 @@ export function ClientPin({ client, onPress, today }: Props) {
       <View
         className={cn(
           'w-6 h-6 rounded-full border-2 border-background dark:border-background-dark',
-          colors.bg,
-          `dark:${colors.bgDark}`
+          colors.bgClass
         )}
       />
     </Marker>

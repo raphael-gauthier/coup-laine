@@ -3,6 +3,7 @@ import { db } from '@/infra/db/client';
 import { ClientRepository } from '@/data/repositories/client-repository';
 import type { Client } from '@/domain/models/client';
 import { newId } from '@/lib/id';
+import { errorToast } from '@/ui/components/error-toast';
 
 const repo = new ClientRepository(db);
 
@@ -117,9 +118,10 @@ export function useToggleWaiting() {
       }
       return { previous };
     },
-    onError: (_err, { id }, ctx) => {
+    onError: (err, { id }, ctx) => {
       if (ctx?.previous) qc.setQueryData(clientsKeys.byId(id), ctx.previous);
       void qc.invalidateQueries({ queryKey: clientsKeys.all });
+      errorToast('Action impossible', err instanceof Error ? err.message : undefined);
     },
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: clientsKeys.all });

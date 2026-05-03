@@ -38,7 +38,7 @@ export function ClientCard({ client, onPress, onToggleWaiting, today }: Props) {
         variant="muted"
         className="flex-row items-center rounded-2xl px-4 py-3 gap-3"
       >
-        <View className={cn('w-1 h-12 rounded-full', colors.bg, `dark:${colors.bgDark}`)} />
+        <View className={cn('w-1 h-12 rounded-full', colors.bgClass)} />
         <View className="flex-1">
           <Text className="font-semibold">{client.displayName}</Text>
           {client.addressCity ? (

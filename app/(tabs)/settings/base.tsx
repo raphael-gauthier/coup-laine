@@ -8,6 +8,7 @@ import { Button } from '@/ui/primitives/button';
 import { AddressAutocompleteInput } from '@/ui/components/address-autocomplete-input';
 import { useBaseAddress, useSetBaseAddress, type BaseAddress } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
+import { errorToast } from '@/ui/components/error-toast';
 import type { BanResult } from '@/infra/services/ban-geocoding';
 
 export default function BaseScreen() {
@@ -33,6 +34,9 @@ export default function BaseScreen() {
         void haptics.success();
         setPending(null);
       },
+      onError: (err) => {
+        errorToast(t('common.error_generic'), err instanceof Error ? err.message : undefined);
+      },
     });
   };
 
@@ -50,6 +54,7 @@ export default function BaseScreen() {
         <View className="gap-2">
           <Text className="text-sm font-medium">{t('settings.base.address_label')}</Text>
           <AddressAutocompleteInput
+            initialValue={current?.label ?? ''}
             placeholder={t('settings.base.address_placeholder')}
             onSelect={onSelect}
           />
