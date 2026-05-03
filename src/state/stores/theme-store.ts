@@ -7,11 +7,11 @@ interface ThemeState {
   setMode: (mode: ThemeMode) => void;
 }
 
-/**
- * In-memory only for now. Persistence to the SQLite settings table is wired
- * in Phase 2 once the DB layer exists.
- */
 export const useThemeStore = create<ThemeState>((set) => ({
   mode: 'system',
   setMode: (mode) => set({ mode }),
 }));
+
+export function isThemeMode(value: string): value is ThemeMode {
+  return value === 'system' || value === 'light' || value === 'dark';
+}
