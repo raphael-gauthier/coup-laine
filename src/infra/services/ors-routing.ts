@@ -66,6 +66,36 @@ export async function fetchDistanceMatrix(
   return result;
 }
 
+interface PairResult {
+  forward: { distanceKm: number; durationMinutes: number };
+  reverse: { distanceKm: number; durationMinutes: number };
+}
+
+/**
+ * Fetch BASE↔client road distances. Returns both directions.
+ * Throws on network/ORS error so the caller can mark as failed.
+ */
+export async function fetchPairFromBase(
+  base: { lat: number; lon: number },
+  client: { lat: number; lon: number },
+  options: { signal?: AbortSignal } = {}
+): Promise<PairResult> {
+  const matrix = await fetchDistanceMatrix(
+    [
+      { id: 'BASE', lat: base.lat, lon: base.lon },
+      { id: 'CLIENT', lat: client.lat, lon: client.lon },
+    ],
+    options
+  );
+  const forward = matrix.find((r) => r.fromId === 'BASE' && r.toId === 'CLIENT');
+  const reverse = matrix.find((r) => r.fromId === 'CLIENT' && r.toId === 'BASE');
+  if (!forward || !reverse) throw new Error('Incomplete matrix response');
+  return {
+    forward: { distanceKm: forward.distanceKm, durationMinutes: forward.durationMinutes },
+    reverse: { distanceKm: reverse.distanceKm, durationMinutes: reverse.durationMinutes },
+  };
+}
+
 export async function fetchRouteGeometry(
   coords: MatrixCoord[],
   options: { signal?: AbortSignal } = {}
