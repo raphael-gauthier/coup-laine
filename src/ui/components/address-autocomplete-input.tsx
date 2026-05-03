@@ -19,8 +19,16 @@ export function AddressAutocompleteInput({ initialValue = '', placeholder, onSel
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  // Skip the next search effect right after the user selected a suggestion
+  // (otherwise setting `query` to the picked label re-triggers the search).
+  const skipNextSearchRef = useRef(false);
 
   useEffect(() => {
+    if (skipNextSearchRef.current) {
+      skipNextSearchRef.current = false;
+      return;
+    }
+
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (query.trim().length < 3) {
@@ -46,8 +54,12 @@ export function AddressAutocompleteInput({ initialValue = '', placeholder, onSel
 
   const handleSelect = (r: BanResult) => {
     void haptics.selection();
+    skipNextSearchRef.current = true;
+    abortRef.current?.abort();
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setQuery(r.label);
     setResults([]);
+    setLoading(false);
     onSelect(r);
   };
 
