@@ -4,6 +4,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { ClientForm } from '@/ui/components/client-form';
 import { useUpsertClient } from '@/state/queries/clients';
 import { haptics } from '@/ui/motion/haptics';
+import { errorToast } from '@/ui/components/error-toast';
 
 export default function NewClientScreen() {
   const { t } = useTranslation();
@@ -21,6 +22,9 @@ export default function NewClientScreen() {
             onSuccess: () => {
               void haptics.success();
               router.back();
+            },
+            onError: (err) => {
+              errorToast(t('clients.save_failed_title'), err instanceof Error ? err.message : undefined);
             },
           })
         }

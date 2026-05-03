@@ -1,5 +1,5 @@
 import { View, ScrollView } from 'react-native';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text } from '@/ui/primitives/text';
 import { Input } from '@/ui/primitives/input';
@@ -18,11 +18,15 @@ interface Props {
   onCancel?: () => void;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function ClientForm({ initial, saving, onSubmit, onCancel }: Props) {
   const { t } = useTranslation();
   const [displayName, setDisplayName] = useState(initial?.displayName ?? '');
+  const [displayNameTouched, setDisplayNameTouched] = useState(false);
   const [phones, setPhones] = useState<string[]>(initial?.phones ?? []);
   const [email, setEmail] = useState(initial?.email ?? '');
+  const [emailTouched, setEmailTouched] = useState(false);
   const [notes, setNotes] = useState(initial?.notes ?? '');
   const [address, setAddress] = useState<{
     label: string | null;
@@ -49,9 +53,23 @@ export function ClientForm({ initial, saving, onSubmit, onCancel }: Props) {
     });
   };
 
-  const canSubmit = displayName.trim().length > 0 && !saving;
+  const errors = useMemo(() => {
+    const out: { displayName?: string; email?: string } = {};
+    if (displayName.trim().length === 0) {
+      out.displayName = t('clients.errors.display_name_required');
+    }
+    const trimmedEmail = email.trim();
+    if (trimmedEmail.length > 0 && !EMAIL_REGEX.test(trimmedEmail)) {
+      out.email = t('clients.errors.email_invalid');
+    }
+    return out;
+  }, [displayName, email, t]);
+
+  const canSubmit = !errors.displayName && !errors.email && !saving;
 
   const handleSubmit = () => {
+    setDisplayNameTouched(true);
+    setEmailTouched(true);
     if (!canSubmit) return;
     onSubmit({
       id: initial?.id,
@@ -76,8 +94,12 @@ export function ClientForm({ initial, saving, onSubmit, onCancel }: Props) {
         <Input
           value={displayName}
           onChangeText={setDisplayName}
+          onBlur={() => setDisplayNameTouched(true)}
           placeholder={t('clients.display_name_placeholder')}
         />
+        {displayNameTouched && errors.displayName ? (
+          <Text className="text-sm text-danger dark:text-danger-dark">{errors.displayName}</Text>
+        ) : null}
       </View>
 
       <View className="gap-2">
@@ -96,9 +118,13 @@ export function ClientForm({ initial, saving, onSubmit, onCancel }: Props) {
         <Input
           value={email}
           onChangeText={setEmail}
+          onBlur={() => setEmailTouched(true)}
           keyboardType="email-address"
           autoCapitalize="none"
         />
+        {emailTouched && errors.email ? (
+          <Text className="text-sm text-danger dark:text-danger-dark">{errors.email}</Text>
+        ) : null}
       </View>
 
       <AnimalCountsEditor value={animalCounts} onChange={setAnimalCounts} />

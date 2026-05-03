@@ -11,6 +11,7 @@ import { confirm } from '@/ui/components/confirm-dialog';
 import { useClient, useDeleteClient, useToggleWaiting } from '@/state/queries/clients';
 import { formatPhone } from '@/lib/phone-formatter';
 import { haptics } from '@/ui/motion/haptics';
+import { errorToast } from '@/ui/components/error-toast';
 
 export default function ClientDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,6 +37,9 @@ export default function ClientDetailScreen() {
       onSuccess: () => {
         void haptics.success();
         router.back();
+      },
+      onError: (err) => {
+        errorToast(t('clients.delete_failed_title'), err instanceof Error ? err.message : undefined);
       },
     });
   };

@@ -54,7 +54,13 @@
     "delete_confirm_title": "Supprimer ce client ?",
     "delete_confirm_message": "Cette action est définitive. L'historique de tournées du client sera également perdu.",
     "saved_toast": "Client enregistré",
-    "deleted_toast": "Client supprimé"
+    "deleted_toast": "Client supprimé",
+    "save_failed_title": "Enregistrement impossible",
+    "delete_failed_title": "Suppression impossible",
+    "errors": {
+      "display_name_required": "Le nom est obligatoire.",
+      "email_invalid": "Adresse email invalide."
+    }
   },
   "map": {
     "title": "Carte",
