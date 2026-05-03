@@ -13,6 +13,16 @@ export default function SettingsScreen() {
       <Stack.Screen options={{ title: t('settings.title') }} />
       <ScrollView contentContainerClassName="px-4 pt-4 gap-3">
         <SettingsRow
+          label={t('catalogs.species.row_label')}
+          hint={t('catalogs.species.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/species' as never)}
+        />
+        <SettingsRow
+          label={t('catalogs.prestations.row_label')}
+          hint={t('catalogs.prestations.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/prestations' as never)}
+        />
+        <SettingsRow
           label={t('settings.appearance.row_label')}
           hint={t('settings.appearance.row_hint')}
           onPress={() => router.push('/(tabs)/settings/appearance')}

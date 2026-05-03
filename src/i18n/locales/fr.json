@@ -138,6 +138,49 @@
     "optimizing": "Optimisation en cours…",
     "ors_unavailable": "Distances en estimation (ORS indisponible)."
   },
+  "catalogs": {
+    "species": {
+      "row_label": "Espèces",
+      "row_hint": "Mouton, chèvre, etc.",
+      "list_title": "Espèces",
+      "new_title": "Nouvelle espèce",
+      "edit_title": "Modifier l'espèce",
+      "label": "Nom",
+      "color": "Couleur",
+      "is_standard": "Espèce standard",
+      "delete_blocked": "Les espèces standard ne peuvent pas être supprimées.",
+      "manage_categories": "Gérer les catégories",
+      "delete_confirm_title": "Supprimer cette espèce ?",
+      "delete_confirm_message": "Cette action est définitive."
+    },
+    "categories": {
+      "list_title": "Catégories",
+      "new_title": "Nouvelle catégorie",
+      "edit_title": "Modifier la catégorie",
+      "label": "Nom",
+      "minutes": "Minutes / animal",
+      "delete_confirm_title": "Supprimer cette catégorie ?",
+      "delete_confirm_message": "Cette action est définitive."
+    },
+    "prestations": {
+      "row_label": "Prestations",
+      "row_hint": "Tonte, parage, etc.",
+      "list_title": "Prestations",
+      "new_title": "Nouvelle prestation",
+      "edit_title": "Modifier la prestation",
+      "label": "Nom",
+      "price": "Prix (optionnel)",
+      "active": "Active",
+      "inactive_badge": "Inactive",
+      "delete_confirm_title": "Supprimer cette prestation ?",
+      "delete_confirm_message": "Cette action est définitive."
+    },
+    "errors": {
+      "label_required": "Le nom est obligatoire.",
+      "minutes_invalid": "Doit être un nombre positif.",
+      "price_invalid": "Doit être un nombre positif ou vide."
+    }
+  },
   "settings": {
     "title": "Réglages",
     "appearance": {
