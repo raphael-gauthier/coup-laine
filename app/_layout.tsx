@@ -4,8 +4,13 @@ import '@/i18n';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, LogBox, View } from 'react-native';
 import { useEffect, useState } from 'react';
+
+// MapTiler styles include a fake "attribution" vector source with no tiles —
+// MapLibre warns "source must have tiles" but the map still renders correctly.
+// Silence the cosmetic warning so it doesn't crowd the dev logs.
+LogBox.ignoreLogs(['source must have tiles']);
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, useResolvedColorScheme } from '@/ui/theme/theme-provider';
