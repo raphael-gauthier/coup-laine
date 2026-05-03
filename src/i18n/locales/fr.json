@@ -247,6 +247,16 @@
       "email_required": "Email obligatoire."
     }
   },
+  "recompute": {
+    "banner_title": "{{count}} client à recalculer",
+    "banner_title_plural": "{{count}} clients à recalculer",
+    "banner_message": "Les distances doivent être recalculées suite à un changement d'adresse.",
+    "banner_cta": "Recalculer",
+    "running": "Recalcul en cours…",
+    "success": "Recalcul terminé",
+    "partial_success": "{{ok}} OK, {{failed}} échec",
+    "failed_title": "Recalcul impossible"
+  },
   "onboarding": {
     "welcome": {
       "title": "Bienvenue sur Coupe-laine",
