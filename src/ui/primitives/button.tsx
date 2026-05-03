@@ -6,7 +6,7 @@ import { haptics } from '@/ui/motion/haptics';
 import { cn } from '@/lib/cn';
 import { Text } from './text';
 
-const buttonVariants = cva(
+const buttonSurfaceVariants = cva(
   'flex-row items-center justify-center rounded-2xl px-5 py-3',
   {
     variants: {
@@ -15,6 +15,7 @@ const buttonVariants = cva(
         secondary: 'bg-muted dark:bg-muted-dark',
         ghost: 'bg-transparent',
         danger: 'bg-danger dark:bg-danger-dark',
+        accent: 'bg-accent dark:bg-accent-dark',
       },
       size: {
         sm: 'px-3 py-2',
@@ -26,24 +27,28 @@ const buttonVariants = cva(
   }
 );
 
-const labelVariants = cva('font-semibold', {
+const labelSize = cva('font-semibold', {
   variants: {
-    variant: {
-      primary: 'text-primary-foreground dark:text-primary-dark-foreground',
-      secondary: 'text-foreground dark:text-foreground-dark',
-      ghost: 'text-foreground dark:text-foreground-dark',
-      danger: 'text-danger-foreground dark:text-danger-dark-foreground',
-    },
     size: {
       sm: 'text-sm',
       md: 'text-base',
       lg: 'text-lg',
     },
   },
-  defaultVariants: { variant: 'primary', size: 'md' },
+  defaultVariants: { size: 'md' },
 });
 
-interface Props extends VariantProps<typeof buttonVariants> {
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'accent';
+
+const TEXT_VARIANT_FOR: Record<ButtonVariant, 'default' | 'onPrimary' | 'onDanger' | 'onAccent'> = {
+  primary: 'onPrimary',
+  secondary: 'default',
+  ghost: 'default',
+  danger: 'onDanger',
+  accent: 'onAccent',
+};
+
+interface Props extends VariantProps<typeof buttonSurfaceVariants> {
   children: ReactNode;
   onPress?: () => void;
   disabled?: boolean;
@@ -68,12 +73,15 @@ export function Button({
     onPress?.();
   };
 
+  const resolvedVariant = (variant ?? 'primary') as ButtonVariant;
+  const textVariant = TEXT_VARIANT_FOR[resolvedVariant];
+
   return (
     <PressScale
       onPress={handlePress}
       disabled={disabled || loading}
       className={cn(
-        buttonVariants({ variant, size }),
+        buttonSurfaceVariants({ variant, size }),
         (disabled || loading) && 'opacity-60',
         className
       )}
@@ -81,7 +89,9 @@ export function Button({
       {loading ? (
         <ActivityIndicator />
       ) : typeof children === 'string' ? (
-        <Text className={labelVariants({ variant, size })}>{children}</Text>
+        <Text variant={textVariant} className={labelSize({ size })}>
+          {children}
+        </Text>
       ) : (
         <View className="flex-row items-center gap-2">{children}</View>
       )}

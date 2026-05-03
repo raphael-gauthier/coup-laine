@@ -1,10 +1,10 @@
-import { View } from 'react-native';
+import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 
 export default function MapScreen() {
   return (
-    <View className="flex-1 bg-background dark:bg-background-dark items-center justify-center">
+    <Surface className="flex-1 items-center justify-center">
       <Text>Carte (J4)</Text>
-    </View>
+    </Surface>
   );
 }

@@ -18,7 +18,7 @@ module.exports = {
           foreground: '#5C4E40',
         },
         accent: {
-          DEFAULT: '#748E60',
+          DEFAULT: '#5C7548', // WCAG AA: 4.7:1 vs cream foreground
           foreground: '#FAF6F0',
         },
         border: '#DCD0C0',
@@ -29,11 +29,11 @@ module.exports = {
           foreground: '#FAF6F0',
         },
         success: {
-          DEFAULT: '#547A46',
+          DEFAULT: '#456236', // WCAG AA: 6.4:1 vs cream foreground
           foreground: '#FAF6F0',
         },
         waiting: '#C88226',
-        shorn: '#748E60',
+        shorn: '#5C7548',
 
         // Modern Craft palette — DARK mode counterparts (suffix `-dark`).
         // Use via `dark:` variant: className="bg-background dark:bg-background-dark"
