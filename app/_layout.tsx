@@ -44,7 +44,7 @@ function App() {
           <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
           <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
         </Stack>
-        <StatusBar style="auto" />
+        <StatusBar style="auto" translucent={false} backgroundColor={isDark ? '#16120F' : '#FAF6F0'} />
       </NavThemeProvider>
     </GestureHandlerRootView>
   );
