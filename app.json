@@ -1,15 +1,25 @@
 {
   "expo": {
-    "name": "_expo_init",
-    "slug": "_expo_init",
-    "version": "1.0.0",
+    "name": "Coupe-laine",
+    "slug": "coupe-laine",
+    "version": "0.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "expoinit",
+    "scheme": "coupelaine",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "assetBundlePatterns": ["**/*"],
+    "splash": {
+      "image": "./assets/images/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FAF6F0"
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "fr.coupelaine.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Pour centrer la carte sur votre position."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +29,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "fr.coupelaine.app",
+      "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
     },
     "web": {
       "output": "static",
@@ -34,7 +46,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#FAF6F0",
           "dark": {
             "backgroundColor": "#000000"
           }
