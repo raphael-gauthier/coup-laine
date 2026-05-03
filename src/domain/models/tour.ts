@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const TourStatus = z.enum(['draft', 'planned', 'completed']);
+export const TourStatus = z.enum(['planned', 'completed']);
 export type TourStatus = z.infer<typeof TourStatus>;
 
 export const Tour = z.object({
@@ -11,7 +11,14 @@ export const Tour = z.object({
   baseLng: z.number(),
   status: TourStatus,
   totalDistanceKm: z.number().nullable(),
+  totalDriveSeconds: z.number().int().nullable(),
   totalMinutes: z.number().int().nullable(),
+  totalRevenueCents: z.number().int().nullable(),
+  totalAnimalsCount: z.number().int().nullable(),
+  totalTravelFeeCents: z.number().int().nullable(),
+  routeGeometry: z.string().nullable(),
+  notes: z.string().nullable(),
+  completedAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

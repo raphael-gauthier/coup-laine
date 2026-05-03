@@ -6,6 +6,7 @@ export const DistanceMatrixEntry = z.object({
   distanceKm: z.number().nonnegative(),
   durationMinutes: z.number().int().nonnegative(),
   fetchedAt: z.string(),
+  failed: z.boolean(),
 });
 
 export type DistanceMatrixEntry = z.infer<typeof DistanceMatrixEntry>;

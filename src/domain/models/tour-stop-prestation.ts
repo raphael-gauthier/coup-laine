@@ -1,9 +1,14 @@
 import { z } from 'zod';
-import { AnimalCountList } from './animal-count';
 
 export const TourStopPrestation = z.object({
   prestationId: z.string(),
-  animalCounts: AnimalCountList,
+  qty: z.number().int().nonnegative(),
+  nameSnapshot: z.string(),
+  priceCentsSnapshot: z.number().int().nonnegative(),
+  minutesSnapshot: z.number().int().nonnegative(),
+  categoryIdSnapshot: z.string().nullable(),
+  categoryNameSnapshot: z.string().nullable(),
+  speciesNameSnapshot: z.string().nullable(),
 });
 
 export type TourStopPrestation = z.infer<typeof TourStopPrestation>;
