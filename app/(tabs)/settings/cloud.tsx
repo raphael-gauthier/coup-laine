@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +12,7 @@ import { Button } from '@/ui/primitives/button';
 import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { ErrorState } from '@/ui/components/error-state';
 import { EmptyState } from '@/ui/components/empty-state';
-import { confirm } from '@/ui/components/confirm-dialog';
+import { confirm, ConfirmTypedDialog } from '@/ui/components/confirm-dialog';
 import { useSession, useSignOut } from '@/state/queries/auth';
 import { useBackups, useCreateBackup, useRestoreBackup, useDeleteBackup } from '@/state/queries/backups';
 import { haptics } from '@/ui/motion/haptics';
@@ -25,6 +26,7 @@ export default function CloudScreen() {
   const restore = useRestoreBackup();
   const del = useDeleteBackup();
   const { data: backups = [], isError, isLoading, refetch } = useBackups();
+  const [restoreDialogName, setRestoreDialogName] = useState<string | null>(null);
 
   if (!session) {
     return (
@@ -40,15 +42,14 @@ export default function CloudScreen() {
     );
   }
 
-  const onRestore = async (name: string) => {
-    const ok = await confirm({
-      title: t('cloud.restore_confirm_title'),
-      message: t('cloud.restore_confirm_message'),
-      confirmLabel: t('cloud.restore_cta'),
-      cancelLabel: t('common.cancel'),
-      destructive: true,
-    });
-    if (!ok) return;
+  const onRestore = (name: string) => {
+    setRestoreDialogName(name);
+  };
+
+  const handleRestoreConfirmed = () => {
+    if (!restoreDialogName) return;
+    const name = restoreDialogName;
+    setRestoreDialogName(null);
     restore.mutate(name, {
       onSuccess: () => { void haptics.success(); },
     });
@@ -71,6 +72,16 @@ export default function CloudScreen() {
   return (
     <Surface className="flex-1">
       <Stack.Screen options={{ title: t('cloud.screen_title') }} />
+      <ConfirmTypedDialog
+        visible={restoreDialogName != null}
+        title={t('cloud.restore_confirm_title')}
+        message={t('cloud.restore_confirm_message')}
+        typedConfirmation={t('cloud.restore_typed_word')}
+        confirmLabel={t('cloud.restore_cta')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={handleRestoreConfirmed}
+        onCancel={() => setRestoreDialogName(null)}
+      />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24, gap: 12 }}>
         <Surface variant="muted" className="rounded-2xl px-4 py-3">
           <Text variant="muted" className="text-xs">

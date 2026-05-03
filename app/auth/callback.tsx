@@ -7,6 +7,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { supabase } from '@/infra/services/supabase';
 import { errorToast } from '@/ui/components/error-toast';
+import { resolveFirstSignIn } from '@/state/onboarding/first-sign-in-resolver';
 
 export default function AuthCallbackScreen() {
   const { t } = useTranslation();
@@ -26,9 +27,23 @@ export default function AuthCallbackScreen() {
         router.replace('/(tabs)/clients' as never);
         return;
       }
-      const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+      const { data: sessionData, error } = await supabase.auth.setSession({ access_token, refresh_token });
       if (error) {
         errorToast('Connexion impossible', error.message);
+        router.replace('/(tabs)/clients' as never);
+        return;
+      }
+      const userId = sessionData.session?.user.id;
+      if (userId) {
+        try {
+          const result = await resolveFirstSignIn(userId);
+          if (result === 'choice') {
+            router.replace('/onboarding/restore-prompt' as never);
+            return;
+          }
+        } catch {
+          // If resolver fails, proceed normally
+        }
       }
       router.replace('/(tabs)/clients' as never);
     })();
