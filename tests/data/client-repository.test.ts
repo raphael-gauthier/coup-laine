@@ -6,19 +6,18 @@ const NOW = '2026-05-03T12:00:00.000Z';
 const sample = {
   id: 'c1',
   displayName: 'Jean Dupont',
-  firstName: 'Jean',
-  lastName: 'Dupont',
   phones: ['0612345678'],
-  email: 'jean@example.com',
   addressLabel: '1 rue du Test, 29000 Quimper',
   addressCity: 'Quimper',
   addressPostcode: '29000',
   latitude: 48.0,
   longitude: -4.1,
   isWaiting: true,
-  notes: null,
+  isBanned: false,
+  needsDistanceRecompute: false,
   lastShearingDate: null,
   animalCounts: [{ categoryId: 'sheep-adult', count: 12 }],
+  markerColorHex: null,
   createdAt: NOW,
   updatedAt: NOW,
 };
@@ -59,6 +58,26 @@ describe('ClientRepository', () => {
     await repo.upsert({ ...sample, isWaiting: false });
     await repo.setWaiting('c1', true, NOW);
     expect((await repo.byId('c1'))!.isWaiting).toBe(true);
+    close();
+  });
+
+  it('setBanned toggles the flag', async () => {
+    const { db, close } = createTestDb();
+    const repo = new ClientRepository(db);
+    await repo.upsert(sample);
+    await repo.setBanned('c1', true, NOW);
+    expect((await repo.byId('c1'))!.isBanned).toBe(true);
+    close();
+  });
+
+  it('setRecomputePending and listWithRecomputePending round-trip', async () => {
+    const { db, close } = createTestDb();
+    const repo = new ClientRepository(db);
+    await repo.upsert(sample);
+    await repo.upsert({ ...sample, id: 'c2', displayName: 'Marie' });
+    await repo.setRecomputePending('c2', true, NOW);
+    const pending = await repo.listWithRecomputePending();
+    expect(pending.map((c) => c.id)).toEqual(['c2']);
     close();
   });
 

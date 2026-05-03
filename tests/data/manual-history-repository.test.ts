@@ -6,10 +6,11 @@ const NOW = '2026-05-03T12:00:00.000Z';
 
 const sampleClient = {
   id: 'c1', displayName: 'X',
-  firstName: null, lastName: null, phones: [], email: null,
+  phones: [],
   addressLabel: null, addressCity: null, addressPostcode: null,
-  latitude: null, longitude: null, isWaiting: false, notes: null,
-  lastShearingDate: null, animalCounts: [],
+  latitude: null, longitude: null,
+  isWaiting: false, isBanned: false, needsDistanceRecompute: false,
+  lastShearingDate: null, animalCounts: [], markerColorHex: null,
   createdAt: NOW, updatedAt: NOW,
 };
 

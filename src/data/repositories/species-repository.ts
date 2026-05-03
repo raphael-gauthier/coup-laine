@@ -1,4 +1,4 @@
-import { eq, asc } from 'drizzle-orm';
+import { asc, eq, isNull, isNotNull } from 'drizzle-orm';
 import { species } from '@/infra/db/schema';
 import type { Db } from '@/infra/db/client';
 import { Species } from '@/domain/models/species';
@@ -6,9 +6,10 @@ import { Species } from '@/domain/models/species';
 interface SpeciesRow {
   id: string;
   label: string;
-  color: string | null;
+  iconKey: string | null;
   ordering: number;
   isCustom: number;
+  archivedAt: string | null;
 }
 
 function toRow(s: Species) {
@@ -27,6 +28,22 @@ export class SpeciesRepository {
   }
   async listAll(): Promise<Species[]> {
     const rows = await this.db.select().from(species).orderBy(asc(species.ordering));
+    return rows.map((r) => fromRow(r as SpeciesRow));
+  }
+  async listActive(): Promise<Species[]> {
+    const rows = await this.db
+      .select()
+      .from(species)
+      .where(isNull(species.archivedAt))
+      .orderBy(asc(species.ordering));
+    return rows.map((r) => fromRow(r as SpeciesRow));
+  }
+  async listArchived(): Promise<Species[]> {
+    const rows = await this.db
+      .select()
+      .from(species)
+      .where(isNotNull(species.archivedAt))
+      .orderBy(asc(species.ordering));
     return rows.map((r) => fromRow(r as SpeciesRow));
   }
   async upsert(s: Species): Promise<void> {

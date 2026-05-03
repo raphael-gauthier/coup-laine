@@ -7,10 +7,21 @@ describe('AnimalCategoryRepository', () => {
     const { db, close } = createTestDb();
     const sRepo = new SpeciesRepository(db);
     const cRepo = new AnimalCategoryRepository(db);
-    await sRepo.upsert({ id: 'sheep', label: 'Mouton', color: null, ordering: 0, isCustom: false });
+    await sRepo.upsert({
+      id: 'sheep',
+      label: 'Mouton',
+      iconKey: null,
+      ordering: 0,
+      isCustom: false,
+      archivedAt: null,
+    });
     await cRepo.upsert({
-      id: 'sheep-adult', speciesId: 'sheep', label: 'Brebis adulte',
-      averageMinutesPerUnit: 20, ordering: 0, isCustom: false,
+      id: 'sheep-adult',
+      speciesId: 'sheep',
+      label: 'Brebis adulte',
+      ordering: 0,
+      isCustom: false,
+      archivedAt: null,
     });
     const cats = await cRepo.listBySpecies('sheep');
     expect(cats).toHaveLength(1);

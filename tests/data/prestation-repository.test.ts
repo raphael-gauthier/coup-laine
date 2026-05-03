@@ -1,23 +1,58 @@
 import { createTestDb } from './_helpers/test-db';
+import { SpeciesRepository } from '@/data/repositories/species-repository';
+import { AnimalCategoryRepository } from '@/data/repositories/animal-category-repository';
 import { PrestationRepository } from '@/data/repositories/prestation-repository';
+
+const base = {
+  priceCents: null,
+  minutes: 20,
+  categoryId: null,
+  isActive: true,
+  archivedAt: null,
+};
 
 describe('PrestationRepository', () => {
   it('round-trips a prestation', async () => {
     const { db, close } = createTestDb();
     const repo = new PrestationRepository(db);
-    await repo.upsert({ id: 'shearing', label: 'Tonte', price: null, isActive: true, ordering: 0 });
+    const p = { id: 'shearing', label: 'Tonte', ordering: 0, ...base };
+    await repo.upsert(p);
     const all = await repo.listAll();
-    expect(all).toContainEqual({ id: 'shearing', label: 'Tonte', price: null, isActive: true, ordering: 0 });
+    expect(all).toContainEqual(p);
     close();
   });
 
   it('listActive filters out inactive', async () => {
     const { db, close } = createTestDb();
     const repo = new PrestationRepository(db);
-    await repo.upsert({ id: 'a', label: 'A', price: null, isActive: true, ordering: 0 });
-    await repo.upsert({ id: 'b', label: 'B', price: null, isActive: false, ordering: 1 });
+    await repo.upsert({ id: 'a', label: 'A', ordering: 0, ...base });
+    await repo.upsert({ id: 'b', label: 'B', ordering: 1, ...base, isActive: false });
     const active = await repo.listActive();
     expect(active.map((p) => p.id)).toEqual(['a']);
+    close();
+  });
+
+  it('listByCategoryId filters and listLibre returns category-less prestations', async () => {
+    const { db, close } = createTestDb();
+    const sRepo = new SpeciesRepository(db);
+    const cRepo = new AnimalCategoryRepository(db);
+    const repo = new PrestationRepository(db);
+    await sRepo.upsert({ id: 'sheep', label: 'Mouton', iconKey: null, ordering: 0, isCustom: false, archivedAt: null });
+    await cRepo.upsert({ id: 'sheep-adult', speciesId: 'sheep', label: 'Adulte', ordering: 0, isCustom: false, archivedAt: null });
+    await repo.upsert({ id: 'a', label: 'Tonte adulte', ordering: 0, ...base, categoryId: 'sheep-adult' });
+    await repo.upsert({ id: 'b', label: 'Parage', ordering: 1, ...base });
+
+    expect((await repo.listByCategoryId('sheep-adult')).map((p) => p.id)).toEqual(['a']);
+    expect((await repo.listLibre()).map((p) => p.id)).toEqual(['b']);
+    close();
+  });
+
+  it('setArchived stamps archivedAt', async () => {
+    const { db, close } = createTestDb();
+    const repo = new PrestationRepository(db);
+    await repo.upsert({ id: 'a', label: 'A', ordering: 0, ...base });
+    await repo.setArchived('a', '2026-05-01T00:00:00Z');
+    expect((await repo.byId('a'))!.archivedAt).toBe('2026-05-01T00:00:00Z');
     close();
   });
 });

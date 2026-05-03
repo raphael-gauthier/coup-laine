@@ -12,7 +12,14 @@ interface TourRow {
   baseLng: number;
   status: string;
   totalDistanceKm: number | null;
+  totalDriveSeconds: number | null;
   totalMinutes: number | null;
+  totalRevenueCents: number | null;
+  totalAnimalsCount: number | null;
+  totalTravelFeeCents: number | null;
+  routeGeometry: string | null;
+  notes: string | null;
+  completedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,10 +28,14 @@ interface TourStopRow {
   id: string;
   tourId: string;
   clientId: string;
+  clientNameSnapshot: string | null;
   ordering: number;
-  arrivalTime: string | null;
+  arrivalMinutes: number | null;
+  departureMinutes: number | null;
   estimatedMinutes: number | null;
-  prestations: string;
+  feeShareCents: number | null;
+  plannedPrestations: string;
+  actualPrestations: string | null;
   notes: string | null;
   completedAt: string | null;
 }
@@ -34,10 +45,29 @@ function tourFromRow(r: TourRow): Tour {
 }
 
 function stopToRow(s: TourStop) {
-  return { ...s, prestations: JSON.stringify(s.prestations) };
+  return {
+    id: s.id,
+    tourId: s.tourId,
+    clientId: s.clientId,
+    clientNameSnapshot: s.clientNameSnapshot,
+    ordering: s.ordering,
+    arrivalMinutes: s.arrivalMinutes,
+    departureMinutes: s.departureMinutes,
+    estimatedMinutes: s.estimatedMinutes,
+    feeShareCents: s.feeShareCents,
+    plannedPrestations: JSON.stringify(s.plannedPrestations),
+    actualPrestations: s.actualPrestations === null ? null : JSON.stringify(s.actualPrestations),
+    notes: s.notes,
+    completedAt: s.completedAt,
+  };
 }
+
 function stopFromRow(r: TourStopRow): TourStop {
-  return TourStop.parse({ ...r, prestations: JSON.parse(r.prestations) });
+  return TourStop.parse({
+    ...r,
+    plannedPrestations: JSON.parse(r.plannedPrestations),
+    actualPrestations: r.actualPrestations === null ? null : JSON.parse(r.actualPrestations),
+  });
 }
 
 export interface TourWithStops {

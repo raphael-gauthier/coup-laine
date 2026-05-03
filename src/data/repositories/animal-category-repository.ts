@@ -7,9 +7,9 @@ interface AnimalCategoryRow {
   id: string;
   speciesId: string;
   label: string;
-  averageMinutesPerUnit: number;
   ordering: number;
   isCustom: number;
+  archivedAt: string | null;
 }
 
 function toRow(c: AnimalCategory) { return { ...c, isCustom: c.isCustom ? 1 : 0 }; }

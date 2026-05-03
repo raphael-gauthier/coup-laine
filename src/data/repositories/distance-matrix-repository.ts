@@ -9,10 +9,22 @@ interface DistanceMatrixRow {
   distanceKm: number;
   durationMinutes: number;
   fetchedAt: string;
+  failed: number;
+}
+
+function toRow(e: DistanceMatrixEntry) {
+  return {
+    fromId: e.fromId,
+    toId: e.toId,
+    distanceKm: e.distanceKm,
+    durationMinutes: e.durationMinutes,
+    fetchedAt: e.fetchedAt,
+    failed: e.failed ? 1 : 0,
+  };
 }
 
 function fromRow(r: DistanceMatrixRow): DistanceMatrixEntry {
-  return DistanceMatrixEntry.parse(r);
+  return DistanceMatrixEntry.parse({ ...r, failed: r.failed === 1 });
 }
 
 export class DistanceMatrixRepository {
@@ -27,12 +39,13 @@ export class DistanceMatrixRepository {
   }
 
   async upsert(entry: DistanceMatrixEntry): Promise<void> {
+    const row = toRow(entry);
     await this.db
       .insert(distanceMatrix)
-      .values(entry)
+      .values(row)
       .onConflictDoUpdate({
         target: [distanceMatrix.fromId, distanceMatrix.toId],
-        set: entry,
+        set: row,
       });
   }
 
@@ -40,6 +53,25 @@ export class DistanceMatrixRepository {
     for (const e of entries) {
       await this.upsert(e);
     }
+  }
+
+  async markFailed(fromId: string, toId: string, fetchedAt: string): Promise<void> {
+    await this.upsert({
+      fromId,
+      toId,
+      distanceKm: 0,
+      durationMinutes: 0,
+      fetchedAt,
+      failed: true,
+    });
+  }
+
+  async listFailed(): Promise<DistanceMatrixEntry[]> {
+    const rows = await this.db
+      .select()
+      .from(distanceMatrix)
+      .where(eq(distanceMatrix.failed, 1));
+    return rows.map((r) => fromRow(r as DistanceMatrixRow));
   }
 
   async deleteOlderThan(isoDate: string): Promise<void> {
