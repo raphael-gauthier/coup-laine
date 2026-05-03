@@ -20,28 +20,30 @@ const queryClient = new QueryClient({
   },
 });
 
-function ThemedStack() {
-  const resolved = useResolvedColorScheme();
-  const isDark = resolved === 'dark';
+function App() {
+  const isDark = useResolvedColorScheme() === 'dark';
   return (
-    <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </NavThemeProvider>
+    <GestureHandlerRootView
+      style={{ flex: 1 }}
+      className={isDark ? 'dark flex-1' : 'flex-1'}
+    >
+      <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        </Stack>
+        <StatusBar style="auto" />
+      </NavThemeProvider>
+    </GestureHandlerRootView>
   );
 }
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <ThemedStack />
-        </ThemeProvider>
-      </QueryClientProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
