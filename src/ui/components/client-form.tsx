@@ -76,7 +76,7 @@ export function ClientForm({ initial, saving, onSubmit, onCancel }: Props) {
   };
 
   return (
-    <ScrollView contentContainerClassName="px-4 py-4 gap-4">
+    <ScrollView contentContainerClassName="px-4 py-4 gap-4" keyboardShouldPersistTaps="handled">
       <View className="gap-2">
         <Text className="text-sm font-medium">{t('clients.display_name')}</Text>
         <Input

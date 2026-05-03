@@ -44,7 +44,7 @@ export default function OnboardingBaseScreen() {
 
   return (
     <Surface className="flex-1">
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, gap: 24 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, gap: 24 }} keyboardShouldPersistTaps="handled">
         <View className="items-center gap-3 mt-12">
           <Home size={48} color="#A1602F" />
           <Text className="text-2xl font-bold text-center">{t('onboarding.base.title')}</Text>
