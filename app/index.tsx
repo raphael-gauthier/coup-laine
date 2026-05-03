@@ -18,11 +18,11 @@ export default function Index() {
   const setMode = useThemeStore((s) => s.setMode);
 
   return (
-    <View className="flex-1 bg-background items-center justify-center px-6">
-      <Text className="text-3xl font-bold text-foreground">
+    <View className="flex-1 bg-background dark:bg-background-dark items-center justify-center px-6">
+      <Text className="text-3xl font-bold text-foreground dark:text-foreground-dark">
         {t('hello.title')}
       </Text>
-      <Text className="text-base text-muted-foreground mt-2 text-center">
+      <Text className="text-base text-muted-foreground dark:text-muted-dark-foreground mt-2 text-center">
         {t('hello.subtitle')}
       </Text>
 
@@ -36,7 +36,7 @@ export default function Index() {
 
         <Button variant="secondary" onPress={() => void haptics.success()}>
           <Vibrate size={20} />
-          <Text className="font-semibold">{t('hello.test_haptic')}</Text>
+          <Text className="font-semibold text-foreground dark:text-foreground-dark">{t('hello.test_haptic')}</Text>
         </Button>
       </View>
     </View>

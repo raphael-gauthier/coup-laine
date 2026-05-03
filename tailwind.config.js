@@ -6,33 +6,64 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: 'rgb(var(--color-background) / <alpha-value>)',
-        foreground: 'rgb(var(--color-foreground) / <alpha-value>)',
+        // Modern Craft palette — LIGHT mode (default).
+        background: '#FAF6F0',
+        foreground: '#1C1612',
         primary: {
-          DEFAULT: 'rgb(var(--color-primary) / <alpha-value>)',
-          foreground: 'rgb(var(--color-primary-foreground) / <alpha-value>)',
+          DEFAULT: '#A1602F',
+          foreground: '#FAF6F0',
         },
         muted: {
-          DEFAULT: 'rgb(var(--color-muted) / <alpha-value>)',
-          foreground: 'rgb(var(--color-muted-foreground) / <alpha-value>)',
+          DEFAULT: '#EAE0D3',
+          foreground: '#5C4E40',
         },
         accent: {
-          DEFAULT: 'rgb(var(--color-accent) / <alpha-value>)',
-          foreground: 'rgb(var(--color-accent-foreground) / <alpha-value>)',
+          DEFAULT: '#748E60',
+          foreground: '#FAF6F0',
         },
-        border: 'rgb(var(--color-border) / <alpha-value>)',
-        input: 'rgb(var(--color-input) / <alpha-value>)',
-        ring: 'rgb(var(--color-ring) / <alpha-value>)',
+        border: '#DCD0C0',
+        input: '#EAE0D3',
+        ring: '#A1602F',
         danger: {
-          DEFAULT: 'rgb(var(--color-danger) / <alpha-value>)',
-          foreground: 'rgb(var(--color-danger-foreground) / <alpha-value>)',
+          DEFAULT: '#B23832',
+          foreground: '#FAF6F0',
         },
         success: {
-          DEFAULT: 'rgb(var(--color-success) / <alpha-value>)',
-          foreground: 'rgb(var(--color-success-foreground) / <alpha-value>)',
+          DEFAULT: '#547A46',
+          foreground: '#FAF6F0',
         },
-        waiting: 'rgb(var(--color-waiting) / <alpha-value>)',
-        shorn: 'rgb(var(--color-shorn) / <alpha-value>)',
+        waiting: '#C88226',
+        shorn: '#748E60',
+
+        // Modern Craft palette — DARK mode counterparts (suffix `-dark`).
+        // Use via `dark:` variant: className="bg-background dark:bg-background-dark"
+        'background-dark': '#16120F',
+        'foreground-dark': '#F0E8DC',
+        'primary-dark': {
+          DEFAULT: '#C68A58',
+          foreground: '#16120F',
+        },
+        'muted-dark': {
+          DEFAULT: '#302820',
+          foreground: '#B4A490',
+        },
+        'accent-dark': {
+          DEFAULT: '#98B282',
+          foreground: '#16120F',
+        },
+        'border-dark': '#3C322A',
+        'input-dark': '#302820',
+        'ring-dark': '#C68A58',
+        'danger-dark': {
+          DEFAULT: '#DC605A',
+          foreground: '#16120F',
+        },
+        'success-dark': {
+          DEFAULT: '#98B882',
+          foreground: '#16120F',
+        },
+        'waiting-dark': '#DC9E4E',
+        'shorn-dark': '#98B282',
       },
     },
   },
