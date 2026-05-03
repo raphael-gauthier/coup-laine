@@ -1,12 +1,17 @@
 import { useState, useMemo } from 'react';
-import { ScrollView, View, Switch } from 'react-native';
+import { ScrollView, View, Modal, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { ChevronDown, X } from 'lucide-react-native';
 
 import { Text } from '@/ui/primitives/text';
 import { Input } from '@/ui/primitives/input';
 import { Button } from '@/ui/primitives/button';
+import { Surface } from '@/ui/primitives/surface';
+import { PressScale } from '@/ui/motion/press-scale';
+import { useSpecies, useAnimalCategories } from '@/state/queries/species';
 import type { Prestation } from '@/domain/models/prestation';
 import type { UpsertPrestationInput } from '@/state/queries/catalogs';
+import { Switch } from 'react-native';
 
 interface Props {
   initial?: Prestation;
@@ -22,14 +27,18 @@ function centsToEurosString(cents: number | null | undefined): string {
 
 export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
   const { t } = useTranslation();
+  const { data: speciesList = [] } = useSpecies();
+  const { data: categories = [] } = useAnimalCategories();
+
   const [label, setLabel] = useState(initial?.label ?? '');
   const [priceEuros, setPriceEuros] = useState(centsToEurosString(initial?.priceCents));
   const [minutes, setMinutes] = useState(String(initial?.minutes ?? 0));
-  const [categoryId, setCategoryId] = useState(initial?.categoryId ?? '');
+  const [categoryId, setCategoryId] = useState<string | null>(initial?.categoryId ?? null);
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
   const [labelTouched, setLabelTouched] = useState(false);
   const [priceTouched, setPriceTouched] = useState(false);
   const [minutesTouched, setMinutesTouched] = useState(false);
+  const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
 
   const errors = useMemo(() => {
     const out: { label?: string; price?: string; minutes?: string } = {};
@@ -59,13 +68,18 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
       label: label.trim(),
       priceCents,
       minutes: parseInt(minutes, 10),
-      categoryId: categoryId.trim() || null,
+      categoryId,
       isActive,
       ordering: initial?.ordering ?? 100,
     });
   };
 
+  // Resolved category label for display
+  const selectedCategory = categoryId ? categories.find((c) => c.id === categoryId) : null;
+  const selectedCategoryLabel = selectedCategory?.label ?? t('catalogs.prestations.no_category_option');
+
   return (
+    <>
     <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 16 }}>
       <View className="gap-2">
         <Text className="text-sm font-medium">{t('catalogs.prestations.label')}</Text>
@@ -105,13 +119,12 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
 
       <View className="gap-2">
         <Text className="text-sm font-medium">{t('catalogs.prestations.category_id')}</Text>
-        {/* TODO R1.E: replace with cascading species → category picker */}
-        <Input
-          value={categoryId}
-          onChangeText={setCategoryId}
-          autoCapitalize="none"
-          placeholder="sheep-adult"
-        />
+        <PressScale onPress={() => setCategoryPickerVisible(true)}>
+          <Surface variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
+            <Text className={categoryId ? '' : 'opacity-50'}>{selectedCategoryLabel}</Text>
+            <ChevronDown size={16} color="#5C4E40" />
+          </Surface>
+        </PressScale>
       </View>
 
       <View className="flex-row items-center justify-between">
@@ -130,5 +143,66 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
         </Button>
       </View>
     </ScrollView>
+
+    {/* Category picker modal */}
+    <Modal
+      visible={categoryPickerVisible}
+      animationType="slide"
+      transparent
+      presentationStyle="overFullScreen"
+    >
+      <TouchableOpacity
+        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}
+        onPress={() => setCategoryPickerVisible(false)}
+        activeOpacity={1}
+      />
+      <Surface className="rounded-t-3xl px-4 pb-8 pt-4" style={{ maxHeight: '65%' }}>
+        <View className="flex-row items-center justify-between mb-4">
+          <Text className="text-lg font-semibold">{t('catalogs.prestations.category_picker_title')}</Text>
+          <PressScale onPress={() => setCategoryPickerVisible(false)}>
+            <X size={22} color="#5C4E40" />
+          </PressScale>
+        </View>
+
+        <ScrollView>
+          {/* No category option */}
+          <PressScale onPress={() => { setCategoryId(null); setCategoryPickerVisible(false); }}>
+            <View className={`flex-row items-center px-3 py-3 rounded-xl mb-1 ${!categoryId ? 'bg-primary dark:bg-primary-dark' : ''}`}>
+              <Text className={!categoryId ? 'text-primary-foreground dark:text-primary-dark-foreground' : ''}>
+                {t('catalogs.prestations.no_category_option')}
+              </Text>
+            </View>
+          </PressScale>
+
+          {speciesList.map((sp) => {
+            const spCategories = categories.filter((c) => c.speciesId === sp.id);
+            if (spCategories.length === 0) return null;
+            return (
+              <View key={sp.id} className="mb-3">
+                <Text variant="muted" className="text-xs font-semibold uppercase tracking-widest px-3 py-1">
+                  {sp.label}
+                </Text>
+                {spCategories.map((cat) => (
+                  <PressScale
+                    key={cat.id}
+                    onPress={() => {
+                      setCategoryId(cat.id);
+                      setCategoryPickerVisible(false);
+                    }}
+                  >
+                    <View className={`flex-row items-center px-4 py-3 rounded-xl mb-1 ${categoryId === cat.id ? 'bg-primary dark:bg-primary-dark' : ''}`}>
+                      <Text className={categoryId === cat.id ? 'text-primary-foreground dark:text-primary-dark-foreground' : ''}>
+                        {cat.label}
+                      </Text>
+                    </View>
+                  </PressScale>
+                ))}
+              </View>
+            );
+          })}
+        </ScrollView>
+      </Surface>
+    </Modal>
+    </>
   );
 }
