@@ -1,6 +1,6 @@
-import { View, ScrollView } from 'react-native';
+import { Linking, Pressable, View, ScrollView } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Pencil, Trash2 } from 'lucide-react-native';
+import { MessageSquare, Pencil, Phone, Trash2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -105,7 +105,25 @@ export default function ClientDetailScreen() {
           <View className="gap-1">
             <Text variant="muted" className="text-sm">{t('clients.phones')}</Text>
             {client.phones.map((p, i) => (
-              <Text key={i}>{formatPhone(p)}</Text>
+              <View key={i} className="flex-row items-center justify-between py-1">
+                <Text>{formatPhone(p)}</Text>
+                <View className="flex-row gap-2">
+                  <Pressable
+                    onPress={() => void Linking.openURL(`tel:${p.replace(/\s/g, '')}`)}
+                    accessibilityLabel={t('clients.call_phone')}
+                    className="p-2"
+                  >
+                    <Phone size={18} color="#5C4E40" />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => void Linking.openURL(`sms:${p.replace(/\s/g, '')}`)}
+                    accessibilityLabel={t('clients.send_sms')}
+                    className="p-2"
+                  >
+                    <MessageSquare size={18} color="#5C4E40" />
+                  </Pressable>
+                </View>
+              </View>
             ))}
           </View>
         ) : null}

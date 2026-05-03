@@ -77,6 +77,8 @@
     "filter_status_done": "Fait",
     "filter_status_no_animals": "Sans animaux",
     "filter_status_banned": "Banni",
+    "call_phone": "Appeler",
+    "send_sms": "Envoyer un SMS",
     "errors": {
       "display_name_required": "Le nom est obligatoire."
     }
