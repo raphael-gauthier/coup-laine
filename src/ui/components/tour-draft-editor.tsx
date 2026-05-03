@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { View, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { GripVertical, Trash2, Plus } from 'lucide-react-native';
+import { GripVertical, Trash2, Plus, ChevronDown } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -11,6 +11,7 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
 import { DraggableList } from '@/ui/components/draggable-list';
+import { PrestationPickerSheet } from '@/ui/components/prestation-picker-sheet';
 import { useClients } from '@/state/queries/clients';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
@@ -43,6 +44,7 @@ interface Props {
   onAddClients: () => void;
   onRemoveStop: (clientId: string) => void;
   onReorderStops: (next: DraftStop[]) => void;
+  onUpdateStopPrestations?: (clientId: string, prests: TourStopPrestation[]) => void;
 }
 
 const PRICE_PER_BRACKET = 8;
@@ -50,7 +52,7 @@ const BRACKET_KM = 10;
 
 export function TourDraftEditor({
   initialStops, initialDate, initialTime,
-  saving, onSubmit, onAddClients, onRemoveStop, onReorderStops,
+  saving, onSubmit, onAddClients, onRemoveStop, onReorderStops, onUpdateStopPrestations,
 }: Props) {
   const { t } = useTranslation();
   const today = new Date();
@@ -61,6 +63,7 @@ export function TourDraftEditor({
 
   const { data: clients = [] } = useClients('all');
   const { data: base } = useBaseAddress();
+  const [pickerClientId, setPickerClientId] = useState<string | null>(null);
 
   const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
 
@@ -238,7 +241,11 @@ export function TourDraftEditor({
     </View>
   );
 
+  const pickerStop = pickerClientId ? initialStops.find((s) => s.clientId === pickerClientId) : null;
+  const pickerClient = pickerClientId ? clientsById.get(pickerClientId) : null;
+
   return (
+    <>
     <DraggableList
       data={initialStops}
       keyExtractor={(s) => s.clientId}
@@ -251,24 +258,48 @@ export function TourDraftEditor({
         const arr = arrivals[index];
         const share = split.perStop[index] ?? 0;
         return (
-          <Surface variant="muted" className="flex-row items-center rounded-2xl px-3 py-3 gap-3 mb-2">
-            <PressScale onPressIn={drag}>
-              <GripVertical size={20} color="#5C4E40" />
-            </PressScale>
-            <View className="flex-1">
-              <Text className="font-semibold">{client?.displayName ?? item.clientId}</Text>
-              {arr ? (
-                <Text variant="muted" className="text-xs mt-0.5">
-                  {t('tours.stop_arrival')} {arr.arrivalTime} · {arr.estimatedMinutes} min · {share} €
-                </Text>
-              ) : null}
+          <Surface variant="muted" className="rounded-2xl px-3 py-3 gap-2 mb-2">
+            <View className="flex-row items-center gap-3">
+              <PressScale onPressIn={drag}>
+                <GripVertical size={20} color="#5C4E40" />
+              </PressScale>
+              <View className="flex-1">
+                <Text className="font-semibold">{client?.displayName ?? item.clientId}</Text>
+                {arr ? (
+                  <Text variant="muted" className="text-xs mt-0.5">
+                    {t('tours.stop_arrival')} {arr.arrivalTime} · {arr.estimatedMinutes} min · {share} €
+                  </Text>
+                ) : null}
+              </View>
+              <PressScale onPress={() => setPickerClientId(item.clientId)}>
+                <ChevronDown size={16} color="#5C4E40" />
+              </PressScale>
+              <PressScale onPress={() => onRemoveStop(item.clientId)}>
+                <Trash2 size={16} color="#B23832" />
+              </PressScale>
             </View>
-            <PressScale onPress={() => onRemoveStop(item.clientId)}>
-              <Trash2 size={16} color="#B23832" />
-            </PressScale>
+            {item.plannedPrestations.length > 0 ? (
+              <Text variant="muted" className="text-xs pl-8">
+                {item.plannedPrestations.map((p) => `${p.nameSnapshot} ×${p.qty}`).join(', ')}
+              </Text>
+            ) : null}
           </Surface>
         );
       }}
     />
+    {pickerClientId ? (
+      <PrestationPickerSheet
+        visible
+        clientAnimalCounts={pickerClient?.animalCounts ?? []}
+        onAdd={(prestation) => {
+          if (onUpdateStopPrestations && pickerStop) {
+            const current = pickerStop.plannedPrestations;
+            onUpdateStopPrestations(pickerClientId, [...current, prestation]);
+          }
+        }}
+        onClose={() => setPickerClientId(null)}
+      />
+    ) : null}
+    </>
   );
 }

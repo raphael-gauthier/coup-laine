@@ -184,7 +184,9 @@
     "bilan_no_planned": "Aucune prestation prévue",
     "bilan_no_show": "Client absent (aucune prestation)",
     "bilan_match_planned": "= Prévu ✓",
-    "bilan_differs": "Modifié"
+    "bilan_differs": "Modifié",
+    "picker_suggested": "Suggérées",
+    "picker_other": "Autres"
   },
   "catalogs": {
     "species": {
