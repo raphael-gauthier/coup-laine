@@ -29,6 +29,9 @@ export default function OptimizedTourScreen() {
   const upsert = useUpsertTour();
   const [isEstimate, setIsEstimate] = useState(false);
   const [optimizedIds, setOptimizedIds] = useState<string[] | null>(null);
+  // Signature of the picked set we last optimised for. When `picked` changes
+  // (user adds/removes a client from the optimised tour), we re-run.
+  const [lastOptimisedSignature, setLastOptimisedSignature] = useState<string>('');
 
   const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
 
@@ -40,7 +43,13 @@ export default function OptimizedTourScreen() {
   }, []);
 
   useEffect(() => {
-    if (picked.length === 0 || !base || optimizedIds) return;
+    if (picked.length === 0 || !base) return;
+
+    // Build a stable signature from the *set* of picked ids (sorted).
+    // Order changes from drag-reorder don't trigger a re-fetch.
+    const signature = [...picked].sort().join('|');
+    if (signature === lastOptimisedSignature) return;
+
     const validPicked = picked.filter((id) => {
       const c = clientsById.get(id);
       return c?.latitude != null && c?.longitude != null;
@@ -64,6 +73,7 @@ export default function OptimizedTourScreen() {
         });
         setOptimizedIds(ordered);
         setOrder(ordered);
+        setLastOptimisedSignature(signature);
       },
       onError: (err) => {
         errorToast('Calcul impossible', err instanceof Error ? err.message : undefined);
