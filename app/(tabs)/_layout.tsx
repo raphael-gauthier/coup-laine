@@ -5,7 +5,7 @@ import { Users, Route, Search, Map, Settings } from 'lucide-react-native';
 export default function TabsLayout() {
   const { t } = useTranslation();
   return (
-    <Tabs screenOptions={{ headerShown: false }}>
+    <Tabs screenOptions={{ headerShown: false, animation: 'shift' }}>
       <Tabs.Screen
         name="clients"
         options={{
