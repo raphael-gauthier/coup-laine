@@ -35,7 +35,14 @@ export default function OptimizedTourScreen() {
 
   const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
 
+  const optimizedConfig = useTourDraftStore((s) => s.optimizedConfig);
+
   useEffect(() => {
+    // If no config set yet, go to config screen first
+    if (!optimizedConfig) {
+      router.push('/(tabs)/tours/new/optimized-config' as never);
+      return;
+    }
     if (picked.length === 0) {
       router.push('/(tabs)/tours/new/pick-clients' as never);
     }

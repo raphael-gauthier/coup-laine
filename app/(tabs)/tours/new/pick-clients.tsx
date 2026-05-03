@@ -27,10 +27,18 @@ export default function PickClientsScreen() {
   const picked = useTourDraftStore((s) => s.pickedClientIds);
   const toggle = useTourDraftStore((s) => s.toggle);
 
+  const optimizedConfig = useTourDraftStore((s) => s.optimizedConfig);
+
   const filtered = useMemo(() => {
-    if (!search.trim()) return clients;
-    return clients.filter((c) => matchesQuery(c.displayName, search));
-  }, [clients, search]);
+    let list = clients;
+    // Apply commune filter from optimized config
+    if (optimizedConfig?.commune) {
+      const commune = optimizedConfig.commune.toLowerCase();
+      list = list.filter((c) => c.addressCity?.toLowerCase().includes(commune));
+    }
+    if (!search.trim()) return list;
+    return list.filter((c) => matchesQuery(c.displayName, search));
+  }, [clients, search, optimizedConfig]);
 
   return (
     <Surface className="flex-1">
