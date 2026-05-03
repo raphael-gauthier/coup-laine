@@ -7,22 +7,22 @@ const STANDARD_SPECIES = [
   {
     id: 'sheep',
     label: 'Mouton',
-    color: '#A1602F',
+    iconKey: 'mouton',
     ordering: 0,
     isCustom: 0,
     categories: [
-      { id: 'sheep-adult', label: 'Brebis adulte', averageMinutesPerUnit: 20, ordering: 0 },
-      { id: 'sheep-lamb', label: 'Agneau', averageMinutesPerUnit: 15, ordering: 1 },
+      { id: 'sheep-adult', label: 'Brebis adulte', ordering: 0 },
+      { id: 'sheep-lamb', label: 'Agneau', ordering: 1 },
     ],
   },
   {
     id: 'goat',
     label: 'Chèvre',
-    color: '#5C7548',
+    iconKey: 'caprin',
     ordering: 1,
     isCustom: 0,
     categories: [
-      { id: 'goat-adult', label: 'Chèvre adulte', averageMinutesPerUnit: 18, ordering: 0 },
+      { id: 'goat-adult', label: 'Chèvre adulte', ordering: 0 },
     ],
   },
 ];
@@ -36,18 +36,19 @@ export async function seedSpeciesIfEmpty(db: Db) {
     await db.insert(species).values({
       id: s.id,
       label: s.label,
-      color: s.color,
+      iconKey: s.iconKey,
       ordering: s.ordering,
       isCustom: s.isCustom,
+      archivedAt: null,
     });
     for (const c of s.categories) {
       await db.insert(animalCategories).values({
         id: c.id,
         speciesId: s.id,
         label: c.label,
-        averageMinutesPerUnit: c.averageMinutesPerUnit,
         ordering: c.ordering,
         isCustom: 0,
+        archivedAt: null,
       });
     }
   }
