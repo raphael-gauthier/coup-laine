@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 // Silence the cosmetic warning so it doesn't crowd the dev logs.
 LogBox.ignoreLogs(['source must have tiles']);
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, useResolvedColorScheme } from '@/ui/theme/theme-provider';
 import { bootstrapDatabase } from '@/infra/db/bootstrap';
@@ -70,10 +71,12 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }
