@@ -55,3 +55,21 @@ For multi-step tasks, state a brief plan:
 ```
 
 Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+## 5. RN Stack (post-migration)
+
+This worktree (`rn-migration` branch) targets **iOS + Android** via Expo + React Native, replacing the Flutter app on `main`. See [`docs/superpowers/specs/2026-05-03-migration-expo-rn-design/`](docs/superpowers/specs/2026-05-03-migration-expo-rn-design/README.md) for the full design.
+
+**Quick reference:**
+- Package manager: **pnpm** (never npm or yarn)
+- Tests: `pnpm test` (vitest for `tests/domain/`, jest for `tests/data/` and `tests/infra/`)
+- Typecheck: `pnpm typecheck`
+- Lint: `pnpm lint`
+- Dev: `pnpm start` (with `--dev-client`)
+- DB migrations: `pnpm db:generate` (Drizzle)
+
+**Conventions:**
+- All durations and easings via `motion-tokens.ts`. No `ms: 250` literals in components.
+- All pressables use `<PressScale>`. All critical actions trigger haptics from `@/ui/motion/haptics`.
+- All strings via `t('...')` (i18next). No FR strings in JSX.
+- TS strict mode is enforced. No `any`. Use `unknown` + narrowing or proper types.
