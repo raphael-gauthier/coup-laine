@@ -161,7 +161,7 @@ coupe-laine-rn/                          (worktree root)
 - **TDD where it pays off.** Domain logic, repositories, services, lib utilities: write the test first, watch it fail, implement, watch it pass, commit. UI screens get one or two RNTL tests at most for non-trivial interaction logic; visual rendering is verified manually on device.
 - **Commit cadence.** One commit per task (sometimes per step for tasks with multiple sub-changes). Conventional commits (`feat:`, `test:`, `refactor:`, `chore:`, `docs:`).
 - **TS strict mode is non-negotiable.** Every file compiles cleanly under `tsc --noEmit` with `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`. Don't disable rules.
-- **No `any`.** Use `unknown` + narrowing, or proper types. Tools like Drizzle and Zod give us inference — use it.
+- **No `any`.** Use `unknown` + narrowing, or proper types. Tools like Drizzle and Zod give us inference — use it. For repository constructors that must accept both prod (`expo-sqlite`) and test (`better-sqlite3`) Drizzle instances, use the abstract `Db` type exported from `src/infra/db/client.ts` (defined in Task 0.7).
 - **Run command for tests:**
   - Domain (pure TS, no RN): `pnpm vitest run tests/domain/<file>` or `pnpm vitest` for full domain suite
   - Data + infra (jest with RN env or sqlite): `pnpm jest tests/data/<file>` or `pnpm jest` for the jest suite

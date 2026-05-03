@@ -729,19 +729,34 @@ export default {
 export {};
 ```
 
-- [ ] **Step 5: Create the DB client**
+- [ ] **Step 5: Create the DB client with a portable type**
+
+We need a type that BOTH the production `expo-sqlite` Drizzle instance AND the test `better-sqlite3` Drizzle instance can satisfy. Repositories accept this abstract type so the same code runs in both environments.
 
 ```ts
 // src/infra/db/client.ts
 import { drizzle } from 'drizzle-orm/expo-sqlite';
+import type { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 import { openDatabaseSync } from 'expo-sqlite';
 
 const sqlite = openDatabaseSync('coupe-laine.db');
 
 export const db = drizzle(sqlite);
 
+/**
+ * Abstract Drizzle SQLite database type. Both `drizzle-orm/expo-sqlite` (prod)
+ * and `drizzle-orm/better-sqlite3` (tests) produce instances assignable to it.
+ *
+ * The first generic is the query-result-kind ('sync' for both these adapters);
+ * the second is the schema (we keep it permissive — repos type the rows they
+ * read/write themselves via Zod).
+ */
+export type Db = BaseSQLiteDatabase<'sync', unknown>;
+
 export type Database = typeof db;
 ```
+
+> **Note on generics:** if a Drizzle version bump introduces a stricter generic shape (e.g., a third parameter), adjust `Db` here. All repos import from this file so it's a single point of change.
 
 - [ ] **Step 6: Verify typecheck**
 

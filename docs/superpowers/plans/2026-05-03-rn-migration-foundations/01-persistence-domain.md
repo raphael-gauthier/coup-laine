@@ -2276,9 +2276,10 @@ describe('SettingsRepository', () => {
 // src/data/repositories/settings-repository.ts
 import { eq } from 'drizzle-orm';
 import { settings } from '@/infra/db/schema';
+import type { Db } from '@/infra/db/client';
 
 export class SettingsRepository {
-  constructor(private readonly db: any) {}
+  constructor(private readonly db: Db) {}
 
   async get(key: string): Promise<string | null> {
     const rows = await this.db.select().from(settings).where(eq(settings.key, key));
@@ -2405,6 +2406,7 @@ describe('ClientRepository', () => {
 // src/data/repositories/client-repository.ts
 import { eq } from 'drizzle-orm';
 import { clients } from '@/infra/db/schema';
+import type { Db } from '@/infra/db/client';
 import { Client } from '@/domain/models/client';
 
 function toRow(c: Client) {
@@ -2452,7 +2454,7 @@ function fromRow(r: any): Client {
 }
 
 export class ClientRepository {
-  constructor(private readonly db: any) {}
+  constructor(private readonly db: Db) {}
 
   async byId(id: string): Promise<Client | null> {
     const rows = await this.db.select().from(clients).where(eq(clients.id, id));
@@ -2541,6 +2543,7 @@ Implementation:
 // src/data/repositories/species-repository.ts
 import { eq, asc } from 'drizzle-orm';
 import { species } from '@/infra/db/schema';
+import type { Db } from '@/infra/db/client';
 import { Species } from '@/domain/models/species';
 
 function toRow(s: Species) {
@@ -2551,7 +2554,7 @@ function fromRow(r: any): Species {
 }
 
 export class SpeciesRepository {
-  constructor(private readonly db: any) {}
+  constructor(private readonly db: Db) {}
 
   async byId(id: string): Promise<Species | null> {
     const rows = await this.db.select().from(species).where(eq(species.id, id));
@@ -2587,6 +2590,7 @@ Same pattern. Add `listBySpeciesId(speciesId)` returning categories ordered by `
 // src/data/repositories/animal-category-repository.ts
 import { asc, eq } from 'drizzle-orm';
 import { animalCategories } from '@/infra/db/schema';
+import type { Db } from '@/infra/db/client';
 import { AnimalCategory } from '@/domain/models/animal-category';
 
 function toRow(c: AnimalCategory) { return { ...c, isCustom: c.isCustom ? 1 : 0 }; }
@@ -2595,7 +2599,7 @@ function fromRow(r: any): AnimalCategory {
 }
 
 export class AnimalCategoryRepository {
-  constructor(private readonly db: any) {}
+  constructor(private readonly db: Db) {}
 
   async listAll(): Promise<AnimalCategory[]> {
     const rows = await this.db.select().from(animalCategories).orderBy(asc(animalCategories.ordering));
@@ -2663,6 +2667,7 @@ Mirror Species pattern. Test round-trip. Implementation:
 // src/data/repositories/prestation-repository.ts
 import { asc, eq } from 'drizzle-orm';
 import { prestations } from '@/infra/db/schema';
+import type { Db } from '@/infra/db/client';
 import { Prestation } from '@/domain/models/prestation';
 
 function toRow(p: Prestation) { return { ...p, isActive: p.isActive ? 1 : 0 }; }
@@ -2671,7 +2676,7 @@ function fromRow(r: any): Prestation {
 }
 
 export class PrestationRepository {
-  constructor(private readonly db: any) {}
+  constructor(private readonly db: Db) {}
 
   async listAll(): Promise<Prestation[]> {
     const rows = await this.db.select().from(prestations).orderBy(asc(prestations.ordering));
@@ -2708,6 +2713,7 @@ git commit -m "feat(data): prestation repository with tests"
 // src/data/repositories/manual-history-repository.ts
 import { desc, eq } from 'drizzle-orm';
 import { manualHistoryEntries } from '@/infra/db/schema';
+import type { Db } from '@/infra/db/client';
 import { ManualHistoryEntry } from '@/domain/models/manual-history-entry';
 
 function toRow(e: ManualHistoryEntry) {
@@ -2718,7 +2724,7 @@ function fromRow(r: any): ManualHistoryEntry {
 }
 
 export class ManualHistoryRepository {
-  constructor(private readonly db: any) {}
+  constructor(private readonly db: Db) {}
 
   async listByClient(clientId: string): Promise<ManualHistoryEntry[]> {
     const rows = await this.db
@@ -2754,6 +2760,7 @@ git commit -m "feat(data): manual-history repository with tests"
 // src/data/repositories/distance-matrix-repository.ts
 import { and, eq, lt } from 'drizzle-orm';
 import { distanceMatrix } from '@/infra/db/schema';
+import type { Db } from '@/infra/db/client';
 import { DistanceMatrixEntry } from '@/domain/models/distance-matrix-entry';
 
 function fromRow(r: any): DistanceMatrixEntry {
@@ -2761,7 +2768,7 @@ function fromRow(r: any): DistanceMatrixEntry {
 }
 
 export class DistanceMatrixRepository {
-  constructor(private readonly db: any) {}
+  constructor(private readonly db: Db) {}
 
   async byPair(fromId: string, toId: string): Promise<DistanceMatrixEntry | null> {
     const rows = await this.db
@@ -2929,6 +2936,7 @@ describe('TourRepository', () => {
 // src/data/repositories/tour-repository.ts
 import { asc, eq } from 'drizzle-orm';
 import { tours, tourStops } from '@/infra/db/schema';
+import type { Db } from '@/infra/db/client';
 import { Tour, type TourStatus } from '@/domain/models/tour';
 import { TourStop } from '@/domain/models/tour-stop';
 
@@ -2948,7 +2956,7 @@ export interface TourWithStops {
 }
 
 export class TourRepository {
-  constructor(private readonly db: any) {}
+  constructor(private readonly db: Db) {}
 
   async byId(id: string): Promise<TourWithStops | null> {
     const tRows = await this.db.select().from(tours).where(eq(tours.id, id));
