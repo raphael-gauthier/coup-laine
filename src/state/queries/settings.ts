@@ -2,8 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/infra/db/client';
 import { SettingsRepository } from '@/data/repositories/settings-repository';
 import { useThemeStore, type ThemeMode } from '@/state/stores/theme-store';
+import { DistanceMatrixSync } from '@/data/distance-matrix-sync';
 
 const repo = new SettingsRepository(db);
+const sync = new DistanceMatrixSync(db);
 
 export const settingsKeys = {
   all: ['settings'] as const,
@@ -62,9 +64,11 @@ export function useSetBaseAddress() {
       await repo.set('base_address_postcode', b.postcode ?? '');
       await repo.set('base_lat', String(b.lat));
       await repo.set('base_lng', String(b.lon));
+      await sync.markAllPending();
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: settingsKeys.base() });
+      void qc.invalidateQueries({ queryKey: ['clients'] });
     },
   });
 }
