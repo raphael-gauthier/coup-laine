@@ -1,29 +1,31 @@
-import { useColorScheme } from 'nativewind';
+import { colorScheme as nativewindColorScheme, useColorScheme } from 'nativewind';
 import { useEffect, type ReactNode } from 'react';
-import { View } from 'react-native';
 import { useThemeStore } from '@/state/stores/theme-store';
 
 interface Props {
   children: ReactNode;
 }
 
+/**
+ * Bridges the persisted theme store ('system' | 'light' | 'dark') with
+ * NativeWind's global colorScheme. Renders children as-is — NativeWind
+ * applies the theme to all `dark:` classes globally, no wrapper needed.
+ */
 export function ThemeProvider({ children }: Props) {
   const mode = useThemeStore((s) => s.mode);
-  const { colorScheme, setColorScheme } = useColorScheme();
 
   useEffect(() => {
-    if (mode === 'system') {
-      setColorScheme('system');
-    } else {
-      setColorScheme(mode);
-    }
-  }, [mode, setColorScheme]);
+    nativewindColorScheme.set(mode);
+  }, [mode]);
 
-  const isDark = colorScheme === 'dark';
+  return <>{children}</>;
+}
 
-  return (
-    <View className={isDark ? 'dark flex-1' : 'flex-1'}>
-      <View className="flex-1 bg-background">{children}</View>
-    </View>
-  );
+/**
+ * Hook for components that need to know whether the resolved theme is dark.
+ * Useful for the navigation ThemeProvider (light vs dark navigation tokens).
+ */
+export function useResolvedColorScheme(): 'light' | 'dark' {
+  const { colorScheme } = useColorScheme();
+  return colorScheme === 'dark' ? 'dark' : 'light';
 }
