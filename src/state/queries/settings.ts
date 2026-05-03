@@ -68,3 +68,23 @@ export function useSetBaseAddress() {
     },
   });
 }
+
+export function useOnboardingComplete() {
+  return useQuery({
+    queryKey: [...settingsKeys.all, 'onboarding'],
+    queryFn: async () => {
+      const v = await repo.get('onboarding_complete');
+      return v === 'true';
+    },
+  });
+}
+
+export function useMarkOnboardingComplete() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => repo.set('onboarding_complete', 'true'),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [...settingsKeys.all, 'onboarding'] });
+    },
+  });
+}
