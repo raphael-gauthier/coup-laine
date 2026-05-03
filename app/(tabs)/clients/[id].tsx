@@ -1,6 +1,6 @@
 import { View, ScrollView } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { History, Pencil, Trash2 } from 'lucide-react-native';
+import { Pencil, Trash2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -8,7 +8,13 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { ErrorState } from '@/ui/components/error-state';
 import { confirm } from '@/ui/components/confirm-dialog';
-import { useClient, useDeleteClient, useToggleWaiting } from '@/state/queries/clients';
+import { ClientKpiRow } from '@/ui/components/client-kpi-row';
+import { ClientStatusBadge } from '@/ui/components/client-status-badge';
+import { PlannedTourCard } from '@/ui/components/planned-tour-card';
+import { ClientAnimalsSection } from '@/ui/components/client-animals-section';
+import { ClientStatusActionsCard } from '@/ui/components/client-status-actions-card';
+import { LastInterventionsList } from '@/ui/components/last-interventions-list';
+import { useClient, useDeleteClient } from '@/state/queries/clients';
 import { formatPhone } from '@/lib/phone-formatter';
 import { haptics } from '@/ui/motion/haptics';
 import { errorToast } from '@/ui/components/error-toast';
@@ -19,7 +25,6 @@ export default function ClientDetailScreen() {
   const { t } = useTranslation();
   const { data: client, isError, refetch } = useClient(id);
   const deleteMutation = useDeleteClient();
-  const toggleWaiting = useToggleWaiting();
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!client) return <Surface className="flex-1" />;
@@ -67,23 +72,28 @@ export default function ClientDetailScreen() {
         }}
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 16 }}>
+        {/* Header */}
         <Text className="text-2xl font-bold">{client.displayName}</Text>
 
-        <Button
-          variant={client.isWaiting ? 'primary' : 'secondary'}
-          onPress={() => toggleWaiting.mutate({ id: client.id, isWaiting: !client.isWaiting })}
-        >
-          {client.isWaiting ? t('clients.unmark_waiting') : t('clients.mark_waiting')}
-        </Button>
+        {/* Status badge */}
+        <ClientStatusBadge clientId={client.id} />
 
-        <Button
-          variant="secondary"
-          onPress={() => router.push(`/(tabs)/clients/${client.id}/history` as never)}
-        >
-          <History size={16} />
-          <Text className="font-semibold">{t('history.view_history')}</Text>
-        </Button>
+        {/* KPI row */}
+        <ClientKpiRow clientId={client.id} />
 
+        {/* Planned tour card */}
+        <PlannedTourCard clientId={client.id} />
+
+        {/* Animals section */}
+        <ClientAnimalsSection client={client} />
+
+        {/* Status actions */}
+        <ClientStatusActionsCard client={client} />
+
+        {/* Last interventions */}
+        <LastInterventionsList clientId={client.id} />
+
+        {/* Address + phones */}
         {client.addressLabel ? (
           <View className="gap-1">
             <Text variant="muted" className="text-sm">{t('clients.address')}</Text>
@@ -100,6 +110,13 @@ export default function ClientDetailScreen() {
           </View>
         ) : null}
 
+        {/* Actions */}
+        <Button
+          variant="secondary"
+          onPress={() => router.push(`/(tabs)/clients/${client.id}/edit`)}
+        >
+          {t('common.edit')}
+        </Button>
       </ScrollView>
     </Surface>
   );

@@ -104,6 +104,21 @@ export function useUpsertTour() {
   });
 }
 
+export function useNextPlannedTourForClient(clientId: string | undefined) {
+  return useQuery({
+    queryKey: [...toursKeys.list('planned'), 'forClient', clientId ?? ''],
+    queryFn: async () => {
+      if (!clientId) return null;
+      const planned = await tourRepo.listByStatus('planned');
+      const matching = planned
+        .filter(({ stops }) => stops.some((s) => s.clientId === clientId))
+        .sort((a, b) => a.tour.scheduledDate.localeCompare(b.tour.scheduledDate));
+      return matching[0] ?? null;
+    },
+    enabled: !!clientId,
+  });
+}
+
 export function useDeleteTour() {
   const qc = useQueryClient();
   return useMutation({
