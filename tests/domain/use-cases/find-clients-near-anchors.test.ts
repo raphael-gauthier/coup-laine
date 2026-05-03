@@ -38,4 +38,28 @@ describe('findClientsNearAnchors', () => {
     });
     expect(r.map((c) => c.id)).toEqual(['c2', 'c1']);
   });
+
+  it('uses caller-supplied distanceKm when provided', () => {
+    const c1 = { id: 'c1', lat: 48.05, lon: -3.0 };
+    const r = findClientsNearAnchors({
+      anchors: [anchorA],
+      radiusKm: 10,
+      clients: [c1],
+      distanceKm: (_anchor, _client) => 5,
+    });
+    expect(r.length).toBe(1);
+    expect(r[0]?.isEstimate).toBe(false);
+  });
+
+  it('falls back to haversine when distanceKm returns null', () => {
+    const c1 = { id: 'c1', lat: 48.05, lon: -3.0 };
+    const r = findClientsNearAnchors({
+      anchors: [anchorA],
+      radiusKm: 50,
+      clients: [c1],
+      distanceKm: () => null,
+    });
+    expect(r.length).toBe(1);
+    expect(r[0]?.isEstimate).toBe(true);
+  });
 });

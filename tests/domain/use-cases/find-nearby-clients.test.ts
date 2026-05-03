@@ -34,4 +34,35 @@ describe('findNearbyClients', () => {
   it('throws for non-positive radius', () => {
     expect(() => findNearbyClients({ pivot, radiusKm: 0, clients: [] })).toThrow();
   });
+
+  it('uses caller-supplied distanceKm when provided', () => {
+    const r = findNearbyClients({
+      pivot,
+      radiusKm: 20,
+      clients: [within10km, within40km],
+      distanceKm: (_from, to) => (to === 'c1' ? 5 : 50),
+    });
+    expect(r.map((c) => c.id)).toEqual(['c1']);
+    expect(r[0]?.isEstimate).toBe(false);
+  });
+
+  it('falls back to haversine when distanceKm returns null', () => {
+    const r = findNearbyClients({
+      pivot,
+      radiusKm: 50,
+      clients: [within10km],
+      distanceKm: () => null,
+    });
+    expect(r.length).toBe(1);
+    expect(r[0]?.isEstimate).toBe(true);
+  });
+
+  it('marks haversine results as isEstimate=true when no distanceKm provided', () => {
+    const r = findNearbyClients({
+      pivot,
+      radiusKm: 50,
+      clients: [within10km],
+    });
+    expect(r[0]?.isEstimate).toBe(true);
+  });
 });
