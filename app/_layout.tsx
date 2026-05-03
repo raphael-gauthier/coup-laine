@@ -1,3 +1,4 @@
+import 'react-native-get-random-values';
 import '../global.css';
 import '@/i18n';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
