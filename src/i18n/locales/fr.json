@@ -226,7 +226,9 @@
       "label": "Nom",
       "price": "Prix (optionnel)",
       "minutes": "Durée (minutes)",
-      "category_id": "Catégorie (id)",
+      "category_id": "Catégorie",
+      "category_picker_title": "Choisir une catégorie",
+      "no_category_option": "Aucune catégorie",
       "active": "Active",
       "inactive_badge": "Inactive",
       "no_category": "Sans catégorie",
@@ -352,6 +354,7 @@
     "restore_cta": "Restaurer",
     "restore_confirm_title": "Restaurer cette sauvegarde ?",
     "restore_confirm_message": "Toutes tes données locales (clients, tournées, historique) seront remplacées par celles de la sauvegarde. Cette action est irréversible.",
+    "restore_typed_word": "RESTAURER",
     "delete_confirm_title": "Supprimer cette sauvegarde ?",
     "delete_confirm_message": "Cette action est définitive."
   },
@@ -389,6 +392,28 @@
       "title": "Ton domicile",
       "message": "L'adresse depuis laquelle tu pars pour tes tournées. Tu peux la changer plus tard dans Réglages.",
       "cta": "Continuer"
+    },
+    "species": {
+      "title": "Tes animaux",
+      "message": "Active les espèces que tu tonds. Les catégories par défaut seront créées automatiquement.",
+      "cta": "Continuer",
+      "skip": "Passer cette étape"
+    },
+    "recap": {
+      "title": "Tout est prêt !",
+      "message": "Voici un résumé de ta configuration. Tu pourras modifier tout ça dans Réglages.",
+      "address_label": "Domicile",
+      "species_label": "Espèces",
+      "species_count": "{{count}} espèce",
+      "species_count_plural": "{{count}} espèces",
+      "cta": "Lancer l'application"
+    },
+    "restore_prompt": {
+      "title": "Données trouvées",
+      "message": "Une sauvegarde existe dans le cloud. Veux-tu restaurer tes données ou repartir de zéro ?",
+      "restore_cta": "Restaurer la sauvegarde",
+      "fresh_cta": "Repartir de zéro",
+      "restore_failed": "Restauration impossible"
     }
   }
 }

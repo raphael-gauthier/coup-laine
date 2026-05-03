@@ -8,7 +8,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { AddressAutocompleteInput } from '@/ui/components/address-autocomplete-input';
-import { useSetBaseAddress, useMarkOnboardingComplete, type BaseAddress } from '@/state/queries/settings';
+import { useSetBaseAddress, type BaseAddress } from '@/state/queries/settings';
 import { errorToast } from '@/ui/components/error-toast';
 import { haptics } from '@/ui/motion/haptics';
 import type { BanResult } from '@/infra/services/ban-geocoding';
@@ -17,7 +17,6 @@ export default function OnboardingBaseScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const setBase = useSetBaseAddress();
-  const markComplete = useMarkOnboardingComplete();
   const [pending, setPending] = useState<BaseAddress | null>(null);
 
   const onSelect = (r: BanResult) => {
@@ -34,12 +33,8 @@ export default function OnboardingBaseScreen() {
     if (!pending) return;
     setBase.mutate(pending, {
       onSuccess: () => {
-        markComplete.mutate(undefined, {
-          onSuccess: () => {
-            void haptics.success();
-            router.replace('/(tabs)/clients' as never);
-          },
-        });
+        void haptics.success();
+        router.push('/onboarding/species' as never);
       },
       onError: (err) => {
         errorToast(t('common.error_generic'), err instanceof Error ? err.message : undefined);
@@ -68,8 +63,8 @@ export default function OnboardingBaseScreen() {
 
         <Button
           onPress={onSave}
-          disabled={!pending || setBase.isPending || markComplete.isPending}
-          loading={setBase.isPending || markComplete.isPending}
+          disabled={!pending || setBase.isPending}
+          loading={setBase.isPending}
         >
           <Text variant="onPrimary" className="font-semibold">{t('onboarding.base.cta')}</Text>
         </Button>
