@@ -1,6 +1,6 @@
 import { View, ScrollView } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { Pencil, Trash2 } from 'lucide-react-native';
+import { History, Pencil, Trash2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -73,6 +73,14 @@ export default function ClientDetailScreen() {
           onPress={() => toggleWaiting.mutate({ id: client.id, isWaiting: !client.isWaiting })}
         >
           {client.isWaiting ? t('clients.unmark_waiting') : t('clients.mark_waiting')}
+        </Button>
+
+        <Button
+          variant="secondary"
+          onPress={() => router.push(`/(tabs)/clients/${client.id}/history` as never)}
+        >
+          <History size={16} />
+          <Text className="font-semibold">{t('history.view_history')}</Text>
         </Button>
 
         {client.addressLabel ? (

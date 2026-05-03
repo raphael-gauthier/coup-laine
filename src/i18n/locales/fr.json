@@ -181,6 +181,26 @@
       "price_invalid": "Doit être un nombre positif ou vide."
     }
   },
+  "history": {
+    "title": "Historique",
+    "view_history": "Voir l'historique",
+    "empty_title": "Aucun historique",
+    "empty_message": "Les tournées clôturées et les entrées manuelles apparaîtront ici.",
+    "source_tour": "Tournée",
+    "source_manual": "Manuelle",
+    "manual": {
+      "new_title": "Nouvelle entrée",
+      "edit_title": "Modifier l'entrée",
+      "date": "Date",
+      "notes": "Notes",
+      "delete": "Supprimer",
+      "delete_confirm_title": "Supprimer cette entrée ?",
+      "delete_confirm_message": "Cette action est définitive."
+    },
+    "errors": {
+      "date_required": "Date obligatoire."
+    }
+  },
   "settings": {
     "title": "Réglages",
     "appearance": {
