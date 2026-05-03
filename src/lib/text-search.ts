@@ -7,7 +7,17 @@ export function normalizeForSearch(input: string): string {
     .trim();
 }
 
-export function matchesQuery(haystack: string, query: string): boolean {
-  if (!query) return true;
-  return normalizeForSearch(haystack).includes(normalizeForSearch(query));
+function normalize(s: string): string {
+  return s.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+}
+
+export function matchesQuery(haystack: string | null | undefined, query: string): boolean {
+  if (!query.trim()) return true;
+  if (!haystack) return false;
+  return normalize(haystack).includes(normalize(query));
+}
+
+export function matchesAny(fields: Array<string | null | undefined>, query: string): boolean {
+  if (!query.trim()) return true;
+  return fields.some((f) => f && matchesQuery(f, query));
 }

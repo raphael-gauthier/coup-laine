@@ -20,7 +20,7 @@ import { RecomputeBanner } from '@/ui/components/recompute-banner';
 import { ClientFilterButton } from '@/ui/components/client-status-filter-dialog';
 import { useClients, useToggleWaiting, useClientStatusMap, type ClientsFilter } from '@/state/queries/clients';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
-import { matchesQuery } from '@/lib/text-search';
+import { matchesAny } from '@/lib/text-search';
 
 export default function ClientsListScreen() {
   const { t } = useTranslation();
@@ -44,7 +44,7 @@ export default function ClientsListScreen() {
     }
     // Apply text search
     if (search.trim()) {
-      list = list.filter((c) => matchesQuery(c.displayName, search));
+      list = list.filter((c) => matchesAny([c.displayName, c.addressCity], search));
     }
     return list;
   }, [allClients, search, enabledStatuses, statusMap]);
