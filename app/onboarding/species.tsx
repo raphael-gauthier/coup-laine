@@ -100,7 +100,7 @@ export default function OnboardingSpeciesScreen() {
             <Surface key={sp.id} variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
               <Text className="font-semibold">{sp.label}</Text>
               <ThemedSwitch
-                value={enabled[sp.id]}
+                value={!!enabled[sp.id]}
                 onValueChange={(v) => setEnabled((prev) => ({ ...prev, [sp.id]: v }))}
               />
             </Surface>
