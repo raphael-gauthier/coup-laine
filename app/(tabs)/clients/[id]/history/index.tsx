@@ -1,9 +1,11 @@
 import { View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Plus, History as HistoryIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
+import { motion } from '@/ui/motion/motion-tokens';
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
 import { Text } from '@/ui/primitives/text';
@@ -48,16 +50,22 @@ export default function ClientHistoryScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View className="h-2" />}
           renderItem={({ item }) => (
-            <HistoryRow
-              entry={item}
-              onPress={() => {
-                if (item.source === 'tour' && item.tourId) {
-                  router.push(`/(tabs)/tours/${item.tourId}` as never);
-                } else if (item.source === 'manual' && item.manualEntryId) {
-                  router.push(`/(tabs)/clients/${id}/history/${item.manualEntryId}` as never);
-                }
-              }}
-            />
+            <Animated.View
+              entering={FadeIn.duration(motion.duration.fast)}
+              exiting={FadeOut.duration(motion.duration.fast)}
+              layout={LinearTransition.duration(motion.duration.normal)}
+            >
+              <HistoryRow
+                entry={item}
+                onPress={() => {
+                  if (item.source === 'tour' && item.tourId) {
+                    router.push(`/(tabs)/tours/${item.tourId}` as never);
+                  } else if (item.source === 'manual' && item.manualEntryId) {
+                    router.push(`/(tabs)/clients/${id}/history/${item.manualEntryId}` as never);
+                  }
+                }}
+              />
+            </Animated.View>
           )}
         />
       )}

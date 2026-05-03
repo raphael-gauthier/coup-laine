@@ -2,9 +2,11 @@ import { useState, useMemo } from 'react';
 import { View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Plus, UserRound } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
+import { motion } from '@/ui/motion/motion-tokens';
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
 import { Text } from '@/ui/primitives/text';
@@ -86,11 +88,17 @@ export default function ClientsListScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}
           ItemSeparatorComponent={() => <View className="h-2" />}
           renderItem={({ item }) => (
-            <ClientCard
-              client={item}
-              onPress={() => router.push(`/(tabs)/clients/${item.id}`)}
-              onToggleWaiting={() => toggle.mutate({ id: item.id, isWaiting: !item.isWaiting })}
-            />
+            <Animated.View
+              entering={FadeIn.duration(motion.duration.fast)}
+              exiting={FadeOut.duration(motion.duration.fast)}
+              layout={LinearTransition.duration(motion.duration.normal)}
+            >
+              <ClientCard
+                client={item}
+                onPress={() => router.push(`/(tabs)/clients/${item.id}`)}
+                onToggleWaiting={() => toggle.mutate({ id: item.id, isWaiting: !item.isWaiting })}
+              />
+            </Animated.View>
           )}
         />
       )}
