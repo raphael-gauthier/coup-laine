@@ -60,7 +60,26 @@
   "map": {
     "title": "Carte",
     "empty_title": "Aucun client",
-    "empty_message": "Ajoute des clients depuis l'onglet Clients pour les voir ici."
+    "empty_message": "Ajoute des clients depuis l'onglet Clients pour les voir ici.",
+    "search_placeholder": "Rechercher un client…",
+    "layers_title": "Couches",
+    "layer_clients": "Pins clients",
+    "layer_base": "Pin domicile",
+    "layer_proximity": "Cercle de proximité",
+    "chip_all": "Tous",
+    "chip_waiting": "À planifier",
+    "chip_scheduled": "Planifié",
+    "chip_done": "Fait",
+    "chip_no_animals": "Sans animaux",
+    "chip_banned": "Banni",
+    "status_default": "Aucun statut",
+    "status_waiting": "En attente",
+    "status_scheduled": "Planifié",
+    "status_done": "Fait",
+    "status_noAnimals": "Sans animaux",
+    "status_banned": "Banni",
+    "view_client": "Voir la fiche",
+    "start_trip": "Démarrer un trajet"
   },
   "proximity": {
     "title": "Proximité",

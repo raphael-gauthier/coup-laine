@@ -2,8 +2,11 @@ import { View } from 'react-native';
 import { Marker } from '@maplibre/maplibre-react-native';
 import { cn } from '@/lib/cn';
 import type { Client } from '@/domain/models/client';
-import { computeClientStatus } from '@/domain/use-cases/client-status';
+import { useClientStatusMap } from '@/state/queries/clients';
 import { clientStatusColor } from '@/lib/client-status-color';
+import { animalsTotal } from '@/lib/animals-total';
+import { useAllSettings } from '@/state/queries/settings';
+import { Text } from '@/ui/primitives/text';
 
 interface Props {
   client: Client & { latitude: number; longitude: number };
@@ -11,16 +14,11 @@ interface Props {
 }
 
 export function ClientPin({ client, onPress }: Props) {
-  const status = computeClientStatus({
-    isBanned: client.isBanned,
-    isWaiting: client.isWaiting,
-    animalsTotal: client.animalCounts.reduce((s, c) => s + c.count, 0),
-    // TODO R1.E: pass real seasonStartedAt + tour dates from context
-    seasonStartedAt: new Date().getFullYear() + '-01-01',
-    completedTourDates: [],
-    plannedTourDates: [],
-  });
-  const colors = clientStatusColor(status);
+  const { data: statusMap } = useClientStatusMap();
+  const { data: settings } = useAllSettings();
+  const status = statusMap?.get(client.id) ?? 'default';
+  const colors = clientStatusColor(status, settings as Record<string, string | null>);
+  const total = animalsTotal(client.animalCounts);
 
   return (
     <Marker
@@ -29,12 +27,35 @@ export function ClientPin({ client, onPress }: Props) {
       anchor="bottom"
       onPress={onPress}
     >
-      <View
-        className={cn(
-          'w-6 h-6 rounded-full border-2 border-background dark:border-background-dark',
-          colors.bgClass
-        )}
-      />
+      {colors.bgHex ? (
+        <View
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 14,
+            borderWidth: 2,
+            borderColor: '#FAF6F0',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: colors.bgHex,
+          }}
+        >
+          <Text className="text-xs font-bold" style={{ color: '#FFFFFF' }} allowFontScaling={false}>
+            {total}
+          </Text>
+        </View>
+      ) : (
+        <View
+          className={cn(
+            'w-7 h-7 rounded-full border-2 border-background dark:border-background-dark items-center justify-center',
+            colors.bgClass
+          )}
+        >
+          <Text className="text-xs font-bold text-white" allowFontScaling={false}>
+            {total}
+          </Text>
+        </View>
+      )}
     </Marker>
   );
 }
