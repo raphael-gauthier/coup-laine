@@ -134,7 +134,9 @@
     "pick_clients_title": "Choisir des clients",
     "pick_clients_continue": "Continuer ({{count}})",
     "create_manual": "Manuelle",
-    "create_optimized": "Optimisée"
+    "create_optimized": "Optimisée",
+    "optimizing": "Optimisation en cours…",
+    "ors_unavailable": "Distances en estimation (ORS indisponible)."
   },
   "settings": {
     "title": "Réglages",

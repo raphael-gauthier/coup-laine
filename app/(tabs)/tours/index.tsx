@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { View, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Plus, Route as RouteIcon } from 'lucide-react-native';
@@ -30,7 +30,13 @@ export default function ToursListScreen() {
         options={{
           title: t('tours.list_title'),
           headerRight: () => (
-            <Button size="sm" onPress={() => router.push('/(tabs)/tours/new/draft' as never)}>
+            <Button size="sm" onPress={() => {
+              Alert.alert(t('tours.empty_cta'), undefined, [
+                { text: t('tours.create_manual'), onPress: () => router.push('/(tabs)/tours/new/draft' as never) },
+                { text: t('tours.create_optimized'), onPress: () => router.push('/(tabs)/tours/new/optimized' as never) },
+                { text: t('common.cancel'), style: 'cancel' },
+              ]);
+            }}>
               <Plus size={16} color="white" />
               <Text variant="onPrimary" className="font-semibold">{t('tours.empty_cta')}</Text>
             </Button>
