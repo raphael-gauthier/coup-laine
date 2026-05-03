@@ -1,6 +1,7 @@
 import { View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Sun, Moon, Vibrate } from 'lucide-react-native';
+import { Sun, Moon, Vibrate, ArrowRight } from 'lucide-react-native';
 import { Button } from '@/ui/primitives/button';
 import { Text } from '@/ui/primitives/text';
 import { useThemeStore, type ThemeMode } from '@/state/stores/theme-store';
@@ -14,6 +15,7 @@ const NEXT_MODE: Record<ThemeMode, ThemeMode> = {
 
 export default function Index() {
   const { t } = useTranslation();
+  const router = useRouter();
   const mode = useThemeStore((s) => s.mode);
   const setMode = useThemeStore((s) => s.setMode);
 
@@ -37,6 +39,11 @@ export default function Index() {
         <Button variant="secondary" onPress={() => void haptics.success()}>
           <Vibrate size={20} />
           <Text className="font-semibold text-foreground dark:text-foreground-dark">{t('hello.test_haptic')}</Text>
+        </Button>
+
+        <Button variant="ghost" onPress={() => router.push('/(tabs)/clients')}>
+          <Text className="font-semibold text-foreground dark:text-foreground-dark">Voir les tabs</Text>
+          <ArrowRight size={18} />
         </Button>
       </View>
     </View>
