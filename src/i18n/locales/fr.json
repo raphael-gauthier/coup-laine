@@ -61,6 +61,21 @@
     "empty_title": "Aucun client",
     "empty_message": "Ajoute des clients depuis l'onglet Clients pour les voir ici."
   },
+  "proximity": {
+    "title": "Proximité",
+    "pick_pivot_title": "Choisir un client pivot",
+    "pick_pivot_cta": "Choisir un pivot",
+    "no_pivot_title": "Aucun pivot sélectionné",
+    "no_pivot_message": "Sélectionne un client comme point de référence pour voir les autres dans son rayon.",
+    "no_geocoded_title": "Aucun client géolocalisé",
+    "no_geocoded_message": "Aucun client n'a d'adresse géocodée. Édite une fiche client et choisis une adresse via l'auto-complétion.",
+    "pivot_label": "Pivot",
+    "radius_label": "Rayon",
+    "view_list": "Liste",
+    "view_map": "Carte",
+    "empty_title": "Aucun client dans le rayon",
+    "empty_message": "Augmente le rayon ou choisis un autre pivot."
+  },
   "settings": {
     "title": "Réglages",
     "appearance": {
