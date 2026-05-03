@@ -2,7 +2,7 @@
   "expo": {
     "name": "Coupe-laine",
     "slug": "coupe-laine",
-    "version": "0.0.1",
+    "version": "0.8.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "coupelaine",
