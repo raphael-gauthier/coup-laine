@@ -1,0 +1,25 @@
+{
+  "common": {
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "back": "Retour",
+    "loading": "Chargement…",
+    "error_generic": "Une erreur est survenue.",
+    "retry": "Réessayer"
+  },
+  "hello": {
+    "title": "Coupe-laine",
+    "subtitle": "Compagnon quotidien du tondeur de mouton",
+    "toggle_theme": "Basculer le thème",
+    "test_haptic": "Tester le haptic"
+  },
+  "tabs": {
+    "clients": "Clients",
+    "tours": "Tournées",
+    "proximity": "Proximité",
+    "map": "Carte",
+    "settings": "Réglages"
+  }
+}
