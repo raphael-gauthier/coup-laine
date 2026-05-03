@@ -53,6 +53,15 @@
     "deleted_toast": "Client supprimé",
     "save_failed_title": "Enregistrement impossible",
     "delete_failed_title": "Suppression impossible",
+    "filter_dialog_title": "Filtrer par statut",
+    "filter_all_btn": "Tous",
+    "filter_none_btn": "Aucun",
+    "filter_status_default": "Aucun statut",
+    "filter_status_waiting": "En attente",
+    "filter_status_scheduled": "Planifié",
+    "filter_status_done": "Fait",
+    "filter_status_no_animals": "Sans animaux",
+    "filter_status_banned": "Banni",
     "errors": {
       "display_name_required": "Le nom est obligatoire."
     }

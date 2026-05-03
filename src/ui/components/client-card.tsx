@@ -7,8 +7,10 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { haptics } from '@/ui/motion/haptics';
 import type { Client } from '@/domain/models/client';
-import { computeClientStatus } from '@/domain/use-cases/client-status';
+import { useClientStatusMap } from '@/state/queries/clients';
 import { clientStatusColor } from '@/lib/client-status-color';
+import { animalsTotal } from '@/lib/animals-total';
+import { useAllSettings } from '@/state/queries/settings';
 import { cn } from '@/lib/cn';
 
 interface Props {
@@ -19,16 +21,11 @@ interface Props {
 
 export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
   const { t } = useTranslation();
-  const status = computeClientStatus({
-    isBanned: client.isBanned,
-    isWaiting: client.isWaiting,
-    animalsTotal: client.animalCounts.reduce((s, c) => s + c.count, 0),
-    // TODO R1.E: pass real seasonStartedAt + tour dates from context
-    seasonStartedAt: new Date().getFullYear() + '-01-01',
-    completedTourDates: [],
-    plannedTourDates: [],
-  });
-  const colors = clientStatusColor(status);
+  const { data: statusMap } = useClientStatusMap();
+  const { data: settings } = useAllSettings();
+  const status = statusMap?.get(client.id) ?? 'default';
+  const colors = clientStatusColor(status, settings as Record<string, string | null>);
+  const total = animalsTotal(client.animalCounts);
 
   return (
     <PressScale
@@ -41,7 +38,11 @@ export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
         variant="muted"
         className="flex-row items-center rounded-2xl px-4 py-3 gap-3"
       >
-        <View className={cn('w-1 h-12 rounded-full', colors.bgClass)} />
+        {colors.bgHex ? (
+          <View style={{ width: 4, height: 48, borderRadius: 2, backgroundColor: colors.bgHex }} />
+        ) : (
+          <View className={cn('w-1 h-12 rounded-full', colors.bgClass)} />
+        )}
         <View className="flex-1">
           <Text className="font-semibold">{client.displayName}</Text>
           {client.addressCity ? (
@@ -51,6 +52,11 @@ export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
             </View>
           ) : null}
         </View>
+        {total > 0 ? (
+          <Surface variant="muted" className="rounded-full px-2 py-0.5">
+            <Text variant="muted" className="text-xs">{total}</Text>
+          </Surface>
+        ) : null}
         <Button
           variant={client.isWaiting ? 'primary' : 'secondary'}
           size="sm"

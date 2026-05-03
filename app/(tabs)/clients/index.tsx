@@ -16,7 +16,10 @@ import { SegmentedControl } from '@/ui/components/segmented-control';
 import { ClientCard } from '@/ui/components/client-card';
 import { EmptyState } from '@/ui/components/empty-state';
 import { ErrorState } from '@/ui/components/error-state';
-import { useClients, useToggleWaiting, type ClientsFilter } from '@/state/queries/clients';
+import { RecomputeBanner } from '@/ui/components/recompute-banner';
+import { ClientFilterButton } from '@/ui/components/client-status-filter-dialog';
+import { useClients, useToggleWaiting, useClientStatusMap, type ClientsFilter } from '@/state/queries/clients';
+import { useClientFiltersStore } from '@/state/ui/client-filters-store';
 import { matchesQuery } from '@/lib/text-search';
 
 export default function ClientsListScreen() {
@@ -26,12 +29,25 @@ export default function ClientsListScreen() {
   const [search, setSearch] = useState('');
 
   const { data: allClients = [], isLoading, isError, refetch } = useClients(filter);
+  const { data: statusMap } = useClientStatusMap();
   const toggle = useToggleWaiting();
+  const { enabledStatuses } = useClientFiltersStore();
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return allClients;
-    return allClients.filter((c) => matchesQuery(c.displayName, search));
-  }, [allClients, search]);
+    let list = allClients;
+    // Apply status filter
+    if (enabledStatuses.size < 6 && statusMap) {
+      list = list.filter((c) => {
+        const s = statusMap.get(c.id) ?? 'default';
+        return enabledStatuses.has(s);
+      });
+    }
+    // Apply text search
+    if (search.trim()) {
+      list = list.filter((c) => matchesQuery(c.displayName, search));
+    }
+    return list;
+  }, [allClients, search, enabledStatuses, statusMap]);
 
   return (
     <Surface className="flex-1">
@@ -39,15 +55,20 @@ export default function ClientsListScreen() {
         options={{
           title: t('clients.list_title'),
           headerRight: () => (
-            <Button size="sm" onPress={() => router.push('/(tabs)/clients/new')}>
-              <Plus size={16} color="white" />
-              <Text variant="onPrimary" className="font-semibold">
-                {t('clients.empty_cta')}
-              </Text>
-            </Button>
+            <View className="flex-row items-center gap-3">
+              <ClientFilterButton />
+              <Button size="sm" onPress={() => router.push('/(tabs)/clients/new')}>
+                <Plus size={16} color="white" />
+                <Text variant="onPrimary" className="font-semibold">
+                  {t('clients.empty_cta')}
+                </Text>
+              </Button>
+            </View>
           ),
         }}
       />
+
+      <RecomputeBanner />
 
       <View className="px-4 pt-3 gap-3">
         <SearchBar value={search} onChange={setSearch} placeholder={t('clients.search_placeholder')} />
