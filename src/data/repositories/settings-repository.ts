@@ -17,6 +17,10 @@ export class SettingsRepository {
       .onConflictDoUpdate({ target: settings.key, set: { value } });
   }
 
+  async remove(key: string): Promise<void> {
+    await this.db.delete(settings).where(eq(settings.key, key));
+  }
+
   async getAll(): Promise<Record<string, string>> {
     const rows = await this.db.select().from(settings);
     const out: Record<string, string> = {};

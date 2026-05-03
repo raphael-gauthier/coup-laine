@@ -7,11 +7,48 @@ import { DistanceMatrixSync } from '@/data/distance-matrix-sync';
 const repo = new SettingsRepository(db);
 const sync = new DistanceMatrixSync(db);
 
+export const SETTINGS_KEYS_LIST = [
+  'proximity_radius_km', 'tour_rate_eur_per_km', 'tour_min_fee_eur',
+  'season_started_at',
+  'marker_default_color', 'marker_waiting_color', 'marker_scheduled_color',
+  'marker_done_color', 'marker_no_animals_color', 'marker_banned_color',
+  'home_lat', 'home_lng', 'home_address',
+] as const;
+export type SettingKey = (typeof SETTINGS_KEYS_LIST)[number];
+
 export const settingsKeys = {
   all: ['settings'] as const,
   byKey: (k: string) => [...settingsKeys.all, k] as const,
   base: () => [...settingsKeys.all, 'base'] as const,
+  map: () => [...settingsKeys.all, 'map'] as const,
 };
+
+export function useAllSettings() {
+  return useQuery({
+    queryKey: settingsKeys.map(),
+    queryFn: async () => {
+      const out: Partial<Record<SettingKey, string>> = {};
+      for (const key of SETTINGS_KEYS_LIST) {
+        const v = await repo.get(key);
+        if (v != null) out[key] = v;
+      }
+      return out;
+    },
+  });
+}
+
+export function useSetSetting() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ key, value }: { key: SettingKey; value: string | null }) => {
+      if (value == null) await repo.remove(key);
+      else await repo.set(key, value);
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: settingsKeys.all });
+    },
+  });
+}
 
 export function useThemeMode() {
   return useThemeStore((s) => s.mode);

@@ -2,6 +2,7 @@ import { ScrollView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
+import { SectionHeader } from '@/ui/primitives/section-header';
 import { SettingsRow } from '@/ui/components/settings-row';
 import { useSession } from '@/state/queries/auth';
 
@@ -13,12 +14,50 @@ export default function SettingsScreen() {
   return (
     <Surface className="flex-1">
       <Stack.Screen options={{ title: t('settings.title') }} />
-      <ScrollView contentContainerClassName="px-4 pt-4 gap-3">
+      <ScrollView contentContainerClassName="px-4 pb-8">
+
+        <SectionHeader title={t('settings.section_app')} />
         <SettingsRow
-          label={t('cloud.row_label')}
-          hint={session ? t('cloud.row_hint_logged_in') : t('cloud.row_hint_logged_out')}
-          onPress={() => router.push('/(tabs)/settings/cloud' as never)}
+          label={t('settings.appearance.row_label')}
+          hint={t('settings.appearance.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/appearance')}
         />
+        <SettingsRow
+          label={t('settings.language.row_label')}
+          hint={t('settings.language.row_hint')}
+          onPress={() => {}}
+        />
+
+        <SectionHeader title={t('settings.section_home_tour')} />
+        <SettingsRow
+          label={t('settings.base.row_label')}
+          hint={t('settings.base.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/base')}
+        />
+        <SettingsRow
+          label={t('settings.tour_rate.row_label')}
+          hint={t('settings.tour_rate.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/tour-rate' as never)}
+        />
+        <SettingsRow
+          label={t('settings.proximity.row_label')}
+          hint={t('settings.proximity.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/proximity' as never)}
+        />
+        <SettingsRow
+          label={t('settings.season.row_label')}
+          hint={t('settings.season.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/season' as never)}
+        />
+
+        <SectionHeader title={t('settings.section_map')} />
+        <SettingsRow
+          label={t('settings.marker_colors.row_label')}
+          hint={t('settings.marker_colors.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/marker-colors' as never)}
+        />
+
+        <SectionHeader title={t('settings.section_catalog')} />
         <SettingsRow
           label={t('catalogs.species.row_label')}
           hint={t('catalogs.species.row_hint')}
@@ -29,15 +68,12 @@ export default function SettingsScreen() {
           hint={t('catalogs.prestations.row_hint')}
           onPress={() => router.push('/(tabs)/settings/prestations' as never)}
         />
+
+        <SectionHeader title={t('settings.section_cloud')} />
         <SettingsRow
-          label={t('settings.appearance.row_label')}
-          hint={t('settings.appearance.row_hint')}
-          onPress={() => router.push('/(tabs)/settings/appearance')}
-        />
-        <SettingsRow
-          label={t('settings.base.row_label')}
-          hint={t('settings.base.row_hint')}
-          onPress={() => router.push('/(tabs)/settings/base')}
+          label={t('cloud.row_label')}
+          hint={session ? t('cloud.row_hint_logged_in') : t('cloud.row_hint_logged_out')}
+          onPress={() => router.push('/(tabs)/settings/cloud' as never)}
         />
       </ScrollView>
     </Surface>

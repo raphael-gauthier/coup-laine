@@ -195,6 +195,11 @@
   },
   "settings": {
     "title": "Réglages",
+    "section_app": "Application",
+    "section_home_tour": "Domicile & tournée",
+    "section_map": "Carte",
+    "section_catalog": "Catalogue",
+    "section_cloud": "Cloud",
     "appearance": {
       "row_label": "Apparence",
       "row_hint": "Thème clair, sombre ou système",
@@ -205,6 +210,10 @@
         "dark": "Sombre"
       }
     },
+    "language": {
+      "row_label": "Langue",
+      "row_hint": "Français"
+    },
     "base": {
       "row_label": "Domicile / Base",
       "row_hint": "Point de départ des tournées",
@@ -213,6 +222,52 @@
       "address_placeholder": "Saisir une adresse française…",
       "current_label": "Adresse enregistrée :",
       "save_button": "Enregistrer l'adresse"
+    },
+    "proximity": {
+      "row_label": "Rayon de proximité",
+      "row_hint": "Distance max pour les clients voisins",
+      "screen_title": "Rayon de proximité",
+      "slider_label": "Rayon — {{value}} km",
+      "save_failed": "Enregistrement impossible"
+    },
+    "tour_rate": {
+      "row_label": "Tarif kilométrique",
+      "row_hint": "€/km + minimum",
+      "screen_title": "Tarif kilométrique",
+      "rate_per_km_label": "Tarif (€/km)",
+      "min_fee_label": "Minimum (€)",
+      "error_rate": "Doit être un nombre positif.",
+      "error_min_fee": "Doit être un nombre positif.",
+      "save_failed": "Enregistrement impossible"
+    },
+    "season": {
+      "row_label": "Début de saison",
+      "row_hint": "Détermine les clients 'faits'",
+      "screen_title": "Début de saison",
+      "date_label": "Date de début",
+      "help_text": "Détermine quand un client compte comme 'fait' dans le cycle annuel.",
+      "reset_today": "Réinitialiser à aujourd'hui",
+      "save_failed": "Enregistrement impossible"
+    },
+    "marker_colors": {
+      "row_label": "Couleurs des marqueurs",
+      "row_hint": "Personnaliser par statut",
+      "screen_title": "Couleurs des marqueurs",
+      "status_default": "Par défaut",
+      "status_waiting": "En attente",
+      "status_scheduled": "Planifié",
+      "status_done": "Fait",
+      "status_no_animals": "Sans animaux",
+      "status_banned": "Banni",
+      "using_theme": "Couleur du thème",
+      "picker_title": "Choisir une couleur",
+      "current_color": "Couleur actuelle",
+      "quick_pick": "Teintes rapides",
+      "custom_hex": "Couleur personnalisée (hex)",
+      "hex_invalid": "Format invalide. Ex: #A1602F",
+      "apply_custom": "Appliquer",
+      "reset": "Réinitialiser (thème par défaut)",
+      "save_failed": "Enregistrement impossible"
     }
   },
   "cloud": {
