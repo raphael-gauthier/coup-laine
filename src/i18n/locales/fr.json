@@ -223,6 +223,38 @@
       "save_button": "Enregistrer l'adresse"
     }
   },
+  "cloud": {
+    "row_label": "Cloud",
+    "row_hint_logged_out": "Connecte-toi pour sauvegarder tes données.",
+    "row_hint_logged_in": "Sauvegardes activées.",
+    "screen_title": "Cloud",
+    "logged_in_as": "Connecté en tant que {{email}}",
+    "sign_in_cta": "Se connecter à mon compte",
+    "sign_out_cta": "Se déconnecter",
+    "create_backup_cta": "Sauvegarder maintenant",
+    "creating_backup": "Sauvegarde en cours…",
+    "no_backups_title": "Aucune sauvegarde",
+    "no_backups_message": "Crée ta première sauvegarde pour la retrouver ici.",
+    "restore_cta": "Restaurer",
+    "restore_confirm_title": "Restaurer cette sauvegarde ?",
+    "restore_confirm_message": "Toutes tes données locales (clients, tournées, historique) seront remplacées par celles de la sauvegarde. Cette action est irréversible.",
+    "delete_confirm_title": "Supprimer cette sauvegarde ?",
+    "delete_confirm_message": "Cette action est définitive."
+  },
+  "auth": {
+    "login_title": "Connexion",
+    "login_message": "Saisis ton email. Tu recevras un lien de connexion magique.",
+    "email": "Email",
+    "email_placeholder": "ton@email.com",
+    "send_link_cta": "Recevoir le lien",
+    "link_sent_title": "Lien envoyé",
+    "link_sent_message": "Vérifie tes emails et clique sur le lien pour te connecter. Tu peux fermer cette page.",
+    "callback_title": "Connexion en cours…",
+    "errors": {
+      "email_invalid": "Adresse email invalide.",
+      "email_required": "Email obligatoire."
+    }
+  },
   "onboarding": {
     "welcome": {
       "title": "Bienvenue sur Coupe-laine",
