@@ -91,6 +91,13 @@ coupe-laine-rn/                      (racine du worktree)
 │   ├── ui/
 │   │   ├── primitives/               # Button, Input, Sheet, Card (shadcn-style, éditables)
 │   │   ├── components/               # composites métier (ClientCard, TourTimeline, MapPin)
+│   │   ├── motion/                   # animations & transitions partagées
+│   │   │   ├── motion-tokens.ts      # durées, easings, springs
+│   │   │   ├── transitions.ts        # presets de transitions navigation
+│   │   │   ├── press-scale.tsx       # wrapper press → scale 0.97
+│   │   │   ├── layout-animations.ts  # presets pour FlatList animated
+│   │   │   └── haptics.ts            # wrapper expo-haptics typé
+│   │   ├── illustrations/            # Lottie + SVG empty/success states
 │   │   └── theme/
 │   │       ├── tokens.ts             # palette Modern Craft (light + dark)
 │   │       └── tailwind.preset.js

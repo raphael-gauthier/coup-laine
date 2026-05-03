@@ -16,6 +16,7 @@ Ce spec est découpé en documents ciblés. Lire dans l'ordre.
 | 8 | [Tests & qualité](./08-tests-qualite.md) | Stratégie par couche, qualité statique, CI |
 | 9 | [Worktree & roadmap](./09-worktree-roadmap.md) | Setup git worktree, jalons de build détaillés |
 | 10 | [Risques & inconnus](./10-risques-inconnus.md) | Risques techniques, risques produit, décisions différées |
+| 11 | [UX, esthétique & motion](./11-ux-motion.md) | **Priorité de premier rang.** Principes UX, motion patterns, librairies, critères "done" augmentés |
 
 ## Conventions
 

@@ -8,6 +8,7 @@ Aucun utilisateur actuel ⇒ aucune contrainte de migration de données ni de co
 
 ## Motivations
 
+- **UX repensée comme priorité de premier rang** — simplicité d'usage, esthétique soignée, motion intentionnelle (cf. §11). Ce n'est pas un polish en fin de course, c'est un objectif au même niveau que la parité fonctionnelle.
 - **Écosystème JS/RN plus riche** que Flutter sur certains plans (UI libs, AI tooling, intégrations cloud)
 - **Plus facilement vibe-codable** par LLMs (corpus TS/RN énorme, conventions stables)
 - **Design plus souple** (NativeWind = Tailwind, composants éditables, tuiles vectorielles stylables)
@@ -47,6 +48,8 @@ Aucun utilisateur actuel ⇒ aucune contrainte de migration de données ni de co
 4. Code lisible et editable par un LLM sans contexte préalable lourd
 5. Light + dark mode rendus correctement sur tous les écrans
 6. Toutes les strings UI passent par i18next (pas de FR en dur)
+7. **UX au niveau "produit fini"** sur chaque feature livrée: transitions de navigation, layout animations, micro-interactions, haptics, skeletons, empty states designés (cf. §11). Une feature fonctionnelle mais visuellement plate ne compte pas comme livrée.
+8. **Performance motion 60 FPS** sur device milieu de gamme (test physique, pas simulator)
 
 ## Hors scope explicite
 

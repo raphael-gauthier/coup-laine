@@ -52,6 +52,24 @@ export const tokens = {
 
 Tous viennent avec dark mode out-of-the-box via les classes NativeWind sémantiques. On les copie dans `src/ui/primitives/` et on les édite si besoin (pas de dépendance npm opaque).
 
+### Tokens motion (cf. §11)
+
+Au-delà des couleurs, on a aussi des **tokens de durée et d'easing** dans `src/ui/motion/motion-tokens.ts`:
+
+```ts
+export const motion = {
+  duration: { instant: 100, fast: 200, normal: 300, slow: 500 },
+  easing: {
+    standard: 'cubic-bezier(0.4, 0.0, 0.2, 1)',
+    decelerate: 'cubic-bezier(0.0, 0.0, 0.2, 1)',
+    accelerate: 'cubic-bezier(0.4, 0.0, 1, 1)',
+    spring: { damping: 15, stiffness: 150 },
+  },
+};
+```
+
+**Règle:** toujours utiliser ces tokens, jamais de durée ou d'easing ad hoc dans les composants.
+
 ## i18n
 
 ### Lib

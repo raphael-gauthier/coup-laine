@@ -42,10 +42,16 @@
 - **Risque:** "liberté de redesign" peut devenir un puits sans fond.
 - **Mitigation:** règle de discipline — on **commence par reproduire** le flux actuel (les specs existants) ; on ne redesigne que là où on identifie un problème **concret** pendant le build. Pas de redesign spéculatif.
 
-### R8 — Animation / UX trop chargée vs vélocité
+### R8 — Livrer des features visuellement plates
 
-- **Risque:** RN permet plein d'animations sympas (Reanimated, Skia, Moti). Tentation de polish prématuré.
-- **Mitigation:** Jalon 12 = polish, pas avant. Pendant les jalons 3-11, animations basiques uniquement (transitions natives par défaut).
+- **Risque:** la pression de livrer des features fonctionnelles peut faire couper sur l'UX (motion, empty states, micro-interactions). Résultat: une app "qui marche" mais qui ne ressent pas comme un produit fini, et qu'on doit retravailler ensuite.
+- **Mitigation:** critères "feature done" augmentés (cf. §8 et §11) bloquants à chaque PR. Si un compromis vélocité/UX se présente: **on coupe une feature secondaire**, on ne dégrade pas l'UX d'une feature livrée.
+- **Mitigation #2:** motion setup en Jalon 0 (tokens, primitives, presets) pour que la motion devienne mécanique sur les jalons suivants, pas une charge cognitive supplémentaire à chaque écran.
+
+### R9 — Performance motion sur device bas/milieu de gamme
+
+- **Risque:** Reanimated worklets bien faits = 60 FPS. Mauvaise utilisation (animations sur le thread JS, layout shifts non animés, re-renders non maîtrisés) = saccades visibles.
+- **Mitigation:** test régulier sur **device physique milieu de gamme** dès le Jalon 3, pas seulement à la fin. Si une animation pose problème de perf: la simplifier ou la supprimer, pas la dégrader.
 
 ## Inconnues à lever avant ou pendant le travail
 

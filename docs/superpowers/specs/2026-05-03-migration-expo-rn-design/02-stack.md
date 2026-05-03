@@ -8,6 +8,11 @@
 | UI primitives | **NativeWind v4 + react-native-reusables** | Composants shadcn-like éditables, classes Tailwind |
 | Theming | **Tokens Modern Craft** (light + dark) en `tailwind.config.js` | Switch utilisateur 3-positions Système / Clair / Sombre |
 | Icons | **lucide-react-native** | Cohérent avec écosystème shadcn |
+| Animations | **react-native-reanimated v3+** + **moti** | Toutes animations sur thread UI (worklets). Détails §11. |
+| Gestures | **react-native-gesture-handler** | Drag-and-drop tournée, swipe, pan |
+| Haptics | **expo-haptics** | Retours tactiles sur actions critiques |
+| Illustrations animées | **lottie-react-native** | Empty states, success states |
+| Animations complexes (optionnel v1) | **react-native-skia** | Visuels custom poussés, à utiliser avec parcimonie |
 | State UI | **Zustand** | Stores par domaine (tour-draft, filters, settings) |
 | State serveur/async | **TanStack Query (React Query)** | Cache, invalidation, optimistic updates |
 | Forms | **react-hook-form + zod** | Validation typée |

@@ -42,9 +42,11 @@ cd ../coupe-laine-rn
 3. Configurer Expo Router avec layout racine (providers Theme, QueryClient, i18n)
 4. Configurer Drizzle + expo-sqlite, schéma vide migrable
 5. Configurer Supabase client + secure-store
-6. Configurer EAS profiles (development / preview / production)
-7. Setup tests Vitest + Jest + RNTL, CI GitHub Actions minimal
-8. **Verify:** `npx expo start --dev-client` ouvre une page d'accueil "Hello", dark mode toggle marche, MapLibre rend une carte test, `pnpm test` passe
+6. **Setup motion (§11):** installer Reanimated, gesture-handler, moti, expo-haptics, lottie. Définir `motion-tokens.ts`, `press-scale.tsx`, `haptics.ts`, presets de transitions Expo Router
+7. Concevoir et valider la palette Modern Craft dark + l'échelle typographique
+8. Configurer EAS profiles (development / preview / production)
+9. Setup tests Vitest + Jest + RNTL, CI GitHub Actions minimal
+10. **Verify:** `npx expo start --dev-client` ouvre une page d'accueil "Hello" avec une animation d'entrée, dark mode toggle marche avec transition smooth, MapLibre rend une carte test, haptic feedback fonctionne, `pnpm test` passe
 
 ### Jalon 1 — Persistance & domain (1 PR)
 
@@ -131,15 +133,18 @@ cd ../coupe-laine-rn
 3. Écran Settings → Sauvegardes cloud (liste + créer + restaurer)
 4. **Verify:** login complet sur device, sauvegarde + restauration roundtrip OK
 
-### Jalon 12 — Polish & release (1 PR)
+### Jalon 12 — Final polish & release (1 PR)
 
-1. Splash screen + app icon (réutiliser les assets du repo Flutter si possibles)
-2. Animations transitions, haptics sur actions importantes
-3. Audit accessibility (labels VoiceOver / TalkBack)
-4. Audit performance (200 clients, 50 tournées simulées)
-5. Build production EAS, upload TestFlight + Play Console Internal
-6. **Verify:** app prête à être testée par utilisateurs réels
+À ce stade les motion / haptics / empty states sont déjà en place sur chaque jalon (critères "done" augmentés cf. §8 et §11). Ce jalon couvre seulement le polish global et la release.
+
+1. Splash screen animé + app icon
+2. Audit motion global: cohérence transitions inter-écrans, durées, easings
+3. Audit accessibility (labels VoiceOver / TalkBack, contraste, taille tap targets)
+4. Audit performance (200 clients, 50 tournées simulées, FPS sur device milieu de gamme)
+5. Audit "qu'est-ce qui ne fait pas produit fini" — chasse aux boutons sans feedback, listes sans empty state, écrans sans transition d'entrée
+6. Build production EAS, upload TestFlight + Play Console Internal
+7. **Verify:** app prête à être testée par utilisateurs réels, ressentie comme un produit fini et non un MVP
 
 ## Estimation grossière
 
-À titre indicatif (avec assistance LLM, solo dev): **6 à 10 semaines** de travail effectif pour atteindre le jalon 12. Le bootstrap (J0-J2) prend ~1 semaine, ensuite chaque jalon feature 2-5 jours.
+À titre indicatif (avec assistance LLM, solo dev): **8 à 12 semaines** de travail effectif pour atteindre le jalon 12. Le bootstrap (J0-J2) prend ~1.5 semaine (motion setup + design system + dark palette inclus), ensuite chaque jalon feature 3-6 jours (les critères "done" augmentés UX coûtent ~30% de plus que des features brutes — c'est le prix de la priorité UX).

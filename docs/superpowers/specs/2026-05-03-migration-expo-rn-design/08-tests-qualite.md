@@ -52,6 +52,7 @@
 
 Pour considérer une feature de la roadmap (cf. §9) comme terminée:
 
+**Technique:**
 1. ✅ Use cases du domain testés en vitest
 2. ✅ Repository testé en intégration SQLite
 3. ✅ Écran(s) fonctionnel(s) sur device iOS et Android (pas juste simulator)
@@ -59,3 +60,12 @@ Pour considérer une feature de la roadmap (cf. §9) comme terminée:
 5. ✅ Light + dark mode rendus correctement
 6. ✅ Pas de warning TS, pas de warning ESLint
 7. ✅ Doc minimale dans le PR / commit message: ce qui a changé, ce qui a été redessiné vs Flutter
+
+**UX (cf. §11):**
+8. ✅ Transitions de navigation cohérentes
+9. ✅ Layout animations sur les listes / collections affectées
+10. ✅ Haptic feedback sur les actions critiques
+11. ✅ Skeletons pour les chargements > 200ms (pas de spinner indéterminé)
+12. ✅ Empty state designé (illustration + message + CTA)
+13. ✅ Error state designé (pas un toast générique)
+14. ✅ 60 FPS vérifié sur device milieu de gamme
