@@ -6,24 +6,25 @@ export const clients = sqliteTable(
   {
     id: text('id').primaryKey(),
     displayName: text('display_name').notNull(),
-    firstName: text('first_name'),
-    lastName: text('last_name'),
     phones: text('phones').notNull().default('[]'),
-    email: text('email'),
     addressLabel: text('address_label'),
     addressCity: text('address_city'),
     addressPostcode: text('address_postcode'),
     latitude: real('latitude'),
     longitude: real('longitude'),
     isWaiting: integer('is_waiting').notNull().default(0),
-    notes: text('notes'),
+    isBanned: integer('is_banned').notNull().default(0),
+    needsDistanceRecompute: integer('needs_distance_recompute').notNull().default(0),
     lastShearingDate: text('last_shearing_date'),
     animalCounts: text('animal_counts').notNull().default('[]'),
+    markerColorHex: text('marker_color_hex'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
   },
   (t) => ({
     waitingIdx: index('clients_is_waiting_idx').on(t.isWaiting),
+    bannedIdx: index('clients_is_banned_idx').on(t.isBanned),
+    recomputeIdx: index('clients_needs_recompute_idx').on(t.needsDistanceRecompute),
     lastShearingIdx: index('clients_last_shearing_idx').on(t.lastShearingDate),
   })
 );
@@ -31,9 +32,10 @@ export const clients = sqliteTable(
 export const species = sqliteTable('species', {
   id: text('id').primaryKey(),
   label: text('label').notNull(),
-  color: text('color'),
+  iconKey: text('icon_key'),
   ordering: integer('ordering').notNull(),
   isCustom: integer('is_custom').notNull().default(0),
+  archivedAt: text('archived_at'),
 });
 
 export const animalCategories = sqliteTable(
@@ -42,9 +44,9 @@ export const animalCategories = sqliteTable(
     id: text('id').primaryKey(),
     speciesId: text('species_id').notNull().references(() => species.id),
     label: text('label').notNull(),
-    averageMinutesPerUnit: real('average_minutes_per_unit').notNull(),
     ordering: integer('ordering').notNull(),
     isCustom: integer('is_custom').notNull().default(0),
+    archivedAt: text('archived_at'),
   },
   (t) => ({
     speciesIdx: index('animal_categories_species_idx').on(t.speciesId),
@@ -54,8 +56,11 @@ export const animalCategories = sqliteTable(
 export const prestations = sqliteTable('prestations', {
   id: text('id').primaryKey(),
   label: text('label').notNull(),
-  price: real('price'),
+  priceCents: integer('price_cents'),
+  minutes: integer('minutes').notNull().default(0),
+  categoryId: text('category_id').references(() => animalCategories.id),
   isActive: integer('is_active').notNull().default(1),
+  archivedAt: text('archived_at'),
   ordering: integer('ordering').notNull(),
 });
 
@@ -67,7 +72,14 @@ export const tours = sqliteTable('tours', {
   baseLng: real('base_lng').notNull(),
   status: text('status').notNull(),
   totalDistanceKm: real('total_distance_km'),
+  totalDriveSeconds: integer('total_drive_seconds'),
   totalMinutes: integer('total_minutes'),
+  totalRevenueCents: integer('total_revenue_cents'),
+  totalAnimalsCount: integer('total_animals_count'),
+  totalTravelFeeCents: integer('total_travel_fee_cents'),
+  routeGeometry: text('route_geometry'),
+  notes: text('notes'),
+  completedAt: text('completed_at'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),
 });
@@ -78,10 +90,14 @@ export const tourStops = sqliteTable(
     id: text('id').primaryKey(),
     tourId: text('tour_id').notNull().references(() => tours.id, { onDelete: 'cascade' }),
     clientId: text('client_id').notNull().references(() => clients.id),
+    clientNameSnapshot: text('client_name_snapshot'),
     ordering: integer('ordering').notNull(),
-    arrivalTime: text('arrival_time'),
+    arrivalMinutes: integer('arrival_minutes'),
+    departureMinutes: integer('departure_minutes'),
     estimatedMinutes: integer('estimated_minutes'),
-    prestations: text('prestations').notNull().default('[]'),
+    feeShareCents: integer('fee_share_cents'),
+    plannedPrestations: text('planned_prestations').notNull().default('[]'),
+    actualPrestations: text('actual_prestations'),
     notes: text('notes'),
     completedAt: text('completed_at'),
   },
@@ -113,6 +129,7 @@ export const distanceMatrix = sqliteTable(
     distanceKm: real('distance_km').notNull(),
     durationMinutes: integer('duration_minutes').notNull(),
     fetchedAt: text('fetched_at').notNull(),
+    failed: integer('failed').notNull().default(0),
   },
   (t) => ({
     pk: primaryKey({ columns: [t.fromId, t.toId] }),

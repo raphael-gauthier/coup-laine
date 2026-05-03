@@ -8,6 +8,13 @@
       "when": 1777802693393,
       "tag": "0000_last_madripoor",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1746230400000,
+      "tag": "0001_r1_flutter_parity",
+      "breakpoints": true
     }
   ]
 }
