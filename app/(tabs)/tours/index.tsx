@@ -3,8 +3,8 @@ import { Text } from '@/ui/primitives/text';
 
 export default function ToursScreen() {
   return (
-    <View className="flex-1 bg-background items-center justify-center">
-      <Text className="text-foreground">Tournées (J6)</Text>
+    <View className="flex-1 bg-background dark:bg-background-dark items-center justify-center">
+      <Text>Tournées (J6)</Text>
     </View>
   );
 }

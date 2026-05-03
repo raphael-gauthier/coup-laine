@@ -11,10 +11,10 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: 'bg-primary',
-        secondary: 'bg-muted',
+        primary: 'bg-primary dark:bg-primary-dark',
+        secondary: 'bg-muted dark:bg-muted-dark',
         ghost: 'bg-transparent',
-        danger: 'bg-danger',
+        danger: 'bg-danger dark:bg-danger-dark',
       },
       size: {
         sm: 'px-3 py-2',
@@ -29,10 +29,10 @@ const buttonVariants = cva(
 const labelVariants = cva('font-semibold', {
   variants: {
     variant: {
-      primary: 'text-primary-foreground',
-      secondary: 'text-foreground',
-      ghost: 'text-foreground',
-      danger: 'text-danger-foreground',
+      primary: 'text-primary-foreground dark:text-primary-dark-foreground',
+      secondary: 'text-foreground dark:text-foreground-dark',
+      ghost: 'text-foreground dark:text-foreground-dark',
+      danger: 'text-danger-foreground dark:text-danger-dark-foreground',
     },
     size: {
       sm: 'text-sm',

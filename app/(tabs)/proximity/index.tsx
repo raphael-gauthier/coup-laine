@@ -3,8 +3,8 @@ import { Text } from '@/ui/primitives/text';
 
 export default function ProximityScreen() {
   return (
-    <View className="flex-1 bg-background items-center justify-center">
-      <Text className="text-foreground">Proximité (J5)</Text>
+    <View className="flex-1 bg-background dark:bg-background-dark items-center justify-center">
+      <Text>Proximité (J5)</Text>
     </View>
   );
 }

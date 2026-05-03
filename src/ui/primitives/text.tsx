@@ -6,5 +6,5 @@ interface Props extends RNTextProps {
 }
 
 export function Text({ className, ...rest }: Props) {
-  return <RNText className={cn('text-foreground', className)} {...rest} />;
+  return <RNText className={cn('text-foreground dark:text-foreground-dark', className)} {...rest} />;
 }
