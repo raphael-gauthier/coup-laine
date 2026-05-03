@@ -51,6 +51,12 @@ export function useUpsertClient() {
     mutationFn: async (input: UpsertClientInput) => {
       const now = new Date().toISOString();
       const existing = input.id ? await repo.byId(input.id) : null;
+
+      const addressChanged =
+        existing != null &&
+        (existing.latitude !== (input.latitude ?? null) ||
+          existing.longitude !== (input.longitude ?? null));
+
       const client: Client = {
         id: input.id ?? newId(),
         displayName: input.displayName,
@@ -62,7 +68,10 @@ export function useUpsertClient() {
         longitude: input.longitude ?? null,
         isWaiting: input.isWaiting,
         isBanned: existing?.isBanned ?? false,
-        needsDistanceRecompute: existing?.needsDistanceRecompute ?? false,
+        needsDistanceRecompute:
+          addressChanged || (input.latitude != null && existing == null)
+            ? true
+            : (existing?.needsDistanceRecompute ?? false),
         lastShearingDate: existing?.lastShearingDate ?? null,
         animalCounts: input.animalCounts,
         markerColorHex: existing?.markerColorHex ?? null,
