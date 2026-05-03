@@ -3,15 +3,22 @@ import { useRouter, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
 import { SettingsRow } from '@/ui/components/settings-row';
+import { useSession } from '@/state/queries/auth';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { data: session } = useSession();
 
   return (
     <Surface className="flex-1">
       <Stack.Screen options={{ title: t('settings.title') }} />
       <ScrollView contentContainerClassName="px-4 pt-4 gap-3">
+        <SettingsRow
+          label={t('cloud.row_label')}
+          hint={session ? t('cloud.row_hint_logged_in') : t('cloud.row_hint_logged_out')}
+          onPress={() => router.push('/(tabs)/settings/cloud' as never)}
+        />
         <SettingsRow
           label={t('catalogs.species.row_label')}
           hint={t('catalogs.species.row_hint')}
