@@ -8,6 +8,8 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { haptics } from '@/ui/motion/haptics';
 import type { Tour, TourStatus } from '@/domain/models/tour';
+import { useTourKpis } from '@/state/queries/kpis';
+import { formatMinutes } from '@/lib/format-minutes';
 import { cn } from '@/lib/cn';
 
 interface Props {
@@ -25,8 +27,13 @@ const STATUS_TEXT: Record<TourStatus, string> = {
   completed: 'text-primary-foreground dark:text-primary-dark-foreground',
 };
 
+function formatEur(cents: number): string {
+  return `${(cents / 100).toFixed(0)} €`;
+}
+
 export function TourCard({ tour, stopCount, onPress }: Props) {
   const { t } = useTranslation();
+  const { data: kpis } = useTourKpis(tour.id);
   const date = format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPPp', { locale: fr });
 
   return (
@@ -36,24 +43,47 @@ export function TourCard({ tour, stopCount, onPress }: Props) {
         onPress();
       }}
     >
-      <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-3">
-        <View className="flex-1">
+      <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-2">
+        <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
             <View className={cn('px-2 py-0.5 rounded-full', STATUS_BG[tour.status])}>
               <Text className={cn('text-xs font-semibold', STATUS_TEXT[tour.status])}>
                 {t(`tours.status_${tour.status}`)}
               </Text>
             </View>
+          </View>
+          <ChevronRight size={18} color="#5C4E40" />
+        </View>
+
+        <View className="flex-row items-center gap-1">
+          <Calendar size={14} color="#5C4E40" />
+          <Text className="font-semibold">{date}</Text>
+        </View>
+
+        {kpis ? (
+          <View className="flex-row flex-wrap gap-x-3 gap-y-1">
             <Text variant="muted" className="text-xs">
-              {t('tours.stops_count', { count: stopCount })}
+              {t('tours.stops_count', { count: kpis.stopCount })}
+            </Text>
+            <Text variant="muted" className="text-xs">
+              {kpis.animalsTotal} {t('tours.kpi_animals')}
+            </Text>
+            <Text variant="muted" className="text-xs">
+              {kpis.distanceKm.toFixed(1)} km
+            </Text>
+            <Text variant="muted" className="text-xs">
+              {formatMinutes(kpis.durationMinutes)}
+              {kpis.driveMinutes > 0 ? ` (+${kpis.driveMinutes} min ${t('tours.kpi_drive')})` : ''}
+            </Text>
+            <Text variant="muted" className="text-xs">
+              {formatEur(kpis.revenueCents)}
             </Text>
           </View>
-          <View className="flex-row items-center gap-1 mt-1">
-            <Calendar size={14} color="#5C4E40" />
-            <Text className="font-semibold">{date}</Text>
-          </View>
-        </View>
-        <ChevronRight size={18} color="#5C4E40" />
+        ) : (
+          <Text variant="muted" className="text-xs">
+            {t('tours.stops_count', { count: stopCount })}
+          </Text>
+        )}
       </Surface>
     </PressScale>
   );

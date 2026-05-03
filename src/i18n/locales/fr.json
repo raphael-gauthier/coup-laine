@@ -170,7 +170,9 @@
     "create_manual": "Manuelle",
     "create_optimized": "Optimisée",
     "optimizing": "Optimisation en cours…",
-    "ors_unavailable": "Distances en estimation (ORS indisponible)."
+    "ors_unavailable": "Distances en estimation (ORS indisponible).",
+    "kpi_animals": "animaux",
+    "kpi_drive": "trajet"
   },
   "catalogs": {
     "species": {
