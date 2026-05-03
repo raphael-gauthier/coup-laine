@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <!-- Adaptive launcher icon background — ivory matches the app's
-         `background` token in light mode. -->
-    <color name="ic_launcher_background">#F8F4ED</color>
-</resources>

@@ -1,35 +1,49 @@
-# Flutter / Dart
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.packages
-.pub-cache/
-.pub/
-build/
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
-# IDE
-.idea/
-.vscode/
-*.iml
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
 
-# Generated
-*.g.dart
-*.freezed.dart
-lib/l10n/app_localizations.dart
-lib/l10n/app_localizations_*.dart
+# Native
+ios/
+android/
+*.orig.*
 
-# Env
-.env
-*.env.local
+# Metro
+.metro-health-check*
 
-# OS
+# Build
+.tamagui/
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
 .DS_Store
-Thumbs.db
+*.pem
 
-# Android
-android/.gradle/
-android/local.properties
-android/app/release/
-*.keystore
-*.jks
-key.properties
+# Local env
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Testing
+coverage/
+
+# Typescript
+*.tsbuildinfo
+
+# Drizzle
+drizzle/.snapshots
