@@ -172,7 +172,12 @@
     "optimizing": "Optimisation en cours…",
     "ors_unavailable": "Distances en estimation (ORS indisponible).",
     "kpi_animals": "animaux",
-    "kpi_drive": "trajet"
+    "kpi_drive": "trajet",
+    "kpi_stops": "Étapes",
+    "kpi_animals_title": "Animaux",
+    "kpi_revenue": "Chiffre d'affaires",
+    "kpi_duration": "Durée",
+    "kpi_total": "Total"
   },
   "catalogs": {
     "species": {

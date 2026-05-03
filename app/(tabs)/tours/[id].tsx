@@ -12,12 +12,12 @@ import { Button } from '@/ui/primitives/button';
 import { ErrorState } from '@/ui/components/error-state';
 import { confirm } from '@/ui/components/confirm-dialog';
 import { errorToast } from '@/ui/components/error-toast';
+import { TourKpiRow } from '@/ui/components/tour-kpi-row';
+import { PrestationAggregationSummary } from '@/ui/components/prestation-aggregation-summary';
+import { TourStopRow } from '@/ui/components/tour-stop-row';
 import { useTour, useDeleteTour } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
 import { useBaseAddress } from '@/state/queries/settings';
-import { haversineDistanceKm } from '@/lib/haversine-distance';
-import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
-import { splitTravelCost } from '@/domain/use-cases/cost-split-calculator';
 import { haptics } from '@/ui/motion/haptics';
 import { Map } from '@/ui/components/map';
 import { ClientPin } from '@/ui/components/client-pin';
@@ -39,52 +39,6 @@ export default function TourDetailScreen() {
 
   const { tour, stops } = data;
 
-  const distanceKm = (from: string, to: string): number => {
-    const get = (key: string) =>
-      key === 'BASE'
-        ? base ? { lat: base.lat, lon: base.lon } : null
-        : (() => {
-            const c = clientsById.get(key);
-            return c?.latitude != null && c?.longitude != null
-              ? { lat: c.latitude, lon: c.longitude }
-              : null;
-          })();
-    const a = get(from);
-    const b = get(to);
-    if (!a || !b) return 0;
-    return haversineDistanceKm(a, b);
-  };
-  const minutesBetween = (from: string, to: string) => Math.round(distanceKm(from, to) * 1.5);
-
-  let totalDistanceKm = 0;
-  let prev = 'BASE';
-  for (const s of stops) {
-    totalDistanceKm += distanceKm(prev, s.clientId);
-    prev = s.clientId;
-  }
-  totalDistanceKm += distanceKm(prev, 'BASE');
-
-  // TODO R1.E: derive service minutes from prestation snapshots.
-  const arrivals = estimateTourArrivals({
-    departureTime: tour.departureTime,
-    stops: stops.map((s) => ({
-      clientId: s.clientId,
-      plannedPrestations: s.plannedPrestations,
-    })),
-    travelMinutesBetween: minutesBetween,
-  });
-
-  const baseToStopDistancesKm = stops.map((s) => distanceKm('BASE', s.clientId));
-  const interStopDistancesKm = stops.slice(1).map((s, i) =>
-    distanceKm(stops[i]!.clientId, s.clientId)
-  );
-  const split = splitTravelCost({
-    baseToStopDistancesKm,
-    interStopDistancesKm,
-    pricePerBracket: 8,
-    bracketSizeKm: 10,
-  });
-
   const onDelete = async () => {
     const ok = await confirm({
       title: t('tours.delete_confirm_title'),
@@ -104,6 +58,10 @@ export default function TourDetailScreen() {
       },
     });
   };
+
+  const routeGeometry = tour.routeGeometry
+    ? (() => { try { return JSON.parse(tour.routeGeometry); } catch { return null; } })()
+    : null;
 
   return (
     <Surface className="flex-1">
@@ -130,10 +88,18 @@ export default function TourDetailScreen() {
         }}
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 16 }}>
+        {/* Header date + status */}
         <Text className="text-2xl font-bold">
           {format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPPp', { locale: fr })}
         </Text>
 
+        {/* KPI row */}
+        <TourKpiRow tourId={tour.id} />
+
+        {/* Prestation aggregation */}
+        <PrestationAggregationSummary tourId={tour.id} />
+
+        {/* Map with route geometry if present */}
         {base && stops.length > 0 ? (
           <View style={styles.mapContainer}>
             <Map
@@ -174,45 +140,20 @@ export default function TourDetailScreen() {
           </View>
         ) : null}
 
-        <Surface variant="muted" className="rounded-2xl px-4 py-3">
-          <View className="flex-row justify-between">
-            <Text variant="muted">{t('tours.total_distance')}</Text>
-            <Text className="font-semibold">{totalDistanceKm.toFixed(1)} km</Text>
-          </View>
-          <View className="flex-row justify-between mt-1">
-            <Text variant="muted">{t('tours.total_duration')}</Text>
-            <Text className="font-semibold">
-              {Math.floor((tour.totalMinutes ?? 0) / 60)}h {String((tour.totalMinutes ?? 0) % 60).padStart(2, '0')}
-            </Text>
-          </View>
-          <View className="flex-row justify-between mt-1">
-            <Text variant="muted">{t('tours.total_cost')}</Text>
-            <Text className="font-semibold">{split.totalEuros} €</Text>
-          </View>
-        </Surface>
-
+        {/* Stops list */}
         <View className="gap-2">
           <Text className="text-sm font-medium">{t('tours.stops_section')}</Text>
-          {stops.map((stop, index) => {
-            const client = clientsById.get(stop.clientId);
-            const arr = arrivals[index];
-            const share = split.perStop[index] ?? 0;
-            return (
-              <Surface key={stop.id} variant="muted" className="rounded-2xl px-4 py-3 gap-1">
-                <View className="flex-row justify-between">
-                  <Text className="font-semibold">{client?.displayName ?? stop.clientId}</Text>
-                  <Text variant="muted" className="font-mono text-sm">{share} €</Text>
-                </View>
-                {arr ? (
-                  <Text variant="muted" className="text-xs">
-                    {t('tours.stop_arrival')} {arr.arrivalTime} · {arr.estimatedMinutes} min
-                  </Text>
-                ) : null}
-              </Surface>
-            );
-          })}
+          {stops.map((stop) => (
+            <TourStopRow
+              key={stop.id}
+              stop={stop}
+              client={clientsById.get(stop.clientId)}
+              departureTime={tour.departureTime}
+            />
+          ))}
         </View>
 
+        {/* Complete button */}
         {tour.status !== 'completed' ? (
           <Button onPress={() => router.push(`/(tabs)/tours/${tour.id}/complete` as never)}>
             <CircleCheck size={18} color="white" />
