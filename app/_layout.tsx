@@ -4,7 +4,8 @@ import '@/i18n';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, LogBox, View } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
+import { ActivityIndicator, LogBox, Platform, View } from 'react-native';
 import { useEffect, useState } from 'react';
 
 // MapTiler styles include a fake "attribution" vector source with no tiles —
@@ -26,6 +27,14 @@ const queryClient = new QueryClient({
 
 function App() {
   const isDark = useResolvedColorScheme() === 'dark';
+
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      void NavigationBar.setVisibilityAsync('hidden');
+      void NavigationBar.setBehaviorAsync('overlay-swipe');
+    }
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
