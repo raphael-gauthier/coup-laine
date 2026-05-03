@@ -20,6 +20,10 @@ function fromRow(r: AnimalCategoryRow): AnimalCategory {
 export class AnimalCategoryRepository {
   constructor(private readonly db: Db) {}
 
+  async byId(id: string): Promise<AnimalCategory | null> {
+    const rows = await this.db.select().from(animalCategories).where(eq(animalCategories.id, id));
+    return rows[0] ? fromRow(rows[0] as AnimalCategoryRow) : null;
+  }
   async listAll(): Promise<AnimalCategory[]> {
     const rows = await this.db.select().from(animalCategories).orderBy(asc(animalCategories.ordering));
     return rows.map((r) => fromRow(r as AnimalCategoryRow));
