@@ -96,9 +96,6 @@ export function TourDraftEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialStops, base, clients]);
 
-  // TODO R1.E: replace with real prestation picker. Until plannedPrestations
-  // are populated, service time per stop falls back to 0 — totals will be
-  // travel-only.
   const arrivals = useMemo(
     () =>
       estimateTourArrivals({
