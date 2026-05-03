@@ -119,11 +119,12 @@ export default function TourDetailScreen() {
                   size="sm"
                   variant="ghost"
                   onPress={() => router.push(`/(tabs)/tours/${tour.id}/edit` as never)}
+                  accessibilityLabel={t('common.edit')}
                 >
                   <Pencil size={16} />
                 </Button>
               ) : null}
-              <Button size="sm" variant="danger" onPress={onDelete}>
+              <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('tours.delete')}>
                 <Trash2 size={16} color="white" />
               </Button>
             </View>

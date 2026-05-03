@@ -44,7 +44,7 @@ export default function EditCategoryScreen() {
         options={{
           title: t('catalogs.categories.edit_title'),
           headerRight: () => (
-            <Button size="sm" variant="danger" onPress={onDelete}>
+            <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
               <Trash2 size={16} color="white" />
             </Button>
           ),

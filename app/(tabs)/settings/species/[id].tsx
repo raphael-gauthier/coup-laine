@@ -50,7 +50,7 @@ export default function EditSpeciesScreen() {
           title: t('catalogs.species.edit_title'),
           headerRight: () =>
             item.isCustom ? (
-              <Button size="sm" variant="danger" onPress={onDelete}>
+              <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
                 <Trash2 size={16} color="white" />
               </Button>
             ) : null,

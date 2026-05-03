@@ -55,10 +55,11 @@ export default function ClientDetailScreen() {
                 size="sm"
                 variant="ghost"
                 onPress={() => router.push(`/(tabs)/clients/${client.id}/edit`)}
+                accessibilityLabel={t('common.edit')}
               >
                 <Pencil size={16} />
               </Button>
-              <Button size="sm" variant="danger" onPress={onDelete}>
+              <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('clients.delete')}>
                 <Trash2 size={16} color="white" />
               </Button>
             </View>

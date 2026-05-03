@@ -55,6 +55,7 @@ interface Props extends VariantProps<typeof buttonSurfaceVariants> {
   loading?: boolean;
   className?: string;
   hapticOnPress?: boolean;
+  accessibilityLabel?: string;
 }
 
 export function Button({
@@ -66,6 +67,7 @@ export function Button({
   variant,
   size,
   hapticOnPress = true,
+  accessibilityLabel,
 }: Props) {
   const handlePress = () => {
     if (disabled || loading) return;
@@ -80,6 +82,8 @@ export function Button({
     <PressScale
       onPress={handlePress}
       disabled={disabled || loading}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityRole="button"
       className={cn(
         buttonSurfaceVariants({ variant, size }),
         (disabled || loading) && 'opacity-60',

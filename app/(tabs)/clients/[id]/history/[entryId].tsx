@@ -51,7 +51,7 @@ export default function EditManualHistoryScreen() {
           title: t('history.manual.edit_title'),
           headerRight: () => (
             <View className="flex-row gap-2">
-              <Button size="sm" variant="danger" onPress={onDelete}>
+              <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('history.manual.delete')}>
                 <Trash2 size={16} color="white" />
               </Button>
             </View>

@@ -44,7 +44,7 @@ export default function EditPrestationScreen() {
         options={{
           title: t('catalogs.prestations.edit_title'),
           headerRight: () => (
-            <Button size="sm" variant="danger" onPress={onDelete}>
+            <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
               <Trash2 size={16} color="white" />
             </Button>
           ),

@@ -115,6 +115,7 @@ export default function CloudScreen() {
                   variant="danger"
                   onPress={() => onDelete(b.name)}
                   loading={del.isPending}
+                  accessibilityLabel={t('common.delete')}
                 >
                   <Trash2 size={14} color="white" />
                 </Button>
