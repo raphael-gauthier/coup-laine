@@ -1,0 +1,30 @@
+import { Stack, useRouter } from 'expo-router';
+import { useTranslation } from 'react-i18next';
+import { Surface } from '@/ui/primitives/surface';
+import { SpeciesForm } from '@/ui/components/species-form';
+import { useUpsertSpecies } from '@/state/queries/catalogs';
+import { haptics } from '@/ui/motion/haptics';
+
+export default function NewSpeciesScreen() {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const upsert = useUpsertSpecies();
+
+  return (
+    <Surface className="flex-1">
+      <Stack.Screen options={{ title: t('catalogs.species.new_title'), presentation: 'modal' }} />
+      <SpeciesForm
+        saving={upsert.isPending}
+        onCancel={() => router.back()}
+        onSubmit={(input) =>
+          upsert.mutate(input, {
+            onSuccess: () => {
+              void haptics.success();
+              router.back();
+            },
+          })
+        }
+      />
+    </Surface>
+  );
+}
