@@ -1,4 +1,4 @@
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, StyleSheet } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { Pencil, Trash2, CircleCheck } from 'lucide-react-native';
@@ -20,6 +20,9 @@ import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
 import { splitTravelCost } from '@/domain/use-cases/cost-split-calculator';
 import { haptics } from '@/ui/motion/haptics';
+import { Map } from '@/ui/components/map';
+import { ClientPin } from '@/ui/components/client-pin';
+import { TourRoutePolyline } from '@/ui/components/tour-route-polyline';
 
 export default function TourDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -132,6 +135,46 @@ export default function TourDetailScreen() {
           {format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPPp', { locale: fr })}
         </Text>
 
+        {base && stops.length > 0 ? (
+          <View style={styles.mapContainer}>
+            <Map
+              initialCenter={{ lat: base.lat, lon: base.lon }}
+              initialZoom={9}
+            >
+              <TourRoutePolyline
+                coords={[
+                  { id: 'BASE', lat: base.lat, lon: base.lon },
+                  ...stops
+                    .filter((s) => {
+                      const c = clientsById.get(s.clientId);
+                      return c?.latitude != null && c?.longitude != null;
+                    })
+                    .map((s) => {
+                      const c = clientsById.get(s.clientId)!;
+                      return { id: s.clientId, lat: c.latitude!, lon: c.longitude! };
+                    }),
+                  { id: 'BASE-end', lat: base.lat, lon: base.lon },
+                ]}
+              />
+              {stops
+                .filter((s) => {
+                  const c = clientsById.get(s.clientId);
+                  return c?.latitude != null && c?.longitude != null;
+                })
+                .map((s) => {
+                  const c = clientsById.get(s.clientId)!;
+                  return (
+                    <ClientPin
+                      key={s.id}
+                      client={{ ...c, latitude: c.latitude!, longitude: c.longitude! }}
+                      onPress={() => {}}
+                    />
+                  );
+                })}
+            </Map>
+          </View>
+        ) : null}
+
         <Surface variant="muted" className="rounded-2xl px-4 py-3">
           <View className="flex-row justify-between">
             <Text variant="muted">{t('tours.total_distance')}</Text>
@@ -181,3 +224,11 @@ export default function TourDetailScreen() {
     </Surface>
   );
 }
+
+const styles = StyleSheet.create({
+  mapContainer: {
+    height: 200,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+});
