@@ -177,7 +177,14 @@
     "kpi_animals_title": "Animaux",
     "kpi_revenue": "Chiffre d'affaires",
     "kpi_duration": "Durée",
-    "kpi_total": "Total"
+    "kpi_total": "Total",
+    "bilan_intro": "Vérifie et ajuste les prestations réalisées pour chaque étape.",
+    "bilan_planned": "Prévu",
+    "bilan_actual": "Réalisé",
+    "bilan_no_planned": "Aucune prestation prévue",
+    "bilan_no_show": "Client absent (aucune prestation)",
+    "bilan_match_planned": "= Prévu ✓",
+    "bilan_differs": "Modifié"
   },
   "catalogs": {
     "species": {

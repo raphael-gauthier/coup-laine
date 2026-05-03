@@ -130,6 +130,47 @@ export function useDeleteTour() {
   });
 }
 
+export function useCompleteWithBilan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      tourId,
+      perStopActuals,
+      completedAt,
+    }: {
+      tourId: string;
+      perStopActuals: Map<string, TourStop['plannedPrestations']>;
+      completedAt: string;
+    }) => {
+      await tourRepo.completeWithBilan(tourId, perStopActuals, completedAt);
+
+      // Update client lastShearingDate + unmark waiting
+      const result = await tourRepo.byId(tourId);
+      if (result) {
+        const clientIds = Array.from(new Set(result.stops.map((s) => s.clientId)));
+        for (const cid of clientIds) {
+          const client = await clientRepo.byId(cid);
+          if (!client) continue;
+          await clientRepo.upsert({
+            ...client,
+            lastShearingDate: result.tour.scheduledDate,
+            isWaiting: false,
+            updatedAt: completedAt,
+          });
+        }
+      }
+    },
+    onSuccess: (_, { tourId }) => {
+      void qc.invalidateQueries({ queryKey: toursKeys.all });
+      void qc.invalidateQueries({ queryKey: ['clients'] });
+      qc.removeQueries({ queryKey: toursKeys.byId(tourId) });
+    },
+    onError: (err) => {
+      errorToast('Clôture impossible', err instanceof Error ? err.message : undefined);
+    },
+  });
+}
+
 export function useCompleteTour() {
   const qc = useQueryClient();
   return useMutation({

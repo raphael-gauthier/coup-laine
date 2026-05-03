@@ -141,4 +141,25 @@ export class TourRepository {
   async markStopCompleted(stopId: string, completedAt: string): Promise<void> {
     await this.db.update(tourStops).set({ completedAt }).where(eq(tourStops.id, stopId));
   }
+
+  async completeWithBilan(
+    tourId: string,
+    perStopActuals: Map<string, import('@/domain/models/tour-stop-prestation').TourStopPrestation[]>,
+    completedAt: string
+  ): Promise<void> {
+    const result = await this.byId(tourId);
+    if (!result) throw new Error('Tour introuvable');
+    const { tour, stops } = result;
+
+    const updatedStops = stops.map((s) => ({
+      ...s,
+      actualPrestations: perStopActuals.get(s.id) ?? s.plannedPrestations,
+      completedAt,
+    }));
+
+    await this.upsertTour(
+      { ...tour, status: 'completed', completedAt, updatedAt: completedAt },
+      updatedStops
+    );
+  }
 }
