@@ -16,7 +16,7 @@ const prestationRepo = new PrestationRepository(db);
 export interface UpsertSpeciesInput {
   id?: string;
   label: string;
-  color: string | null;
+  iconKey: string | null;
   ordering: number;
 }
 
@@ -28,9 +28,10 @@ export function useUpsertSpecies() {
       const species: Species = {
         id: input.id ?? newId(),
         label: input.label,
-        color: input.color,
+        iconKey: input.iconKey,
         ordering: input.ordering,
         isCustom: existing?.isCustom ?? true,
+        archivedAt: existing?.archivedAt ?? null,
       };
       await speciesRepo.upsert(species);
       return species;
@@ -67,7 +68,6 @@ export interface UpsertCategoryInput {
   id?: string;
   speciesId: string;
   label: string;
-  averageMinutesPerUnit: number;
   ordering: number;
 }
 
@@ -80,9 +80,9 @@ export function useUpsertAnimalCategory() {
         id: input.id ?? newId(),
         speciesId: input.speciesId,
         label: input.label,
-        averageMinutesPerUnit: input.averageMinutesPerUnit,
         ordering: input.ordering,
         isCustom: existing?.isCustom ?? true,
+        archivedAt: existing?.archivedAt ?? null,
       };
       await categoryRepo.upsert(cat);
       return cat;
@@ -112,7 +112,9 @@ export function useDeleteAnimalCategory() {
 export interface UpsertPrestationInput {
   id?: string;
   label: string;
-  price: number | null;
+  priceCents: number | null;
+  minutes: number;
+  categoryId: string | null;
   isActive: boolean;
   ordering: number;
 }
@@ -121,11 +123,15 @@ export function useUpsertPrestation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: UpsertPrestationInput) => {
+      const existing = input.id ? await prestationRepo.byId(input.id) : null;
       const p: Prestation = {
         id: input.id ?? newId(),
         label: input.label,
-        price: input.price,
+        priceCents: input.priceCents,
+        minutes: input.minutes,
+        categoryId: input.categoryId,
         isActive: input.isActive,
+        archivedAt: existing?.archivedAt ?? null,
         ordering: input.ordering,
       };
       await prestationRepo.upsert(p);

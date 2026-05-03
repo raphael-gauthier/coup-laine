@@ -30,7 +30,7 @@ export function useClientHistory(clientId: string | undefined) {
             tourId: tour.id,
             stopId: s.id,
             date: tour.scheduledDate,
-            prestations: s.prestations,
+            prestations: s.actualPrestations ?? s.plannedPrestations,
             notes: s.notes,
           }))
       );

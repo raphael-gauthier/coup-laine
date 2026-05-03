@@ -18,16 +18,11 @@ interface Props {
   onCancel?: () => void;
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export function ClientForm({ initial, saving, onSubmit, onCancel }: Props) {
   const { t } = useTranslation();
   const [displayName, setDisplayName] = useState(initial?.displayName ?? '');
   const [displayNameTouched, setDisplayNameTouched] = useState(false);
   const [phones, setPhones] = useState<string[]>(initial?.phones ?? []);
-  const [email, setEmail] = useState(initial?.email ?? '');
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [notes, setNotes] = useState(initial?.notes ?? '');
   const [address, setAddress] = useState<{
     label: string | null;
     city: string | null;
@@ -54,29 +49,22 @@ export function ClientForm({ initial, saving, onSubmit, onCancel }: Props) {
   };
 
   const errors = useMemo(() => {
-    const out: { displayName?: string; email?: string } = {};
+    const out: { displayName?: string } = {};
     if (displayName.trim().length === 0) {
       out.displayName = t('clients.errors.display_name_required');
     }
-    const trimmedEmail = email.trim();
-    if (trimmedEmail.length > 0 && !EMAIL_REGEX.test(trimmedEmail)) {
-      out.email = t('clients.errors.email_invalid');
-    }
     return out;
-  }, [displayName, email, t]);
+  }, [displayName, t]);
 
-  const canSubmit = !errors.displayName && !errors.email && !saving;
+  const canSubmit = !errors.displayName && !saving;
 
   const handleSubmit = () => {
     setDisplayNameTouched(true);
-    setEmailTouched(true);
     if (!canSubmit) return;
     onSubmit({
       id: initial?.id,
       displayName: displayName.trim(),
       phones: phones.filter((p) => p.trim().length > 0),
-      email: email.trim() || null,
-      notes: notes.trim() || null,
       addressLabel: address.label,
       addressCity: address.city,
       addressPostcode: address.postcode,
@@ -113,32 +101,7 @@ export function ClientForm({ initial, saving, onSubmit, onCancel }: Props) {
 
       <PhonesEditor value={phones} onChange={setPhones} />
 
-      <View className="gap-2">
-        <Text className="text-sm font-medium">{t('clients.email')}</Text>
-        <Input
-          value={email}
-          onChangeText={setEmail}
-          onBlur={() => setEmailTouched(true)}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        {emailTouched && errors.email ? (
-          <Text className="text-sm text-danger dark:text-danger-dark">{errors.email}</Text>
-        ) : null}
-      </View>
-
       <AnimalCountsEditor value={animalCounts} onChange={setAnimalCounts} />
-
-      <View className="gap-2">
-        <Text className="text-sm font-medium">{t('clients.notes')}</Text>
-        <Input
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-          numberOfLines={4}
-          className="min-h-[100px] py-2"
-        />
-      </View>
 
       <View className="flex-row gap-2 mt-4">
         {onCancel ? (

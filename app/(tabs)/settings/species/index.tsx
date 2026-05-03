@@ -11,7 +11,6 @@ import { PressScale } from '@/ui/motion/press-scale';
 import { ErrorState } from '@/ui/components/error-state';
 import { useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
-import { cn } from '@/lib/cn';
 
 export default function SpeciesListScreen() {
   const { t } = useTranslation();
@@ -46,10 +45,6 @@ export default function SpeciesListScreen() {
             }}
           >
             <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-3">
-              <View
-                className={cn('w-3 h-3 rounded-full', item.color ? '' : 'bg-muted-foreground')}
-                style={item.color ? { backgroundColor: item.color } : undefined}
-              />
               <View className="flex-1">
                 <Text className="font-semibold">{item.label}</Text>
                 {!item.isCustom ? (

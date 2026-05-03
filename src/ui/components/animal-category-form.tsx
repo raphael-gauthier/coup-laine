@@ -19,29 +19,23 @@ interface Props {
 export function AnimalCategoryForm({ initial, speciesId, saving, onSubmit, onCancel }: Props) {
   const { t } = useTranslation();
   const [label, setLabel] = useState(initial?.label ?? '');
-  const [minutes, setMinutes] = useState(String(initial?.averageMinutesPerUnit ?? 20));
   const [labelTouched, setLabelTouched] = useState(false);
-  const [minutesTouched, setMinutesTouched] = useState(false);
 
   const errors = useMemo(() => {
-    const out: { label?: string; minutes?: string } = {};
+    const out: { label?: string } = {};
     if (label.trim().length === 0) out.label = t('catalogs.errors.label_required');
-    const m = parseFloat(minutes);
-    if (isNaN(m) || m <= 0) out.minutes = t('catalogs.errors.minutes_invalid');
     return out;
-  }, [label, minutes, t]);
+  }, [label, t]);
 
-  const canSubmit = !errors.label && !errors.minutes && !saving;
+  const canSubmit = !errors.label && !saving;
 
   const handleSubmit = () => {
     setLabelTouched(true);
-    setMinutesTouched(true);
     if (!canSubmit) return;
     onSubmit({
       id: initial?.id,
       speciesId,
       label: label.trim(),
-      averageMinutesPerUnit: parseFloat(minutes),
       ordering: initial?.ordering ?? 100,
     });
   };
@@ -53,19 +47,6 @@ export function AnimalCategoryForm({ initial, speciesId, saving, onSubmit, onCan
         <Input value={label} onChangeText={setLabel} onBlur={() => setLabelTouched(true)} />
         {labelTouched && errors.label ? (
           <Text className="text-sm text-danger dark:text-danger-dark">{errors.label}</Text>
-        ) : null}
-      </View>
-
-      <View className="gap-2">
-        <Text className="text-sm font-medium">{t('catalogs.categories.minutes')}</Text>
-        <Input
-          value={minutes}
-          onChangeText={setMinutes}
-          onBlur={() => setMinutesTouched(true)}
-          keyboardType="numeric"
-        />
-        {minutesTouched && errors.minutes ? (
-          <Text className="text-sm text-danger dark:text-danger-dark">{errors.minutes}</Text>
         ) : null}
       </View>
 

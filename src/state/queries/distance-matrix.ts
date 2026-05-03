@@ -58,6 +58,7 @@ export async function resolveDistanceMatrix(coords: MatrixCoord[]): Promise<Reso
         distanceKm: r.distanceKm,
         durationMinutes: r.durationMinutes,
         fetchedAt: now,
+        failed: false,
       });
     }
     return { matrix, source: 'ors' };

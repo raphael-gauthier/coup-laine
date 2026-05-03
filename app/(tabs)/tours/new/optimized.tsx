@@ -98,7 +98,7 @@ export default function OptimizedTourScreen() {
 
   if (!optimizedIds) return <Surface className="flex-1" />;
 
-  const stops = optimizedIds.map((id) => ({ clientId: id, prestations: [], notes: null }));
+  const stops = optimizedIds.map((id) => ({ clientId: id, plannedPrestations: [], notes: null }));
 
   return (
     <Surface className="flex-1">
@@ -123,8 +123,8 @@ export default function OptimizedTourScreen() {
               baseLng: base.lon,
               stops: input.stops.map((s) => ({
                 clientId: s.clientId,
-                prestations: s.prestations,
-                arrivalTime: null,
+                plannedPrestations: s.plannedPrestations,
+                arrivalMinutes: null,
                 estimatedMinutes: null,
                 notes: s.notes,
               })),

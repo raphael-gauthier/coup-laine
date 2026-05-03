@@ -31,6 +31,15 @@ export function useTour(id: string | undefined) {
   });
 }
 
+export interface UpsertTourStopInput {
+  id?: string;
+  clientId: string;
+  plannedPrestations: TourStop['plannedPrestations'];
+  arrivalMinutes: number | null;
+  estimatedMinutes: number | null;
+  notes: string | null;
+}
+
 export interface UpsertTourInput {
   id?: string;
   scheduledDate: string;
@@ -38,7 +47,7 @@ export interface UpsertTourInput {
   baseLat: number;
   baseLng: number;
   status: TourStatus;
-  stops: { id?: string; clientId: string; prestations: TourStop['prestations']; arrivalTime: string | null; estimatedMinutes: number | null; notes: string | null }[];
+  stops: UpsertTourStopInput[];
   totalDistanceKm: number | null;
   totalMinutes: number | null;
 }
@@ -58,7 +67,14 @@ export function useUpsertTour() {
         baseLng: input.baseLng,
         status: input.status,
         totalDistanceKm: input.totalDistanceKm,
+        totalDriveSeconds: existing?.tour.totalDriveSeconds ?? null,
         totalMinutes: input.totalMinutes,
+        totalRevenueCents: existing?.tour.totalRevenueCents ?? null,
+        totalAnimalsCount: existing?.tour.totalAnimalsCount ?? null,
+        totalTravelFeeCents: existing?.tour.totalTravelFeeCents ?? null,
+        routeGeometry: existing?.tour.routeGeometry ?? null,
+        notes: existing?.tour.notes ?? null,
+        completedAt: existing?.tour.completedAt ?? null,
         createdAt: existing?.tour.createdAt ?? now,
         updatedAt: now,
       };
@@ -66,10 +82,14 @@ export function useUpsertTour() {
         id: s.id ?? newId(),
         tourId,
         clientId: s.clientId,
+        clientNameSnapshot: null,
         ordering: index,
-        arrivalTime: s.arrivalTime,
+        arrivalMinutes: s.arrivalMinutes,
+        departureMinutes: null,
         estimatedMinutes: s.estimatedMinutes,
-        prestations: s.prestations,
+        feeShareCents: null,
+        plannedPrestations: s.plannedPrestations,
+        actualPrestations: null,
         notes: s.notes,
         completedAt: null,
       }));
@@ -107,7 +127,7 @@ export function useCompleteTour() {
       }
 
       await tourRepo.upsertTour(
-        { ...tour, status: 'completed', updatedAt: completedAt },
+        { ...tour, status: 'completed', completedAt, updatedAt: completedAt },
         stops.map((s) => ({ ...s, completedAt }))
       );
 

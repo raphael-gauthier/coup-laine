@@ -18,12 +18,12 @@ import { ErrorState } from '@/ui/components/error-state';
 import { useTours } from '@/state/queries/tours';
 import type { TourStatus } from '@/domain/models/tour';
 
-type Filter = 'draft' | 'planned' | 'completed';
+type Filter = 'planned' | 'completed';
 
 export default function ToursListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>('draft');
+  const [filter, setFilter] = useState<Filter>('planned');
 
   const { data: tours = [], isError, isLoading, refetch } = useTours(filter as TourStatus);
 
@@ -52,7 +52,6 @@ export default function ToursListScreen() {
           value={filter}
           onChange={setFilter}
           options={[
-            { value: 'draft', label: t('tours.filter_draft') },
             { value: 'planned', label: t('tours.filter_planned') },
             { value: 'completed', label: t('tours.filter_completed') },
           ]}

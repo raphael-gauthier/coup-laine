@@ -14,7 +14,6 @@ import { confirm } from '@/ui/components/confirm-dialog';
 import { errorToast } from '@/ui/components/error-toast';
 import { useTour, useDeleteTour } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
-import { useAnimalCategories } from '@/state/queries/species';
 import { useBaseAddress } from '@/state/queries/settings';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
@@ -31,14 +30,9 @@ export default function TourDetailScreen() {
   const { data, isError, refetch } = useTour(id);
   const deleteMutation = useDeleteTour();
   const { data: clients = [] } = useClients('all');
-  const { data: categories = [] } = useAnimalCategories();
   const { data: base } = useBaseAddress();
 
   const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
-  const categoryMinutes = useMemo(
-    () => new globalThis.Map(categories.map((c) => [c.id, c.averageMinutesPerUnit])),
-    [categories]
-  );
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!data) return <Surface className="flex-1" />;
@@ -70,14 +64,15 @@ export default function TourDetailScreen() {
   }
   totalDistanceKm += distanceKm(prev, 'BASE');
 
+  // TODO R1.E: derive service minutes from prestation snapshots.
   const arrivals = estimateTourArrivals({
     departureTime: tour.departureTime,
     stops: stops.map((s) => ({
       clientId: s.clientId,
-      animalCounts: s.prestations.flatMap((p) => p.animalCounts),
+      animalCounts: [],
     })),
     travelMinutesBetween: minutesBetween,
-    categoryMinutes,
+    categoryMinutes: new globalThis.Map<string, number>(),
   });
 
   const split = splitTravelCost({

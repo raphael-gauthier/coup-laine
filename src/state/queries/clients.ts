@@ -35,17 +35,13 @@ export function useClient(id: string | undefined) {
 export interface UpsertClientInput {
   id?: string;
   displayName: string;
-  firstName?: string | null;
-  lastName?: string | null;
   phones: string[];
-  email?: string | null;
   addressLabel?: string | null;
   addressCity?: string | null;
   addressPostcode?: string | null;
   latitude?: number | null;
   longitude?: number | null;
   isWaiting: boolean;
-  notes?: string | null;
   animalCounts: { categoryId: string; count: number }[];
 }
 
@@ -58,19 +54,18 @@ export function useUpsertClient() {
       const client: Client = {
         id: input.id ?? newId(),
         displayName: input.displayName,
-        firstName: input.firstName ?? null,
-        lastName: input.lastName ?? null,
         phones: input.phones,
-        email: input.email ?? null,
         addressLabel: input.addressLabel ?? null,
         addressCity: input.addressCity ?? null,
         addressPostcode: input.addressPostcode ?? null,
         latitude: input.latitude ?? null,
         longitude: input.longitude ?? null,
         isWaiting: input.isWaiting,
-        notes: input.notes ?? null,
+        isBanned: existing?.isBanned ?? false,
+        needsDistanceRecompute: existing?.needsDistanceRecompute ?? false,
         lastShearingDate: existing?.lastShearingDate ?? null,
         animalCounts: input.animalCounts,
+        markerColorHex: existing?.markerColorHex ?? null,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       };

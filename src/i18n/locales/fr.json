@@ -38,15 +38,11 @@
     "detail_title": "Client",
     "display_name": "Nom",
     "display_name_placeholder": "Ex. Famille Le Goff",
-    "first_name": "Prénom",
-    "last_name": "Nom de famille",
     "address": "Adresse",
     "address_placeholder": "Saisir une adresse française…",
     "phones": "Téléphones",
     "phone_placeholder": "06 12 34 56 78",
     "add_phone": "Ajouter un téléphone",
-    "email": "Email",
-    "notes": "Notes",
     "animal_counts": "Effectifs",
     "mark_waiting": "Marquer en attente",
     "unmark_waiting": "Retirer de l'attente",
@@ -58,8 +54,7 @@
     "save_failed_title": "Enregistrement impossible",
     "delete_failed_title": "Suppression impossible",
     "errors": {
-      "display_name_required": "Le nom est obligatoire.",
-      "email_invalid": "Adresse email invalide."
+      "display_name_required": "Le nom est obligatoire."
     }
   },
   "map": {
@@ -84,7 +79,6 @@
   },
   "tours": {
     "list_title": "Tournées",
-    "filter_draft": "Brouillons",
     "filter_planned": "Planifiées",
     "filter_completed": "Terminées",
     "empty_title": "Aucune tournée",
@@ -117,14 +111,11 @@
     "complete_confirm_title": "Clôturer cette tournée ?",
     "complete_confirm_message": "Les clients verront leur date de dernière tonte mise à jour et seront retirés de la liste d'attente.",
     "complete_confirm_yes": "Clôturer",
-    "save_draft": "Enregistrer le brouillon",
-    "save_planned": "Planifier",
     "delete": "Supprimer",
     "delete_confirm_title": "Supprimer cette tournée ?",
     "delete_confirm_message": "Cette action est définitive.",
     "save_failed_title": "Enregistrement impossible",
     "delete_failed_title": "Suppression impossible",
-    "status_draft": "Brouillon",
     "status_planned": "Planifiée",
     "status_completed": "Terminée",
     "errors": {
@@ -146,7 +137,7 @@
       "new_title": "Nouvelle espèce",
       "edit_title": "Modifier l'espèce",
       "label": "Nom",
-      "color": "Couleur",
+      "icon_key": "Icône (clé)",
       "is_standard": "Espèce standard",
       "delete_blocked": "Les espèces standard ne peuvent pas être supprimées.",
       "manage_categories": "Gérer les catégories",
@@ -158,7 +149,6 @@
       "new_title": "Nouvelle catégorie",
       "edit_title": "Modifier la catégorie",
       "label": "Nom",
-      "minutes": "Minutes / animal",
       "delete_confirm_title": "Supprimer cette catégorie ?",
       "delete_confirm_message": "Cette action est définitive."
     },
@@ -170,6 +160,8 @@
       "edit_title": "Modifier la prestation",
       "label": "Nom",
       "price": "Prix (optionnel)",
+      "minutes": "Durée (minutes)",
+      "category_id": "Catégorie (id)",
       "active": "Active",
       "inactive_badge": "Inactive",
       "delete_confirm_title": "Supprimer cette prestation ?",

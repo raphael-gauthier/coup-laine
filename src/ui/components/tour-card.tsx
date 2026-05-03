@@ -17,12 +17,10 @@ interface Props {
 }
 
 const STATUS_BG: Record<TourStatus, string> = {
-  draft: 'bg-muted dark:bg-muted-dark',
   planned: 'bg-waiting dark:bg-waiting-dark',
   completed: 'bg-shorn dark:bg-shorn-dark',
 };
 const STATUS_TEXT: Record<TourStatus, string> = {
-  draft: 'text-muted-foreground dark:text-muted-dark-foreground',
   planned: 'text-primary-foreground dark:text-primary-dark-foreground',
   completed: 'text-primary-foreground dark:text-primary-dark-foreground',
 };

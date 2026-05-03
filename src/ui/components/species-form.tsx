@@ -18,7 +18,7 @@ interface Props {
 export function SpeciesForm({ initial, saving, onSubmit, onCancel }: Props) {
   const { t } = useTranslation();
   const [label, setLabel] = useState(initial?.label ?? '');
-  const [color, setColor] = useState(initial?.color ?? '');
+  const [iconKey, setIconKey] = useState(initial?.iconKey ?? '');
   const [labelTouched, setLabelTouched] = useState(false);
 
   const errors = useMemo(() => {
@@ -35,7 +35,7 @@ export function SpeciesForm({ initial, saving, onSubmit, onCancel }: Props) {
     onSubmit({
       id: initial?.id,
       label: label.trim(),
-      color: color.trim() || null,
+      iconKey: iconKey.trim() || null,
       ordering: initial?.ordering ?? 100,
     });
   };
@@ -51,8 +51,8 @@ export function SpeciesForm({ initial, saving, onSubmit, onCancel }: Props) {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium">{t('catalogs.species.color')}</Text>
-        <Input value={color} onChangeText={setColor} placeholder="#A1602F" autoCapitalize="characters" />
+        <Text className="text-sm font-medium">{t('catalogs.species.icon_key')}</Text>
+        <Input value={iconKey} onChangeText={setIconKey} placeholder="mouton" autoCapitalize="none" />
       </View>
 
       <View className="flex-row gap-2 mt-4">

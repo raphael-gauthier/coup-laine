@@ -15,13 +15,13 @@ import { useClients } from '@/state/queries/clients';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
 import { splitTravelCost } from '@/domain/use-cases/cost-split-calculator';
-import { useAnimalCategories } from '@/state/queries/species';
 import { useBaseAddress } from '@/state/queries/settings';
 import type { TourStatus } from '@/domain/models/tour';
+import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
 
 export interface DraftStop {
   clientId: string;
-  prestations: { prestationId: string; animalCounts: { categoryId: string; count: number }[] }[];
+  plannedPrestations: TourStopPrestation[];
   notes: string | null;
 }
 
@@ -59,14 +59,9 @@ export function TourDraftEditor({
   const [showTimePicker, setShowTimePicker] = useState(false);
 
   const { data: clients = [] } = useClients('all');
-  const { data: categories = [] } = useAnimalCategories();
   const { data: base } = useBaseAddress();
 
   const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
-  const categoryMinutes = useMemo(
-    () => new globalThis.Map(categories.map((c) => [c.id, c.averageMinutesPerUnit])),
-    [categories]
-  );
 
   const distanceKm = (from: string, to: string): number => {
     const get = (key: string) =>
@@ -97,19 +92,22 @@ export function TourDraftEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialStops, base, clients]);
 
+  // TODO R1.E: replace with real prestation picker. Until plannedPrestations
+  // are populated, service time per stop falls back to 0 — totals will be
+  // travel-only.
   const arrivals = useMemo(
     () =>
       estimateTourArrivals({
         departureTime: time,
         stops: initialStops.map((s) => ({
           clientId: s.clientId,
-          animalCounts: s.prestations.flatMap((p) => p.animalCounts),
+          animalCounts: [],
         })),
         travelMinutesBetween: minutesBetween,
-        categoryMinutes,
+        categoryMinutes: new globalThis.Map<string, number>(),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [initialStops, time, base, clients, categories]
+    [initialStops, time, base, clients]
   );
 
   const totalMinutes = useMemo(() => {
@@ -136,12 +134,12 @@ export function TourDraftEditor({
     [totalDistanceKm, initialStops.length]
   );
 
-  const submit = (status: TourStatus) => {
+  const submit = () => {
     if (initialStops.length === 0) return;
     onSubmit({
       scheduledDate: format(date, 'yyyy-MM-dd'),
       departureTime: time,
-      status,
+      status: 'planned',
       stops: initialStops,
       totalDistanceKm,
       totalMinutes,
@@ -225,19 +223,11 @@ export function TourDraftEditor({
   const Footer = (
     <View style={{ gap: 8, paddingTop: 16, paddingBottom: 32 }}>
       <Button
-        onPress={() => submit('draft')}
-        loading={saving}
-        disabled={initialStops.length === 0 || saving}
-        variant="secondary"
-      >
-        {t('tours.save_draft')}
-      </Button>
-      <Button
-        onPress={() => submit('planned')}
+        onPress={submit}
         loading={saving}
         disabled={initialStops.length === 0 || saving}
       >
-        {t('tours.save_planned')}
+        {t('common.save')}
       </Button>
     </View>
   );

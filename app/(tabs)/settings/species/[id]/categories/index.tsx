@@ -50,9 +50,6 @@ export default function CategoriesListScreen() {
             <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-3">
               <View className="flex-1">
                 <Text className="font-semibold">{item.label}</Text>
-                <Text variant="muted" className="text-xs mt-0.5">
-                  {item.averageMinutesPerUnit} min / animal
-                </Text>
               </View>
               <ChevronRight size={18} color="#5C4E40" />
             </Surface>

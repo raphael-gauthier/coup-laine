@@ -100,19 +100,6 @@ export default function ClientDetailScreen() {
           </View>
         ) : null}
 
-        {client.email ? (
-          <View className="gap-1">
-            <Text variant="muted" className="text-sm">{t('clients.email')}</Text>
-            <Text>{client.email}</Text>
-          </View>
-        ) : null}
-
-        {client.notes ? (
-          <View className="gap-1">
-            <Text variant="muted" className="text-sm">{t('clients.notes')}</Text>
-            <Text>{client.notes}</Text>
-          </View>
-        ) : null}
       </ScrollView>
     </Surface>
   );
