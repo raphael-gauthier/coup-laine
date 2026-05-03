@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/infra/db/client';
 import { ClientRepository } from '@/data/repositories/client-repository';
+import { TourRepository } from '@/data/repositories/tour-repository';
+import { SettingsRepository } from '@/data/repositories/settings-repository';
+import { computeClientStatus, type ClientStatus } from '@/domain/use-cases/client-status';
+import { animalsTotal } from '@/lib/animals-total';
 import type { Client } from '@/domain/models/client';
 import { newId } from '@/lib/id';
 import { errorToast } from '@/ui/components/error-toast';
@@ -129,6 +133,49 @@ export function useToggleWaiting() {
     },
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: clientsKeys.all });
+    },
+  });
+}
+
+const tourRepo = new TourRepository(db);
+const settingsRepo = new SettingsRepository(db);
+
+export function useClientStatusMap() {
+  return useQuery({
+    queryKey: ['clients', 'statusMap'],
+    queryFn: async (): Promise<Map<string, ClientStatus>> => {
+      const clientsList = await repo.listAll();
+      const seasonStartedAt = (await settingsRepo.get('season_started_at')) ?? '2025-05-01';
+      const completed = await tourRepo.listByStatus('completed');
+      const planned = await tourRepo.listByStatus('planned');
+      const completedByClient = new Map<string, string[]>();
+      const plannedByClient = new Map<string, string[]>();
+      for (const { tour, stops } of completed) {
+        for (const s of stops) {
+          const arr = completedByClient.get(s.clientId) ?? [];
+          arr.push(tour.scheduledDate);
+          completedByClient.set(s.clientId, arr);
+        }
+      }
+      for (const { tour, stops } of planned) {
+        for (const s of stops) {
+          const arr = plannedByClient.get(s.clientId) ?? [];
+          arr.push(tour.scheduledDate);
+          plannedByClient.set(s.clientId, arr);
+        }
+      }
+      const out = new Map<string, ClientStatus>();
+      for (const c of clientsList) {
+        out.set(c.id, computeClientStatus({
+          isBanned: c.isBanned,
+          isWaiting: c.isWaiting,
+          animalsTotal: animalsTotal(c.animalCounts),
+          seasonStartedAt,
+          completedTourDates: completedByClient.get(c.id) ?? [],
+          plannedTourDates: plannedByClient.get(c.id) ?? [],
+        }));
+      }
+      return out;
     },
   });
 }
