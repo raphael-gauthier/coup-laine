@@ -14,7 +14,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="tours/index"
+        name="tours"
         options={{
           title: t('tabs.tours'),
           tabBarIcon: ({ color, size }) => <Route color={color} size={size} />,
