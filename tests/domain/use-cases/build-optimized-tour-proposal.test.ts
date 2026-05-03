@@ -16,12 +16,48 @@ describe('buildOptimizedTourProposal', () => {
       scheduledDate: '2026-05-10',
       departureTime: '08:00',
       base: { lat: 48.0, lon: -3.0 },
-      clientIds: ['a', 'b', 'c'],
+      stops: [
+        { clientId: 'a', clientNameSnapshot: 'Alice', plannedPrestations: [], notes: null },
+        { clientId: 'b', clientNameSnapshot: 'Bob', plannedPrestations: [], notes: null },
+        { clientId: 'c', clientNameSnapshot: 'Charlie', plannedPrestations: [], notes: null },
+      ],
       distanceKm: (f, t) => distances[`${f}-${t}`] ?? 0,
       now: '2026-05-03T12:00:00Z',
       newId: () => `id-${n++}`,
     });
     expect(r.stops.map((s) => s.clientId)).toEqual(['a', 'b', 'c']);
     expect(r.tour.status).toBe('planned');
+    expect(r.stops[0]?.clientNameSnapshot).toBe('Alice');
+  });
+
+  it('passes through plannedPrestations for each stop', () => {
+    let n = 0;
+    const r = buildOptimizedTourProposal({
+      scheduledDate: '2026-05-10',
+      departureTime: '08:00',
+      base: { lat: 48.0, lon: -3.0 },
+      stops: [
+        {
+          clientId: 'x',
+          clientNameSnapshot: 'Xavier',
+          plannedPrestations: [{
+            prestationId: 'shearing',
+            qty: 3,
+            nameSnapshot: 'Tonte',
+            priceCentsSnapshot: 600,
+            minutesSnapshot: 20,
+            categoryIdSnapshot: null,
+            categoryNameSnapshot: null,
+            speciesNameSnapshot: null,
+          }],
+          notes: null,
+        },
+      ],
+      distanceKm: () => 0,
+      now: '2026-05-03T12:00:00Z',
+      newId: () => `id-${n++}`,
+    });
+    expect(r.stops[0]?.plannedPrestations).toHaveLength(1);
+    expect(r.stops[0]?.plannedPrestations[0]?.prestationId).toBe('shearing');
   });
 });

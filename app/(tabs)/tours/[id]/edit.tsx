@@ -74,6 +74,7 @@ export default function EditTourScreen() {
               baseLng: base.lon,
               stops: input.stops.map((s) => ({
                 clientId: s.clientId,
+                clientNameSnapshot: s.clientNameSnapshot ?? null,
                 plannedPrestations: s.plannedPrestations,
                 arrivalMinutes: null,
                 estimatedMinutes: null,

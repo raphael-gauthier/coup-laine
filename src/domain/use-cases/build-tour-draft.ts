@@ -1,11 +1,19 @@
 import type { Tour } from '@/domain/models/tour';
 import type { TourStop } from '@/domain/models/tour-stop';
+import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+
+interface InputStop {
+  clientId: string;
+  clientNameSnapshot: string | null;
+  plannedPrestations: TourStopPrestation[];
+  notes: string | null;
+}
 
 interface Input {
   scheduledDate: string;
   departureTime: string;
   base: { lat: number; lon: number };
-  clientIds: string[];
+  stops: InputStop[];
   now: string;
   newId: () => string;
 }
@@ -19,7 +27,7 @@ export function buildTourDraft({
   scheduledDate,
   departureTime,
   base,
-  clientIds,
+  stops,
   now,
   newId,
 }: Input): Output {
@@ -43,20 +51,20 @@ export function buildTourDraft({
     createdAt: now,
     updatedAt: now,
   };
-  const stops: TourStop[] = clientIds.map((clientId, index) => ({
+  const tourStops: TourStop[] = stops.map((s, index) => ({
     id: newId(),
     tourId,
-    clientId,
-    clientNameSnapshot: null,
+    clientId: s.clientId,
+    clientNameSnapshot: s.clientNameSnapshot,
     ordering: index,
     arrivalMinutes: null,
     departureMinutes: null,
     estimatedMinutes: null,
     feeShareCents: null,
-    plannedPrestations: [],
+    plannedPrestations: s.plannedPrestations,
     actualPrestations: null,
-    notes: null,
+    notes: s.notes,
     completedAt: null,
   }));
-  return { tour, stops };
+  return { tour, stops: tourStops };
 }

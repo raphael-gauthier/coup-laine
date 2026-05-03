@@ -21,6 +21,7 @@ import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
 
 export interface DraftStop {
   clientId: string;
+  clientNameSnapshot?: string | null;
   plannedPrestations: TourStopPrestation[];
   notes: string | null;
 }
@@ -142,7 +143,10 @@ export function TourDraftEditor({
       scheduledDate: format(date, 'yyyy-MM-dd'),
       departureTime: time,
       status: 'planned',
-      stops: initialStops,
+      stops: initialStops.map((s) => ({
+        ...s,
+        clientNameSnapshot: clientsById.get(s.clientId)?.displayName ?? null,
+      })),
       totalDistanceKm,
       totalMinutes,
     });

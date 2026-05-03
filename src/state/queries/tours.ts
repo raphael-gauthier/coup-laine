@@ -34,6 +34,7 @@ export function useTour(id: string | undefined) {
 export interface UpsertTourStopInput {
   id?: string;
   clientId: string;
+  clientNameSnapshot?: string | null;
   plannedPrestations: TourStop['plannedPrestations'];
   arrivalMinutes: number | null;
   estimatedMinutes: number | null;
@@ -82,7 +83,7 @@ export function useUpsertTour() {
         id: s.id ?? newId(),
         tourId,
         clientId: s.clientId,
-        clientNameSnapshot: null,
+        clientNameSnapshot: s.clientNameSnapshot ?? null,
         ordering: index,
         arrivalMinutes: s.arrivalMinutes,
         departureMinutes: null,
