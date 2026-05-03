@@ -21,5 +21,27 @@
     "proximity": "Proximité",
     "map": "Carte",
     "settings": "Réglages"
+  },
+  "settings": {
+    "title": "Réglages",
+    "appearance": {
+      "row_label": "Apparence",
+      "row_hint": "Thème clair, sombre ou système",
+      "screen_title": "Apparence",
+      "options": {
+        "system": "Système",
+        "light": "Clair",
+        "dark": "Sombre"
+      }
+    },
+    "base": {
+      "row_label": "Domicile / Base",
+      "row_hint": "Point de départ des tournées",
+      "screen_title": "Domicile / Base",
+      "address_label": "Adresse",
+      "address_placeholder": "Saisir une adresse française…",
+      "current_label": "Adresse enregistrée :",
+      "save_button": "Enregistrer l'adresse"
+    }
   }
 }
