@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ScrollView, View, Platform } from 'react-native';
+import { View, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GripVertical, Trash2, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -148,8 +148,8 @@ export function TourDraftEditor({
     });
   };
 
-  return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 16 }}>
+  const Header = (
+    <View style={{ gap: 16, paddingTop: 16, paddingBottom: 8 }}>
       <View className="gap-2">
         <Text className="text-sm font-medium">{t('tours.scheduled_date')}</Text>
         <PressScale onPress={() => setShowDatePicker(true)}>
@@ -211,65 +211,68 @@ export function TourDraftEditor({
         </View>
       </Surface>
 
-      <View className="gap-2">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-sm font-medium">{t('tours.stops_section')}</Text>
-          <Button size="sm" variant="ghost" onPress={onAddClients}>
-            <Plus size={14} />
-            <Text className="font-semibold text-sm">{t('tours.add_stops')}</Text>
-          </Button>
-        </View>
-        <Text variant="muted" className="text-xs">{t('tours.reorder_hint')}</Text>
-
-        <View style={{ height: Math.max(80, initialStops.length * 80) }}>
-          <DraggableList
-            data={initialStops}
-            keyExtractor={(s) => s.clientId}
-            onReorder={onReorderStops}
-            renderItem={({ item, index, drag }) => {
-              const client = clientsById.get(item.clientId);
-              const arr = arrivals[index];
-              const share = split.perStop[index] ?? 0;
-              return (
-                <Surface variant="muted" className="flex-row items-center rounded-2xl px-3 py-3 gap-3 mb-2">
-                  <PressScale onPressIn={drag}>
-                    <GripVertical size={20} color="#5C4E40" />
-                  </PressScale>
-                  <View className="flex-1">
-                    <Text className="font-semibold">{client?.displayName ?? item.clientId}</Text>
-                    {arr ? (
-                      <Text variant="muted" className="text-xs mt-0.5">
-                        {t('tours.stop_arrival')} {arr.arrivalTime} · {arr.estimatedMinutes} min · {share} €
-                      </Text>
-                    ) : null}
-                  </View>
-                  <PressScale onPress={() => onRemoveStop(item.clientId)}>
-                    <Trash2 size={16} color="#B23832" />
-                  </PressScale>
-                </Surface>
-              );
-            }}
-          />
-        </View>
-      </View>
-
-      <View className="gap-2">
-        <Button
-          onPress={() => submit('draft')}
-          loading={saving}
-          disabled={initialStops.length === 0 || saving}
-          variant="secondary"
-        >
-          {t('tours.save_draft')}
-        </Button>
-        <Button
-          onPress={() => submit('planned')}
-          loading={saving}
-          disabled={initialStops.length === 0 || saving}
-        >
-          {t('tours.save_planned')}
+      <View className="flex-row items-center justify-between">
+        <Text className="text-sm font-medium">{t('tours.stops_section')}</Text>
+        <Button size="sm" variant="ghost" onPress={onAddClients}>
+          <Plus size={14} />
+          <Text className="font-semibold text-sm">{t('tours.add_stops')}</Text>
         </Button>
       </View>
-    </ScrollView>
+      <Text variant="muted" className="text-xs">{t('tours.reorder_hint')}</Text>
+    </View>
+  );
+
+  const Footer = (
+    <View style={{ gap: 8, paddingTop: 16, paddingBottom: 32 }}>
+      <Button
+        onPress={() => submit('draft')}
+        loading={saving}
+        disabled={initialStops.length === 0 || saving}
+        variant="secondary"
+      >
+        {t('tours.save_draft')}
+      </Button>
+      <Button
+        onPress={() => submit('planned')}
+        loading={saving}
+        disabled={initialStops.length === 0 || saving}
+      >
+        {t('tours.save_planned')}
+      </Button>
+    </View>
+  );
+
+  return (
+    <DraggableList
+      data={initialStops}
+      keyExtractor={(s) => s.clientId}
+      onReorder={onReorderStops}
+      ListHeaderComponent={Header}
+      ListFooterComponent={Footer}
+      contentContainerStyle={{ paddingHorizontal: 16 }}
+      renderItem={({ item, index, drag }) => {
+        const client = clientsById.get(item.clientId);
+        const arr = arrivals[index];
+        const share = split.perStop[index] ?? 0;
+        return (
+          <Surface variant="muted" className="flex-row items-center rounded-2xl px-3 py-3 gap-3 mb-2">
+            <PressScale onPressIn={drag}>
+              <GripVertical size={20} color="#5C4E40" />
+            </PressScale>
+            <View className="flex-1">
+              <Text className="font-semibold">{client?.displayName ?? item.clientId}</Text>
+              {arr ? (
+                <Text variant="muted" className="text-xs mt-0.5">
+                  {t('tours.stop_arrival')} {arr.arrivalTime} · {arr.estimatedMinutes} min · {share} €
+                </Text>
+              ) : null}
+            </View>
+            <PressScale onPress={() => onRemoveStop(item.clientId)}>
+              <Trash2 size={16} color="#B23832" />
+            </PressScale>
+          </Surface>
+        );
+      }}
+    />
   );
 }
