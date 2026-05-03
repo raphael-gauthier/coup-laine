@@ -137,8 +137,8 @@
     "complete_title": "Clôturer la tournée",
     "scheduled_date": "Date",
     "departure_time": "Heure de départ",
-    "stops_count": "{{count}} étape",
-    "stops_count_plural": "{{count}} étapes",
+    "stops_count_one": "{{count}} étape",
+    "stops_count_other": "{{count}} étapes",
     "total_distance": "Distance",
     "total_duration": "Durée",
     "total_cost": "Frais kilométriques",
@@ -375,8 +375,8 @@
     }
   },
   "recompute": {
-    "banner_title": "{{count}} client à recalculer",
-    "banner_title_plural": "{{count}} clients à recalculer",
+    "banner_title_one": "{{count}} client à recalculer",
+    "banner_title_other": "{{count}} clients à recalculer",
     "banner_message": "Les distances doivent être recalculées suite à un changement d'adresse.",
     "banner_cta": "Recalculer",
     "running": "Recalcul en cours…",
@@ -406,8 +406,8 @@
       "message": "Voici un résumé de ta configuration. Tu pourras modifier tout ça dans Réglages.",
       "address_label": "Domicile",
       "species_label": "Espèces",
-      "species_count": "{{count}} espèce",
-      "species_count_plural": "{{count}} espèces",
+      "species_count_one": "{{count}} espèce",
+      "species_count_other": "{{count}} espèces",
       "cta": "Lancer l'application"
     },
     "restore_prompt": {
