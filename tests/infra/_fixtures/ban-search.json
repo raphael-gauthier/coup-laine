@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-4.0975, 48.0019] },
+      "properties": {
+        "label": "1 Rue de la Tonte 29000 Quimper",
+        "city": "Quimper",
+        "postcode": "29000"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": { "type": "Point", "coordinates": [-4.4861, 48.3905] },
+      "properties": {
+        "label": "10 Rue des Moutons 29200 Brest",
+        "city": "Brest",
+        "postcode": "29200"
+      }
+    }
+  ]
+}
