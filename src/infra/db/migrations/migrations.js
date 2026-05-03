@@ -1,0 +1,19 @@
+// AUTO-GENERATED. Do not edit. Run `pnpm db:bundle` after `pnpm db:generate`.
+export default {
+  journal: {
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1777802693393,
+      "tag": "0000_last_madripoor",
+      "breakpoints": true
+    }
+  ]
+},
+  migrations: {
+  m0000: "CREATE TABLE `animal_categories` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`species_id` text NOT NULL,\n\t`label` text NOT NULL,\n\t`average_minutes_per_unit` real NOT NULL,\n\t`ordering` integer NOT NULL,\n\t`is_custom` integer DEFAULT 0 NOT NULL,\n\tFOREIGN KEY (`species_id`) REFERENCES `species`(`id`) ON UPDATE no action ON DELETE no action\n);\n--> statement-breakpoint\nCREATE INDEX `animal_categories_species_idx` ON `animal_categories` (`species_id`);--> statement-breakpoint\nCREATE TABLE `clients` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`display_name` text NOT NULL,\n\t`first_name` text,\n\t`last_name` text,\n\t`phones` text DEFAULT '[]' NOT NULL,\n\t`email` text,\n\t`address_label` text,\n\t`address_city` text,\n\t`address_postcode` text,\n\t`latitude` real,\n\t`longitude` real,\n\t`is_waiting` integer DEFAULT 0 NOT NULL,\n\t`notes` text,\n\t`last_shearing_date` text,\n\t`animal_counts` text DEFAULT '[]' NOT NULL,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL\n);\n--> statement-breakpoint\nCREATE INDEX `clients_is_waiting_idx` ON `clients` (`is_waiting`);--> statement-breakpoint\nCREATE INDEX `clients_last_shearing_idx` ON `clients` (`last_shearing_date`);--> statement-breakpoint\nCREATE TABLE `distance_matrix` (\n\t`from_id` text NOT NULL,\n\t`to_id` text NOT NULL,\n\t`distance_km` real NOT NULL,\n\t`duration_minutes` integer NOT NULL,\n\t`fetched_at` text NOT NULL,\n\tPRIMARY KEY(`from_id`, `to_id`)\n);\n--> statement-breakpoint\nCREATE TABLE `manual_history_entries` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`client_id` text NOT NULL,\n\t`date` text NOT NULL,\n\t`notes` text,\n\t`prestations` text DEFAULT '[]' NOT NULL,\n\tFOREIGN KEY (`client_id`) REFERENCES `clients`(`id`) ON UPDATE no action ON DELETE cascade\n);\n--> statement-breakpoint\nCREATE INDEX `manual_history_client_idx` ON `manual_history_entries` (`client_id`);--> statement-breakpoint\nCREATE TABLE `prestations` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`label` text NOT NULL,\n\t`price` real,\n\t`is_active` integer DEFAULT 1 NOT NULL,\n\t`ordering` integer NOT NULL\n);\n--> statement-breakpoint\nCREATE TABLE `settings` (\n\t`key` text PRIMARY KEY NOT NULL,\n\t`value` text NOT NULL\n);\n--> statement-breakpoint\nCREATE TABLE `species` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`label` text NOT NULL,\n\t`color` text,\n\t`ordering` integer NOT NULL,\n\t`is_custom` integer DEFAULT 0 NOT NULL\n);\n--> statement-breakpoint\nCREATE TABLE `tour_stops` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`tour_id` text NOT NULL,\n\t`client_id` text NOT NULL,\n\t`ordering` integer NOT NULL,\n\t`arrival_time` text,\n\t`estimated_minutes` integer,\n\t`prestations` text DEFAULT '[]' NOT NULL,\n\t`notes` text,\n\t`completed_at` text,\n\tFOREIGN KEY (`tour_id`) REFERENCES `tours`(`id`) ON UPDATE no action ON DELETE cascade,\n\tFOREIGN KEY (`client_id`) REFERENCES `clients`(`id`) ON UPDATE no action ON DELETE no action\n);\n--> statement-breakpoint\nCREATE INDEX `tour_stops_tour_idx` ON `tour_stops` (`tour_id`);--> statement-breakpoint\nCREATE INDEX `tour_stops_client_idx` ON `tour_stops` (`client_id`);--> statement-breakpoint\nCREATE TABLE `tours` (\n\t`id` text PRIMARY KEY NOT NULL,\n\t`scheduled_date` text NOT NULL,\n\t`departure_time` text NOT NULL,\n\t`base_lat` real NOT NULL,\n\t`base_lng` real NOT NULL,\n\t`status` text NOT NULL,\n\t`total_distance_km` real,\n\t`total_minutes` integer,\n\t`created_at` text NOT NULL,\n\t`updated_at` text NOT NULL\n);\n"
+  },
+};

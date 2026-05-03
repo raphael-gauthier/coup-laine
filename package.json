@@ -13,6 +13,7 @@
     "test:domain": "vitest run",
     "test:integration": "jest",
     "db:generate": "drizzle-kit generate",
+    "db:bundle": "node scripts/bundle-migrations.mjs",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
