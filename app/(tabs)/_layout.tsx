@@ -21,7 +21,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="proximity/index"
+        name="proximity"
         options={{
           title: t('tabs.proximity'),
           tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
