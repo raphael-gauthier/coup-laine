@@ -11,7 +11,7 @@
   },
   "hello": {
     "title": "Coupe-laine",
-    "subtitle": "Compagnon quotidien du tondeur de mouton",
+    "subtitle": "Compagnon quotidien des intervenants à la ferme",
     "toggle_theme": "Basculer le thème",
     "test_haptic": "Tester le haptic"
   },
@@ -154,7 +154,7 @@
     "add_prestation": "Ajouter une prestation",
     "complete_cta": "Marquer comme terminée",
     "complete_confirm_title": "Clôturer cette tournée ?",
-    "complete_confirm_message": "Les clients verront leur date de dernière tonte mise à jour et seront retirés de la liste d'attente.",
+    "complete_confirm_message": "Les clients verront leur date de dernière intervention mise à jour et seront retirés de la liste d'attente.",
     "complete_confirm_yes": "Clôturer",
     "delete": "Supprimer",
     "delete_confirm_title": "Supprimer cette tournée ?",
@@ -221,7 +221,7 @@
     },
     "prestations": {
       "row_label": "Prestations",
-      "row_hint": "Tonte, parage, etc.",
+      "row_hint": "Soins, parage, etc.",
       "list_title": "Prestations",
       "new_title": "Nouvelle prestation",
       "edit_title": "Modifier la prestation",
@@ -387,7 +387,7 @@
   "onboarding": {
     "welcome": {
       "title": "Bienvenue sur Coupe-laine",
-      "message": "Ton compagnon quotidien pour gérer tes clients et planifier tes tournées de tonte. Quelques infos pour commencer.",
+      "message": "Ton compagnon quotidien pour gérer tes clients et planifier tes tournées. Quelques infos pour commencer.",
       "cta": "Commencer"
     },
     "base": {

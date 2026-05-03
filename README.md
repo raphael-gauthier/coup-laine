@@ -1,5 +1,5 @@
 # Coup'Laine
 
-Compagnon quotidien du tondeur de mouton — gestion des clients, planification des tournées, optimisation des trajets.
+Compagnon quotidien des intervenants à la ferme — gestion des clients, planification des tournées, optimisation des trajets.
 
-Application Flutter pour Android.
+Application Expo + React Native (iOS + Android).
