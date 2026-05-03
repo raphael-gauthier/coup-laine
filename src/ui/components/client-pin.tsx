@@ -8,14 +8,17 @@ import { clientStatusColor } from '@/lib/client-status-color';
 interface Props {
   client: Client & { latitude: number; longitude: number };
   onPress: () => void;
-  today?: string;
 }
 
-export function ClientPin({ client, onPress, today }: Props) {
+export function ClientPin({ client, onPress }: Props) {
   const status = computeClientStatus({
+    isBanned: client.isBanned,
     isWaiting: client.isWaiting,
-    lastShearingDate: client.lastShearingDate,
-    today: today ?? new Date().toISOString().slice(0, 10),
+    animalsTotal: client.animalCounts.reduce((s, c) => s + c.count, 0),
+    // TODO R1.E: pass real seasonStartedAt + tour dates from context
+    seasonStartedAt: new Date().getFullYear() + '-01-01',
+    completedTourDates: [],
+    plannedTourDates: [],
   });
   const colors = clientStatusColor(status);
 

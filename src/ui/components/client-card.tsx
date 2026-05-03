@@ -15,15 +15,18 @@ interface Props {
   client: Client;
   onPress: () => void;
   onToggleWaiting: () => void;
-  today?: string;
 }
 
-export function ClientCard({ client, onPress, onToggleWaiting, today }: Props) {
+export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
   const { t } = useTranslation();
   const status = computeClientStatus({
+    isBanned: client.isBanned,
     isWaiting: client.isWaiting,
-    lastShearingDate: client.lastShearingDate,
-    today: today ?? new Date().toISOString().slice(0, 10),
+    animalsTotal: client.animalCounts.reduce((s, c) => s + c.count, 0),
+    // TODO R1.E: pass real seasonStartedAt + tour dates from context
+    seasonStartedAt: new Date().getFullYear() + '-01-01',
+    completedTourDates: [],
+    plannedTourDates: [],
   });
   const colors = clientStatusColor(status);
 

@@ -1,30 +1,97 @@
 import { describe, it, expect } from 'vitest';
 import { computeClientStatus } from '@/domain/use-cases/client-status';
 
-describe('computeClientStatus', () => {
-  const today = '2026-05-03';
+const SEASON = '2026-05-01';
 
-  it('returns "waiting" when isWaiting=true', () => {
-    expect(computeClientStatus({
-      isWaiting: true, lastShearingDate: '2025-05-01', today,
-    })).toBe('waiting');
+describe('computeClientStatus (6-status)', () => {
+  it('returns "banned" when isBanned is true (overrides everything)', () => {
+    expect(
+      computeClientStatus({
+        isBanned: true,
+        isWaiting: true,
+        animalsTotal: 12,
+        seasonStartedAt: SEASON,
+        completedTourDates: ['2026-05-15'],
+        plannedTourDates: ['2026-06-01'],
+      })
+    ).toBe('banned');
   });
 
-  it('returns "shorn-recent" when last shearing within 60 days', () => {
-    expect(computeClientStatus({
-      isWaiting: false, lastShearingDate: '2026-04-15', today,
-    })).toBe('shorn-recent');
+  it('returns "noAnimals" when animalsTotal is 0 (and not banned)', () => {
+    expect(
+      computeClientStatus({
+        isBanned: false,
+        isWaiting: false,
+        animalsTotal: 0,
+        seasonStartedAt: SEASON,
+        completedTourDates: [],
+        plannedTourDates: [],
+      })
+    ).toBe('noAnimals');
   });
 
-  it('returns "shorn-old" when last shearing > 60 days ago', () => {
-    expect(computeClientStatus({
-      isWaiting: false, lastShearingDate: '2025-05-01', today,
-    })).toBe('shorn-old');
+  it('returns "done" if any completed tour date ≥ seasonStartedAt', () => {
+    expect(
+      computeClientStatus({
+        isBanned: false,
+        isWaiting: true, // overridden by done
+        animalsTotal: 12,
+        seasonStartedAt: SEASON,
+        completedTourDates: ['2026-05-15'],
+        plannedTourDates: [],
+      })
+    ).toBe('done');
   });
 
-  it('returns "never" when no last shearing date and not waiting', () => {
-    expect(computeClientStatus({
-      isWaiting: false, lastShearingDate: null, today,
-    })).toBe('never');
+  it('does not return "done" for completed tours before seasonStartedAt', () => {
+    expect(
+      computeClientStatus({
+        isBanned: false,
+        isWaiting: true,
+        animalsTotal: 12,
+        seasonStartedAt: SEASON,
+        completedTourDates: ['2025-04-15'], // last season
+        plannedTourDates: [],
+      })
+    ).toBe('waiting'); // not done; isWaiting wins
+  });
+
+  it('returns "scheduled" if a planned tour for this season exists and not done', () => {
+    expect(
+      computeClientStatus({
+        isBanned: false,
+        isWaiting: false,
+        animalsTotal: 12,
+        seasonStartedAt: SEASON,
+        completedTourDates: [],
+        plannedTourDates: ['2026-06-01'],
+      })
+    ).toBe('scheduled');
+  });
+
+  it('returns "waiting" when isWaiting and no scheduled/done', () => {
+    expect(
+      computeClientStatus({
+        isBanned: false,
+        isWaiting: true,
+        animalsTotal: 12,
+        seasonStartedAt: SEASON,
+        completedTourDates: [],
+        plannedTourDates: [],
+      })
+    ).toBe('waiting');
+  });
+
+  it('returns "default" when no other condition applies', () => {
+    expect(
+      computeClientStatus({
+        isBanned: false,
+        isWaiting: false,
+        animalsTotal: 12,
+        seasonStartedAt: SEASON,
+        completedTourDates: [],
+        plannedTourDates: [],
+      })
+    ).toBe('default');
   });
 });

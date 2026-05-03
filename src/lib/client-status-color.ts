@@ -1,39 +1,49 @@
 import type { ClientStatus } from '@/domain/use-cases/client-status';
 
 export interface StatusTokens {
-  /** Full bg class string with `dark:` variant baked in. Use as-is. */
   bgClass: string;
-  /** Full text class string with `dark:` variant baked in. Use as-is. */
   textClass: string;
+  /** Settings key whose value is the hex colour, used when reading from settings. */
+  settingsKey: 'marker_default_color' | 'marker_waiting_color' | 'marker_scheduled_color' | 'marker_done_color' | 'marker_no_animals_color' | 'marker_banned_color';
 }
 
-/**
- * Maps a client status to themed Tailwind class strings. Each value is a
- * **complete static literal** (light + dark together) so Tailwind's content
- * scanner picks them up at build time. Don't concatenate `dark:` at runtime —
- * Tailwind would not generate the corresponding CSS.
- */
 export function clientStatusColor(status: ClientStatus): StatusTokens {
   switch (status) {
     case 'waiting':
       return {
         bgClass: 'bg-waiting dark:bg-waiting-dark',
         textClass: 'text-primary-foreground dark:text-primary-dark-foreground',
+        settingsKey: 'marker_waiting_color',
       };
-    case 'shorn-recent':
+    case 'scheduled':
+      return {
+        bgClass: 'bg-primary dark:bg-primary-dark',
+        textClass: 'text-primary-foreground dark:text-primary-dark-foreground',
+        settingsKey: 'marker_scheduled_color',
+      };
+    case 'done':
       return {
         bgClass: 'bg-shorn dark:bg-shorn-dark',
         textClass: 'text-primary-foreground dark:text-primary-dark-foreground',
+        settingsKey: 'marker_done_color',
       };
-    case 'shorn-old':
+    case 'noAnimals':
       return {
         bgClass: 'bg-muted dark:bg-muted-dark',
         textClass: 'text-muted-foreground dark:text-muted-dark-foreground',
+        settingsKey: 'marker_no_animals_color',
       };
-    case 'never':
+    case 'banned':
+      return {
+        bgClass: 'bg-danger dark:bg-danger-dark',
+        textClass: 'text-danger-foreground dark:text-danger-dark-foreground',
+        settingsKey: 'marker_banned_color',
+      };
+    case 'default':
       return {
         bgClass: 'bg-transparent',
         textClass: 'text-muted-foreground dark:text-muted-dark-foreground',
+        settingsKey: 'marker_default_color',
       };
   }
 }

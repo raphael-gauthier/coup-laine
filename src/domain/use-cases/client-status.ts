@@ -1,23 +1,23 @@
-export type ClientStatus = 'waiting' | 'shorn-recent' | 'shorn-old' | 'never';
+export type ClientStatus = 'default' | 'waiting' | 'scheduled' | 'done' | 'noAnimals' | 'banned';
 
 interface Input {
+  isBanned: boolean;
   isWaiting: boolean;
-  lastShearingDate: string | null;
-  today: string;
-  recentDays?: number;
+  animalsTotal: number;
+  /** ISO date 'YYYY-MM-DD' — start of the current shearing season. */
+  seasonStartedAt: string;
+  /** All `completedAt` dates of stops where this client was a stop, ISO 'YYYY-MM-DD' (or any string ≥-comparable). */
+  completedTourDates: string[];
+  /** All scheduled dates of planned tours containing this client, ISO 'YYYY-MM-DD'. */
+  plannedTourDates: string[];
 }
 
-export function computeClientStatus({
-  isWaiting,
-  lastShearingDate,
-  today,
-  recentDays = 60,
-}: Input): ClientStatus {
+export function computeClientStatus(input: Input): ClientStatus {
+  const { isBanned, isWaiting, animalsTotal, seasonStartedAt, completedTourDates, plannedTourDates } = input;
+  if (isBanned) return 'banned';
+  if (animalsTotal === 0) return 'noAnimals';
+  if (completedTourDates.some((d) => d >= seasonStartedAt)) return 'done';
+  if (plannedTourDates.some((d) => d >= seasonStartedAt)) return 'scheduled';
   if (isWaiting) return 'waiting';
-  if (!lastShearingDate) return 'never';
-
-  const last = Date.parse(lastShearingDate);
-  const now = Date.parse(today);
-  const daysAgo = (now - last) / (1000 * 60 * 60 * 24);
-  return daysAgo <= recentDays ? 'shorn-recent' : 'shorn-old';
+  return 'default';
 }
