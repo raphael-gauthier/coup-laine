@@ -1,39 +1,44 @@
 import { describe, it, expect } from 'vitest';
 import { estimateTourDuration } from '@/domain/use-cases/tour-duration-estimator';
+import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
 
-const categoriesByMinutes = new Map<string, number>([
-  ['sheep-adult', 20],
-  ['sheep-lamb', 15],
-]);
+const ps = (over: Partial<TourStopPrestation>): TourStopPrestation => ({
+  prestationId: 'p',
+  qty: 1,
+  nameSnapshot: 'X',
+  priceCentsSnapshot: 0,
+  minutesSnapshot: 0,
+  categoryIdSnapshot: null,
+  categoryNameSnapshot: null,
+  speciesNameSnapshot: null,
+  ...over,
+});
 
 describe('estimateTourDuration', () => {
   it('returns 0 for an empty tour', () => {
     expect(estimateTourDuration({
       stops: [],
       travelMinutesBetween: () => 0,
-      categoryMinutes: categoriesByMinutes,
     })).toBe(0);
   });
 
-  it('sums shearing minutes for one stop', () => {
+  it('sums service minutes for one stop', () => {
     expect(estimateTourDuration({
-      stops: [{ clientId: 'c1', animalCounts: [{ categoryId: 'sheep-adult', count: 3 }] }],
+      stops: [{ clientId: 'c1', plannedPrestations: [ps({ qty: 3, minutesSnapshot: 20 })] }],
       travelMinutesBetween: () => 0,
-      categoryMinutes: categoriesByMinutes,
     })).toBe(60);
   });
 
-  it('mixes categories', () => {
+  it('mixes multiple prestations', () => {
     expect(estimateTourDuration({
       stops: [{
         clientId: 'c1',
-        animalCounts: [
-          { categoryId: 'sheep-adult', count: 2 },
-          { categoryId: 'sheep-lamb', count: 4 },
+        plannedPrestations: [
+          ps({ qty: 2, minutesSnapshot: 20 }),
+          ps({ qty: 4, minutesSnapshot: 15 }),
         ],
       }],
       travelMinutesBetween: () => 0,
-      categoryMinutes: categoriesByMinutes,
     })).toBe(100);
   });
 
@@ -42,19 +47,17 @@ describe('estimateTourDuration', () => {
       ({ 'BASE-c1': 10, 'c1-c2': 15 } as const)[`${from}-${to}` as 'BASE-c1' | 'c1-c2'] ?? 0;
     expect(estimateTourDuration({
       stops: [
-        { clientId: 'c1', animalCounts: [{ categoryId: 'sheep-adult', count: 1 }] },
-        { clientId: 'c2', animalCounts: [{ categoryId: 'sheep-adult', count: 2 }] },
+        { clientId: 'c1', plannedPrestations: [ps({ qty: 1, minutesSnapshot: 20 })] },
+        { clientId: 'c2', plannedPrestations: [ps({ qty: 2, minutesSnapshot: 20 })] },
       ],
       travelMinutesBetween: travel,
-      categoryMinutes: categoriesByMinutes,
     })).toBe(20 + 40 + 10 + 15);
   });
 
-  it('ignores unknown categoryIds', () => {
+  it('returns travel-only time when no prestations', () => {
     expect(estimateTourDuration({
-      stops: [{ clientId: 'c1', animalCounts: [{ categoryId: 'unknown', count: 5 }] }],
-      travelMinutesBetween: () => 0,
-      categoryMinutes: categoriesByMinutes,
-    })).toBe(0);
+      stops: [{ clientId: 'c1', plannedPrestations: [] }],
+      travelMinutesBetween: () => 10,
+    })).toBe(10);
   });
 });

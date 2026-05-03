@@ -1,31 +1,26 @@
-import type { AnimalCount } from '@/domain/models/animal-count';
+import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
 
 interface Stop {
   clientId: string;
-  animalCounts: AnimalCount[];
+  plannedPrestations: TourStopPrestation[];
 }
 
 interface Input {
   stops: Stop[];
   travelMinutesBetween: (from: string, to: string) => number;
-  categoryMinutes: Map<string, number>;
 }
 
-export function estimateTourDuration({
-  stops,
-  travelMinutesBetween,
-  categoryMinutes,
-}: Input): number {
-  if (stops.length === 0) return 0;
+function serviceMinutes(stop: Stop): number {
+  return stop.plannedPrestations.reduce((sum, p) => sum + p.qty * p.minutesSnapshot, 0);
+}
 
+export function estimateTourDuration({ stops, travelMinutesBetween }: Input): number {
+  if (stops.length === 0) return 0;
   let total = 0;
   let previousNode = 'BASE';
   for (const stop of stops) {
     total += travelMinutesBetween(previousNode, stop.clientId);
-    for (const { categoryId, count } of stop.animalCounts) {
-      const perUnit = categoryMinutes.get(categoryId) ?? 0;
-      total += perUnit * count;
-    }
+    total += serviceMinutes(stop);
     previousNode = stop.clientId;
   }
   return total;

@@ -101,10 +101,9 @@ export function TourDraftEditor({
         departureTime: time,
         stops: initialStops.map((s) => ({
           clientId: s.clientId,
-          animalCounts: [],
+          plannedPrestations: s.plannedPrestations,
         })),
         travelMinutesBetween: minutesBetween,
-        categoryMinutes: new globalThis.Map<string, number>(),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [initialStops, time, base, clients]

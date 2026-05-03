@@ -69,10 +69,9 @@ export default function TourDetailScreen() {
     departureTime: tour.departureTime,
     stops: stops.map((s) => ({
       clientId: s.clientId,
-      animalCounts: [],
+      plannedPrestations: s.plannedPrestations,
     })),
     travelMinutesBetween: minutesBetween,
-    categoryMinutes: new globalThis.Map<string, number>(),
   });
 
   const baseToStopDistancesKm = stops.map((s) => distanceKm('BASE', s.clientId));

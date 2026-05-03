@@ -1,19 +1,19 @@
-import type { AnimalCount } from '@/domain/models/animal-count';
+import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
 
 interface InputStop {
   clientId: string;
-  animalCounts: AnimalCount[];
+  plannedPrestations: TourStopPrestation[];
 }
 
 interface Input {
   departureTime: string;
   stops: InputStop[];
   travelMinutesBetween: (from: string, to: string) => number;
-  categoryMinutes: Map<string, number>;
 }
 
 export interface ArrivalStop extends InputStop {
   arrivalTime: string;
+  arrivalMinutes: number;
   estimatedMinutes: number;
 }
 
@@ -29,16 +29,12 @@ function formatHHmm(totalMinutes: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-function serviceMinutes(stop: InputStop, categoryMinutes: Map<string, number>): number {
-  let total = 0;
-  for (const { categoryId, count } of stop.animalCounts) {
-    total += (categoryMinutes.get(categoryId) ?? 0) * count;
-  }
-  return total;
+function serviceMinutes(stop: InputStop): number {
+  return stop.plannedPrestations.reduce((sum, p) => sum + p.qty * p.minutesSnapshot, 0);
 }
 
 export function estimateTourArrivals(input: Input): ArrivalStop[] {
-  const { departureTime, stops, travelMinutesBetween, categoryMinutes } = input;
+  const { departureTime, stops, travelMinutesBetween } = input;
   if (stops.length === 0) return [];
 
   const result: ArrivalStop[] = [];
@@ -47,11 +43,16 @@ export function estimateTourArrivals(input: Input): ArrivalStop[] {
 
   for (const stop of stops) {
     cursor += travelMinutesBetween(previousNode, stop.clientId);
-    const minutes = serviceMinutes(stop, categoryMinutes);
-    result.push({ ...stop, arrivalTime: formatHHmm(cursor), estimatedMinutes: minutes });
+    const arrivalMinutes = cursor;
+    const minutes = serviceMinutes(stop);
+    result.push({
+      ...stop,
+      arrivalTime: formatHHmm(cursor),
+      arrivalMinutes,
+      estimatedMinutes: minutes,
+    });
     cursor += minutes;
     previousNode = stop.clientId;
   }
-
   return result;
 }
