@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, useResolvedColorScheme } from '@/ui/theme/theme-provider';
+import { lightTheme, darkTheme } from '@/ui/theme/tokens';
 
 export const unstable_settings = {
   anchor: 'index',
@@ -23,10 +24,7 @@ const queryClient = new QueryClient({
 function App() {
   const isDark = useResolvedColorScheme() === 'dark';
   return (
-    <GestureHandlerRootView
-      style={{ flex: 1 }}
-      className={isDark ? 'dark flex-1' : 'flex-1'}
-    >
+    <GestureHandlerRootView style={[{ flex: 1 }, isDark ? darkTheme : lightTheme]}>
       <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
