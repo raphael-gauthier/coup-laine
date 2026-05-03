@@ -75,9 +75,13 @@ export default function TourDetailScreen() {
     categoryMinutes: new globalThis.Map<string, number>(),
   });
 
+  const baseToStopDistancesKm = stops.map((s) => distanceKm('BASE', s.clientId));
+  const interStopDistancesKm = stops.slice(1).map((s, i) =>
+    distanceKm(stops[i]!.clientId, s.clientId)
+  );
   const split = splitTravelCost({
-    totalDistanceKm,
-    stopCount: stops.length,
+    baseToStopDistancesKm,
+    interStopDistancesKm,
     pricePerBracket: 8,
     bracketSizeKm: 10,
   });

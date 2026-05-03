@@ -123,16 +123,19 @@ export function TourDraftEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialStops, arrivals]);
 
-  const split = useMemo(
-    () =>
-      splitTravelCost({
-        totalDistanceKm,
-        stopCount: initialStops.length,
-        pricePerBracket: PRICE_PER_BRACKET,
-        bracketSizeKm: BRACKET_KM,
-      }),
-    [totalDistanceKm, initialStops.length]
-  );
+  const split = useMemo(() => {
+    const baseToStopDistancesKm = initialStops.map((s) => distanceKm('BASE', s.clientId));
+    const interStopDistancesKm = initialStops.slice(1).map((s, i) =>
+      distanceKm(initialStops[i]!.clientId, s.clientId)
+    );
+    return splitTravelCost({
+      baseToStopDistancesKm,
+      interStopDistancesKm,
+      pricePerBracket: PRICE_PER_BRACKET,
+      bracketSizeKm: BRACKET_KM,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialStops, base, clients]);
 
   const submit = () => {
     if (initialStops.length === 0) return;
