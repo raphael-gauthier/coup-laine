@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Modal, View, TouchableOpacity, Switch } from 'react-native';
+import { Modal, View, TouchableOpacity } from 'react-native';
+import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { Filter } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -71,10 +72,9 @@ export function ClientStatusFilterDialog({ visible, onClose }: Props) {
         {STATUSES.map(({ status, labelKey }) => (
           <View key={status} className="flex-row items-center justify-between py-3 border-b border-border dark:border-border-dark">
             <Text className="text-sm">{t(labelKey)}</Text>
-            <Switch
+            <ThemedSwitch
               value={draft.has(status)}
               onValueChange={() => handleToggle(status)}
-              trackColor={{ true: '#A1602F', false: '#DCD0C0' }}
             />
           </View>
         ))}

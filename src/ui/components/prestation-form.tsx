@@ -11,7 +11,7 @@ import { PressScale } from '@/ui/motion/press-scale';
 import { useSpecies, useAnimalCategories } from '@/state/queries/species';
 import type { Prestation } from '@/domain/models/prestation';
 import type { UpsertPrestationInput } from '@/state/queries/catalogs';
-import { Switch } from 'react-native';
+import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 
 interface Props {
   initial?: Prestation;
@@ -129,7 +129,7 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
 
       <View className="flex-row items-center justify-between">
         <Text className="text-sm font-medium">{t('catalogs.prestations.active')}</Text>
-        <Switch value={isActive} onValueChange={setIsActive} />
+        <ThemedSwitch value={isActive} onValueChange={setIsActive} />
       </View>
 
       <View className="flex-row gap-2 mt-4">

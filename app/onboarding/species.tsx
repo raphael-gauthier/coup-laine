@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Leaf } from 'lucide-react-native';
@@ -98,7 +99,7 @@ export default function OnboardingSpeciesScreen() {
           {DEFAULT_SPECIES.map((sp) => (
             <Surface key={sp.id} variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
               <Text className="font-semibold">{sp.label}</Text>
-              <Switch
+              <ThemedSwitch
                 value={enabled[sp.id]}
                 onValueChange={(v) => setEnabled((prev) => ({ ...prev, [sp.id]: v }))}
               />

@@ -1,4 +1,5 @@
-import { View, Modal, Switch, TouchableOpacity } from 'react-native';
+import { View, Modal, TouchableOpacity } from 'react-native';
+import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { Layers, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -52,10 +53,9 @@ export function MapLayerDialog() {
             ].map(({ key, label, value }) => (
               <View key={key} className="flex-row items-center justify-between py-2">
                 <Text className="text-sm">{label}</Text>
-                <Switch
+                <ThemedSwitch
                   value={value}
                   onValueChange={(v) => setLayer(key, v)}
-                  trackColor={{ true: '#A1602F', false: '#DCD0C0' }}
                 />
               </View>
             ))}
