@@ -8,6 +8,7 @@ import { CloudUpload, RefreshCw, Trash2 } from 'lucide-react-native';
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
+import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { ErrorState } from '@/ui/components/error-state';
 import { EmptyState } from '@/ui/components/empty-state';
 import { confirm } from '@/ui/components/confirm-dialog';
@@ -86,7 +87,9 @@ export default function CloudScreen() {
 
         {isError ? (
           <ErrorState onRetry={() => refetch()} />
-        ) : isLoading ? null : backups.length === 0 ? (
+        ) : isLoading ? (
+          <ListSkeleton rows={3} />
+        ) : backups.length === 0 ? (
           <View className="py-8">
             <EmptyState title={t('cloud.no_backups_title')} message={t('cloud.no_backups_message')} />
           </View>

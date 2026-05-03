@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
 import { Text } from '@/ui/primitives/text';
+import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { SegmentedControl } from '@/ui/components/segmented-control';
 import { TourCard } from '@/ui/components/tour-card';
 import { EmptyState } from '@/ui/components/empty-state';
@@ -22,7 +23,7 @@ export default function ToursListScreen() {
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('draft');
 
-  const { data: tours = [], isError, refetch } = useTours(filter as TourStatus);
+  const { data: tours = [], isError, isLoading, refetch } = useTours(filter as TourStatus);
 
   return (
     <Surface className="flex-1">
@@ -58,6 +59,8 @@ export default function ToursListScreen() {
 
       {isError ? (
         <ErrorState onRetry={() => refetch()} />
+      ) : isLoading ? (
+        <ListSkeleton />
       ) : tours.length === 0 ? (
         <EmptyState
           icon={<RouteIcon size={48} color="#5C4E40" />}

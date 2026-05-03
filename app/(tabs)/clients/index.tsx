@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
 import { Text } from '@/ui/primitives/text';
+import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { SearchBar } from '@/ui/components/search-bar';
 import { SegmentedControl } from '@/ui/components/segmented-control';
 import { ClientCard } from '@/ui/components/client-card';
@@ -61,7 +62,7 @@ export default function ClientsListScreen() {
       {isError ? (
         <ErrorState onRetry={() => refetch()} />
       ) : isLoading ? (
-        <View className="flex-1" />
+        <ListSkeleton />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={<UserRound size={48} color="#5C4E40" />}
