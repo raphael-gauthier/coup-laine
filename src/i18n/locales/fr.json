@@ -56,6 +56,11 @@
     "saved_toast": "Client enregistré",
     "deleted_toast": "Client supprimé"
   },
+  "map": {
+    "title": "Carte",
+    "empty_title": "Aucun client",
+    "empty_message": "Ajoute des clients depuis l'onglet Clients pour les voir ici."
+  },
   "settings": {
     "title": "Réglages",
     "appearance": {
