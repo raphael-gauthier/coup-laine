@@ -222,5 +222,17 @@
       "current_label": "Adresse enregistrée :",
       "save_button": "Enregistrer l'adresse"
     }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Bienvenue sur Coupe-laine",
+      "message": "Ton compagnon quotidien pour gérer tes clients et planifier tes tournées de tonte. Quelques infos pour commencer.",
+      "cta": "Commencer"
+    },
+    "base": {
+      "title": "Ton domicile",
+      "message": "L'adresse depuis laquelle tu pars pour tes tournées. Tu peux la changer plus tard dans Réglages.",
+      "cta": "Continuer"
+    }
   }
 }
