@@ -6,6 +6,9 @@ import { seedSpeciesIfEmpty } from '@/data/seeds/species-seeds';
 import { seedPrestationsIfEmpty } from '@/data/seeds/prestation-seeds';
 import { SettingsRepository } from '@/data/repositories/settings-repository';
 import { isThemeMode, useThemeStore } from '@/state/stores/theme-store';
+import { ClientRepository } from '@/data/repositories/client-repository';
+import { DistanceMatrixRepository } from '@/data/repositories/distance-matrix-repository';
+import { findClientsNeedingRecompute } from '@/domain/use-cases/consistency-check';
 
 let initialized = false;
 
@@ -50,6 +53,27 @@ export async function bootstrapDatabase() {
   const persistedMode = await settingsRepo.get('theme_mode');
   if (persistedMode && isThemeMode(persistedMode)) {
     useThemeStore.getState().setMode(persistedMode);
+  }
+
+  const clientRepo = new ClientRepository(db);
+  const matrixRepo = new DistanceMatrixRepository(db);
+
+  const allClients = await clientRepo.listAll();
+  const allMatrix = await matrixRepo.listAll();
+  const matrixPairs = new Set(allMatrix.map((e) => `${e.fromId}-${e.toId}`));
+
+  const staleIds = findClientsNeedingRecompute({
+    clients: allClients.map((c) => ({
+      id: c.id,
+      latitude: c.latitude,
+      longitude: c.longitude,
+    })),
+    matrixPairs,
+  });
+
+  const now = new Date().toISOString();
+  for (const id of staleIds) {
+    await clientRepo.setRecomputePending(id, true, now);
   }
 
   initialized = true;
