@@ -229,6 +229,8 @@
       "category_id": "Catégorie (id)",
       "active": "Active",
       "inactive_badge": "Inactive",
+      "no_category": "Sans catégorie",
+      "archived_section": "Archivées",
       "delete_confirm_title": "Supprimer cette prestation ?",
       "delete_confirm_message": "Cette action est définitive."
     },
