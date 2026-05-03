@@ -7,7 +7,7 @@ export default function TabsLayout() {
   return (
     <Tabs screenOptions={{ headerShown: false }}>
       <Tabs.Screen
-        name="clients/index"
+        name="clients"
         options={{
           title: t('tabs.clients'),
           tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
