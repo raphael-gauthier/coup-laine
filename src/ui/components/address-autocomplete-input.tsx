@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, FlatList, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { searchAddresses, type BanResult } from '@/infra/services/ban-geocoding';
 import { Input } from '@/ui/primitives/input';
 import { Text } from '@/ui/primitives/text';
@@ -68,20 +68,17 @@ export function AddressAutocompleteInput({ initialValue = '', placeholder, onSel
       )}
       {results.length > 0 && (
         <Surface className="rounded-2xl border border-border dark:border-border-dark overflow-hidden">
-          <FlatList
-            data={results}
-            keyExtractor={(_, i) => String(i)}
-            renderItem={({ item, index }) => (
-              <PressScale
-                onPress={() => handleSelect(item)}
-                className={index === 0 ? '' : 'border-t border-border dark:border-border-dark'}
-              >
-                <View className="px-4 py-3">
-                  <Text>{item.label}</Text>
-                </View>
-              </PressScale>
-            )}
-          />
+          {results.map((item, index) => (
+            <PressScale
+              key={`${item.label}-${index}`}
+              onPress={() => handleSelect(item)}
+              className={index === 0 ? '' : 'border-t border-border dark:border-border-dark'}
+            >
+              <View className="px-4 py-3">
+                <Text>{item.label}</Text>
+              </View>
+            </PressScale>
+          ))}
         </Surface>
       )}
     </View>
