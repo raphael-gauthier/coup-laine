@@ -13,10 +13,10 @@ export function Input({ className, style, ...rest }: Props) {
       className={cn(
         'rounded-2xl border border-border dark:border-border-dark',
         'bg-input dark:bg-input-dark',
-        'px-4 py-3 text-base text-foreground dark:text-foreground-dark',
+        'px-4 py-3 text-foreground dark:text-foreground-dark',
         className
       )}
-      style={[{ lineHeight: 20 }, style]}
+      style={[{ fontSize: 16 }, style]}
       {...rest}
     />
   );
