@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { useColorScheme, View } from 'react-native';
 import { Minus, Plus } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { PressScale } from '@/ui/motion/press-scale';
@@ -17,6 +17,8 @@ export function AnimalCountsEditor({ value, onChange }: Props) {
   const { t } = useTranslation();
   const { data: species = [] } = useSpecies();
   const { data: categories = [] } = useAnimalCategories();
+  const isDark = useColorScheme() === 'dark';
+  const stepperIconColor = isDark ? '#F0E8DC' : '#1C1612';
 
   const counts = new Map(value.map((c) => [c.categoryId, c.count]));
 
@@ -47,8 +49,8 @@ export function AnimalCountsEditor({ value, onChange }: Props) {
                         setCount(cat.id, count - 1);
                       }}
                     >
-                      <View className="w-9 h-9 rounded-full items-center justify-center bg-background dark:bg-background-dark">
-                        <Minus size={16} />
+                      <View className="w-9 h-9 rounded-full items-center justify-center bg-background dark:bg-[#4A3F33]">
+                        <Minus size={16} color={stepperIconColor} />
                       </View>
                     </PressScale>
                     <Text className="w-8 text-center text-lg font-semibold">{count}</Text>
@@ -58,8 +60,8 @@ export function AnimalCountsEditor({ value, onChange }: Props) {
                         setCount(cat.id, count + 1);
                       }}
                     >
-                      <View className="w-9 h-9 rounded-full items-center justify-center bg-background dark:bg-background-dark">
-                        <Plus size={16} />
+                      <View className="w-9 h-9 rounded-full items-center justify-center bg-background dark:bg-[#4A3F33]">
+                        <Plus size={16} color={stepperIconColor} />
                       </View>
                     </PressScale>
                   </View>

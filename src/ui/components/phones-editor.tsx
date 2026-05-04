@@ -68,7 +68,7 @@ export function PhonesEditor({ value, onChange }: Props) {
             mask={FR_LOCAL_MASK}
             keyboardType="phone-pad"
             placeholder="06 12 34 56 78"
-            placeholderTextColor={isDark ? '#5C4E40' : '#94816C'}
+            placeholderTextColor={isDark ? '#B4A490' : '#94816C'}
           />
           <PressScale onPress={() => remove(index)}>
             <View className="w-10 h-10 rounded-full items-center justify-center bg-muted dark:bg-muted-dark">
