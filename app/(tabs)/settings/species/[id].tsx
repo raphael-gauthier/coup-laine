@@ -14,11 +14,13 @@ import { SpeciesForm } from '@/ui/components/species-form';
 import { useSpecies } from '@/state/queries/species';
 import { useUpsertSpecies, useDeleteSpecies } from '@/state/queries/catalogs';
 import { haptics } from '@/ui/motion/haptics';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function EditSpeciesScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const { data: species = [], isError, refetch } = useSpecies();
   const upsert = useUpsertSpecies();
   const del = useDeleteSpecies();
@@ -51,7 +53,7 @@ export default function EditSpeciesScreen() {
         rightSlot={
           item.isCustom ? (
             <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
-              <Trash2 size={16} color="white" />
+              <Trash2 size={16} color={onContrast} />
             </Button>
           ) : undefined
         }

@@ -19,11 +19,13 @@ import { useClient, useDeleteClient } from '@/state/queries/clients';
 import { formatPhone } from '@/lib/phone-formatter';
 import { haptics } from '@/ui/motion/haptics';
 import { errorToast } from '@/ui/components/error-toast';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function ClientDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const { data: client, isError, refetch } = useClient(id);
   const deleteMutation = useDeleteClient();
 
@@ -65,7 +67,7 @@ export default function ClientDetailScreen() {
               <Pencil size={16} />
             </Button>
             <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('clients.delete')}>
-              <Trash2 size={16} color="white" />
+              <Trash2 size={16} color={onContrast} />
             </Button>
           </View>
         }

@@ -23,11 +23,13 @@ import { haptics } from '@/ui/motion/haptics';
 import { Map } from '@/ui/components/map';
 import { ClientPin } from '@/ui/components/client-pin';
 import { TourRoutePolyline } from '@/ui/components/tour-route-polyline';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function TourDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const { data, isError, refetch } = useTour(id);
   const deleteMutation = useDeleteTour();
   const { data: clients = [] } = useClients('all');
@@ -81,7 +83,7 @@ export default function TourDetailScreen() {
               </Button>
             ) : null}
             <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('tours.delete')}>
-              <Trash2 size={16} color="white" />
+              <Trash2 size={16} color={onContrast} />
             </Button>
           </View>
         }
@@ -155,7 +157,7 @@ export default function TourDetailScreen() {
         {/* Complete button */}
         {tour.status !== 'completed' ? (
           <Button onPress={() => router.push(`/(tabs)/tours/${tour.id}/complete` as never)}>
-            <CircleCheck size={18} color="white" />
+            <CircleCheck size={18} color={onContrast} />
             <Text variant="onPrimary" className="font-semibold">{t('tours.complete_cta')}</Text>
           </Button>
         ) : null}

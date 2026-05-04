@@ -24,10 +24,12 @@ import { ClientFilterButton } from '@/ui/components/client-status-filter-dialog'
 import { useClients, useToggleWaiting, useClientStatusMap, type ClientsFilter } from '@/state/queries/clients';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
 import { matchesAny } from '@/lib/text-search';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function ClientsListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onContrast = useOnContrastColor();
   const [filter, setFilter] = useState<ClientsFilter>('all');
   const [search, setSearch] = useState('');
 
@@ -86,7 +88,7 @@ export default function ClientsListScreen() {
           action={
             !search ? (
               <Button onPress={() => router.push('/(tabs)/clients/new')}>
-                <Plus size={16} color="white" />
+                <Plus size={16} color={onContrast} />
                 <Text variant="onPrimary" className="font-semibold">
                   {t('clients.empty_cta')}
                 </Text>
@@ -129,7 +131,7 @@ export default function ClientsListScreen() {
           className="rounded-full p-4"
           style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
         >
-          <Plus size={24} color="white" />
+          <Plus size={24} color={onContrast} />
         </Surface>
       </PressScale>
     </Surface>

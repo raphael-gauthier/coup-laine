@@ -19,12 +19,14 @@ import { ScreenHeader } from '@/ui/components/screen-header';
 import { CreateTourSheet } from '@/ui/components/create-tour-sheet';
 import { useTours } from '@/state/queries/tours';
 import type { TourStatus } from '@/domain/models/tour';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 type Filter = 'planned' | 'completed';
 
 export default function ToursListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onContrast = useOnContrastColor();
   const [filter, setFilter] = useState<Filter>('planned');
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
 
@@ -94,7 +96,7 @@ export default function ToursListScreen() {
           className="rounded-full p-4"
           style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
         >
-          <Plus size={24} color="white" />
+          <Plus size={24} color={onContrast} />
         </Surface>
       </PressScale>
 

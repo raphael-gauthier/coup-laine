@@ -17,10 +17,12 @@ import { confirm, ConfirmTypedDialog } from '@/ui/components/confirm-dialog';
 import { useSession, useSignOut } from '@/state/queries/auth';
 import { useBackups, useCreateBackup, useRestoreBackup, useDeleteBackup } from '@/state/queries/backups';
 import { haptics } from '@/ui/motion/haptics';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function CloudScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onContrast = useOnContrastColor();
   const { data: session } = useSession();
   const signOut = useSignOut();
   const create = useCreateBackup();
@@ -91,7 +93,7 @@ export default function CloudScreen() {
         </Surface>
 
         <Button onPress={() => create.mutate()} loading={create.isPending}>
-          <CloudUpload size={18} color="white" />
+          <CloudUpload size={18} color={onContrast} />
           <Text variant="onPrimary" className="font-semibold">
             {create.isPending ? t('cloud.creating_backup') : t('cloud.create_backup_cta')}
           </Text>
@@ -129,7 +131,7 @@ export default function CloudScreen() {
                   loading={del.isPending}
                   accessibilityLabel={t('common.delete')}
                 >
-                  <Trash2 size={14} color="white" />
+                  <Trash2 size={14} color={onContrast} />
                 </Button>
               </View>
             </Surface>

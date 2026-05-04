@@ -17,11 +17,13 @@ import { useClients } from '@/state/queries/clients';
 import { haptics } from '@/ui/motion/haptics';
 import { errorToast } from '@/ui/components/error-toast';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function CompleteTourScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const { data, isError, refetch } = useTour(id);
   const { data: clients = [] } = useClients('all');
   const complete = useCompleteWithBilan();
@@ -82,7 +84,7 @@ export default function CompleteTourScreen() {
         ))}
 
         <Button onPress={onConfirm} loading={complete.isPending}>
-          <CircleCheck size={18} color="white" />
+          <CircleCheck size={18} color={onContrast} />
           <Text variant="onPrimary" className="font-semibold">{t('tours.complete_confirm_yes')}</Text>
         </Button>
       </ScrollView>

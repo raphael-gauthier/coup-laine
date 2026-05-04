@@ -11,6 +11,7 @@ import { useServices, useAnimalCategories, useSpecies } from '@/state/queries/sp
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { AnimalCount } from '@/domain/models/animal-count';
 import { haptics } from '@/ui/motion/haptics';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 function formatEur(cents: number | null): string {
   if (cents == null) return '—';
@@ -26,6 +27,7 @@ interface Props {
 
 export function ServicePickerSheet({ visible, clientAnimalCounts, onAdd, onClose }: Props) {
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const { data: services = [] } = useServices();
   const { data: categories = [] } = useAnimalCategories();
   const { data: species = [] } = useSpecies();
@@ -76,7 +78,7 @@ export function ServicePickerSheet({ visible, clientAnimalCounts, onAdd, onClose
       </View>
       <PressScale onPress={() => handleAdd(item)}>
         <View className="w-8 h-8 rounded-full bg-primary dark:bg-primary-dark items-center justify-center">
-          <Plus size={16} color="white" />
+          <Plus size={16} color={onContrast} />
         </View>
       </PressScale>
     </View>

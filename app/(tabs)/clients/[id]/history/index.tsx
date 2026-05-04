@@ -14,11 +14,13 @@ import { ErrorState } from '@/ui/components/error-state';
 import { HistoryRow } from '@/ui/components/history-row';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { useClientHistory } from '@/state/queries/history';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function ClientHistoryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const { data: entries = [], isError, refetch } = useClientHistory(id);
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
@@ -72,7 +74,7 @@ export default function ClientHistoryScreen() {
           className="rounded-full p-4"
           style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
         >
-          <Plus size={24} color="white" />
+          <Plus size={24} color={onContrast} />
         </Surface>
       </PressScale>
     </Surface>

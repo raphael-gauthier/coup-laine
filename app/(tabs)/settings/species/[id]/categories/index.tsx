@@ -11,11 +11,13 @@ import { PressScale } from '@/ui/motion/press-scale';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { useAnimalCategories } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function CategoriesListScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const { data: all = [] } = useAnimalCategories();
   const items = useMemo(() => all.filter((c) => c.speciesId === id), [all, id]);
 
@@ -57,7 +59,7 @@ export default function CategoriesListScreen() {
           className="rounded-full p-4"
           style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
         >
-          <Plus size={24} color="white" />
+          <Plus size={24} color={onContrast} />
         </Surface>
       </PressScale>
     </Surface>

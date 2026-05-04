@@ -10,11 +10,13 @@ import { AnimalCategoryForm } from '@/ui/components/animal-category-form';
 import { useAnimalCategories } from '@/state/queries/species';
 import { useUpsertAnimalCategory, useDeleteAnimalCategory } from '@/state/queries/catalogs';
 import { haptics } from '@/ui/motion/haptics';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function EditCategoryScreen() {
   const { id, categoryId } = useLocalSearchParams<{ id: string; categoryId: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const { data: all = [] } = useAnimalCategories();
   const upsert = useUpsertAnimalCategory();
   const del = useDeleteAnimalCategory();
@@ -45,7 +47,7 @@ export default function EditCategoryScreen() {
         title={t('catalogs.categories.edit_title')}
         rightSlot={
           <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
-            <Trash2 size={16} color="white" />
+            <Trash2 size={16} color={onContrast} />
           </Button>
         }
       />

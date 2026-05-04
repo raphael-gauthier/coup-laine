@@ -10,11 +10,13 @@ import { ServiceForm } from '@/ui/components/service-form';
 import { useServices } from '@/state/queries/species';
 import { useUpsertService, useDeleteService } from '@/state/queries/catalogs';
 import { haptics } from '@/ui/motion/haptics';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function EditServiceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const { data: services = [] } = useServices();
   const upsert = useUpsertService();
   const del = useDeleteService();
@@ -45,7 +47,7 @@ export default function EditServiceScreen() {
         title={t('catalogs.services.edit_title')}
         rightSlot={
           <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
-            <Trash2 size={16} color="white" />
+            <Trash2 size={16} color={onContrast} />
           </Button>
         }
       />

@@ -12,10 +12,12 @@ import { ErrorState } from '@/ui/components/error-state';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { useServices, useAnimalCategories, useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function ServicesListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onContrast = useOnContrastColor();
   const { data: services = [], isError, refetch } = useServices();
   const { data: categories = [] } = useAnimalCategories();
   const { data: speciesList = [] } = useSpecies();
@@ -125,7 +127,7 @@ export default function ServicesListScreen() {
           className="rounded-full p-4"
           style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
         >
-          <Plus size={24} color="white" />
+          <Plus size={24} color={onContrast} />
         </Surface>
       </PressScale>
     </Surface>

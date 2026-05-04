@@ -18,10 +18,12 @@ import { useClients, type ClientsFilter } from '@/state/queries/clients';
 import { useTourDraftStore } from '@/state/stores/tour-draft-store';
 import { matchesQuery } from '@/lib/text-search';
 import { cn } from '@/lib/cn';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function PickClientsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onContrast = useOnContrastColor();
   const [filter, setFilter] = useState<ClientsFilter>('waiting');
   const [search, setSearch] = useState('');
   const { data: clients = [] } = useClients(filter);
@@ -86,7 +88,7 @@ export default function PickClientsScreen() {
                     'w-6 h-6 rounded-full items-center justify-center',
                     isPicked ? 'bg-primary dark:bg-primary-dark' : 'bg-background dark:bg-background-dark'
                   )}>
-                    {isPicked ? <Check size={14} color="white" /> : null}
+                    {isPicked ? <Check size={14} color={onContrast} /> : null}
                   </View>
                   <View className="flex-1">
                     <Text className="font-semibold">{item.displayName}</Text>

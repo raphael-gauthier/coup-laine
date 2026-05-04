@@ -6,10 +6,12 @@ import { ArrowRight, Scissors } from 'lucide-react-native';
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onContrast = useOnContrastColor();
 
   return (
     <Surface className="flex-1 items-center justify-center px-8">
@@ -21,7 +23,7 @@ export default function WelcomeScreen() {
         </Text>
         <Button onPress={() => router.push('/onboarding/base' as never)} className="mt-4">
           <Text variant="onPrimary" className="font-semibold">{t('onboarding.welcome.cta')}</Text>
-          <ArrowRight size={18} color="white" />
+          <ArrowRight size={18} color={onContrast} />
         </Button>
       </View>
     </Surface>

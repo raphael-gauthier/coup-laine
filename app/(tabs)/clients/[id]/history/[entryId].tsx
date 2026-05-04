@@ -15,11 +15,13 @@ import {
   useManualHistoryByClient,
 } from '@/state/queries/history';
 import { haptics } from '@/ui/motion/haptics';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function EditManualHistoryScreen() {
   const { id, entryId } = useLocalSearchParams<{ id: string; entryId: string }>();
   const router = useRouter();
   const { t } = useTranslation();
+  const onContrast = useOnContrastColor();
   const upsert = useUpsertManualHistoryEntry();
   const del = useDeleteManualHistoryEntry();
   const { data: entries = [], isError, refetch } = useManualHistoryByClient(id);
@@ -52,7 +54,7 @@ export default function EditManualHistoryScreen() {
         rightSlot={
           <View className="flex-row gap-2">
             <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('history.manual.delete')}>
-              <Trash2 size={16} color="white" />
+              <Trash2 size={16} color={onContrast} />
             </Button>
           </View>
         }

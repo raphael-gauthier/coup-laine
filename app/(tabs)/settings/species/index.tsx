@@ -11,10 +11,12 @@ import { ErrorState } from '@/ui/components/error-state';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 export default function SpeciesListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const onContrast = useOnContrastColor();
   const { data: species = [], isError, refetch } = useSpecies();
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
@@ -60,7 +62,7 @@ export default function SpeciesListScreen() {
           className="rounded-full p-4"
           style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
         >
-          <Plus size={24} color="white" />
+          <Plus size={24} color={onContrast} />
         </Surface>
       </PressScale>
     </Surface>
