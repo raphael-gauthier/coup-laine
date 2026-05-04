@@ -22,11 +22,17 @@ export default function EditTourScreen() {
   const setOrder = useTourDraftStore((s) => s.setOrder);
   const picked = useTourDraftStore((s) => s.pickedClientIds);
   const toggle = useTourDraftStore((s) => s.toggle);
+  const servicesByClient = useTourDraftStore((s) => s.servicesByClient);
+  const setStopServices = useTourDraftStore((s) => s.setStopServices);
+  const hydrateServices = useTourDraftStore((s) => s.hydrateServices);
 
-  // Hydrate draft store with this tour's stops on first load.
+  // Hydrate draft store with this tour's stops + services on first load.
   useEffect(() => {
     if (data) {
       setOrder(data.stops.map((s) => s.clientId));
+      hydrateServices(
+        data.stops.map((s) => ({ clientId: s.clientId, services: s.plannedServices }))
+      );
     }
     return () => {
       useTourDraftStore.getState().reset();
@@ -40,11 +46,11 @@ export default function EditTourScreen() {
         const original = data?.stops.find((s) => s.clientId === cid);
         return {
           clientId: cid,
-          plannedServices: original?.plannedServices ?? [],
+          plannedServices: servicesByClient[cid] ?? original?.plannedServices ?? [],
           notes: original?.notes ?? null,
         };
       }),
-    [picked, data]
+    [picked, data, servicesByClient]
   );
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
@@ -62,6 +68,7 @@ export default function EditTourScreen() {
         onAddClients={() => router.push('/(tabs)/tours/new/pick-clients' as never)}
         onRemoveStop={toggle}
         onReorderStops={(next) => setOrder(next.map((s) => s.clientId))}
+        onUpdateStopServices={setStopServices}
         onSubmit={(input) => {
           if (!base) {
             errorToast('Base manquante', 'Configure ton adresse de domicile.');

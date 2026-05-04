@@ -12,6 +12,7 @@ import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
 import { DraggableList } from '@/ui/components/draggable-list';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
+import { confirm } from '@/ui/components/confirm-dialog';
 import { useClients } from '@/state/queries/clients';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
@@ -137,8 +138,18 @@ export function TourDraftEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialStops, base, clients]);
 
-  const submit = () => {
+  const submit = async () => {
     if (initialStops.length === 0) return;
+    const stopsWithoutServices = initialStops.filter((s) => s.plannedServices.length === 0);
+    if (stopsWithoutServices.length > 0) {
+      const ok = await confirm({
+        title: t('tours.no_service_warning_title'),
+        message: t('tours.no_service_warning_message', { count: stopsWithoutServices.length }),
+        confirmLabel: t('tours.no_service_warning_continue'),
+        cancelLabel: t('common.cancel'),
+      });
+      if (!ok) return;
+    }
     onSubmit({
       scheduledDate: format(date, 'yyyy-MM-dd'),
       departureTime: time,
@@ -229,7 +240,7 @@ export function TourDraftEditor({
   const Footer = (
     <View style={{ gap: 8, paddingTop: 16, paddingBottom: 32 }}>
       <Button
-        onPress={submit}
+        onPress={() => void submit()}
         loading={saving}
         disabled={initialStops.length === 0 || saving}
       >

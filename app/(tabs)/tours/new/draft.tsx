@@ -15,15 +15,21 @@ export default function NewTourDraftScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const picked = useTourDraftStore((s) => s.pickedClientIds);
+  const servicesByClient = useTourDraftStore((s) => s.servicesByClient);
   const setOrder = useTourDraftStore((s) => s.setOrder);
   const reset = useTourDraftStore((s) => s.reset);
   const toggle = useTourDraftStore((s) => s.toggle);
+  const setStopServices = useTourDraftStore((s) => s.setStopServices);
   const upsert = useUpsertTour();
   const { data: base } = useBaseAddress();
 
   const stops = useMemo(
-    () => picked.map((id) => ({ clientId: id, plannedServices: [], notes: null })),
-    [picked]
+    () => picked.map((id) => ({
+      clientId: id,
+      plannedServices: servicesByClient[id] ?? [],
+      notes: null,
+    })),
+    [picked, servicesByClient]
   );
 
   useEffect(() => {
@@ -42,6 +48,7 @@ export default function NewTourDraftScreen() {
         onAddClients={() => router.push('/(tabs)/tours/new/pick-clients' as never)}
         onRemoveStop={toggle}
         onReorderStops={(next) => setOrder(next.map((s) => s.clientId))}
+        onUpdateStopServices={setStopServices}
         onSubmit={(input) => {
           if (!base) {
             errorToast('Base manquante', 'Configure ton adresse de domicile dans Réglages.');

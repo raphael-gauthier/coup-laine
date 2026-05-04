@@ -2,6 +2,7 @@ import { View, Modal, ScrollView, TouchableOpacity } from 'react-native';
 import { X, Plus } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
@@ -27,6 +28,7 @@ interface Props {
 
 export function ServicePickerSheet({ visible, clientAnimalCounts, onAdd, onClose }: Props) {
   const { t } = useTranslation();
+  const router = useRouter();
   const onContrast = useOnContrastColor();
   const { data: services = [] } = useServices();
   const { data: categories = [] } = useAnimalCategories();
@@ -100,23 +102,45 @@ export function ServicePickerSheet({ visible, clientAnimalCounts, onAdd, onClose
         </View>
 
         <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}>
-          {suggested.length > 0 ? (
-            <>
-              <Text variant="muted" className="text-xs font-semibold uppercase tracking-widest py-2">
-                {t('tours.picker_suggested')}
+          {active.length === 0 ? (
+            <View className="items-center py-8 gap-3">
+              <Text className="text-base font-semibold">{t('tours.picker_empty_title')}</Text>
+              <Text variant="muted" className="text-center text-sm">
+                {t('tours.picker_empty_message')}
               </Text>
-              {suggested.map((p) => <ServiceRow key={p.id} item={p} />)}
-            </>
-          ) : null}
+              <Button
+                variant="primary"
+                onPress={() => {
+                  onClose();
+                  router.push('/(tabs)/settings/services' as never);
+                }}
+              >
+                <Text variant="onPrimary" className="font-semibold">
+                  {t('tours.picker_empty_cta')}
+                </Text>
+              </Button>
+            </View>
+          ) : (
+            <>
+              {suggested.length > 0 ? (
+                <>
+                  <Text variant="muted" className="text-xs font-semibold uppercase tracking-widest py-2">
+                    {t('tours.picker_suggested')}
+                  </Text>
+                  {suggested.map((p) => <ServiceRow key={p.id} item={p} />)}
+                </>
+              ) : null}
 
-          {other.length > 0 ? (
-            <>
-              <Text variant="muted" className="text-xs font-semibold uppercase tracking-widest py-2 mt-2">
-                {t('tours.picker_other')}
-              </Text>
-              {other.map((p) => <ServiceRow key={p.id} item={p} />)}
+              {other.length > 0 ? (
+                <>
+                  <Text variant="muted" className="text-xs font-semibold uppercase tracking-widest py-2 mt-2">
+                    {t('tours.picker_other')}
+                  </Text>
+                  {other.map((p) => <ServiceRow key={p.id} item={p} />)}
+                </>
+              ) : null}
             </>
-          ) : null}
+          )}
         </ScrollView>
       </Surface>
     </Modal>
