@@ -73,7 +73,7 @@ export function TourCard({ tour, stopCount, onPress }: Props) {
             </Text>
             <Text variant="muted" className="text-xs">
               {formatMinutes(kpis.durationMinutes)}
-              {kpis.driveMinutes > 0 ? ` (+${kpis.driveMinutes} min ${t('tours.kpi_drive')})` : ''}
+              {kpis.driveMinutes > 0 ? ` (+${formatMinutes(kpis.driveMinutes)} ${t('tours.kpi_drive')})` : ''}
             </Text>
             <Text variant="muted" className="text-xs">
               {formatEur(kpis.revenueCents)}

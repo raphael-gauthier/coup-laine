@@ -13,6 +13,7 @@ import { ScreenHeader } from '@/ui/components/screen-header';
 import { useServices, useAnimalCategories, useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
 import { useOnContrastColor } from '@/ui/theme/colors';
+import { formatMinutes } from '@/lib/format-minutes';
 
 export default function ServicesListScreen() {
   const { t } = useTranslation();
@@ -142,7 +143,7 @@ function ServiceRow({ item, onPress }: { item: { label: string; priceCents: numb
       <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-3 mb-2">
         <View className="flex-1">
           <Text className="font-semibold">{item.label}</Text>
-          <Text variant="muted" className="text-xs">{priceStr} · {item.minutes} min</Text>
+          <Text variant="muted" className="text-xs">{priceStr} · {formatMinutes(item.minutes)}</Text>
           {!item.isActive ? (
             <Text variant="muted" className="text-xs mt-0.5">{t('catalogs.services.inactive_badge')}</Text>
           ) : null}

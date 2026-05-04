@@ -14,6 +14,7 @@ import type { AnimalCount } from '@/domain/models/animal-count';
 import { haptics } from '@/ui/motion/haptics';
 import { useOnContrastColor } from '@/ui/theme/colors';
 import { cn } from '@/lib/cn';
+import { formatMinutes } from '@/lib/format-minutes';
 
 function formatEur(cents: number | null): string {
   if (cents == null) return '—';
@@ -175,7 +176,7 @@ export function ServicePickerSheet({
             {[sp?.label, category?.label].filter(Boolean).join(' · ') || '—'}
           </Text>
           <Text variant="muted" className="text-xs">
-            {formatEur(item.priceCents)} · {item.minutes} min
+            {formatEur(item.priceCents)} · {formatMinutes(item.minutes)}
           </Text>
         </View>
         {checked ? (

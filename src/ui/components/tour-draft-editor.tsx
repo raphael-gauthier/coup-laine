@@ -10,6 +10,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
+import { formatMinutes } from '@/lib/format-minutes';
 import { DraggableList } from '@/ui/components/draggable-list';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { confirm } from '@/ui/components/confirm-dialog';
@@ -216,9 +217,7 @@ export function TourDraftEditor({
         </View>
         <View className="flex-row justify-between mt-1">
           <Text variant="muted">{t('tours.total_duration')}</Text>
-          <Text className="font-semibold">
-            {Math.floor(totalMinutes / 60)}h {String(totalMinutes % 60).padStart(2, '0')}
-          </Text>
+          <Text className="font-semibold">{formatMinutes(totalMinutes)}</Text>
         </View>
         <View className="flex-row justify-between mt-1">
           <Text variant="muted">{t('tours.total_cost')}</Text>
@@ -277,7 +276,7 @@ export function TourDraftEditor({
                     <Text className="font-semibold">{client?.displayName ?? item.clientId}</Text>
                     {arr ? (
                       <Text variant="muted" className="text-xs">
-                        {t('tours.stop_arrival')} {arr.arrivalTime} · {arr.estimatedMinutes} min · {share} €
+                        {t('tours.stop_arrival')} {arr.arrivalTime} · {formatMinutes(arr.estimatedMinutes)} · {share} €
                       </Text>
                     ) : null}
                     {item.plannedServices.length > 0 ? (() => {
@@ -293,7 +292,7 @@ export function TourDraftEditor({
                         <Text variant="muted" className="text-xs">
                           {t('tours.stop_summary', {
                             count: item.plannedServices.length,
-                            minutes: totalMinutes,
+                            duration: formatMinutes(totalMinutes),
                             amount: `${(totalCents / 100).toFixed(2)} €`,
                           })}
                         </Text>
