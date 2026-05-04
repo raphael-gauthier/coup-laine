@@ -11,23 +11,27 @@ interface Props {
   onChange: (next: string[]) => void;
 }
 
-// French phone format: +33 X XX XX XX XX (9 digits after +33)
-const FR_PHONE_MASK = [
-  '+', '3', '3', ' ',
-  /\d/, ' ',
+// French local phone format: 0X XX XX XX XX (10 digits in 5 pairs).
+const FR_LOCAL_MASK = [
+  /\d/, /\d/, ' ',
   /\d/, /\d/, ' ',
   /\d/, /\d/, ' ',
   /\d/, /\d/, ' ',
   /\d/, /\d/,
 ];
 
-function ensurePrefix(raw: string): string {
-  if (!raw) return '+33 ';
-  // Accept legacy "06 12 34 56 78" by converting to +33 form
-  const digits = raw.replace(/\D/g, '');
-  if (digits.startsWith('33')) return `+${digits}`;
-  if (digits.startsWith('0')) return `+33${digits.slice(1)}`;
-  return raw.startsWith('+') ? raw : `+33${digits}`;
+// Normalize any input form (+33…, 33…, legacy spaced storage, partial typing)
+// to the masked local form "0X XX XX XX XX". The +33/33 prefix is stripped only
+// once the digit run reaches 11+, so users typing "33" by hand aren't disturbed
+// mid-entry.
+function toLocalMasked(raw: string): string {
+  if (!raw) return '';
+  let digits = raw.replace(/\D/g, '');
+  if (digits.startsWith('33') && digits.length >= 11) {
+    digits = `0${digits.slice(2)}`;
+  }
+  digits = digits.slice(0, 10);
+  return digits.match(/.{1,2}/g)?.join(' ') ?? digits;
 }
 
 export function PhonesEditor({ value, onChange }: Props) {
@@ -36,11 +40,11 @@ export function PhonesEditor({ value, onChange }: Props) {
 
   const update = (index: number, masked: string) => {
     const next = [...value];
-    next[index] = masked;
+    next[index] = toLocalMasked(masked);
     onChange(next);
   };
   const remove = (index: number) => onChange(value.filter((_, i) => i !== index));
-  const add = () => onChange([...value, '+33 ']);
+  const add = () => onChange([...value, '']);
 
   const inputStyle = {
     flex: 1,
@@ -59,11 +63,11 @@ export function PhonesEditor({ value, onChange }: Props) {
         <View key={index} className="flex-row items-center gap-2">
           <MaskInput
             style={inputStyle}
-            value={ensurePrefix(phone)}
+            value={toLocalMasked(phone)}
             onChangeText={(masked) => update(index, masked)}
-            mask={FR_PHONE_MASK}
+            mask={FR_LOCAL_MASK}
             keyboardType="phone-pad"
-            placeholder="+33 6 12 34 56 78"
+            placeholder="06 12 34 56 78"
             placeholderTextColor={isDark ? '#5C4E40' : '#94816C'}
           />
           <PressScale onPress={() => remove(index)}>
