@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { View, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { GripVertical, Trash2, Plus, ChevronDown } from 'lucide-react-native';
+import { GripVertical, Trash2, Plus, ChevronDown, AlertTriangle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -286,24 +286,47 @@ export function TourDraftEditor({
                 <Trash2 size={16} color="#B23832" />
               </PressScale>
             </View>
-            {item.plannedServices.length > 0 ? (
-              <Text variant="muted" className="text-xs pl-8">
-                {item.plannedServices.map((p) => `${p.nameSnapshot} ×${p.qty}`).join(', ')}
-              </Text>
-            ) : null}
+            {item.plannedServices.length > 0 ? (() => {
+              const totalMinutes = item.plannedServices.reduce(
+                (sum, p) => sum + p.qty * p.minutesSnapshot,
+                0
+              );
+              const totalCents = item.plannedServices.reduce(
+                (sum, p) => sum + p.qty * p.priceCentsSnapshot,
+                0
+              );
+              return (
+                <Text variant="muted" className="text-xs pl-8">
+                  {t('tours.stop_summary', {
+                    count: item.plannedServices.length,
+                    minutes: totalMinutes,
+                    amount: `${(totalCents / 100).toFixed(2)} €`,
+                  })}
+                </Text>
+              );
+            })() : (
+              <View className="flex-row items-center gap-2 pl-8">
+                <AlertTriangle size={14} color="#B23832" />
+                <Text className="text-xs text-danger dark:text-danger-dark font-medium">
+                  {t('tours.stop_no_service')}
+                </Text>
+              </View>
+            )}
           </Surface>
         );
       }}
     />
     {pickerClientId ? (
       <ServicePickerSheet
+        key={pickerClientId}
         visible
         clientAnimalCounts={pickerClient?.animalCounts ?? []}
-        onAdd={(service) => {
-          if (onUpdateStopServices && pickerStop) {
-            const current = pickerStop.plannedServices;
-            onUpdateStopServices(pickerClientId, [...current, service]);
+        initialSelection={pickerStop?.plannedServices ?? []}
+        onConfirm={(services) => {
+          if (onUpdateStopServices) {
+            onUpdateStopServices(pickerClientId, services);
           }
+          setPickerClientId(null);
         }}
         onClose={() => setPickerClientId(null)}
       />
