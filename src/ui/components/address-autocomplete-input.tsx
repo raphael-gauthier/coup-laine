@@ -21,7 +21,9 @@ export function AddressAutocompleteInput({ initialValue = '', placeholder, onSel
   const abortRef = useRef<AbortController | null>(null);
   // Skip the next search effect right after the user selected a suggestion
   // (otherwise setting `query` to the picked label re-triggers the search).
-  const skipNextSearchRef = useRef(false);
+  // Also skip the first run when the input was seeded with an initialValue,
+  // so the Edit screen doesn't open with suggestions before any user input.
+  const skipNextSearchRef = useRef(initialValue.trim().length > 0);
 
   useEffect(() => {
     if (skipNextSearchRef.current) {
