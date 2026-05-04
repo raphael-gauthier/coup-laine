@@ -22,6 +22,7 @@ import { useBaseAddress } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
 import { Map } from '@/ui/components/map';
 import { ClientPin } from '@/ui/components/client-pin';
+import { BasePin } from '@/ui/components/base-pin';
 import { TourRoutePolyline } from '@/ui/components/tour-route-polyline';
 import { useOnContrastColor } from '@/ui/theme/colors';
 
@@ -137,6 +138,7 @@ export default function TourDetailScreen() {
                     />
                   );
                 })}
+              <BasePin lat={base.lat} lon={base.lon} />
             </Map>
           </View>
         ) : null}

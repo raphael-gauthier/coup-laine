@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { GripVertical, Trash2, Plus, ChevronRight, AlertTriangle, Home } from 'lucide-react-native';
-import { Marker } from '@maplibre/maplibre-react-native';
+import { GripVertical, Trash2, Plus, ChevronRight, AlertTriangle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -17,6 +16,7 @@ import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { confirm } from '@/ui/components/confirm-dialog';
 import { Map } from '@/ui/components/map';
 import { ClientPin } from '@/ui/components/client-pin';
+import { BasePin } from '@/ui/components/base-pin';
 import { TourRoutePolyline } from '@/ui/components/tour-route-polyline';
 import { useClients } from '@/state/queries/clients';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
@@ -213,11 +213,7 @@ export function TourDraftEditor({
                 />
               );
             })}
-            <Marker id="pin-base" lngLat={[base.lon, base.lat]} anchor="bottom">
-              <View style={styles.basePin}>
-                <Home size={16} color="#FAF6F0" />
-              </View>
-            </Marker>
+            <BasePin lat={base.lat} lon={base.lon} />
           </Map>
         </View>
       ) : null}
@@ -397,15 +393,5 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 16,
     overflow: 'hidden',
-  },
-  basePin: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#FAF6F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1C1612',
   },
 });
