@@ -371,11 +371,11 @@ export function TourDraftEditor({
         );
       }}
     />
-    {pickerClientId ? (
+    {pickerClientId && pickerClient ? (
       <ServicePickerSheet
         key={pickerClientId}
         visible
-        clientAnimalCounts={pickerClient?.animalCounts ?? []}
+        clientAnimalCounts={pickerClient.animalCounts}
         initialSelection={pickerStop?.plannedServices ?? []}
         onConfirm={(services) => {
           if (onUpdateStopServices) {

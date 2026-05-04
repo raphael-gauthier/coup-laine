@@ -83,7 +83,10 @@ export function ServicePickerSheet({
   // qty from the client's animal count for that category.
   useEffect(() => {
     if (hydrated) return;
-    if (services.length === 0 && categories.length === 0) return;
+    // Wait for the services catalog to be present, otherwise `suggested`
+    // is empty for the wrong reason and we lock the user in with no
+    // pre-selection.
+    if (services.length === 0) return;
     const next: Record<string, SelectedEntry> = {};
     for (const s of initialSelection) {
       next[s.serviceId] = { qty: s.qty };
@@ -98,7 +101,6 @@ export function ServicePickerSheet({
   }, [
     hydrated,
     services.length,
-    categories.length,
     initialSelection,
     suggested,
     countByCategoryId,
