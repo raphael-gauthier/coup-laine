@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { View, Platform, StyleSheet } from 'react-native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GripVertical, Trash2, Plus, ChevronRight, AlertTriangle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -74,6 +75,9 @@ export function TourDraftEditor({
   const { data: base } = useBaseAddress();
   const { data: allSettings } = useAllSettings();
   const fg = useForegroundColor();
+  // DraggableFlatList doesn't auto-inset for the tab bar like ScrollView does,
+  // so we need to add the bar height to the footer manually.
+  const tabBarHeight = useBottomTabBarHeight();
   const bracketKm = parseFloat(allSettings?.tour_bracket_km ?? '') || DEFAULT_BRACKET_KM;
   const feePerBracket = parseFloat(allSettings?.tour_fee_eur_per_bracket ?? '') || DEFAULT_FEE_PER_BRACKET;
   const [pickerClientId, setPickerClientId] = useState<string | null>(null);
@@ -291,7 +295,7 @@ export function TourDraftEditor({
   );
 
   const Footer = (
-    <View style={{ gap: 8, paddingTop: 16, paddingBottom: 32 }}>
+    <View style={{ gap: 8, paddingTop: 16, paddingBottom: tabBarHeight + 16 }}>
       <Button
         onPress={() => void submit()}
         loading={saving}
