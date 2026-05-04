@@ -14,7 +14,7 @@ import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm } from '@/ui/components/confirm-dialog';
 import { errorToast } from '@/ui/components/error-toast';
 import { TourKpiRow } from '@/ui/components/tour-kpi-row';
-import { PrestationAggregationSummary } from '@/ui/components/prestation-aggregation-summary';
+import { ServiceAggregationSummary } from '@/ui/components/service-aggregation-summary';
 import { TourStopRow } from '@/ui/components/tour-stop-row';
 import { useTour, useDeleteTour } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
@@ -95,8 +95,8 @@ export default function TourDetailScreen() {
         {/* KPI row */}
         <TourKpiRow tourId={tour.id} />
 
-        {/* Prestation aggregation */}
-        <PrestationAggregationSummary tourId={tour.id} />
+        {/* Service aggregation */}
+        <ServiceAggregationSummary tourId={tour.id} />
 
         {/* Map with route geometry if present */}
         {base && stops.length > 0 ? (

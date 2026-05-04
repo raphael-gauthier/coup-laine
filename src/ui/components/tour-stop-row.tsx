@@ -27,10 +27,10 @@ interface Props {
 
 export function TourStopRow({ stop, client, departureTime }: Props) {
   const { t } = useTranslation();
-  const prestations = stop.actualPrestations ?? stop.plannedPrestations;
-  const revenueCents = prestations.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0);
-  const prestSummary = prestations.length > 0
-    ? prestations.map((p) => `${p.nameSnapshot} ×${p.qty}`).join(', ') + ` → ${formatEur(revenueCents)}`
+  const services = stop.actualServices ?? stop.plannedServices;
+  const revenueCents = services.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0);
+  const prestSummary = services.length > 0
+    ? services.map((p) => `${p.nameSnapshot} ×${p.qty}`).join(', ') + ` → ${formatEur(revenueCents)}`
     : null;
 
   const arrivalStr = minutesToTime(stop.arrivalMinutes, departureTime);

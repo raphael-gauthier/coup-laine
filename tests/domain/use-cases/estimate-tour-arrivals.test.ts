@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
-const ps = (over: Partial<TourStopPrestation>): TourStopPrestation => ({
-  prestationId: 'p',
+const ps = (over: Partial<TourStopService>): TourStopService => ({
+  serviceId: 'p',
   qty: 1,
   nameSnapshot: 'X',
   priceCentsSnapshot: 0,
@@ -26,7 +26,7 @@ describe('estimateTourArrivals', () => {
   it('first stop arrival = departure + travel from BASE', () => {
     const r = estimateTourArrivals({
       departureTime: '08:00',
-      stops: [{ clientId: 'c1', plannedPrestations: [ps({ qty: 3, minutesSnapshot: 20 })] }],
+      stops: [{ clientId: 'c1', plannedServices: [ps({ qty: 3, minutesSnapshot: 20 })] }],
       travelMinutesBetween: (from, to) => (from === 'BASE' && to === 'c1' ? 15 : 0),
     });
     expect(r[0]?.arrivalTime).toBe('08:15');
@@ -38,8 +38,8 @@ describe('estimateTourArrivals', () => {
     const r = estimateTourArrivals({
       departureTime: '08:00',
       stops: [
-        { clientId: 'c1', plannedPrestations: [ps({ qty: 1, minutesSnapshot: 20 })] },
-        { clientId: 'c2', plannedPrestations: [ps({ qty: 2, minutesSnapshot: 20 })] },
+        { clientId: 'c1', plannedServices: [ps({ qty: 1, minutesSnapshot: 20 })] },
+        { clientId: 'c2', plannedServices: [ps({ qty: 2, minutesSnapshot: 20 })] },
       ],
       travelMinutesBetween: (from, to) => {
         const k = `${from}-${to}`;
@@ -55,7 +55,7 @@ describe('estimateTourArrivals', () => {
   it('wraps past midnight', () => {
     const r = estimateTourArrivals({
       departureTime: '23:30',
-      stops: [{ clientId: 'c1', plannedPrestations: [] }],
+      stops: [{ clientId: 'c1', plannedServices: [] }],
       travelMinutesBetween: () => 45,
     });
     expect(r[0]?.arrivalTime).toBe('00:15');

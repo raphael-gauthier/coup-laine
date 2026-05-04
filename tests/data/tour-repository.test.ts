@@ -49,7 +49,7 @@ const sampleStops = [
     clientNameSnapshot: null, ordering: 0,
     arrivalMinutes: null, departureMinutes: null, estimatedMinutes: null,
     feeShareCents: null,
-    plannedPrestations: [], actualPrestations: null,
+    plannedServices: [], actualServices: null,
     notes: null, completedAt: null,
   },
   {
@@ -57,7 +57,7 @@ const sampleStops = [
     clientNameSnapshot: null, ordering: 1,
     arrivalMinutes: null, departureMinutes: null, estimatedMinutes: null,
     feeShareCents: null,
-    plannedPrestations: [], actualPrestations: null,
+    plannedServices: [], actualServices: null,
     notes: null, completedAt: null,
   },
 ];

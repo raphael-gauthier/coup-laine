@@ -16,7 +16,7 @@ import { useTour, useCompleteWithBilan } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
 import { haptics } from '@/ui/motion/haptics';
 import { errorToast } from '@/ui/components/error-toast';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
 export default function CompleteTourScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -28,25 +28,25 @@ export default function CompleteTourScreen() {
 
   const clientsById = new globalThis.Map(clients.map((c) => [c.id, c]));
 
-  const [perStopActuals, setPerStopActuals] = useState<Record<string, TourStopPrestation[]>>({});
+  const [perStopActuals, setPerStopActuals] = useState<Record<string, TourStopService[]>>({});
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!data) return <Surface className="flex-1" />;
 
   const { tour, stops } = data;
 
-  const getActuals = (stopId: string, defaultPrests: TourStopPrestation[]) => {
+  const getActuals = (stopId: string, defaultPrests: TourStopService[]) => {
     return perStopActuals[stopId] ?? defaultPrests;
   };
 
-  const setActuals = (stopId: string, prests: TourStopPrestation[]) => {
+  const setActuals = (stopId: string, prests: TourStopService[]) => {
     setPerStopActuals((prev) => ({ ...prev, [stopId]: prests }));
   };
 
   const onConfirm = () => {
-    const map = new Map<string, TourStopPrestation[]>();
+    const map = new Map<string, TourStopService[]>();
     for (const stop of stops) {
-      map.set(stop.id, getActuals(stop.id, stop.plannedPrestations));
+      map.set(stop.id, getActuals(stop.id, stop.plannedServices));
     }
     complete.mutate(
       { tourId: tour.id, perStopActuals: map, completedAt: new Date().toISOString() },
@@ -76,7 +76,7 @@ export default function CompleteTourScreen() {
             key={stop.id}
             stop={stop}
             client={clientsById.get(stop.clientId)}
-            actuals={getActuals(stop.id, stop.plannedPrestations)}
+            actuals={getActuals(stop.id, stop.plannedServices)}
             onChangeActuals={(next) => setActuals(stop.id, next)}
           />
         ))}

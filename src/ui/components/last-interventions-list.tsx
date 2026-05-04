@@ -36,10 +36,10 @@ export function LastInterventionsList({ clientId }: Props) {
       {last3.map((item) => {
         const key = item.tourStopId ?? item.manualEntryId ?? item.date;
         const date = format(parseISO(item.date), 'dd/MM/yyyy', { locale: fr });
-        const revenueCents = item.prestations.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0);
-        const prestSummary = item.prestations.length > 0
-          ? item.prestations.map((p) => `${p.nameSnapshot} ×${p.qty}`).join(', ') + ` → ${formatEur(revenueCents)}`
-          : t('clients.no_prestations');
+        const revenueCents = item.services.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0);
+        const prestSummary = item.services.length > 0
+          ? item.services.map((p) => `${p.nameSnapshot} ×${p.qty}`).join(', ') + ` → ${formatEur(revenueCents)}`
+          : t('clients.no_services');
         return (
           <View key={key} className="gap-0.5">
             <Text className="text-sm font-medium">{date}</Text>

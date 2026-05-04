@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { TourStopPrestation } from './tour-stop-prestation';
+import { TourStopService } from './tour-stop-service';
 
 export const InterventionSource = z.enum(['tour', 'manual']);
 
 export const Intervention = z.object({
   source: InterventionSource,
   date: z.string(),
-  prestations: z.array(TourStopPrestation),
+  services: z.array(TourStopService),
   notes: z.string().nullable(),
   tourId: z.string().nullable(),
   tourStopId: z.string().nullable(),

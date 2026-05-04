@@ -34,8 +34,8 @@ interface TourStopRow {
   departureMinutes: number | null;
   estimatedMinutes: number | null;
   feeShareCents: number | null;
-  plannedPrestations: string;
-  actualPrestations: string | null;
+  plannedServices: string;
+  actualServices: string | null;
   notes: string | null;
   completedAt: string | null;
 }
@@ -55,8 +55,8 @@ function stopToRow(s: TourStop) {
     departureMinutes: s.departureMinutes,
     estimatedMinutes: s.estimatedMinutes,
     feeShareCents: s.feeShareCents,
-    plannedPrestations: JSON.stringify(s.plannedPrestations),
-    actualPrestations: s.actualPrestations === null ? null : JSON.stringify(s.actualPrestations),
+    plannedServices: JSON.stringify(s.plannedServices),
+    actualServices: s.actualServices === null ? null : JSON.stringify(s.actualServices),
     notes: s.notes,
     completedAt: s.completedAt,
   };
@@ -65,8 +65,8 @@ function stopToRow(s: TourStop) {
 function stopFromRow(r: TourStopRow): TourStop {
   return TourStop.parse({
     ...r,
-    plannedPrestations: JSON.parse(r.plannedPrestations),
-    actualPrestations: r.actualPrestations === null ? null : JSON.parse(r.actualPrestations),
+    plannedServices: JSON.parse(r.plannedServices),
+    actualServices: r.actualServices === null ? null : JSON.parse(r.actualServices),
   });
 }
 
@@ -144,7 +144,7 @@ export class TourRepository {
 
   async completeWithBilan(
     tourId: string,
-    perStopActuals: Map<string, import('@/domain/models/tour-stop-prestation').TourStopPrestation[]>,
+    perStopActuals: Map<string, import('@/domain/models/tour-stop-service').TourStopService[]>,
     completedAt: string
   ): Promise<void> {
     const result = await this.byId(tourId);
@@ -153,7 +153,7 @@ export class TourRepository {
 
     const updatedStops = stops.map((s) => ({
       ...s,
-      actualPrestations: perStopActuals.get(s.id) ?? s.plannedPrestations,
+      actualServices: perStopActuals.get(s.id) ?? s.plannedServices,
       completedAt,
     }));
 

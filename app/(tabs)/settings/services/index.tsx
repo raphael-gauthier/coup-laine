@@ -10,13 +10,13 @@ import { SectionHeader } from '@/ui/primitives/section-header';
 import { PressScale } from '@/ui/motion/press-scale';
 import { ErrorState } from '@/ui/components/error-state';
 import { ScreenHeader } from '@/ui/components/screen-header';
-import { usePrestations, useAnimalCategories, useSpecies } from '@/state/queries/species';
+import { useServices, useAnimalCategories, useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
 
-export default function PrestationsListScreen() {
+export default function ServicesListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { data: prestations = [], isError, refetch } = usePrestations();
+  const { data: services = [], isError, refetch } = useServices();
   const { data: categories = [] } = useAnimalCategories();
   const { data: speciesList = [] } = useSpecies();
 
@@ -26,15 +26,15 @@ export default function PrestationsListScreen() {
     const categoriesById = new Map(categories.map((c) => [c.id, c]));
     const speciesById = new Map(speciesList.map((s) => [s.id, s]));
 
-    // active prestations with a category
-    const withCategory = prestations.filter((p) => p.isActive && p.categoryId);
-    // active prestations without a category
-    const noCategory = prestations.filter((p) => p.isActive && !p.categoryId);
-    // archived prestations
-    const archived = prestations.filter((p) => !p.isActive);
+    // active services with a category
+    const withCategory = services.filter((p) => p.isActive && p.categoryId);
+    // active services without a category
+    const noCategory = services.filter((p) => p.isActive && !p.categoryId);
+    // archived services
+    const archived = services.filter((p) => !p.isActive);
 
     // Group by species
-    const bySpecies = new Map<string, { speciesLabel: string; categories: Map<string, { catLabel: string; items: typeof prestations }> }>();
+    const bySpecies = new Map<string, { speciesLabel: string; categories: Map<string, { catLabel: string; items: typeof services }> }>();
 
     for (const p of withCategory) {
       const cat = categoriesById.get(p.categoryId!);
@@ -53,13 +53,13 @@ export default function PrestationsListScreen() {
     }
 
     return { bySpecies, noCategory, archived };
-  }, [prestations, categories, speciesList]);
+  }, [services, categories, speciesList]);
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
 
   return (
     <Surface className="flex-1">
-      <ScreenHeader title={t('catalogs.prestations.list_title')} />
+      <ScreenHeader title={t('catalogs.services.list_title')} />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 96 }}>
 
         {Array.from(grouped.bySpecies.entries()).map(([spId, spGroup]) => (
@@ -69,9 +69,9 @@ export default function PrestationsListScreen() {
               <View key={catId} className="mb-2">
                 <Text variant="muted" className="text-xs font-medium px-1 mb-1">{catGroup.catLabel}</Text>
                 {catGroup.items.map((item) => (
-                  <PrestationRow key={item.id} item={item} onPress={() => {
+                  <ServiceRow key={item.id} item={item} onPress={() => {
                     void haptics.selection();
-                    router.push(`/(tabs)/settings/prestations/${item.id}` as never);
+                    router.push(`/(tabs)/settings/services/${item.id}` as never);
                   }} />
                 ))}
               </View>
@@ -81,11 +81,11 @@ export default function PrestationsListScreen() {
 
         {grouped.noCategory.length > 0 ? (
           <View>
-            <SectionHeader title={t('catalogs.prestations.no_category')} />
+            <SectionHeader title={t('catalogs.services.no_category')} />
             {grouped.noCategory.map((item) => (
-              <PrestationRow key={item.id} item={item} onPress={() => {
+              <ServiceRow key={item.id} item={item} onPress={() => {
                 void haptics.selection();
-                router.push(`/(tabs)/settings/prestations/${item.id}` as never);
+                router.push(`/(tabs)/settings/services/${item.id}` as never);
               }} />
             ))}
           </View>
@@ -96,15 +96,15 @@ export default function PrestationsListScreen() {
             <TouchableOpacity onPress={() => setArchivedExpanded(!archivedExpanded)}>
               <View className="flex-row items-center justify-between pt-4 pb-1 px-1">
                 <Text variant="muted" className="text-xs font-semibold uppercase tracking-widest">
-                  {t('catalogs.prestations.archived_section')} ({grouped.archived.length})
+                  {t('catalogs.services.archived_section')} ({grouped.archived.length})
                 </Text>
                 {archivedExpanded ? <ChevronDown size={14} color="#5C4E40" /> : <ChevronRight size={14} color="#5C4E40" />}
               </View>
             </TouchableOpacity>
             {archivedExpanded ? grouped.archived.map((item) => (
-              <PrestationRow key={item.id} item={item} onPress={() => {
+              <ServiceRow key={item.id} item={item} onPress={() => {
                 void haptics.selection();
-                router.push(`/(tabs)/settings/prestations/${item.id}` as never);
+                router.push(`/(tabs)/settings/services/${item.id}` as never);
               }} />
             )) : null}
           </View>
@@ -116,7 +116,7 @@ export default function PrestationsListScreen() {
       <PressScale
         onPress={() => {
           void haptics.selection();
-          router.push('/(tabs)/settings/prestations/new' as never);
+          router.push('/(tabs)/settings/services/new' as never);
         }}
         style={{ position: 'absolute', bottom: 24, right: 24 }}
       >
@@ -132,7 +132,7 @@ export default function PrestationsListScreen() {
   );
 }
 
-function PrestationRow({ item, onPress }: { item: { label: string; priceCents: number | null; minutes: number; isActive: boolean }; onPress: () => void }) {
+function ServiceRow({ item, onPress }: { item: { label: string; priceCents: number | null; minutes: number; isActive: boolean }; onPress: () => void }) {
   const { t } = useTranslation();
   const priceStr = item.priceCents != null ? `${(item.priceCents / 100).toFixed(2)} €` : '—';
   return (
@@ -142,7 +142,7 @@ function PrestationRow({ item, onPress }: { item: { label: string; priceCents: n
           <Text className="font-semibold">{item.label}</Text>
           <Text variant="muted" className="text-xs">{priceStr} · {item.minutes} min</Text>
           {!item.isActive ? (
-            <Text variant="muted" className="text-xs mt-0.5">{t('catalogs.prestations.inactive_badge')}</Text>
+            <Text variant="muted" className="text-xs mt-0.5">{t('catalogs.services.inactive_badge')}</Text>
           ) : null}
         </View>
         <ChevronRight size={18} color="#5C4E40" />

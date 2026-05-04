@@ -42,7 +42,7 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
       clientId,
       date: format(date, 'yyyy-MM-dd'),
       notes: notes.trim() || null,
-      prestations: initial?.prestations ?? [],
+      services: initial?.services ?? [],
     });
   };
 

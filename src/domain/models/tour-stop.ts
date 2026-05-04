@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TourStopPrestation } from './tour-stop-prestation';
+import { TourStopService } from './tour-stop-service';
 
 export const TourStop = z.object({
   id: z.string(),
@@ -11,8 +11,8 @@ export const TourStop = z.object({
   departureMinutes: z.number().int().nullable(),
   estimatedMinutes: z.number().int().nullable(),
   feeShareCents: z.number().int().nullable(),
-  plannedPrestations: z.array(TourStopPrestation),
-  actualPrestations: z.array(TourStopPrestation).nullable(),
+  plannedServices: z.array(TourStopService),
+  actualServices: z.array(TourStopService).nullable(),
   notes: z.string().nullable(),
   completedAt: z.string().nullable(),
 });

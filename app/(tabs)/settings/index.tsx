@@ -65,9 +65,9 @@ export default function SettingsScreen() {
           onPress={() => router.push('/(tabs)/settings/species' as never)}
         />
         <SettingsRow
-          label={t('catalogs.prestations.row_label')}
-          hint={t('catalogs.prestations.row_hint')}
-          onPress={() => router.push('/(tabs)/settings/prestations' as never)}
+          label={t('catalogs.services.row_label')}
+          hint={t('catalogs.services.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/services' as never)}
         />
 
         <SectionHeader title={t('settings.section_cloud')} />

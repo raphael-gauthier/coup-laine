@@ -13,19 +13,19 @@ interface Props {
   tourId: string;
 }
 
-export function PrestationAggregationSummary({ tourId }: Props) {
+export function ServiceAggregationSummary({ tourId }: Props) {
   const { t } = useTranslation();
   const { data: kpis } = useTourKpis(tourId);
 
-  if (!kpis || kpis.prestationAggregates.length === 0) return null;
+  if (!kpis || kpis.serviceAggregates.length === 0) return null;
 
-  const total = kpis.prestationAggregates.reduce((s, a) => s + a.totalRevenueCents, 0);
+  const total = kpis.serviceAggregates.reduce((s, a) => s + a.totalRevenueCents, 0);
 
   return (
     <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-2">
-      <Text className="font-semibold">{t('tours.prestations_label')}</Text>
-      {kpis.prestationAggregates.map((agg) => (
-        <View key={agg.prestationId} className="flex-row items-center justify-between">
+      <Text className="font-semibold">{t('tours.services_label')}</Text>
+      {kpis.serviceAggregates.map((agg) => (
+        <View key={agg.serviceId} className="flex-row items-center justify-between">
           <Text className="text-sm flex-1">{agg.name} ×{agg.totalQty}</Text>
           <Text className="text-sm font-semibold">{formatEur(agg.totalRevenueCents)}</Text>
         </View>

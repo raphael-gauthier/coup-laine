@@ -53,7 +53,7 @@ export const animalCategories = sqliteTable(
   })
 );
 
-export const prestations = sqliteTable('prestations', {
+export const services = sqliteTable('services', {
   id: text('id').primaryKey(),
   label: text('label').notNull(),
   priceCents: integer('price_cents'),
@@ -96,8 +96,8 @@ export const tourStops = sqliteTable(
     departureMinutes: integer('departure_minutes'),
     estimatedMinutes: integer('estimated_minutes'),
     feeShareCents: integer('fee_share_cents'),
-    plannedPrestations: text('planned_prestations').notNull().default('[]'),
-    actualPrestations: text('actual_prestations'),
+    plannedServices: text('planned_services').notNull().default('[]'),
+    actualServices: text('actual_services'),
     notes: text('notes'),
     completedAt: text('completed_at'),
   },
@@ -114,7 +114,7 @@ export const manualHistoryEntries = sqliteTable(
     clientId: text('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
     date: text('date').notNull(),
     notes: text('notes'),
-    prestations: text('prestations').notNull().default('[]'),
+    services: text('services').notNull().default('[]'),
   },
   (t) => ({
     clientIdx: index('manual_history_client_idx').on(t.clientId),

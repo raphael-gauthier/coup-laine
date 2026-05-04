@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-export const TourStopPrestation = z.object({
-  prestationId: z.string(),
+export const TourStopService = z.object({
+  serviceId: z.string(),
   qty: z.number().int().nonnegative(),
   nameSnapshot: z.string(),
   priceCentsSnapshot: z.number().int().nonnegative(),
@@ -11,4 +11,4 @@ export const TourStopPrestation = z.object({
   speciesNameSnapshot: z.string().nullable(),
 });
 
-export type TourStopPrestation = z.infer<typeof TourStopPrestation>;
+export type TourStopService = z.infer<typeof TourStopService>;

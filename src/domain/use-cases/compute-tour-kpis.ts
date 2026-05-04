@@ -1,9 +1,9 @@
-import { aggregatePrestations, type PrestationAggregate } from './aggregate-prestations';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import { aggregateServices, type ServiceAggregate } from './aggregate-services';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
 interface Stop {
   clientId: string;
-  plannedPrestations: TourStopPrestation[];
+  plannedServices: TourStopService[];
 }
 
 interface Input {
@@ -23,7 +23,7 @@ export interface TourKpis {
   driveMinutes: number;
   travelFeeCents: number;
   distanceKm: number;
-  prestationAggregates: PrestationAggregate[];
+  serviceAggregates: ServiceAggregate[];
 }
 
 export function computeTourKpis({
@@ -38,10 +38,10 @@ export function computeTourKpis({
       driveMinutes: 0,
       travelFeeCents: 0,
       distanceKm: 0,
-      prestationAggregates: [],
+      serviceAggregates: [],
     };
   }
-  const aggregates = aggregatePrestations(stops.map((s) => s.plannedPrestations));
+  const aggregates = aggregateServices(stops.map((s) => s.plannedServices));
   const revenueCents = aggregates.reduce((s, a) => s + a.totalRevenueCents, 0);
   const serviceMinutes = aggregates.reduce((s, a) => s + a.totalMinutes, 0);
   const driveMinutes = Math.round(totalDriveSeconds / 60);
@@ -54,6 +54,6 @@ export function computeTourKpis({
     driveMinutes,
     travelFeeCents: totalTravelFeeCents,
     distanceKm: totalDistanceKm,
-    prestationAggregates: aggregates,
+    serviceAggregates: aggregates,
   };
 }

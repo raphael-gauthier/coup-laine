@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { computeTourKpis } from '@/domain/use-cases/compute-tour-kpis';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
-const ps = (over: Partial<TourStopPrestation>): TourStopPrestation => ({
-  prestationId: 'shearing', qty: 1,
+const ps = (over: Partial<TourStopService>): TourStopService => ({
+  serviceId: 'shearing', qty: 1,
   nameSnapshot: 'Tonte', priceCentsSnapshot: 0, minutesSnapshot: 0,
   categoryIdSnapshot: null, categoryNameSnapshot: null, speciesNameSnapshot: null,
   ...over,
@@ -27,15 +27,15 @@ describe('computeTourKpis', () => {
       driveMinutes: 0,
       travelFeeCents: 0,
       distanceKm: 0,
-      prestationAggregates: [],
+      serviceAggregates: [],
     });
   });
 
   it('aggregates across stops', () => {
     const r = computeTourKpis({
       stops: [
-        { clientId: 'c1', plannedPrestations: [ps({ qty: 5, priceCentsSnapshot: 800, minutesSnapshot: 20 })] },
-        { clientId: 'c2', plannedPrestations: [ps({ qty: 3, priceCentsSnapshot: 800, minutesSnapshot: 20 })] },
+        { clientId: 'c1', plannedServices: [ps({ qty: 5, priceCentsSnapshot: 800, minutesSnapshot: 20 })] },
+        { clientId: 'c2', plannedServices: [ps({ qty: 3, priceCentsSnapshot: 800, minutesSnapshot: 20 })] },
       ],
       totalDistanceKm: 25,
       totalDriveSeconds: 1800,
@@ -52,7 +52,7 @@ describe('computeTourKpis', () => {
     expect(r.driveMinutes).toBe(30);
     expect(r.travelFeeCents).toBe(4000);
     expect(r.durationMinutes).toBe(30 + 8 * 20); // drive + service
-    expect(r.prestationAggregates).toHaveLength(1);
-    expect(r.prestationAggregates[0]?.totalQty).toBe(8);
+    expect(r.serviceAggregates).toHaveLength(1);
+    expect(r.serviceAggregates[0]?.totalQty).toBe(8);
   });
 });

@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query';
 import { db } from '@/infra/db/client';
 import { SpeciesRepository } from '@/data/repositories/species-repository';
 import { AnimalCategoryRepository } from '@/data/repositories/animal-category-repository';
-import { PrestationRepository } from '@/data/repositories/prestation-repository';
+import { ServiceRepository } from '@/data/repositories/service-repository';
 
 const speciesRepo = new SpeciesRepository(db);
 const categoryRepo = new AnimalCategoryRepository(db);
-const prestationRepo = new PrestationRepository(db);
+const serviceRepo = new ServiceRepository(db);
 
 export const speciesKeys = {
   all: ['species'] as const,
@@ -28,10 +28,10 @@ export function useAnimalCategories() {
   });
 }
 
-export function usePrestations() {
+export function useServices() {
   return useQuery({
-    queryKey: ['prestations', 'list'],
-    queryFn: () => prestationRepo.listAll(),
+    queryKey: ['services', 'list'],
+    queryFn: () => serviceRepo.listAll(),
     staleTime: Infinity,
   });
 }

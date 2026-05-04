@@ -1,8 +1,8 @@
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
 interface InterventionItem {
   date: string;
-  prestations: TourStopPrestation[];
+  services: TourStopService[];
 }
 
 interface Input {
@@ -31,7 +31,7 @@ export function computeClientKpis({ tourStops, manualEntries, today }: Input): C
     };
   }
   const totalRevenueCents = all.reduce(
-    (sum, item) => sum + item.prestations.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0),
+    (sum, item) => sum + item.services.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0),
     0
   );
   const sortedDates = all.map((i) => i.date).sort();

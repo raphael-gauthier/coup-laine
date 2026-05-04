@@ -1,8 +1,8 @@
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
 interface InputStop {
   clientId: string;
-  plannedPrestations: TourStopPrestation[];
+  plannedServices: TourStopService[];
 }
 
 interface Input {
@@ -30,7 +30,7 @@ function formatHHmm(totalMinutes: number): string {
 }
 
 function serviceMinutes(stop: InputStop): number {
-  return stop.plannedPrestations.reduce((sum, p) => sum + p.qty * p.minutesSnapshot, 0);
+  return stop.plannedServices.reduce((sum, p) => sum + p.qty * p.minutesSnapshot, 0);
 }
 
 export function estimateTourArrivals(input: Input): ArrivalStop[] {

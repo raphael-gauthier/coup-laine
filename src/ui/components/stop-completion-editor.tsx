@@ -8,14 +8,14 @@ import { Button } from '@/ui/primitives/button';
 import { Input } from '@/ui/primitives/input';
 import { PressScale } from '@/ui/motion/press-scale';
 import type { TourStop } from '@/domain/models/tour-stop';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { Client } from '@/domain/models/client';
 
 interface Props {
   stop: TourStop;
   client: Client | undefined;
-  actuals: TourStopPrestation[];
-  onChangeActuals: (next: TourStopPrestation[]) => void;
+  actuals: TourStopService[];
+  onChangeActuals: (next: TourStopService[]) => void;
 }
 
 export function StopCompletionEditor({ stop, client, actuals, onChangeActuals }: Props) {
@@ -34,10 +34,10 @@ export function StopCompletionEditor({ stop, client, actuals, onChangeActuals }:
   };
 
   const matchPlanned = () => {
-    onChangeActuals([...stop.plannedPrestations]);
+    onChangeActuals([...stop.plannedServices]);
   };
 
-  const different = JSON.stringify(actuals) !== JSON.stringify(stop.plannedPrestations);
+  const different = JSON.stringify(actuals) !== JSON.stringify(stop.plannedServices);
 
   return (
     <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-3">
@@ -53,8 +53,8 @@ export function StopCompletionEditor({ stop, client, actuals, onChangeActuals }:
       {/* Planned preview */}
       <View className="gap-1">
         <Text variant="muted" className="text-xs">{t('tours.bilan_planned')}</Text>
-        {stop.plannedPrestations.length > 0 ? (
-          stop.plannedPrestations.map((p, i) => (
+        {stop.plannedServices.length > 0 ? (
+          stop.plannedServices.map((p, i) => (
             <Text key={i} variant="muted" className="text-xs">
               {p.nameSnapshot} ×{p.qty}
             </Text>

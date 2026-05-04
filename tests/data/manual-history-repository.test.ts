@@ -20,8 +20,8 @@ describe('ManualHistoryRepository', () => {
     const cRepo = new ClientRepository(db);
     const repo = new ManualHistoryRepository(db);
     await cRepo.upsert(sampleClient);
-    await repo.upsert({ id: 'h1', clientId: 'c1', date: '2025-06-01', notes: null, prestations: [] });
-    await repo.upsert({ id: 'h2', clientId: 'c1', date: '2026-01-15', notes: null, prestations: [] });
+    await repo.upsert({ id: 'h1', clientId: 'c1', date: '2025-06-01', notes: null, services: [] });
+    await repo.upsert({ id: 'h2', clientId: 'c1', date: '2026-01-15', notes: null, services: [] });
     const entries = await repo.listByClient('c1');
     expect(entries.map((e) => e.id)).toEqual(['h2', 'h1']);
     close();

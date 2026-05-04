@@ -31,7 +31,7 @@ export function ClientStatusActionsCard({ client }: Props) {
   const onMarkDone = () => {
     const today = new Date().toISOString().slice(0, 10);
     addManualEntry.mutate(
-      { clientId: client.id, date: today, notes: null, prestations: [] },
+      { clientId: client.id, date: today, notes: null, services: [] },
       {
         onSuccess: () => {
           void haptics.success();
@@ -48,7 +48,7 @@ export function ClientStatusActionsCard({ client }: Props) {
   // "Reset" — delete manual entries from >= seasonStartedAt
   const onReset = () => {
     const seasonStart = settings?.season_started_at ?? new Date().getFullYear() + '-01-01';
-    const toDelete = manualEntries.filter((e) => e.date >= seasonStart && e.prestations.length === 0);
+    const toDelete = manualEntries.filter((e) => e.date >= seasonStart && e.services.length === 0);
     Promise.all(
       toDelete.map((e) =>
         new Promise<void>((resolve, reject) =>

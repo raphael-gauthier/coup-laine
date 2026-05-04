@@ -40,7 +40,7 @@ export default function EditTourScreen() {
         const original = data?.stops.find((s) => s.clientId === cid);
         return {
           clientId: cid,
-          plannedPrestations: original?.plannedPrestations ?? [],
+          plannedServices: original?.plannedServices ?? [],
           notes: original?.notes ?? null,
         };
       }),
@@ -76,7 +76,7 @@ export default function EditTourScreen() {
               stops: input.stops.map((s) => ({
                 clientId: s.clientId,
                 clientNameSnapshot: s.clientNameSnapshot ?? null,
-                plannedPrestations: s.plannedPrestations,
+                plannedServices: s.plannedServices,
                 arrivalMinutes: null,
                 estimatedMinutes: null,
                 notes: s.notes,

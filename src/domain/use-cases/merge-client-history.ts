@@ -1,18 +1,18 @@
 import type { Intervention } from '@/domain/models/intervention';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
 interface TourStopHistoryItem {
   tourId: string;
   stopId: string;
   date: string;
-  prestations: TourStopPrestation[];
+  services: TourStopService[];
   notes: string | null;
 }
 
 interface ManualHistoryItem {
   id: string;
   date: string;
-  prestations: TourStopPrestation[];
+  services: TourStopService[];
   notes: string | null;
 }
 
@@ -25,7 +25,7 @@ export function mergeClientHistory({ tourStopsWithDate, manualEntries }: Input):
   const fromTours: Intervention[] = tourStopsWithDate.map((t) => ({
     source: 'tour',
     date: t.date,
-    prestations: t.prestations,
+    services: t.services,
     notes: t.notes,
     tourId: t.tourId,
     tourStopId: t.stopId,
@@ -34,7 +34,7 @@ export function mergeClientHistory({ tourStopsWithDate, manualEntries }: Input):
   const fromManual: Intervention[] = manualEntries.map((m) => ({
     source: 'manual',
     date: m.date,
-    prestations: m.prestations,
+    services: m.services,
     notes: m.notes,
     tourId: null,
     tourStopId: null,

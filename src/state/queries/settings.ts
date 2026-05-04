@@ -13,6 +13,7 @@ export const SETTINGS_KEYS_LIST = [
   'marker_default_color', 'marker_waiting_color', 'marker_scheduled_color',
   'marker_done_color', 'marker_no_animals_color', 'marker_banned_color',
   'home_lat', 'home_lng', 'home_address',
+  'user_professions',
 ] as const;
 export type SettingKey = (typeof SETTINGS_KEYS_LIST)[number];
 
@@ -106,6 +107,32 @@ export function useSetBaseAddress() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: settingsKeys.base() });
       void qc.invalidateQueries({ queryKey: ['clients'] });
+    },
+  });
+}
+
+export function useUserProfessions() {
+  return useQuery<string[]>({
+    queryKey: settingsKeys.byKey('user_professions'),
+    queryFn: async () => {
+      const v = await repo.get('user_professions');
+      if (!v) return [];
+      try {
+        const parsed = JSON.parse(v);
+        return Array.isArray(parsed) ? parsed.filter((x): x is string => typeof x === 'string') : [];
+      } catch {
+        return [];
+      }
+    },
+  });
+}
+
+export function useSetUserProfessions() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => repo.set('user_professions', JSON.stringify(ids)),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: settingsKeys.byKey('user_professions') });
     },
   });
 }

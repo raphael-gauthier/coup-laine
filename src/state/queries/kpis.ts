@@ -3,11 +3,11 @@ import { db } from '@/infra/db/client';
 import { ClientRepository } from '@/data/repositories/client-repository';
 import { TourRepository } from '@/data/repositories/tour-repository';
 import { ManualHistoryRepository } from '@/data/repositories/manual-history-repository';
-import { PrestationRepository } from '@/data/repositories/prestation-repository';
+import { ServiceRepository } from '@/data/repositories/service-repository';
 import { SettingsRepository } from '@/data/repositories/settings-repository';
 import { computeClientKpis } from '@/domain/use-cases/compute-client-kpis';
 import { computeTourKpis } from '@/domain/use-cases/compute-tour-kpis';
-import { computePrestationKpis } from '@/domain/use-cases/compute-prestation-kpis';
+import { computeServiceKpis } from '@/domain/use-cases/compute-service-kpis';
 import { computeMapKpis } from '@/domain/use-cases/compute-map-kpis';
 import { computeClientStatus, type ClientStatus } from '@/domain/use-cases/client-status';
 import { animalsTotal } from '@/lib/animals-total';
@@ -15,13 +15,13 @@ import { animalsTotal } from '@/lib/animals-total';
 const clientRepo = new ClientRepository(db);
 const tourRepo = new TourRepository(db);
 const manualRepo = new ManualHistoryRepository(db);
-const prestationRepo = new PrestationRepository(db);
+const serviceRepo = new ServiceRepository(db);
 const settingsRepo = new SettingsRepository(db);
 
 export const kpisKeys = {
   client: (id: string) => ['kpis', 'client', id] as const,
   tour: (id: string) => ['kpis', 'tour', id] as const,
-  prestations: ['kpis', 'prestations'] as const,
+  services: ['kpis', 'services'] as const,
   map: ['kpis', 'map'] as const,
 };
 
@@ -34,13 +34,13 @@ export function useClientKpis(clientId: string | undefined) {
       const tourStops = completed.flatMap(({ tour, stops }) =>
         stops
           .filter((s) => s.clientId === clientId)
-          .map((s) => ({ date: tour.scheduledDate, prestations: s.actualPrestations ?? s.plannedPrestations }))
+          .map((s) => ({ date: tour.scheduledDate, services: s.actualServices ?? s.plannedServices }))
       );
       const manualEntries = await manualRepo.listByClient(clientId);
       const today = new Date().toISOString().slice(0, 10);
       return computeClientKpis({
         tourStops,
-        manualEntries: manualEntries.map((e) => ({ date: e.date, prestations: e.prestations })),
+        manualEntries: manualEntries.map((e) => ({ date: e.date, services: e.services })),
         today,
       });
     },
@@ -64,7 +64,7 @@ export function useTourKpis(tourId: string | undefined) {
       return computeTourKpis({
         stops: stops.map((s) => ({
           clientId: s.clientId,
-          plannedPrestations: s.actualPrestations ?? s.plannedPrestations,
+          plannedServices: s.actualServices ?? s.plannedServices,
         })),
         totalDistanceKm: tour.totalDistanceKm ?? 0,
         totalDriveSeconds: tour.totalDriveSeconds ?? 0,
@@ -76,11 +76,11 @@ export function useTourKpis(tourId: string | undefined) {
   });
 }
 
-export function usePrestationKpis() {
+export function useServiceKpis() {
   return useQuery({
-    queryKey: kpisKeys.prestations,
+    queryKey: kpisKeys.services,
     queryFn: async () => {
-      const prestations = await prestationRepo.listAll();
+      const services = await serviceRepo.listAll();
       // Pull every intervention from this month
       const today = new Date().toISOString().slice(0, 10);
       const yyyymm = today.slice(0, 7);
@@ -88,11 +88,11 @@ export function usePrestationKpis() {
       const fromTours = completedTours.flatMap(({ tour, stops }) =>
         stops
           .filter(() => tour.scheduledDate.slice(0, 7) === yyyymm)
-          .map((s) => ({ date: tour.scheduledDate, prestations: s.actualPrestations ?? s.plannedPrestations }))
+          .map((s) => ({ date: tour.scheduledDate, services: s.actualServices ?? s.plannedServices }))
       );
       // Note: manual entries this month would also count — for now, tours are the main source. Add manual later if needed.
-      return computePrestationKpis({
-        prestations,
+      return computeServiceKpis({
+        services,
         thisMonthInterventions: fromTours,
         today,
       });

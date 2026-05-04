@@ -9,11 +9,11 @@ describe('mergeClientHistory', () => {
   it('merges and sorts by date descending', () => {
     const r = mergeClientHistory({
       tourStopsWithDate: [
-        { tourId: 't1', stopId: 's1', date: '2026-03-10', prestations: [], notes: null },
+        { tourId: 't1', stopId: 's1', date: '2026-03-10', services: [], notes: null },
       ],
       manualEntries: [
-        { id: 'h1', date: '2026-04-01', prestations: [], notes: 'manual' },
-        { id: 'h2', date: '2025-12-15', prestations: [], notes: null },
+        { id: 'h1', date: '2026-04-01', services: [], notes: 'manual' },
+        { id: 'h2', date: '2025-12-15', services: [], notes: null },
       ],
     });
     expect(r.map((i) => i.date)).toEqual(['2026-04-01', '2026-03-10', '2025-12-15']);
@@ -24,7 +24,7 @@ describe('mergeClientHistory', () => {
   it('preserves tour metadata in tourId/tourStopId', () => {
     const r = mergeClientHistory({
       tourStopsWithDate: [
-        { tourId: 't1', stopId: 's1', date: '2026-03-10', prestations: [], notes: 'tour-note' },
+        { tourId: 't1', stopId: 's1', date: '2026-03-10', services: [], notes: 'tour-note' },
       ],
       manualEntries: [],
     });

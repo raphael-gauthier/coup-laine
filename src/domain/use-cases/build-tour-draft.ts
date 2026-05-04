@@ -1,11 +1,11 @@
 import type { Tour } from '@/domain/models/tour';
 import type { TourStop } from '@/domain/models/tour-stop';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
 interface InputStop {
   clientId: string;
   clientNameSnapshot: string | null;
-  plannedPrestations: TourStopPrestation[];
+  plannedServices: TourStopService[];
   notes: string | null;
 }
 
@@ -61,8 +61,8 @@ export function buildTourDraft({
     departureMinutes: null,
     estimatedMinutes: null,
     feeShareCents: null,
-    plannedPrestations: s.plannedPrestations,
-    actualPrestations: null,
+    plannedServices: s.plannedServices,
+    actualServices: null,
     notes: s.notes,
     completedAt: null,
   }));

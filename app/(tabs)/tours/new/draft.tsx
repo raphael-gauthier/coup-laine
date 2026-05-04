@@ -22,7 +22,7 @@ export default function NewTourDraftScreen() {
   const { data: base } = useBaseAddress();
 
   const stops = useMemo(
-    () => picked.map((id) => ({ clientId: id, plannedPrestations: [], notes: null })),
+    () => picked.map((id) => ({ clientId: id, plannedServices: [], notes: null })),
     [picked]
   );
 
@@ -55,7 +55,7 @@ export default function NewTourDraftScreen() {
               stops: input.stops.map((s) => ({
                 clientId: s.clientId,
                 clientNameSnapshot: s.clientNameSnapshot ?? null,
-                plannedPrestations: s.plannedPrestations,
+                plannedServices: s.plannedServices,
                 arrivalMinutes: null,
                 estimatedMinutes: null,
                 notes: s.notes,

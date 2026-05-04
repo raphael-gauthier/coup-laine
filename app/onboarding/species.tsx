@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { useRouter } from 'expo-router';
@@ -10,90 +10,59 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { haptics } from '@/ui/motion/haptics';
 import { useUpsertSpecies, useUpsertAnimalCategory } from '@/state/queries/catalogs';
-
-interface DefaultCategory {
-  key: string;
-  label: string;
-}
-interface DefaultSpecies {
-  id: string;
-  label: string;
-  iconKey: string;
-  categories: DefaultCategory[];
-}
-
-const DEFAULT_SPECIES: DefaultSpecies[] = [
-  {
-    id: 'species-moutons',
-    label: 'Moutons',
-    iconKey: 'sheep',
-    categories: [
-      { key: 'adultes', label: 'Adultes' },
-      { key: 'agneaux', label: 'Agneaux' },
-    ],
-  },
-  {
-    id: 'species-chevres',
-    label: 'Chèvres',
-    iconKey: 'goat',
-    categories: [
-      { key: 'adultes', label: 'Adultes' },
-      { key: 'chevreaux', label: 'Chevreaux' },
-    ],
-  },
-  {
-    id: 'species-bovins',
-    label: 'Bovins',
-    iconKey: 'cow',
-    categories: [
-      { key: 'vaches', label: 'Vaches' },
-      { key: 'veaux', label: 'Veaux' },
-    ],
-  },
-  {
-    id: 'species-volailles',
-    label: 'Volailles',
-    iconKey: 'bird',
-    categories: [
-      { key: 'poules', label: 'Poules' },
-      { key: 'canards', label: 'Canards' },
-    ],
-  },
-];
+import { useUserProfessions } from '@/state/queries/settings';
+import {
+  SPECIES_CATALOG,
+  unionSpeciesFromProfessions,
+  type SpeciesKey,
+} from '@/domain/catalog/profession-catalog';
 
 export default function OnboardingSpeciesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const upsertSpecies = useUpsertSpecies();
   const upsertCategory = useUpsertAnimalCategory();
+  const { data: professionIds = [] } = useUserProfessions();
 
-  const [enabled, setEnabled] = useState<Record<string, boolean>>(
-    Object.fromEntries(DEFAULT_SPECIES.map((s) => [s.id, true]))
+  const [enabled, setEnabled] = useState<Record<SpeciesKey, boolean>>(
+    () => Object.fromEntries(SPECIES_CATALOG.map((s) => [s.key, false])) as Record<SpeciesKey, boolean>
   );
+  const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (hydrated) return;
+    const fromProfessions = unionSpeciesFromProfessions(professionIds);
+    if (fromProfessions.length > 0) {
+      setEnabled((prev) => {
+        const next = { ...prev };
+        for (const k of fromProfessions) next[k] = true;
+        return next;
+      });
+    }
+    setHydrated(true);
+  }, [professionIds, hydrated]);
 
   const onContinue = async () => {
     setSaving(true);
     try {
-      const selected = DEFAULT_SPECIES.filter((s) => enabled[s.id]);
-      for (const [i, sp] of selected.entries()) {
+      const selected = SPECIES_CATALOG.filter((s) => enabled[s.key]);
+      for (const sp of selected) {
         await upsertSpecies.mutateAsync({
           id: sp.id,
           label: sp.label,
           iconKey: sp.iconKey,
-          ordering: i + 1,
+          ordering: sp.ordering,
         });
-        for (const [j, cat] of sp.categories.entries()) {
-          await upsertCategory.mutateAsync({
-            id: `${sp.id}-cat-${cat.key}`,
-            speciesId: sp.id,
-            label: cat.label,
-            ordering: j + 1,
-          });
-        }
+        await upsertCategory.mutateAsync({
+          id: sp.defaultCategoryId,
+          speciesId: sp.id,
+          label: sp.label,
+          ordering: 1,
+        });
       }
       void haptics.success();
-      router.push('/onboarding/recap' as never);
+      router.push('/onboarding/services' as never);
     } catch {
       // errors already shown by the mutation hooks via errorToast
     } finally {
@@ -111,12 +80,12 @@ export default function OnboardingSpeciesScreen() {
         </View>
 
         <View className="gap-2 mt-4">
-          {DEFAULT_SPECIES.map((sp) => (
+          {SPECIES_CATALOG.map((sp) => (
             <Surface key={sp.id} variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
               <Text className="font-semibold">{sp.label}</Text>
               <ThemedSwitch
-                value={!!enabled[sp.id]}
-                onValueChange={(v) => setEnabled((prev) => ({ ...prev, [sp.id]: v }))}
+                value={!!enabled[sp.key]}
+                onValueChange={(v) => setEnabled((prev) => ({ ...prev, [sp.key]: v }))}
               />
             </Surface>
           ))}
@@ -134,7 +103,7 @@ export default function OnboardingSpeciesScreen() {
 
         <Button
           variant="secondary"
-          onPress={() => router.push('/onboarding/recap' as never)}
+          onPress={() => router.push('/onboarding/services' as never)}
           disabled={saving}
         >
           {t('onboarding.species.skip')}

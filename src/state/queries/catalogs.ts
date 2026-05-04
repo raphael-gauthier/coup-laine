@@ -2,16 +2,16 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/infra/db/client';
 import { SpeciesRepository } from '@/data/repositories/species-repository';
 import { AnimalCategoryRepository } from '@/data/repositories/animal-category-repository';
-import { PrestationRepository } from '@/data/repositories/prestation-repository';
+import { ServiceRepository } from '@/data/repositories/service-repository';
 import { newId } from '@/lib/id';
 import { errorToast } from '@/ui/components/error-toast';
 import type { Species } from '@/domain/models/species';
 import type { AnimalCategory } from '@/domain/models/animal-category';
-import type { Prestation } from '@/domain/models/prestation';
+import type { Service } from '@/domain/models/service';
 
 const speciesRepo = new SpeciesRepository(db);
 const categoryRepo = new AnimalCategoryRepository(db);
-const prestationRepo = new PrestationRepository(db);
+const serviceRepo = new ServiceRepository(db);
 
 export interface UpsertSpeciesInput {
   id?: string;
@@ -109,7 +109,7 @@ export function useDeleteAnimalCategory() {
   });
 }
 
-export interface UpsertPrestationInput {
+export interface UpsertServiceInput {
   id?: string;
   label: string;
   priceCents: number | null;
@@ -119,12 +119,12 @@ export interface UpsertPrestationInput {
   ordering: number;
 }
 
-export function useUpsertPrestation() {
+export function useUpsertService() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: UpsertPrestationInput) => {
-      const existing = input.id ? await prestationRepo.byId(input.id) : null;
-      const p: Prestation = {
+    mutationFn: async (input: UpsertServiceInput) => {
+      const existing = input.id ? await serviceRepo.byId(input.id) : null;
+      const p: Service = {
         id: input.id ?? newId(),
         label: input.label,
         priceCents: input.priceCents,
@@ -134,11 +134,11 @@ export function useUpsertPrestation() {
         archivedAt: existing?.archivedAt ?? null,
         ordering: input.ordering,
       };
-      await prestationRepo.upsert(p);
+      await serviceRepo.upsert(p);
       return p;
     },
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['prestations'] });
+      void qc.invalidateQueries({ queryKey: ['services'] });
     },
     onError: (err) => {
       errorToast('Enregistrement impossible', err instanceof Error ? err.message : undefined);
@@ -146,12 +146,12 @@ export function useUpsertPrestation() {
   });
 }
 
-export function useDeletePrestation() {
+export function useDeleteService() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => prestationRepo.delete(id),
+    mutationFn: (id: string) => serviceRepo.delete(id),
     onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['prestations'] });
+      void qc.invalidateQueries({ queryKey: ['services'] });
     },
     onError: (err) => {
       errorToast('Suppression impossible', err instanceof Error ? err.message : undefined);

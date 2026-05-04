@@ -9,14 +9,14 @@ import { Button } from '@/ui/primitives/button';
 import { Surface } from '@/ui/primitives/surface';
 import { PressScale } from '@/ui/motion/press-scale';
 import { useSpecies, useAnimalCategories } from '@/state/queries/species';
-import type { Prestation } from '@/domain/models/prestation';
-import type { UpsertPrestationInput } from '@/state/queries/catalogs';
+import type { Service } from '@/domain/models/service';
+import type { UpsertServiceInput } from '@/state/queries/catalogs';
 import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 
 interface Props {
-  initial?: Prestation;
+  initial?: Service;
   saving?: boolean;
-  onSubmit: (input: UpsertPrestationInput) => void;
+  onSubmit: (input: UpsertServiceInput) => void;
   onCancel?: () => void;
 }
 
@@ -25,7 +25,7 @@ function centsToEurosString(cents: number | null | undefined): string {
   return (cents / 100).toFixed(2);
 }
 
-export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
+export function ServiceForm({ initial, saving, onSubmit, onCancel }: Props) {
   const { t } = useTranslation();
   const { data: speciesList = [] } = useSpecies();
   const { data: categories = [] } = useAnimalCategories();
@@ -76,13 +76,13 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
 
   // Resolved category label for display
   const selectedCategory = categoryId ? categories.find((c) => c.id === categoryId) : null;
-  const selectedCategoryLabel = selectedCategory?.label ?? t('catalogs.prestations.no_category_option');
+  const selectedCategoryLabel = selectedCategory?.label ?? t('catalogs.services.no_category_option');
 
   return (
     <>
     <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 16 }}>
       <View className="gap-2">
-        <Text className="text-sm font-medium">{t('catalogs.prestations.label')}</Text>
+        <Text className="text-sm font-medium">{t('catalogs.services.label')}</Text>
         <Input value={label} onChangeText={setLabel} onBlur={() => setLabelTouched(true)} />
         {labelTouched && errors.label ? (
           <Text className="text-sm text-danger dark:text-danger-dark">{errors.label}</Text>
@@ -90,7 +90,7 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium">{t('catalogs.prestations.price')}</Text>
+        <Text className="text-sm font-medium">{t('catalogs.services.price')}</Text>
         <Input
           value={priceEuros}
           onChangeText={setPriceEuros}
@@ -104,7 +104,7 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium">{t('catalogs.prestations.minutes')}</Text>
+        <Text className="text-sm font-medium">{t('catalogs.services.minutes')}</Text>
         <Input
           value={minutes}
           onChangeText={setMinutes}
@@ -118,7 +118,7 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm font-medium">{t('catalogs.prestations.category_id')}</Text>
+        <Text className="text-sm font-medium">{t('catalogs.services.category_id')}</Text>
         <PressScale onPress={() => setCategoryPickerVisible(true)}>
           <Surface variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
             <Text className={categoryId ? '' : 'opacity-50'}>{selectedCategoryLabel}</Text>
@@ -128,7 +128,7 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
       </View>
 
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm font-medium">{t('catalogs.prestations.active')}</Text>
+        <Text className="text-sm font-medium">{t('catalogs.services.active')}</Text>
         <ThemedSwitch value={isActive} onValueChange={setIsActive} />
       </View>
 
@@ -158,7 +158,7 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
       />
       <Surface className="rounded-t-3xl px-4 pb-8 pt-4" style={{ maxHeight: '65%' }}>
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-lg font-semibold">{t('catalogs.prestations.category_picker_title')}</Text>
+          <Text className="text-lg font-semibold">{t('catalogs.services.category_picker_title')}</Text>
           <PressScale onPress={() => setCategoryPickerVisible(false)}>
             <X size={22} color="#5C4E40" />
           </PressScale>
@@ -169,7 +169,7 @@ export function PrestationForm({ initial, saving, onSubmit, onCancel }: Props) {
           <PressScale onPress={() => { setCategoryId(null); setCategoryPickerVisible(false); }}>
             <View className={`flex-row items-center px-3 py-3 rounded-xl mb-1 ${!categoryId ? 'bg-primary dark:bg-primary-dark' : ''}`}>
               <Text className={!categoryId ? 'text-primary-foreground dark:text-primary-dark-foreground' : ''}>
-                {t('catalogs.prestations.no_category_option')}
+                {t('catalogs.services.no_category_option')}
               </Text>
             </View>
           </PressScale>

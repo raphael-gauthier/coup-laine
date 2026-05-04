@@ -6,26 +6,26 @@ import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm } from '@/ui/components/confirm-dialog';
-import { PrestationForm } from '@/ui/components/prestation-form';
-import { usePrestations } from '@/state/queries/species';
-import { useUpsertPrestation, useDeletePrestation } from '@/state/queries/catalogs';
+import { ServiceForm } from '@/ui/components/service-form';
+import { useServices } from '@/state/queries/species';
+import { useUpsertService, useDeleteService } from '@/state/queries/catalogs';
 import { haptics } from '@/ui/motion/haptics';
 
-export default function EditPrestationScreen() {
+export default function EditServiceScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
-  const { data: prestations = [] } = usePrestations();
-  const upsert = useUpsertPrestation();
-  const del = useDeletePrestation();
+  const { data: services = [] } = useServices();
+  const upsert = useUpsertService();
+  const del = useDeleteService();
 
-  const item = prestations.find((p) => p.id === id);
+  const item = services.find((p) => p.id === id);
   if (!item) return <Surface className="flex-1" />;
 
   const onDelete = async () => {
     const ok = await confirm({
-      title: t('catalogs.prestations.delete_confirm_title'),
-      message: t('catalogs.prestations.delete_confirm_message'),
+      title: t('catalogs.services.delete_confirm_title'),
+      message: t('catalogs.services.delete_confirm_message'),
       confirmLabel: t('common.delete'),
       cancelLabel: t('common.cancel'),
       destructive: true,
@@ -42,14 +42,14 @@ export default function EditPrestationScreen() {
   return (
     <Surface className="flex-1">
       <ScreenHeader
-        title={t('catalogs.prestations.edit_title')}
+        title={t('catalogs.services.edit_title')}
         rightSlot={
           <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
             <Trash2 size={16} color="white" />
           </Button>
         }
       />
-      <PrestationForm
+      <ServiceForm
         initial={item}
         saving={upsert.isPending}
         onCancel={() => router.back()}

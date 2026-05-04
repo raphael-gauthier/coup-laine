@@ -1,8 +1,8 @@
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
 interface Stop {
   clientId: string;
-  plannedPrestations: TourStopPrestation[];
+  plannedServices: TourStopService[];
 }
 
 interface Input {
@@ -11,7 +11,7 @@ interface Input {
 }
 
 function serviceMinutes(stop: Stop): number {
-  return stop.plannedPrestations.reduce((sum, p) => sum + p.qty * p.minutesSnapshot, 0);
+  return stop.plannedServices.reduce((sum, p) => sum + p.qty * p.minutesSnapshot, 0);
 }
 
 export function estimateTourDuration({ stops, travelMinutesBetween }: Input): number {

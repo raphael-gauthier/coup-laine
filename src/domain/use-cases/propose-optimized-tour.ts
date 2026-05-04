@@ -62,7 +62,7 @@ export function proposeOptimizedTour({
   const computeOrderAndDuration = (ids: string[]): { ordered: string[]; minutes: number } => {
     const ordered = optimizeTourOrder({ stopIds: ids, distanceKm });
     const minutes = estimateTourDuration({
-      stops: ordered.map((id) => ({ clientId: id, plannedPrestations: [] })),
+      stops: ordered.map((id) => ({ clientId: id, plannedServices: [] })),
       travelMinutesBetween,
     });
     return { ordered, minutes };

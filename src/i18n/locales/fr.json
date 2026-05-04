@@ -160,8 +160,8 @@
     "stop_arrival": "Arrivée",
     "stop_duration": "Durée",
     "stop_share": "Part",
-    "prestations_label": "Prestations",
-    "add_prestation": "Ajouter une prestation",
+    "services_label": "Prestations",
+    "add_service": "Ajouter une prestation",
     "complete_cta": "Marquer comme terminée",
     "complete_confirm_title": "Clôturer cette tournée ?",
     "complete_confirm_message": "Les clients verront leur date de dernière intervention mise à jour et seront retirés de la liste d'attente.",
@@ -232,7 +232,7 @@
       "delete_confirm_title": "Supprimer cette catégorie ?",
       "delete_confirm_message": "Cette action est définitive."
     },
-    "prestations": {
+    "services": {
       "row_label": "Prestations",
       "row_hint": "Soins, parage, etc.",
       "list_title": "Prestations",
@@ -412,11 +412,23 @@
       "message": "L'adresse depuis laquelle tu pars pour tes tournées. Tu peux la changer plus tard dans Réglages.",
       "cta": "Continuer"
     },
+    "profession": {
+      "title": "Ton métier",
+      "message": "Sélectionne un ou plusieurs métiers pour pré-remplir tes espèces et prestations. Tu pourras tout ajuster ensuite.",
+      "cta": "Continuer",
+      "skip": "Passer"
+    },
     "species": {
       "title": "Tes animaux",
-      "message": "Active les espèces que tu tonds. Les catégories par défaut seront créées automatiquement.",
+      "message": "Active les espèces que tu prends en charge. Une catégorie par défaut sera créée automatiquement.",
       "cta": "Continuer",
       "skip": "Passer cette étape"
+    },
+    "services": {
+      "title": "Tes prestations",
+      "message": "Voici les prestations suggérées pour tes métiers. Décoche celles que tu ne fais pas.",
+      "cta": "Continuer",
+      "skip": "Passer"
     },
     "recap": {
       "title": "Tout est prêt !",

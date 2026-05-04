@@ -7,8 +7,8 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
-import { usePrestations, useAnimalCategories, useSpecies } from '@/state/queries/species';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import { useServices, useAnimalCategories, useSpecies } from '@/state/queries/species';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { AnimalCount } from '@/domain/models/animal-count';
 import { haptics } from '@/ui/motion/haptics';
 
@@ -20,13 +20,13 @@ function formatEur(cents: number | null): string {
 interface Props {
   visible: boolean;
   clientAnimalCounts: AnimalCount[];
-  onAdd: (prestation: TourStopPrestation) => void;
+  onAdd: (service: TourStopService) => void;
   onClose: () => void;
 }
 
-export function PrestationPickerSheet({ visible, clientAnimalCounts, onAdd, onClose }: Props) {
+export function ServicePickerSheet({ visible, clientAnimalCounts, onAdd, onClose }: Props) {
   const { t } = useTranslation();
-  const { data: prestations = [] } = usePrestations();
+  const { data: services = [] } = useServices();
   const { data: categories = [] } = useAnimalCategories();
   const { data: species = [] } = useSpecies();
 
@@ -41,16 +41,16 @@ export function PrestationPickerSheet({ visible, clientAnimalCounts, onAdd, onCl
     [species]
   );
 
-  const active = prestations.filter((p) => p.isActive);
+  const active = services.filter((p) => p.isActive);
 
   const suggested = active.filter((p) => p.categoryId && clientCategoryIds.has(p.categoryId));
   const other = active.filter((p) => !p.categoryId || !clientCategoryIds.has(p.categoryId));
 
-  const buildPrestation = (p: typeof prestations[number]): TourStopPrestation => {
+  const buildService = (p: typeof services[number]): TourStopService => {
     const category = p.categoryId ? categoriesById.get(p.categoryId) : null;
     const sp = category ? speciesById.get(category.speciesId) : null;
     return {
-      prestationId: p.id,
+      serviceId: p.id,
       qty: 1,
       nameSnapshot: p.label,
       priceCentsSnapshot: p.priceCents ?? 0,
@@ -61,12 +61,12 @@ export function PrestationPickerSheet({ visible, clientAnimalCounts, onAdd, onCl
     };
   };
 
-  const handleAdd = (p: typeof prestations[number]) => {
+  const handleAdd = (p: typeof services[number]) => {
     void haptics.selection();
-    onAdd(buildPrestation(p));
+    onAdd(buildService(p));
   };
 
-  const PrestationRow = ({ item }: { item: typeof prestations[number] }) => (
+  const ServiceRow = ({ item }: { item: typeof services[number] }) => (
     <View className="flex-row items-center justify-between py-2 border-b border-border dark:border-border-dark">
       <View className="flex-1 pr-2">
         <Text className="text-sm font-medium">{item.label}</Text>
@@ -91,7 +91,7 @@ export function PrestationPickerSheet({ visible, clientAnimalCounts, onAdd, onCl
       />
       <Surface className="rounded-t-3xl" style={{ maxHeight: '70%' }}>
         <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
-          <Text className="text-lg font-semibold">{t('tours.add_prestation')}</Text>
+          <Text className="text-lg font-semibold">{t('tours.add_service')}</Text>
           <PressScale onPress={onClose}>
             <X size={22} color="#5C4E40" />
           </PressScale>
@@ -103,7 +103,7 @@ export function PrestationPickerSheet({ visible, clientAnimalCounts, onAdd, onCl
               <Text variant="muted" className="text-xs font-semibold uppercase tracking-widest py-2">
                 {t('tours.picker_suggested')}
               </Text>
-              {suggested.map((p) => <PrestationRow key={p.id} item={p} />)}
+              {suggested.map((p) => <ServiceRow key={p.id} item={p} />)}
             </>
           ) : null}
 
@@ -112,7 +112,7 @@ export function PrestationPickerSheet({ visible, clientAnimalCounts, onAdd, onCl
               <Text variant="muted" className="text-xs font-semibold uppercase tracking-widest py-2 mt-2">
                 {t('tours.picker_other')}
               </Text>
-              {other.map((p) => <PrestationRow key={p.id} item={p} />)}
+              {other.map((p) => <ServiceRow key={p.id} item={p} />)}
             </>
           ) : null}
         </ScrollView>

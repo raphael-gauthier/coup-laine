@@ -4,7 +4,7 @@ import { TourRepository } from '@/data/repositories/tour-repository';
 import { ManualHistoryRepository } from '@/data/repositories/manual-history-repository';
 import { mergeClientHistory } from '@/domain/use-cases/merge-client-history';
 import type { ManualHistoryEntry } from '@/domain/models/manual-history-entry';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 import { newId } from '@/lib/id';
 import { errorToast } from '@/ui/components/error-toast';
 
@@ -30,7 +30,7 @@ export function useClientHistory(clientId: string | undefined) {
             tourId: tour.id,
             stopId: s.id,
             date: tour.scheduledDate,
-            prestations: s.actualPrestations ?? s.plannedPrestations,
+            services: s.actualServices ?? s.plannedServices,
             notes: s.notes,
           }))
       );
@@ -42,7 +42,7 @@ export function useClientHistory(clientId: string | undefined) {
         manualEntries: manualEntries.map((e) => ({
           id: e.id,
           date: e.date,
-          prestations: e.prestations,
+          services: e.services,
           notes: e.notes,
         })),
       });
@@ -64,7 +64,7 @@ export interface UpsertManualHistoryInput {
   clientId: string;
   date: string;
   notes: string | null;
-  prestations: TourStopPrestation[];
+  services: TourStopService[];
 }
 
 export function useUpsertManualHistoryEntry() {
@@ -76,7 +76,7 @@ export function useUpsertManualHistoryEntry() {
         clientId: input.clientId,
         date: input.date,
         notes: input.notes,
-        prestations: input.prestations,
+        services: input.services,
       };
       await manualRepo.upsert(entry);
       return entry;

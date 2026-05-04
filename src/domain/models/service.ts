@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const Prestation = z.object({
+export const Service = z.object({
   id: z.string(),
   label: z.string(),
   priceCents: z.number().int().nonnegative().nullable(),
@@ -11,4 +11,4 @@ export const Prestation = z.object({
   ordering: z.number().int(),
 });
 
-export type Prestation = z.infer<typeof Prestation>;
+export type Service = z.infer<typeof Service>;

@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { buildTourDraft } from '@/domain/use-cases/build-tour-draft';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
-const ps = (over: Partial<TourStopPrestation>): TourStopPrestation => ({
-  prestationId: 'p',
+const ps = (over: Partial<TourStopService>): TourStopService => ({
+  serviceId: 'p',
   qty: 1,
   nameSnapshot: 'X',
   priceCentsSnapshot: 0,
@@ -21,9 +21,9 @@ describe('buildTourDraft', () => {
       departureTime: '08:00',
       base: { lat: 48.0, lon: -3.0 },
       stops: [
-        { clientId: 'c1', clientNameSnapshot: 'Alice', plannedPrestations: [], notes: null },
-        { clientId: 'c2', clientNameSnapshot: 'Bob', plannedPrestations: [], notes: null },
-        { clientId: 'c3', clientNameSnapshot: null, plannedPrestations: [], notes: null },
+        { clientId: 'c1', clientNameSnapshot: 'Alice', plannedServices: [], notes: null },
+        { clientId: 'c2', clientNameSnapshot: 'Bob', plannedServices: [], notes: null },
+        { clientId: 'c3', clientNameSnapshot: null, plannedServices: [], notes: null },
       ],
       now: '2026-05-03T12:00:00Z',
       newId: () => 'fixed-id',
@@ -38,22 +38,22 @@ describe('buildTourDraft', () => {
     expect(r.stops[0]?.clientNameSnapshot).toBe('Alice');
     for (const s of r.stops) {
       expect(s.tourId).toBe(r.tour.id);
-      expect(s.plannedPrestations).toEqual([]);
+      expect(s.plannedServices).toEqual([]);
     }
   });
 
-  it('passes through plannedPrestations snapshots', () => {
-    const prestation = ps({ prestationId: 'shearing', qty: 5, nameSnapshot: 'Tonte', minutesSnapshot: 20 });
+  it('passes through plannedServices snapshots', () => {
+    const service = ps({ serviceId: 'shearing', qty: 5, nameSnapshot: 'Tonte', minutesSnapshot: 20 });
     const r = buildTourDraft({
       scheduledDate: '2026-05-10',
       departureTime: '08:00',
       base: { lat: 48.0, lon: -3.0 },
       stops: [
-        { clientId: 'c1', clientNameSnapshot: 'Alice', plannedPrestations: [prestation], notes: null },
+        { clientId: 'c1', clientNameSnapshot: 'Alice', plannedServices: [service], notes: null },
       ],
       now: '2026-05-03T12:00:00Z',
       newId: () => 'id',
     });
-    expect(r.stops[0]?.plannedPrestations).toEqual([prestation]);
+    expect(r.stops[0]?.plannedServices).toEqual([service]);
   });
 });

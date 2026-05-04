@@ -34,7 +34,7 @@ export default function OnboardingBaseScreen() {
     setBase.mutate(pending, {
       onSuccess: () => {
         void haptics.success();
-        router.push('/onboarding/species' as never);
+        router.push('/onboarding/profession' as never);
       },
       onError: (err) => {
         errorToast(t('common.error_generic'), err instanceof Error ? err.message : undefined);

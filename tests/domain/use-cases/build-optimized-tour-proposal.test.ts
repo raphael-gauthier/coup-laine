@@ -17,9 +17,9 @@ describe('buildOptimizedTourProposal', () => {
       departureTime: '08:00',
       base: { lat: 48.0, lon: -3.0 },
       stops: [
-        { clientId: 'a', clientNameSnapshot: 'Alice', plannedPrestations: [], notes: null },
-        { clientId: 'b', clientNameSnapshot: 'Bob', plannedPrestations: [], notes: null },
-        { clientId: 'c', clientNameSnapshot: 'Charlie', plannedPrestations: [], notes: null },
+        { clientId: 'a', clientNameSnapshot: 'Alice', plannedServices: [], notes: null },
+        { clientId: 'b', clientNameSnapshot: 'Bob', plannedServices: [], notes: null },
+        { clientId: 'c', clientNameSnapshot: 'Charlie', plannedServices: [], notes: null },
       ],
       distanceKm: (f, t) => distances[`${f}-${t}`] ?? 0,
       now: '2026-05-03T12:00:00Z',
@@ -30,7 +30,7 @@ describe('buildOptimizedTourProposal', () => {
     expect(r.stops[0]?.clientNameSnapshot).toBe('Alice');
   });
 
-  it('passes through plannedPrestations for each stop', () => {
+  it('passes through plannedServices for each stop', () => {
     let n = 0;
     const r = buildOptimizedTourProposal({
       scheduledDate: '2026-05-10',
@@ -40,8 +40,8 @@ describe('buildOptimizedTourProposal', () => {
         {
           clientId: 'x',
           clientNameSnapshot: 'Xavier',
-          plannedPrestations: [{
-            prestationId: 'shearing',
+          plannedServices: [{
+            serviceId: 'shearing',
             qty: 3,
             nameSnapshot: 'Tonte',
             priceCentsSnapshot: 600,
@@ -57,7 +57,7 @@ describe('buildOptimizedTourProposal', () => {
       now: '2026-05-03T12:00:00Z',
       newId: () => `id-${n++}`,
     });
-    expect(r.stops[0]?.plannedPrestations).toHaveLength(1);
-    expect(r.stops[0]?.plannedPrestations[0]?.prestationId).toBe('shearing');
+    expect(r.stops[0]?.plannedServices).toHaveLength(1);
+    expect(r.stops[0]?.plannedServices[0]?.serviceId).toBe('shearing');
   });
 });

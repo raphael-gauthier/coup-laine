@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { computeClientKpis } from '@/domain/use-cases/compute-client-kpis';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
-const ps = (over: Partial<TourStopPrestation>): TourStopPrestation => ({
-  prestationId: 'p',
+const ps = (over: Partial<TourStopService>): TourStopService => ({
+  serviceId: 'p',
   qty: 1,
   nameSnapshot: 'X',
   priceCentsSnapshot: 0,
@@ -34,11 +34,11 @@ describe('computeClientKpis', () => {
   it('counts and sums across both sources', () => {
     const r = computeClientKpis({
       tourStops: [
-        { date: '2026-03-10', prestations: [ps({ qty: 5, priceCentsSnapshot: 800 })] },
-        { date: '2025-04-05', prestations: [ps({ qty: 3, priceCentsSnapshot: 600 })] },
+        { date: '2026-03-10', services: [ps({ qty: 5, priceCentsSnapshot: 800 })] },
+        { date: '2025-04-05', services: [ps({ qty: 3, priceCentsSnapshot: 600 })] },
       ],
       manualEntries: [
-        { date: '2024-06-15', prestations: [ps({ qty: 2, priceCentsSnapshot: 500 })] },
+        { date: '2024-06-15', services: [ps({ qty: 2, priceCentsSnapshot: 500 })] },
       ],
       today: '2026-05-03',
     });

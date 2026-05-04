@@ -35,7 +35,7 @@ export interface UpsertTourStopInput {
   id?: string;
   clientId: string;
   clientNameSnapshot?: string | null;
-  plannedPrestations: TourStop['plannedPrestations'];
+  plannedServices: TourStop['plannedServices'];
   arrivalMinutes: number | null;
   estimatedMinutes: number | null;
   notes: string | null;
@@ -89,8 +89,8 @@ export function useUpsertTour() {
         departureMinutes: null,
         estimatedMinutes: s.estimatedMinutes,
         feeShareCents: null,
-        plannedPrestations: s.plannedPrestations,
-        actualPrestations: null,
+        plannedServices: s.plannedServices,
+        actualServices: null,
         notes: s.notes,
         completedAt: null,
       }));
@@ -139,7 +139,7 @@ export function useCompleteWithBilan() {
       completedAt,
     }: {
       tourId: string;
-      perStopActuals: Map<string, TourStop['plannedPrestations']>;
+      perStopActuals: Map<string, TourStop['plannedServices']>;
       completedAt: string;
     }) => {
       await tourRepo.completeWithBilan(tourId, perStopActuals, completedAt);

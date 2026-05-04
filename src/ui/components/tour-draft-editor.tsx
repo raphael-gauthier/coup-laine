@@ -11,19 +11,19 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
 import { DraggableList } from '@/ui/components/draggable-list';
-import { PrestationPickerSheet } from '@/ui/components/prestation-picker-sheet';
+import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { useClients } from '@/state/queries/clients';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
 import { splitTravelCost } from '@/domain/use-cases/cost-split-calculator';
 import { useBaseAddress } from '@/state/queries/settings';
 import type { TourStatus } from '@/domain/models/tour';
-import type { TourStopPrestation } from '@/domain/models/tour-stop-prestation';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 
 export interface DraftStop {
   clientId: string;
   clientNameSnapshot?: string | null;
-  plannedPrestations: TourStopPrestation[];
+  plannedServices: TourStopService[];
   notes: string | null;
 }
 
@@ -44,7 +44,7 @@ interface Props {
   onAddClients: () => void;
   onRemoveStop: (clientId: string) => void;
   onReorderStops: (next: DraftStop[]) => void;
-  onUpdateStopPrestations?: (clientId: string, prests: TourStopPrestation[]) => void;
+  onUpdateStopServices?: (clientId: string, prests: TourStopService[]) => void;
 }
 
 const PRICE_PER_BRACKET = 8;
@@ -52,7 +52,7 @@ const BRACKET_KM = 10;
 
 export function TourDraftEditor({
   initialStops, initialDate, initialTime,
-  saving, onSubmit, onAddClients, onRemoveStop, onReorderStops, onUpdateStopPrestations,
+  saving, onSubmit, onAddClients, onRemoveStop, onReorderStops, onUpdateStopServices,
 }: Props) {
   const { t } = useTranslation();
   const today = new Date();
@@ -102,7 +102,7 @@ export function TourDraftEditor({
         departureTime: time,
         stops: initialStops.map((s) => ({
           clientId: s.clientId,
-          plannedPrestations: s.plannedPrestations,
+          plannedServices: s.plannedServices,
         })),
         travelMinutesBetween: minutesBetween,
       }),
@@ -275,9 +275,9 @@ export function TourDraftEditor({
                 <Trash2 size={16} color="#B23832" />
               </PressScale>
             </View>
-            {item.plannedPrestations.length > 0 ? (
+            {item.plannedServices.length > 0 ? (
               <Text variant="muted" className="text-xs pl-8">
-                {item.plannedPrestations.map((p) => `${p.nameSnapshot} ×${p.qty}`).join(', ')}
+                {item.plannedServices.map((p) => `${p.nameSnapshot} ×${p.qty}`).join(', ')}
               </Text>
             ) : null}
           </Surface>
@@ -285,13 +285,13 @@ export function TourDraftEditor({
       }}
     />
     {pickerClientId ? (
-      <PrestationPickerSheet
+      <ServicePickerSheet
         visible
         clientAnimalCounts={pickerClient?.animalCounts ?? []}
-        onAdd={(prestation) => {
-          if (onUpdateStopPrestations && pickerStop) {
-            const current = pickerStop.plannedPrestations;
-            onUpdateStopPrestations(pickerClientId, [...current, prestation]);
+        onAdd={(service) => {
+          if (onUpdateStopServices && pickerStop) {
+            const current = pickerStop.plannedServices;
+            onUpdateStopServices(pickerClientId, [...current, service]);
           }
         }}
         onClose={() => setPickerClientId(null)}

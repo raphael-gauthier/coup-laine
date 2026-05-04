@@ -1,7 +1,7 @@
 import { createTestDb } from './_helpers/test-db';
 import { SpeciesRepository } from '@/data/repositories/species-repository';
 import { AnimalCategoryRepository } from '@/data/repositories/animal-category-repository';
-import { PrestationRepository } from '@/data/repositories/prestation-repository';
+import { ServiceRepository } from '@/data/repositories/service-repository';
 
 const base = {
   priceCents: null,
@@ -11,10 +11,10 @@ const base = {
   archivedAt: null,
 };
 
-describe('PrestationRepository', () => {
-  it('round-trips a prestation', async () => {
+describe('ServiceRepository', () => {
+  it('round-trips a service', async () => {
     const { db, close } = createTestDb();
-    const repo = new PrestationRepository(db);
+    const repo = new ServiceRepository(db);
     const p = { id: 'shearing', label: 'Tonte', ordering: 0, ...base };
     await repo.upsert(p);
     const all = await repo.listAll();
@@ -24,7 +24,7 @@ describe('PrestationRepository', () => {
 
   it('listActive filters out inactive', async () => {
     const { db, close } = createTestDb();
-    const repo = new PrestationRepository(db);
+    const repo = new ServiceRepository(db);
     await repo.upsert({ id: 'a', label: 'A', ordering: 0, ...base });
     await repo.upsert({ id: 'b', label: 'B', ordering: 1, ...base, isActive: false });
     const active = await repo.listActive();
@@ -32,11 +32,11 @@ describe('PrestationRepository', () => {
     close();
   });
 
-  it('listByCategoryId filters and listLibre returns category-less prestations', async () => {
+  it('listByCategoryId filters and listLibre returns category-less services', async () => {
     const { db, close } = createTestDb();
     const sRepo = new SpeciesRepository(db);
     const cRepo = new AnimalCategoryRepository(db);
-    const repo = new PrestationRepository(db);
+    const repo = new ServiceRepository(db);
     await sRepo.upsert({ id: 'sheep', label: 'Mouton', iconKey: null, ordering: 0, isCustom: false, archivedAt: null });
     await cRepo.upsert({ id: 'sheep-adult', speciesId: 'sheep', label: 'Adulte', ordering: 0, isCustom: false, archivedAt: null });
     await repo.upsert({ id: 'a', label: 'Tonte adulte', ordering: 0, ...base, categoryId: 'sheep-adult' });
@@ -49,7 +49,7 @@ describe('PrestationRepository', () => {
 
   it('setArchived stamps archivedAt', async () => {
     const { db, close } = createTestDb();
-    const repo = new PrestationRepository(db);
+    const repo = new ServiceRepository(db);
     await repo.upsert({ id: 'a', label: 'A', ordering: 0, ...base });
     await repo.setArchived('a', '2026-05-01T00:00:00Z');
     expect((await repo.byId('a'))!.archivedAt).toBe('2026-05-01T00:00:00Z');

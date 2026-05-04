@@ -8,14 +8,14 @@ interface ManualHistoryRow {
   clientId: string;
   date: string;
   notes: string | null;
-  prestations: string;
+  services: string;
 }
 
 function toRow(e: ManualHistoryEntry) {
-  return { ...e, prestations: JSON.stringify(e.prestations) };
+  return { ...e, services: JSON.stringify(e.services) };
 }
 function fromRow(r: ManualHistoryRow): ManualHistoryEntry {
-  return ManualHistoryEntry.parse({ ...r, prestations: JSON.parse(r.prestations) });
+  return ManualHistoryEntry.parse({ ...r, services: JSON.parse(r.services) });
 }
 
 export class ManualHistoryRepository {
