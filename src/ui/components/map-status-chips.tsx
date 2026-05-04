@@ -1,11 +1,18 @@
 import { ScrollView, View } from 'react-native';
+import Svg, { Defs, LinearGradient, Stop, Rect } from 'react-native-svg';
+import { ChevronsRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { PressScale } from '@/ui/motion/press-scale';
 import { Text } from '@/ui/primitives/text';
 import { cn } from '@/lib/cn';
 import { useMapFiltersStore, type MapFilter } from '@/state/ui/map-filters-store';
 import { useMapKpis } from '@/state/queries/kpis';
+import { useResolvedColorScheme } from '@/ui/theme/theme-provider';
 import { haptics } from '@/ui/motion/haptics';
+
+const FADE_WIDTH = 48;
+const BG_HEX = { light: '#FAF6F0', dark: '#16120F' };
+const CHEVRON_HEX = { light: '#5C4E40', dark: '#B4A490' };
 
 type ChipDef = { filter: MapFilter; labelKey: string; count: number };
 
@@ -13,6 +20,8 @@ export function MapStatusChips() {
   const { t } = useTranslation();
   const { activeFilter, setFilter } = useMapFiltersStore();
   const { data: kpis } = useMapKpis();
+  const scheme = useResolvedColorScheme();
+  const bgHex = BG_HEX[scheme];
 
   const chips: ChipDef[] = [
     { filter: 'all',       labelKey: 'map.chip_all',        count: kpis?.total ?? 0 },
@@ -24,11 +33,13 @@ export function MapStatusChips() {
   ];
 
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8, gap: 8 }}
-    >
+    <View style={{ position: 'relative' }}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ flexGrow: 0 }}
+        contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8, paddingRight: FADE_WIDTH + 12, gap: 8 }}
+      >
       {chips.map(({ filter, labelKey, count }) => {
         const active = activeFilter === filter;
         return (
@@ -71,6 +82,29 @@ export function MapStatusChips() {
           </PressScale>
         );
       })}
-    </ScrollView>
+      </ScrollView>
+
+      {/* Right-edge fade + chevron indicating more content */}
+      <View
+        pointerEvents="none"
+        style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: FADE_WIDTH, justifyContent: 'center', alignItems: 'flex-end', paddingRight: 4 }}
+      >
+        <Svg
+          width={FADE_WIDTH}
+          height="100%"
+          style={{ position: 'absolute', right: 0, top: 0, bottom: 0 }}
+        >
+          <Defs>
+            <LinearGradient id="chipsFade" x1="0" y1="0" x2="1" y2="0">
+              <Stop offset="0" stopColor={bgHex} stopOpacity={0} />
+              <Stop offset="0.6" stopColor={bgHex} stopOpacity={1} />
+              <Stop offset="1" stopColor={bgHex} stopOpacity={1} />
+            </LinearGradient>
+          </Defs>
+          <Rect x={0} y={0} width={FADE_WIDTH} height="100%" fill="url(#chipsFade)" />
+        </Svg>
+        <ChevronsRight size={14} color={CHEVRON_HEX[scheme]} opacity={0.5} />
+      </View>
+    </View>
   );
 }

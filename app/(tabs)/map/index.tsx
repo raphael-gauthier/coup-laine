@@ -63,7 +63,10 @@ export default function MapScreen() {
   }
 
   return (
-    <Surface className="flex-1" style={{ paddingTop: insets.top }}>
+    <Surface className="flex-1">
+      {/* Safe-area top spacer */}
+      <View style={{ height: insets.top }} />
+
       {/* Status chips row */}
       <MapStatusChips />
 
