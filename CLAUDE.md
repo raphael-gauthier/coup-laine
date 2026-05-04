@@ -73,3 +73,12 @@ This worktree (`rn-migration` branch) targets **iOS + Android** via Expo + React
 - All pressables use `<PressScale>`. All critical actions trigger haptics from `@/ui/motion/haptics`.
 - All strings via `t('...')` (i18next). No FR strings in JSX.
 - TS strict mode is enforced. No `any`. Use `unknown` + narrowing or proper types.
+
+## 6. Developer Requests
+
+**Code is English-only. User-facing copy stays French (i18n only).**
+
+- Identifiers (variables, functions, types, classes, constants), file names, folder names, route paths, DB table/column names, settings keys, i18n key paths, and code comments **MUST be in English**.
+- French is allowed only inside `src/i18n/locales/*.json` **values** (the actual UI text). Never inside keys.
+- If you spot a French identifier or path while working (e.g. `prestation`, `metier`, `tournee`), flag it. Don't introduce new ones — even temporarily.
+- When the user gives a durable instruction or convention (like the rule above, a naming choice, a workflow preference, a hook setup) that future sessions should know, **update this `CLAUDE.md` in the same turn** before continuing. Memory files are for cross-conversation context; project conventions belong here so any agent in the repo picks them up.
