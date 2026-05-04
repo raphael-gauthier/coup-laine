@@ -103,20 +103,40 @@ export async function fetchRouteGeometry(
   if (coords.length < 2) return null;
   // Edge fn proxy path: POST /ors-proxy/v2/directions/driving-car/geojson
   const url = `${env.orsBaseUrl}/v2/directions/driving-car/geojson`;
+  const headers = await authHeaders();
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log('[ors] fetchRouteGeometry', {
+      url,
+      hasAuth: 'Authorization' in headers,
+      coordsCount: coords.length,
+    });
+  }
   try {
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(await authHeaders()),
+        ...headers,
       },
       body: JSON.stringify({ coordinates: coords.map((c) => [c.lon, c.lat]) }),
       signal: options.signal,
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      if (__DEV__) {
+        const text = await response.text().catch(() => '<no body>');
+        // eslint-disable-next-line no-console
+        console.warn('[ors] fetchRouteGeometry not ok', response.status, text.slice(0, 500));
+      }
+      return null;
+    }
     const json = (await response.json()) as { features?: Feature<LineString>[] };
     return json.features?.[0]?.geometry ?? null;
-  } catch {
+  } catch (err) {
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.warn('[ors] fetchRouteGeometry threw', err instanceof Error ? err.message : String(err));
+    }
     return null;
   }
 }
