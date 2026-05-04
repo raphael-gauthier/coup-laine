@@ -70,7 +70,7 @@ export default function TourRateScreen() {
   return (
     <Surface className="flex-1">
       <ScreenHeader title={t('settings.tour_rate.screen_title')} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 160, gap: 16 }}>
 
         <View className="gap-2">
           <Text className="text-sm font-medium">{t('settings.tour_rate.bracket_km_label')}</Text>

@@ -124,7 +124,7 @@ export default function OptimizedConfigScreen() {
     <Surface className="flex-1">
       <ScreenHeader title={t('tours.create_optimized')} />
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 160, gap: 16 }}>
         {/* Commune section */}
         <View className="gap-2">
           <Text className="text-sm font-semibold uppercase tracking-widest text-muted-foreground dark:text-muted-dark-foreground">

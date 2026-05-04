@@ -47,7 +47,7 @@ export default function SeasonScreen() {
   return (
     <Surface className="flex-1">
       <ScreenHeader title={t('settings.season.screen_title')} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 160, gap: 16 }}>
 
         <Surface variant="muted" className="rounded-2xl px-4 py-3">
           <Text variant="muted" className="text-sm">{t('settings.season.help_text')}</Text>

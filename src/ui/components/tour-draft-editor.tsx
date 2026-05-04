@@ -289,7 +289,7 @@ export function TourDraftEditor({
   );
 
   const Footer = (
-    <View style={{ gap: 8, paddingTop: 16, paddingBottom: 32 }}>
+    <View style={{ gap: 8, paddingTop: 16, paddingBottom: 160 }}>
       <Button
         onPress={() => void submit()}
         loading={saving}

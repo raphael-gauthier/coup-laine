@@ -89,7 +89,7 @@ export default function TourDetailScreen() {
           </View>
         }
       />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 160, gap: 16 }}>
         {/* Header date + status */}
         <Text className="text-2xl font-bold">
           {format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPPp', { locale: fr })}

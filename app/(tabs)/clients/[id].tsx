@@ -72,7 +72,7 @@ export default function ClientDetailScreen() {
           </View>
         }
       />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 160, gap: 16 }}>
         {/* Header */}
         <Text className="text-2xl font-bold">{client.displayName}</Text>
 

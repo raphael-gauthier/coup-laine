@@ -68,7 +68,7 @@ export default function MarkerColorsScreen() {
   return (
     <Surface className="flex-1">
       <ScreenHeader title={t('settings.marker_colors.screen_title')} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 8 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 160, gap: 8 }}>
         {STATUS_ROWS.map(({ status, labelKey }) => {
           const currentHex = getHex(status);
           const fallbackHex = getFallbackHex(status);
