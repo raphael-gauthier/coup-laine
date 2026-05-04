@@ -5,6 +5,7 @@ import MaskInput from 'react-native-mask-input';
 import { PressScale } from '@/ui/motion/press-scale';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
+import { useForegroundColor } from '@/ui/theme/colors';
 
 interface Props {
   value: string[];
@@ -37,6 +38,7 @@ function toLocalMasked(raw: string): string {
 export function PhonesEditor({ value, onChange }: Props) {
   const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
+  const fg = useForegroundColor();
 
   const update = (index: number, masked: string) => {
     const next = [...value];
@@ -78,7 +80,7 @@ export function PhonesEditor({ value, onChange }: Props) {
         </View>
       ))}
       <Button variant="ghost" size="sm" onPress={add}>
-        <Plus size={16} />
+        <Plus size={16} color={fg} />
         <Text className="font-semibold">{t('clients.add_phone')}</Text>
       </Button>
     </View>

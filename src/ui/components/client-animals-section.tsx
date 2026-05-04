@@ -12,6 +12,7 @@ import { useUpsertClient } from '@/state/queries/clients';
 import { useAnimalCategories } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
 import { errorToast } from '@/ui/components/error-toast';
+import { useForegroundColor } from '@/ui/theme/colors';
 
 // Simple species emoji mapping by category label keywords
 function emojiForCategory(label: string): string {
@@ -32,6 +33,7 @@ export function ClientAnimalsSection({ client }: Props) {
   const [editing, setEditing] = useState(false);
   const { data: categories = [] } = useAnimalCategories();
   const upsertClient = useUpsertClient();
+  const fg = useForegroundColor();
 
   const categoriesById = useMemo(
     () => new Map(categories.map((c) => [c.id, c])),
@@ -44,7 +46,7 @@ export function ClientAnimalsSection({ client }: Props) {
         <View className="flex-row items-center justify-between">
           <Text className="font-semibold">{t('clients.animals_section_title')}</Text>
           <Button size="sm" variant="ghost" onPress={() => setEditing(true)}>
-            <Plus size={14} />
+            <Plus size={14} color={fg} />
             <Text className="font-semibold text-sm">{t('common.edit')}</Text>
           </Button>
         </View>

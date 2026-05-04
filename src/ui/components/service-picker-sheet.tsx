@@ -12,7 +12,7 @@ import { useServices, useAnimalCategories, useSpecies } from '@/state/queries/sp
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { AnimalCount } from '@/domain/models/animal-count';
 import { haptics } from '@/ui/motion/haptics';
-import { useOnContrastColor } from '@/ui/theme/colors';
+import { useOnContrastColor, useForegroundColor } from '@/ui/theme/colors';
 import { cn } from '@/lib/cn';
 import { formatMinutes } from '@/lib/format-minutes';
 
@@ -43,6 +43,7 @@ export function ServicePickerSheet({
   const { t } = useTranslation();
   const router = useRouter();
   const onContrast = useOnContrastColor();
+  const fg = useForegroundColor();
   const { data: services = [] } = useServices();
   const { data: categories = [] } = useAnimalCategories();
   const { data: species = [] } = useSpecies();
@@ -183,13 +184,13 @@ export function ServicePickerSheet({
           <View className="flex-row items-center gap-2">
             <PressScale onPress={() => setQty(item.id, sel.qty - 1)}>
               <View className="w-8 h-8 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
-                <Minus size={14} />
+                <Minus size={14} color={fg} />
               </View>
             </PressScale>
             <Text className="w-8 text-center font-semibold">{sel.qty}</Text>
             <PressScale onPress={() => setQty(item.id, sel.qty + 1)}>
               <View className="w-8 h-8 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
-                <Plus size={14} />
+                <Plus size={14} color={fg} />
               </View>
             </PressScale>
           </View>

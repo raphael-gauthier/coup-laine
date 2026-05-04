@@ -17,12 +17,13 @@ import { confirm, ConfirmTypedDialog } from '@/ui/components/confirm-dialog';
 import { useSession, useSignOut } from '@/state/queries/auth';
 import { useBackups, useCreateBackup, useRestoreBackup, useDeleteBackup } from '@/state/queries/backups';
 import { haptics } from '@/ui/motion/haptics';
-import { useOnContrastColor } from '@/ui/theme/colors';
+import { useOnContrastColor, useForegroundColor } from '@/ui/theme/colors';
 
 export default function CloudScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const onContrast = useOnContrastColor();
+  const fg = useForegroundColor();
   const { data: session } = useSession();
   const signOut = useSignOut();
   const create = useCreateBackup();
@@ -121,7 +122,7 @@ export default function CloudScreen() {
                   onPress={() => onRestore(b.name)}
                   loading={restore.isPending}
                 >
-                  <RefreshCw size={14} />
+                  <RefreshCw size={14} color={fg} />
                   <Text className="font-semibold">{t('cloud.restore_cta')}</Text>
                 </Button>
                 <Button

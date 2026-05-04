@@ -24,13 +24,14 @@ import { Map } from '@/ui/components/map';
 import { ClientPin } from '@/ui/components/client-pin';
 import { BasePin } from '@/ui/components/base-pin';
 import { TourRoutePolyline } from '@/ui/components/tour-route-polyline';
-import { useOnContrastColor } from '@/ui/theme/colors';
+import { useOnContrastColor, useForegroundColor } from '@/ui/theme/colors';
 
 export default function TourDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
   const onContrast = useOnContrastColor();
+  const fg = useForegroundColor();
   const { data, isError, refetch } = useTour(id);
   const deleteMutation = useDeleteTour();
   const { data: clients = [] } = useClients('all');
@@ -80,7 +81,7 @@ export default function TourDetailScreen() {
                 onPress={() => router.push(`/(tabs)/tours/${tour.id}/edit` as never)}
                 accessibilityLabel={t('common.edit')}
               >
-                <Pencil size={16} />
+                <Pencil size={16} color={fg} />
               </Button>
             ) : null}
             <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('tours.delete')}>

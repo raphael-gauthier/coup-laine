@@ -8,3 +8,12 @@ import { useColorScheme } from 'react-native';
 export function useOnContrastColor(): string {
   return useColorScheme() === 'dark' ? '#16120F' : '#FAF6F0';
 }
+
+/**
+ * Default foreground color (matches `text-foreground dark:text-foreground-dark`).
+ * Use for icons inside ghost / muted-bg buttons where the text adapts but a
+ * Lucide icon would otherwise default to black and disappear in dark mode.
+ */
+export function useForegroundColor(): string {
+  return useColorScheme() === 'dark' ? '#F0E8DC' : '#1C1612';
+}

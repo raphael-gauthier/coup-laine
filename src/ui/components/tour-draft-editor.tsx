@@ -23,6 +23,7 @@ import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
 import { splitTravelCost } from '@/domain/use-cases/cost-split-calculator';
 import { useBaseAddress, useAllSettings } from '@/state/queries/settings';
+import { useForegroundColor } from '@/ui/theme/colors';
 import type { TourStatus } from '@/domain/models/tour';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 
@@ -72,6 +73,7 @@ export function TourDraftEditor({
   const { data: clients = [] } = useClients('all');
   const { data: base } = useBaseAddress();
   const { data: allSettings } = useAllSettings();
+  const fg = useForegroundColor();
   const bracketKm = parseFloat(allSettings?.tour_bracket_km ?? '') || DEFAULT_BRACKET_KM;
   const feePerBracket = parseFloat(allSettings?.tour_fee_eur_per_bracket ?? '') || DEFAULT_FEE_PER_BRACKET;
   const [pickerClientId, setPickerClientId] = useState<string | null>(null);
@@ -280,7 +282,7 @@ export function TourDraftEditor({
       <View className="flex-row items-center justify-between">
         <Text className="text-sm font-medium">{t('tours.stops_section')}</Text>
         <Button size="sm" variant="ghost" onPress={onAddClients}>
-          <Plus size={14} />
+          <Plus size={14} color={fg} />
           <Text className="font-semibold text-sm">{t('tours.add_stops')}</Text>
         </Button>
       </View>
