@@ -18,6 +18,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, useResolvedColorScheme } from '@/ui/theme/theme-provider';
 import { ToastContainer } from '@/ui/components/toast';
 import { bootstrapDatabase } from '@/infra/db/bootstrap';
+import { ensureAnonymousSession } from '@/infra/services/ensure-session';
 
 export const unstable_settings = {
   anchor: 'index',
@@ -57,7 +58,16 @@ export default function RootLayout() {
 
   useEffect(() => {
     bootstrapDatabase()
-      .then(() => setReady(true))
+      .then(() => {
+        // Ensure a Supabase session exists (anonymous fallback) so authenticated
+        // edge functions like ors-proxy work out of the box. Mirrors the Flutter
+        // bootstrap which calls signInAnonymously() when currentSession is null.
+        // Don't await — the session can hydrate in the background while the UI
+        // mounts; ORS calls are best-effort and already fall back to straight
+        // lines if no session is ready.
+        void ensureAnonymousSession();
+        setReady(true);
+      })
       .catch((err) => {
         console.error('DB bootstrap failed', err);
       });
