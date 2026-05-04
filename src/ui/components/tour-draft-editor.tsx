@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { View, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { GripVertical, Trash2, Plus, ChevronDown, AlertTriangle } from 'lucide-react-native';
+import { GripVertical, Trash2, Plus, ChevronRight, AlertTriangle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -266,52 +266,54 @@ export function TourDraftEditor({
         const arr = arrivals[index];
         const share = split.perStop[index] ?? 0;
         return (
-          <Surface variant="muted" className="rounded-2xl px-3 py-3 gap-2 mb-2">
+          <Surface variant="muted" className="rounded-2xl px-3 py-3 mb-2">
             <View className="flex-row items-center gap-3">
               <PressScale onPressIn={drag}>
                 <GripVertical size={20} color="#5C4E40" />
               </PressScale>
-              <View className="flex-1">
-                <Text className="font-semibold">{client?.displayName ?? item.clientId}</Text>
-                {arr ? (
-                  <Text variant="muted" className="text-xs mt-0.5">
-                    {t('tours.stop_arrival')} {arr.arrivalTime} · {arr.estimatedMinutes} min · {share} €
-                  </Text>
-                ) : null}
-              </View>
-              <PressScale onPress={() => setPickerClientId(item.clientId)}>
-                <ChevronDown size={16} color="#5C4E40" />
+              <PressScale className="flex-1" onPress={() => setPickerClientId(item.clientId)}>
+                <View className="flex-row items-center gap-2">
+                  <View className="flex-1 gap-1">
+                    <Text className="font-semibold">{client?.displayName ?? item.clientId}</Text>
+                    {arr ? (
+                      <Text variant="muted" className="text-xs">
+                        {t('tours.stop_arrival')} {arr.arrivalTime} · {arr.estimatedMinutes} min · {share} €
+                      </Text>
+                    ) : null}
+                    {item.plannedServices.length > 0 ? (() => {
+                      const totalMinutes = item.plannedServices.reduce(
+                        (sum, p) => sum + p.qty * p.minutesSnapshot,
+                        0
+                      );
+                      const totalCents = item.plannedServices.reduce(
+                        (sum, p) => sum + p.qty * p.priceCentsSnapshot,
+                        0
+                      );
+                      return (
+                        <Text variant="muted" className="text-xs">
+                          {t('tours.stop_summary', {
+                            count: item.plannedServices.length,
+                            minutes: totalMinutes,
+                            amount: `${(totalCents / 100).toFixed(2)} €`,
+                          })}
+                        </Text>
+                      );
+                    })() : (
+                      <View className="flex-row items-center gap-2">
+                        <AlertTriangle size={14} color="#B23832" />
+                        <Text className="text-xs text-danger dark:text-danger-dark font-medium">
+                          {t('tours.stop_no_service')}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                  <ChevronRight size={18} color="#5C4E40" />
+                </View>
               </PressScale>
               <PressScale onPress={() => onRemoveStop(item.clientId)}>
                 <Trash2 size={16} color="#B23832" />
               </PressScale>
             </View>
-            {item.plannedServices.length > 0 ? (() => {
-              const totalMinutes = item.plannedServices.reduce(
-                (sum, p) => sum + p.qty * p.minutesSnapshot,
-                0
-              );
-              const totalCents = item.plannedServices.reduce(
-                (sum, p) => sum + p.qty * p.priceCentsSnapshot,
-                0
-              );
-              return (
-                <Text variant="muted" className="text-xs pl-8">
-                  {t('tours.stop_summary', {
-                    count: item.plannedServices.length,
-                    minutes: totalMinutes,
-                    amount: `${(totalCents / 100).toFixed(2)} €`,
-                  })}
-                </Text>
-              );
-            })() : (
-              <View className="flex-row items-center gap-2 pl-8">
-                <AlertTriangle size={14} color="#B23832" />
-                <Text className="text-xs text-danger dark:text-danger-dark font-medium">
-                  {t('tours.stop_no_service')}
-                </Text>
-              </View>
-            )}
           </Surface>
         );
       }}
