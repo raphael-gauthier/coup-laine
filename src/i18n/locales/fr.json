@@ -105,7 +105,13 @@
     "status_noAnimals": "Sans animaux",
     "status_banned": "Banni",
     "view_client": "Voir la fiche",
-    "start_trip": "Démarrer un trajet"
+    "start_trip": "Démarrer un trajet",
+    "pin_popup_itinerary": "Itinéraire",
+    "pin_popup_plan": "Planifier",
+    "pin_popup_call": "Appeler",
+    "pin_popup_sms": "SMS",
+    "pin_popup_last_intervention": "Dernière intervention : {{date}}",
+    "pin_popup_last_intervention_never": "Jamais"
   },
   "proximity": {
     "title": "Proximité",
