@@ -135,6 +135,10 @@
     "empty_title": "Aucune tournée",
     "empty_message": "Crée ta première tournée pour commencer.",
     "empty_cta": "Nouvelle tournée",
+    "create_sheet_title": "Nouvelle tournée",
+    "create_sheet_subtitle": "Comment veux-tu créer la tournée ?",
+    "create_manual_hint": "Choisis et ordonne les clients à la main.",
+    "create_optimized_hint": "On calcule l'ordre optimal pour minimiser la distance.",
     "empty_filtered_title": "Aucune tournée",
     "empty_filtered_message": "Aucune tournée dans cette catégorie.",
     "new_title": "Nouvelle tournée",
@@ -195,12 +199,15 @@
     "bilan_differs": "Modifié",
     "picker_suggested": "Suggérées",
     "picker_other": "Autres",
-    "optimized_config_help": "Renseigne la durée cible de la tournée. Optionnellement, filtre les clients par commune.",
-    "optimized_target_minutes": "Durée cible (minutes)",
-    "optimized_commune": "Commune (optionnel)",
-    "optimized_commune_placeholder": "Ex: Bretagne",
-    "optimized_continue": "Continuer",
-    "optimized_config_error_minutes": "La durée doit être un nombre positif."
+    "optimized_commune_title": "Commune de départ",
+    "optimized_commune_option_one": "{{count}} client en attente",
+    "optimized_commune_option_other": "{{count}} clients en attente",
+    "optimized_duration_title": "Durée cible",
+    "optimized_propose": "Proposer la tournée",
+    "optimized_empty_title": "Aucune commune en attente",
+    "optimized_empty_body": "Marque des clients en attente pour proposer une tournée optimisée.",
+    "optimized_propose_failed": "Impossible de proposer une tournée.",
+    "optimized_propose_empty": "Aucun client à inclure pour cette commune."
   },
   "catalogs": {
     "species": {

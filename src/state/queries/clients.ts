@@ -4,6 +4,7 @@ import { ClientRepository } from '@/data/repositories/client-repository';
 import { TourRepository } from '@/data/repositories/tour-repository';
 import { SettingsRepository } from '@/data/repositories/settings-repository';
 import { computeClientStatus, type ClientStatus } from '@/domain/use-cases/client-status';
+import { findCommunesWithWaiting, type CommuneCount } from '@/domain/use-cases/find-communes-with-waiting';
 import { animalsTotal } from '@/lib/animals-total';
 import type { Client } from '@/domain/models/client';
 import { newId } from '@/lib/id';
@@ -139,6 +140,16 @@ export function useToggleWaiting() {
 
 const tourRepo = new TourRepository(db);
 const settingsRepo = new SettingsRepository(db);
+
+export function useWaitingCommunes() {
+  return useQuery<CommuneCount[]>({
+    queryKey: [...clientsKeys.all, 'waitingCommunes'],
+    queryFn: async () => {
+      const list = await repo.listAll();
+      return findCommunesWithWaiting(list);
+    },
+  });
+}
 
 export function useClientStatusMap() {
   return useQuery({

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Alert } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
@@ -16,6 +16,7 @@ import { TourCard } from '@/ui/components/tour-card';
 import { EmptyState } from '@/ui/components/empty-state';
 import { ErrorState } from '@/ui/components/error-state';
 import { ScreenHeader } from '@/ui/components/screen-header';
+import { CreateTourSheet } from '@/ui/components/create-tour-sheet';
 import { useTours } from '@/state/queries/tours';
 import type { TourStatus } from '@/domain/models/tour';
 
@@ -25,17 +26,16 @@ export default function ToursListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>('planned');
+  const [createSheetVisible, setCreateSheetVisible] = useState(false);
 
   const { data: tours = [], isError, isLoading, refetch } = useTours(filter as TourStatus);
 
   const onCreate = () => {
     void haptics.selection();
-    Alert.alert(t('tours.empty_cta'), undefined, [
-      { text: t('tours.create_manual'), onPress: () => router.push('/(tabs)/tours/new/draft' as never) },
-      { text: t('tours.create_optimized'), onPress: () => router.push('/(tabs)/tours/new/optimized' as never) },
-      { text: t('common.cancel'), style: 'cancel' },
-    ]);
+    setCreateSheetVisible(true);
   };
+
+  const closeSheet = () => setCreateSheetVisible(false);
 
   return (
     <Surface className="flex-1">
@@ -97,6 +97,19 @@ export default function ToursListScreen() {
           <Plus size={24} color="white" />
         </Surface>
       </PressScale>
+
+      <CreateTourSheet
+        visible={createSheetVisible}
+        onClose={closeSheet}
+        onPickManual={() => {
+          closeSheet();
+          router.push('/(tabs)/tours/new/draft' as never);
+        }}
+        onPickOptimized={() => {
+          closeSheet();
+          router.push('/(tabs)/tours/new/optimized-config' as never);
+        }}
+      />
     </Surface>
   );
 }
