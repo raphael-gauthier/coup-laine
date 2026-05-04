@@ -52,7 +52,7 @@ export function MapStatusChips() {
           >
             <View
               className={cn(
-                'flex-row items-center gap-1 px-3 py-1.5 rounded-full border',
+                'flex-row items-center gap-1.5 px-4 py-2 rounded-full border',
                 active
                   ? 'bg-primary dark:bg-primary-dark border-primary dark:border-primary-dark'
                   : 'bg-background dark:bg-background-dark border-border dark:border-border-dark'
@@ -60,7 +60,7 @@ export function MapStatusChips() {
             >
               <Text
                 className={cn(
-                  'text-xs font-semibold',
+                  'text-sm font-semibold',
                   active
                     ? 'text-primary-foreground dark:text-primary-dark-foreground'
                     : 'text-foreground dark:text-foreground-dark'
@@ -70,7 +70,7 @@ export function MapStatusChips() {
               </Text>
               <Text
                 className={cn(
-                  'text-xs',
+                  'text-sm',
                   active
                     ? 'text-primary-foreground dark:text-primary-dark-foreground'
                     : 'text-muted-foreground dark:text-muted-dark-foreground'
