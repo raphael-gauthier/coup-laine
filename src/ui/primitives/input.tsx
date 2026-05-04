@@ -5,7 +5,7 @@ interface Props extends TextInputProps {
   className?: string;
 }
 
-export function Input({ className, ...rest }: Props) {
+export function Input({ className, style, ...rest }: Props) {
   const isDark = useColorScheme() === 'dark';
   return (
     <TextInput
@@ -16,6 +16,7 @@ export function Input({ className, ...rest }: Props) {
         'px-4 py-3 text-base text-foreground dark:text-foreground-dark',
         className
       )}
+      style={[{ lineHeight: 20 }, style]}
       {...rest}
     />
   );

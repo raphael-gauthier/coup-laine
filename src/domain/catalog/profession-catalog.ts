@@ -38,11 +38,13 @@ export interface ProfessionPreset {
 export const PROFESSION_PRESETS: ProfessionPreset[] = [
   {
     id: 'tondeur_ovin',
-    label: 'Tondeur ovin',
-    speciesKeys: ['mouton'],
+    label: 'Tondeur ovin/caprin',
+    speciesKeys: ['mouton', 'chevre'],
     services: [
       { speciesKey: 'mouton', label: 'Tonte' },
       { speciesKey: 'mouton', label: 'Pédicure' },
+      { speciesKey: 'chevre', label: 'Tonte' },
+      { speciesKey: 'chevre', label: 'Pédicure' },
     ],
   },
   {

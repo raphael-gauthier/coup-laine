@@ -22,7 +22,7 @@ export default function OnboardingSpeciesScreen() {
   const router = useRouter();
   const upsertSpecies = useUpsertSpecies();
   const upsertCategory = useUpsertAnimalCategory();
-  const { data: professionIds = [] } = useUserProfessions();
+  const { data: professionIds, isSuccess } = useUserProfessions();
 
   const [enabled, setEnabled] = useState<Record<SpeciesKey, boolean>>(
     () => Object.fromEntries(SPECIES_CATALOG.map((s) => [s.key, false])) as Record<SpeciesKey, boolean>
@@ -31,8 +31,8 @@ export default function OnboardingSpeciesScreen() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (hydrated) return;
-    const fromProfessions = unionSpeciesFromProfessions(professionIds);
+    if (hydrated || !isSuccess) return;
+    const fromProfessions = unionSpeciesFromProfessions(professionIds ?? []);
     if (fromProfessions.length > 0) {
       setEnabled((prev) => {
         const next = { ...prev };
@@ -41,7 +41,7 @@ export default function OnboardingSpeciesScreen() {
       });
     }
     setHydrated(true);
-  }, [professionIds, hydrated]);
+  }, [professionIds, isSuccess, hydrated]);
 
   const onContinue = async () => {
     setSaving(true);
