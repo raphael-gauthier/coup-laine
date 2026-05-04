@@ -47,3 +47,4 @@ coverage/
 
 # Drizzle
 drizzle/.snapshots
+.grepai/
