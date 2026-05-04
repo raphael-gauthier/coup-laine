@@ -67,7 +67,7 @@ export default function CompleteTourScreen() {
   return (
     <Surface className="flex-1">
       <ScreenHeader title={t('tours.complete_title')} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 160, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
         <Text className="text-2xl font-bold">
           {format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPP', { locale: fr })}
         </Text>

@@ -107,7 +107,7 @@ export default function ProximityScreen() {
           <FlashList
             data={nearbyClients}
             keyExtractor={(c) => c.id}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 160 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
             ItemSeparatorComponent={() => <View className="h-2" />}
             renderItem={({ item }) => (
               <PressScale onPress={() => router.push(`/(tabs)/clients/${item.id}`)}>

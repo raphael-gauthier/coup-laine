@@ -85,7 +85,7 @@ export default function CloudScreen() {
         onConfirm={handleRestoreConfirmed}
         onCancel={() => setRestoreDialogName(null)}
       />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 160, gap: 12 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32, gap: 12 }}>
         <Surface variant="muted" className="rounded-2xl px-4 py-3">
           <Text variant="muted" className="text-xs">
             {t('cloud.logged_in_as', { email: session.user.email ?? '' })}

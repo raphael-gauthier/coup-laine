@@ -36,7 +36,7 @@ export default function ProximityScreen() {
   return (
     <Surface className="flex-1">
       <ScreenHeader title={t('settings.proximity.screen_title')} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 160, gap: 24 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 24 }}>
         <Slider
           value={radius}
           onChange={setRadius}

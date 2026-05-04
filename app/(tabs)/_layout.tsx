@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Users, Route, Search, Map, Settings } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useResolvedColorScheme } from '@/ui/theme/theme-provider';
 
 const TAB_THEME = {
@@ -22,6 +23,7 @@ export default function TabsLayout() {
   const { t } = useTranslation();
   const scheme = useResolvedColorScheme();
   const c = TAB_THEME[scheme];
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -34,8 +36,14 @@ export default function TabsLayout() {
           backgroundColor: c.background,
           borderTopColor: c.border,
           paddingHorizontal: 8,
-          paddingBottom: 12,
-          height: 72,
+          // Pad the tab bar with the home-indicator safe area so it doesn't
+          // sit underneath it. With a hardcoded height: 72 (no inset) iOS
+          // would leave the bar fixed at 72 and the system home indicator
+          // overlay would eat the bottom ~34px of the bar AND any screen
+          // content that React Navigation thought was 'above' the bar —
+          // which is what was clipping the bottom CTAs.
+          paddingBottom: 12 + insets.bottom,
+          height: 72 + insets.bottom,
         },
         tabBarLabelStyle: { fontWeight: '600' },
       }}
