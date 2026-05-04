@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Input } from '@/ui/primitives/input';
 import { Button } from '@/ui/primitives/button';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { errorToast } from '@/ui/components/error-toast';
 import { useTourDraftStore } from '@/state/stores/tour-draft-store';
 import { haptics } from '@/ui/motion/haptics';
@@ -45,8 +46,8 @@ export default function OptimizedConfigScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('tours.create_optimized') }} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 24, paddingBottom: 32, gap: 16 }}>
+      <ScreenHeader title={t('tours.create_optimized')} />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
 
         <Surface variant="muted" className="rounded-2xl px-4 py-3">
           <Text variant="muted" className="text-sm">{t('tours.optimized_config_help')}</Text>

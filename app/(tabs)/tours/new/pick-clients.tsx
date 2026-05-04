@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { SearchBar } from '@/ui/components/search-bar';
 import { SegmentedControl } from '@/ui/components/segmented-control';
 import { EmptyState } from '@/ui/components/empty-state';
@@ -42,9 +43,10 @@ export default function PickClientsScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('tours.pick_clients_title'), presentation: 'modal' }} />
+      <Stack.Screen options={{ presentation: 'modal' }} />
+      <ScreenHeader title={t('tours.pick_clients_title')} />
 
-      <View className="px-4 pt-3 gap-3">
+      <View className="px-4 pt-2 gap-3">
         <SearchBar value={search} onChange={setSearch} placeholder={t('clients.search_placeholder')} />
         <SegmentedControl<ClientsFilter>
           value={filter}

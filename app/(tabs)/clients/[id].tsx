@@ -1,5 +1,5 @@
 import { Linking, Pressable, View, ScrollView } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MessageSquare, Pencil, Phone, Trash2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -7,6 +7,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { ErrorState } from '@/ui/components/error-state';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm } from '@/ui/components/confirm-dialog';
 import { ClientKpiRow } from '@/ui/components/client-kpi-row';
 import { ClientStatusBadge } from '@/ui/components/client-status-badge';
@@ -51,27 +52,25 @@ export default function ClientDetailScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen
-        options={{
-          title: t('clients.detail_title'),
-          headerRight: () => (
-            <View className="flex-row gap-2">
-              <Button
-                size="sm"
-                variant="ghost"
-                onPress={() => router.push(`/(tabs)/clients/${client.id}/edit`)}
-                accessibilityLabel={t('common.edit')}
-              >
-                <Pencil size={16} />
-              </Button>
-              <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('clients.delete')}>
-                <Trash2 size={16} color="white" />
-              </Button>
-            </View>
-          ),
-        }}
+      <ScreenHeader
+        title={t('clients.detail_title')}
+        rightSlot={
+          <View className="flex-row gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onPress={() => router.push(`/(tabs)/clients/${client.id}/edit`)}
+              accessibilityLabel={t('common.edit')}
+            >
+              <Pencil size={16} />
+            </Button>
+            <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('clients.delete')}>
+              <Trash2 size={16} color="white" />
+            </Button>
+          </View>
+        }
       />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
         {/* Header */}
         <Text className="text-2xl font-bold">{client.displayName}</Text>
 

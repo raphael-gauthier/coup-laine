@@ -1,9 +1,10 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Trash2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm } from '@/ui/components/confirm-dialog';
 import { PrestationForm } from '@/ui/components/prestation-form';
 import { usePrestations } from '@/state/queries/species';
@@ -40,15 +41,13 @@ export default function EditPrestationScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen
-        options={{
-          title: t('catalogs.prestations.edit_title'),
-          headerRight: () => (
-            <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
-              <Trash2 size={16} color="white" />
-            </Button>
-          ),
-        }}
+      <ScreenHeader
+        title={t('catalogs.prestations.edit_title')}
+        rightSlot={
+          <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
+            <Trash2 size={16} color="white" />
+          </Button>
+        }
       />
       <PrestationForm
         initial={item}

@@ -1,6 +1,7 @@
 import { useRef, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MapPinOff } from 'lucide-react-native';
 
@@ -25,6 +26,7 @@ type GeoClient = Client & { latitude: number; longitude: number };
 export default function MapScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const mapRef = useRef<MapHandle>(null);
   const { data: clients = [], isError, refetch } = useClients('all');
   const { data: base } = useBaseAddress();
@@ -50,8 +52,7 @@ export default function MapScreen() {
 
   if (clients.length === 0) {
     return (
-      <Surface className="flex-1">
-        <Stack.Screen options={{ title: t('map.title') }} />
+      <Surface className="flex-1" style={{ paddingTop: insets.top }}>
         <EmptyState
           icon={<MapPinOff size={48} color="#5C4E40" />}
           title={t('map.empty_title')}
@@ -62,9 +63,7 @@ export default function MapScreen() {
   }
 
   return (
-    <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('map.title') }} />
-
+    <Surface className="flex-1" style={{ paddingTop: insets.top }}>
       {/* Status chips row */}
       <MapStatusChips />
 

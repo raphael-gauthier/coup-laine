@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
@@ -10,6 +10,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { ErrorState } from '@/ui/components/error-state';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { StopCompletionEditor } from '@/ui/components/stop-completion-editor';
 import { useTour, useCompleteWithBilan } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
@@ -63,8 +64,8 @@ export default function CompleteTourScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('tours.complete_title') }} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 16 }}>
+      <ScreenHeader title={t('tours.complete_title')} />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
         <Text className="text-2xl font-bold">
           {format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPP', { locale: fr })}
         </Text>

@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import { View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Plus, UserRound } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { motion } from '@/ui/motion/motion-tokens';
+import { PressScale } from '@/ui/motion/press-scale';
+import { haptics } from '@/ui/motion/haptics';
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
 import { Text } from '@/ui/primitives/text';
@@ -17,6 +19,7 @@ import { ClientCard } from '@/ui/components/client-card';
 import { EmptyState } from '@/ui/components/empty-state';
 import { ErrorState } from '@/ui/components/error-state';
 import { RecomputeBanner } from '@/ui/components/recompute-banner';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { ClientFilterButton } from '@/ui/components/client-status-filter-dialog';
 import { useClients, useToggleWaiting, useClientStatusMap, type ClientsFilter } from '@/state/queries/clients';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
@@ -51,26 +54,15 @@ export default function ClientsListScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen
-        options={{
-          title: t('clients.list_title'),
-          headerRight: () => (
-            <View className="flex-row items-center gap-3">
-              <ClientFilterButton />
-              <Button size="sm" onPress={() => router.push('/(tabs)/clients/new')}>
-                <Plus size={16} color="white" />
-                <Text variant="onPrimary" className="font-semibold">
-                  {t('clients.empty_cta')}
-                </Text>
-              </Button>
-            </View>
-          ),
-        }}
+      <ScreenHeader
+        variant="root"
+        title={t('clients.list_title')}
+        rightSlot={<ClientFilterButton />}
       />
 
       <RecomputeBanner />
 
-      <View className="px-4 pt-3 gap-3">
+      <View className="px-4 pt-2 gap-3">
         <SearchBar value={search} onChange={setSearch} placeholder={t('clients.search_placeholder')} />
         <SegmentedControl<ClientsFilter>
           value={filter}
@@ -106,7 +98,7 @@ export default function ClientsListScreen() {
         <FlashList
           data={filtered}
           keyExtractor={(c) => c.id}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 96 }}
           ItemSeparatorComponent={() => <View className="h-2" />}
           renderItem={({ item }) => (
             <Animated.View
@@ -123,6 +115,23 @@ export default function ClientsListScreen() {
           )}
         />
       )}
+
+      <PressScale
+        onPress={() => {
+          void haptics.selection();
+          router.push('/(tabs)/clients/new');
+        }}
+        accessibilityLabel={t('clients.empty_cta')}
+        style={{ position: 'absolute', bottom: 24, right: 24 }}
+      >
+        <Surface
+          variant="primary"
+          className="rounded-full p-4"
+          style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
+        >
+          <Plus size={24} color="white" />
+        </Surface>
+      </PressScale>
     </Surface>
   );
 }

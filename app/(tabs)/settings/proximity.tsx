@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
-import { Stack } from 'expo-router';
+import { ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
-import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { Slider } from '@/ui/primitives/slider';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { errorToast } from '@/ui/components/error-toast';
 import { useAllSettings, useSetSetting } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
@@ -36,8 +35,8 @@ export default function ProximityScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('settings.proximity.screen_title') }} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 24, paddingBottom: 32, gap: 24 }}>
+      <ScreenHeader title={t('settings.proximity.screen_title')} />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 24 }}>
         <Slider
           value={radius}
           onChange={setRadius}

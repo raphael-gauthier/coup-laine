@@ -1,8 +1,9 @@
 import { useEffect, useMemo } from 'react';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { TourDraftEditor } from '@/ui/components/tour-draft-editor';
 import { useTourDraftStore } from '@/state/stores/tour-draft-store';
 import { useUpsertTour } from '@/state/queries/tours';
@@ -34,7 +35,7 @@ export default function NewTourDraftScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('tours.new_title') }} />
+      <ScreenHeader title={t('tours.new_title')} />
       <TourDraftEditor
         initialStops={stops}
         saving={upsert.isPending}

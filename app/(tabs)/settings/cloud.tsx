@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, ScrollView } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -12,6 +12,7 @@ import { Button } from '@/ui/primitives/button';
 import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { ErrorState } from '@/ui/components/error-state';
 import { EmptyState } from '@/ui/components/empty-state';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm, ConfirmTypedDialog } from '@/ui/components/confirm-dialog';
 import { useSession, useSignOut } from '@/state/queries/auth';
 import { useBackups, useCreateBackup, useRestoreBackup, useDeleteBackup } from '@/state/queries/backups';
@@ -31,7 +32,7 @@ export default function CloudScreen() {
   if (!session) {
     return (
       <Surface className="flex-1">
-        <Stack.Screen options={{ title: t('cloud.screen_title') }} />
+        <ScreenHeader title={t('cloud.screen_title')} />
         <View className="flex-1 px-6 items-center justify-center gap-6">
           <Text className="text-center" variant="muted">{t('cloud.row_hint_logged_out')}</Text>
           <Button onPress={() => router.push('/auth/login' as never)}>
@@ -71,7 +72,7 @@ export default function CloudScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('cloud.screen_title') }} />
+      <ScreenHeader title={t('cloud.screen_title')} />
       <ConfirmTypedDialog
         visible={restoreDialogName != null}
         title={t('cloud.restore_confirm_title')}

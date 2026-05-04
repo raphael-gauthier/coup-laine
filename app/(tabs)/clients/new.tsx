@@ -1,6 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { ClientForm } from '@/ui/components/client-form';
 import { useUpsertClient } from '@/state/queries/clients';
 import { haptics } from '@/ui/motion/haptics';
@@ -13,7 +14,9 @@ export default function NewClientScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('clients.new_title'), presentation: 'modal' }} />
+      <Stack.Screen options={{ presentation: 'modal' }} />
+      <ScreenHeader title={t('clients.new_title')} />
+
       <ClientForm
         saving={upsert.isPending}
         onCancel={() => router.back()}

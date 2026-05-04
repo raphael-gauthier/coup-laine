@@ -1,8 +1,9 @@
 import { ScrollView } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
 import { SectionHeader } from '@/ui/primitives/section-header';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { SettingsRow } from '@/ui/components/settings-row';
 import { useSession } from '@/state/queries/auth';
 
@@ -13,7 +14,7 @@ export default function SettingsScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('settings.title') }} />
+      <ScreenHeader variant="root" title={t('settings.title')} />
       <ScrollView contentContainerClassName="px-4 pb-8">
 
         <SectionHeader title={t('settings.section_app')} />

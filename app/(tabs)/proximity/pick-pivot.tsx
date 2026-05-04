@@ -5,6 +5,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { SearchBar } from '@/ui/components/search-bar';
 import { ClientCard } from '@/ui/components/client-card';
 import { EmptyState } from '@/ui/components/empty-state';
@@ -35,8 +36,9 @@ export default function PickPivotScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('proximity.pick_pivot_title'), presentation: 'modal' }} />
-      <View className="px-4 pt-3">
+      <Stack.Screen options={{ presentation: 'modal' }} />
+      <ScreenHeader title={t('proximity.pick_pivot_title')} />
+      <View className="px-4 pt-2">
         <SearchBar value={search} onChange={setSearch} placeholder={t('clients.search_placeholder')} />
       </View>
       {filtered.length === 0 ? (

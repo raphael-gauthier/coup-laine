@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { View } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Plus, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
-import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { useAnimalCategories } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
 
@@ -21,24 +21,11 @@ export default function CategoriesListScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen
-        options={{
-          title: t('catalogs.categories.list_title'),
-          headerRight: () => (
-            <Button
-              size="sm"
-              onPress={() => router.push(`/(tabs)/settings/species/${id}/categories/new` as never)}
-            >
-              <Plus size={16} color="white" />
-              <Text variant="onPrimary" className="font-semibold">{t('catalogs.categories.new_title')}</Text>
-            </Button>
-          ),
-        }}
-      />
+      <ScreenHeader title={t('catalogs.categories.list_title')} />
       <FlashList
         data={items}
         keyExtractor={(c) => c.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 96 }}
         ItemSeparatorComponent={() => <View className="h-2" />}
         renderItem={({ item }) => (
           <PressScale
@@ -56,6 +43,23 @@ export default function CategoriesListScreen() {
           </PressScale>
         )}
       />
+
+      <PressScale
+        onPress={() => {
+          void haptics.selection();
+          router.push(`/(tabs)/settings/species/${id}/categories/new` as never);
+        }}
+        accessibilityLabel={t('catalogs.categories.new_title')}
+        style={{ position: 'absolute', bottom: 24, right: 24 }}
+      >
+        <Surface
+          variant="primary"
+          className="rounded-full p-4"
+          style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
+        >
+          <Plus size={24} color="white" />
+        </Surface>
+      </PressScale>
     </Surface>
   );
 }

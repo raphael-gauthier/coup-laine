@@ -1,5 +1,5 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { Pencil, Trash2, CircleCheck } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { ErrorState } from '@/ui/components/error-state';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm } from '@/ui/components/confirm-dialog';
 import { errorToast } from '@/ui/components/error-toast';
 import { TourKpiRow } from '@/ui/components/tour-kpi-row';
@@ -65,29 +66,27 @@ export default function TourDetailScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen
-        options={{
-          title: t('tours.detail_title'),
-          headerRight: () => (
-            <View className="flex-row gap-2">
-              {tour.status !== 'completed' ? (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onPress={() => router.push(`/(tabs)/tours/${tour.id}/edit` as never)}
-                  accessibilityLabel={t('common.edit')}
-                >
-                  <Pencil size={16} />
-                </Button>
-              ) : null}
-              <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('tours.delete')}>
-                <Trash2 size={16} color="white" />
+      <ScreenHeader
+        title={t('tours.detail_title')}
+        rightSlot={
+          <View className="flex-row gap-2">
+            {tour.status !== 'completed' ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                onPress={() => router.push(`/(tabs)/tours/${tour.id}/edit` as never)}
+                accessibilityLabel={t('common.edit')}
+              >
+                <Pencil size={16} />
               </Button>
-            </View>
-          ),
-        }}
+            ) : null}
+            <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('tours.delete')}>
+              <Trash2 size={16} color="white" />
+            </Button>
+          </View>
+        }
       />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 16 }}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
         {/* Header date + status */}
         <Text className="text-2xl font-bold">
           {format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPPp', { locale: fr })}

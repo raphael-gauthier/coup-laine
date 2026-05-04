@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { PressScale } from '@/ui/motion/press-scale';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { ColorPickerSheet } from '@/ui/components/color-picker-sheet';
 import { errorToast } from '@/ui/components/error-toast';
 import { useAllSettings, useSetSetting, type SettingKey } from '@/state/queries/settings';
@@ -67,8 +67,8 @@ export default function MarkerColorsScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('settings.marker_colors.screen_title') }} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 8 }}>
+      <ScreenHeader title={t('settings.marker_colors.screen_title')} />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 8 }}>
         {STATUS_ROWS.map(({ status, labelKey }) => {
           const currentHex = getHex(status);
           const fallbackHex = getFallbackHex(status);

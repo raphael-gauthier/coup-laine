@@ -1,20 +1,21 @@
 import { useState } from 'react';
 import { View, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Plus, Route as RouteIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { motion } from '@/ui/motion/motion-tokens';
+import { PressScale } from '@/ui/motion/press-scale';
+import { haptics } from '@/ui/motion/haptics';
 import { Surface } from '@/ui/primitives/surface';
-import { Button } from '@/ui/primitives/button';
-import { Text } from '@/ui/primitives/text';
 import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { SegmentedControl } from '@/ui/components/segmented-control';
 import { TourCard } from '@/ui/components/tour-card';
 import { EmptyState } from '@/ui/components/empty-state';
 import { ErrorState } from '@/ui/components/error-state';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { useTours } from '@/state/queries/tours';
 import type { TourStatus } from '@/domain/models/tour';
 
@@ -27,27 +28,20 @@ export default function ToursListScreen() {
 
   const { data: tours = [], isError, isLoading, refetch } = useTours(filter as TourStatus);
 
+  const onCreate = () => {
+    void haptics.selection();
+    Alert.alert(t('tours.empty_cta'), undefined, [
+      { text: t('tours.create_manual'), onPress: () => router.push('/(tabs)/tours/new/draft' as never) },
+      { text: t('tours.create_optimized'), onPress: () => router.push('/(tabs)/tours/new/optimized' as never) },
+      { text: t('common.cancel'), style: 'cancel' },
+    ]);
+  };
+
   return (
     <Surface className="flex-1">
-      <Stack.Screen
-        options={{
-          title: t('tours.list_title'),
-          headerRight: () => (
-            <Button size="sm" onPress={() => {
-              Alert.alert(t('tours.empty_cta'), undefined, [
-                { text: t('tours.create_manual'), onPress: () => router.push('/(tabs)/tours/new/draft' as never) },
-                { text: t('tours.create_optimized'), onPress: () => router.push('/(tabs)/tours/new/optimized' as never) },
-                { text: t('common.cancel'), style: 'cancel' },
-              ]);
-            }}>
-              <Plus size={16} color="white" />
-              <Text variant="onPrimary" className="font-semibold">{t('tours.empty_cta')}</Text>
-            </Button>
-          ),
-        }}
-      />
+      <ScreenHeader variant="root" title={t('tours.list_title')} />
 
-      <View className="px-4 pt-3">
+      <View className="px-4 pt-1">
         <SegmentedControl<Filter>
           value={filter}
           onChange={setFilter}
@@ -72,7 +66,7 @@ export default function ToursListScreen() {
         <FlashList
           data={tours}
           keyExtractor={(t) => t.tour.id}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 96 }}
           ItemSeparatorComponent={() => <View className="h-2" />}
           renderItem={({ item }) => (
             <Animated.View
@@ -89,6 +83,20 @@ export default function ToursListScreen() {
           )}
         />
       )}
+
+      <PressScale
+        onPress={onCreate}
+        accessibilityLabel={t('tours.empty_cta')}
+        style={{ position: 'absolute', bottom: 24, right: 24 }}
+      >
+        <Surface
+          variant="primary"
+          className="rounded-full p-4"
+          style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
+        >
+          <Plus size={24} color="white" />
+        </Surface>
+      </PressScale>
     </Surface>
   );
 }

@@ -1,5 +1,5 @@
 import { View, ScrollView } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Trash2, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +8,7 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
 import { ErrorState } from '@/ui/components/error-state';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm } from '@/ui/components/confirm-dialog';
 import { SpeciesForm } from '@/ui/components/species-form';
 import { useSpecies } from '@/state/queries/species';
@@ -45,16 +46,15 @@ export default function EditSpeciesScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen
-        options={{
-          title: t('catalogs.species.edit_title'),
-          headerRight: () =>
-            item.isCustom ? (
-              <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
-                <Trash2 size={16} color="white" />
-              </Button>
-            ) : null,
-        }}
+      <ScreenHeader
+        title={t('catalogs.species.edit_title')}
+        rightSlot={
+          item.isCustom ? (
+            <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('common.delete')}>
+              <Trash2 size={16} color="white" />
+            </Button>
+          ) : undefined
+        }
       />
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <SpeciesForm

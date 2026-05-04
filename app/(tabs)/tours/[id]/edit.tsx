@@ -1,8 +1,9 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { TourDraftEditor } from '@/ui/components/tour-draft-editor';
 import { ErrorState } from '@/ui/components/error-state';
 import { useTour, useUpsertTour } from '@/state/queries/tours';
@@ -51,7 +52,7 @@ export default function EditTourScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('tours.edit_title') }} />
+      <ScreenHeader title={t('tours.edit_title')} />
       <TourDraftEditor
         initialId={data.tour.id}
         initialDate={data.tour.scheduledDate}

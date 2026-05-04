@@ -1,17 +1,18 @@
 import { View } from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Plus, History as HistoryIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { motion } from '@/ui/motion/motion-tokens';
+import { PressScale } from '@/ui/motion/press-scale';
+import { haptics } from '@/ui/motion/haptics';
 import { Surface } from '@/ui/primitives/surface';
-import { Button } from '@/ui/primitives/button';
-import { Text } from '@/ui/primitives/text';
 import { EmptyState } from '@/ui/components/empty-state';
 import { ErrorState } from '@/ui/components/error-state';
 import { HistoryRow } from '@/ui/components/history-row';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { useClientHistory } from '@/state/queries/history';
 
 export default function ClientHistoryScreen() {
@@ -24,19 +25,7 @@ export default function ClientHistoryScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen
-        options={{
-          title: t('history.title'),
-          headerRight: () => (
-            <Button size="sm" onPress={() => router.push(`/(tabs)/clients/${id}/history/new` as never)}>
-              <Plus size={16} color="white" />
-              <Text variant="onPrimary" className="font-semibold">
-                {t('history.manual.new_title')}
-              </Text>
-            </Button>
-          ),
-        }}
-      />
+      <ScreenHeader title={t('history.title')} />
       {entries.length === 0 ? (
         <EmptyState
           icon={<HistoryIcon size={48} color="#5C4E40" />}
@@ -47,7 +36,7 @@ export default function ClientHistoryScreen() {
         <FlashList
           data={entries}
           keyExtractor={(e) => `${e.source}-${e.tourStopId ?? e.manualEntryId}`}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 24 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 96 }}
           ItemSeparatorComponent={() => <View className="h-2" />}
           renderItem={({ item }) => (
             <Animated.View
@@ -69,6 +58,23 @@ export default function ClientHistoryScreen() {
           )}
         />
       )}
+
+      <PressScale
+        onPress={() => {
+          void haptics.selection();
+          router.push(`/(tabs)/clients/${id}/history/new` as never);
+        }}
+        accessibilityLabel={t('history.manual.new_title')}
+        style={{ position: 'absolute', bottom: 24, right: 24 }}
+      >
+        <Surface
+          variant="primary"
+          className="rounded-full p-4"
+          style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
+        >
+          <Plus size={24} color="white" />
+        </Surface>
+      </PressScale>
     </Surface>
   );
 }

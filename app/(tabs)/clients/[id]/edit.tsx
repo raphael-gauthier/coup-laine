@@ -1,6 +1,7 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { ClientForm } from '@/ui/components/client-form';
 import { ErrorState } from '@/ui/components/error-state';
 import { useClient, useUpsertClient } from '@/state/queries/clients';
@@ -19,7 +20,7 @@ export default function EditClientScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('clients.edit_title') }} />
+      <ScreenHeader title={t('clients.edit_title')} />
       <ClientForm
         initial={client}
         saving={upsert.isPending}

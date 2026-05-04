@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { AddressAutocompleteInput } from '@/ui/components/address-autocomplete-input';
 import { useBaseAddress, useSetBaseAddress, type BaseAddress } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
@@ -42,8 +42,8 @@ export default function BaseScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('settings.base.screen_title') }} />
-      <ScrollView contentContainerClassName="px-4 pt-4 gap-4" keyboardShouldPersistTaps="handled">
+      <ScreenHeader title={t('settings.base.screen_title')} />
+      <ScrollView contentContainerClassName="px-4 pt-2 gap-4" keyboardShouldPersistTaps="handled">
         {current && (
           <Surface variant="muted" className="rounded-2xl px-4 py-3">
             <Text variant="muted" className="text-sm">{t('settings.base.current_label')}</Text>

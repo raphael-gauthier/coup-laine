@@ -3,8 +3,7 @@ export default function ToursLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: 'transparent' },
+        headerShown: false,
         animation: 'slide_from_right',
       }}
     />

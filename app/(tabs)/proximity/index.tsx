@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react';
 import { View } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Search, ChevronRight } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -9,6 +9,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { Slider } from '@/ui/primitives/slider';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { SegmentedControl } from '@/ui/components/segmented-control';
 import { EmptyState } from '@/ui/components/empty-state';
 import { Map, type MapHandle } from '@/ui/components/map';
@@ -49,7 +50,7 @@ export default function ProximityScreen() {
   if (!pivot) {
     return (
       <Surface className="flex-1">
-        <Stack.Screen options={{ title: t('proximity.title') }} />
+        <ScreenHeader variant="root" title={t('proximity.title')} />
         <EmptyState
           icon={<Search size={48} color="#5C4E40" />}
           title={t('proximity.no_pivot_title')}
@@ -66,9 +67,9 @@ export default function ProximityScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('proximity.title') }} />
+      <ScreenHeader variant="root" title={t('proximity.title')} />
 
-      <View className="px-4 pt-3 gap-3">
+      <View className="px-4 pt-2 gap-3">
         <PressScale onPress={() => router.push('/(tabs)/proximity/pick-pivot')}>
           <Surface variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
             <View className="flex-1">

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Plus, ChevronRight, ChevronDown } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -9,6 +9,7 @@ import { Text } from '@/ui/primitives/text';
 import { SectionHeader } from '@/ui/primitives/section-header';
 import { PressScale } from '@/ui/motion/press-scale';
 import { ErrorState } from '@/ui/components/error-state';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { usePrestations, useAnimalCategories, useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
 
@@ -58,7 +59,7 @@ export default function PrestationsListScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('catalogs.prestations.list_title') }} />
+      <ScreenHeader title={t('catalogs.prestations.list_title')} />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 96 }}>
 
         {Array.from(grouped.bySpecies.entries()).map(([spId, spGroup]) => (

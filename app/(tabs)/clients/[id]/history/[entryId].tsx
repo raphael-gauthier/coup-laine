@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View } from 'react-native';
 import { Trash2 } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { ManualHistoryForm } from '@/ui/components/manual-history-form';
 import { Button } from '@/ui/primitives/button';
 import { ErrorState } from '@/ui/components/error-state';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm } from '@/ui/components/confirm-dialog';
 import {
   useUpsertManualHistoryEntry,
@@ -46,17 +47,15 @@ export default function EditManualHistoryScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen
-        options={{
-          title: t('history.manual.edit_title'),
-          headerRight: () => (
-            <View className="flex-row gap-2">
-              <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('history.manual.delete')}>
-                <Trash2 size={16} color="white" />
-              </Button>
-            </View>
-          ),
-        }}
+      <ScreenHeader
+        title={t('history.manual.edit_title')}
+        rightSlot={
+          <View className="flex-row gap-2">
+            <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('history.manual.delete')}>
+              <Trash2 size={16} color="white" />
+            </Button>
+          </View>
+        }
       />
       <ManualHistoryForm
         initial={entry}

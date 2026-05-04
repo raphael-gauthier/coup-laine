@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
-import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Input } from '@/ui/primitives/input';
 import { Button } from '@/ui/primitives/button';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { errorToast } from '@/ui/components/error-toast';
 import { useAllSettings, useSetSetting } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
@@ -71,8 +71,8 @@ export default function TourRateScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('settings.tour_rate.screen_title') }} />
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 24, paddingBottom: 32, gap: 16 }}>
+      <ScreenHeader title={t('settings.tour_rate.screen_title')} />
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
 
         <View className="gap-2">
           <Text className="text-sm font-medium">{t('settings.tour_rate.rate_per_km_label')}</Text>

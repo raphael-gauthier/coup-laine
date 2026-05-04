@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { ActivityIndicator, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { ErrorState } from '@/ui/components/error-state';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { useTourDraftStore } from '@/state/stores/tour-draft-store';
 import { useClients } from '@/state/queries/clients';
 import { useBaseAddress } from '@/state/queries/settings';
@@ -91,10 +92,12 @@ export default function OptimizedTourScreen() {
 
   if (resolve.isPending) {
     return (
-      <Surface className="flex-1 items-center justify-center gap-4">
-        <Stack.Screen options={{ title: t('tours.create_optimized') }} />
-        <ActivityIndicator size="large" />
-        <Text variant="muted">{t('tours.optimizing')}</Text>
+      <Surface className="flex-1">
+        <ScreenHeader title={t('tours.create_optimized')} />
+        <View className="flex-1 items-center justify-center gap-4">
+          <ActivityIndicator size="large" />
+          <Text variant="muted">{t('tours.optimizing')}</Text>
+        </View>
       </Surface>
     );
   }
@@ -109,7 +112,7 @@ export default function OptimizedTourScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('tours.create_optimized') }} />
+      <ScreenHeader title={t('tours.create_optimized')} />
       {isEstimate ? (
         <Surface variant="muted" className="mx-4 mt-3 rounded-2xl px-4 py-3">
           <Text variant="muted" className="text-sm">{t('tours.ors_unavailable')}</Text>

@@ -4,8 +4,7 @@ export default function SettingsLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
-        headerStyle: { backgroundColor: 'transparent' },
+        headerShown: false,
         animation: 'slide_from_right',
       }}
     />

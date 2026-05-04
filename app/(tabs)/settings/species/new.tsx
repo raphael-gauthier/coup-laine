@@ -1,6 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
+import { ScreenHeader } from '@/ui/components/screen-header';
 import { SpeciesForm } from '@/ui/components/species-form';
 import { useUpsertSpecies } from '@/state/queries/catalogs';
 import { haptics } from '@/ui/motion/haptics';
@@ -12,7 +13,8 @@ export default function NewSpeciesScreen() {
 
   return (
     <Surface className="flex-1">
-      <Stack.Screen options={{ title: t('catalogs.species.new_title'), presentation: 'modal' }} />
+      <Stack.Screen options={{ presentation: 'modal' }} />
+      <ScreenHeader title={t('catalogs.species.new_title')} />
       <SpeciesForm
         saving={upsert.isPending}
         onCancel={() => router.back()}
