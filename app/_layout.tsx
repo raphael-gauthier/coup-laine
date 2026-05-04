@@ -32,7 +32,6 @@ function App() {
   useEffect(() => {
     if (Platform.OS === 'android') {
       void NavigationBar.setVisibilityAsync('hidden');
-      void NavigationBar.setBehaviorAsync('overlay-swipe');
     }
   }, []);
 
