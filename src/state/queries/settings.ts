@@ -8,7 +8,7 @@ const repo = new SettingsRepository(db);
 const sync = new DistanceMatrixSync(db);
 
 export const SETTINGS_KEYS_LIST = [
-  'proximity_radius_km', 'tour_rate_eur_per_km', 'tour_min_fee_eur',
+  'proximity_radius_km', 'tour_bracket_km', 'tour_fee_eur_per_bracket',
   'season_started_at',
   'marker_default_color', 'marker_waiting_color', 'marker_scheduled_color',
   'marker_done_color', 'marker_no_animals_color', 'marker_banned_color',

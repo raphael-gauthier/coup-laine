@@ -78,6 +78,11 @@ export function TourCard({ tour, stopCount, onPress }: Props) {
             <Text variant="muted" className="text-xs">
               {formatEur(kpis.revenueCents)}
             </Text>
+            {kpis.travelFeeCents > 0 ? (
+              <Text variant="muted" className="text-xs">
+                {t('tours.kpi_travel_fees')}: {formatEur(kpis.travelFeeCents)}
+              </Text>
+            ) : null}
           </View>
         ) : (
           <Text variant="muted" className="text-xs">

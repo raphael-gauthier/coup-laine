@@ -38,6 +38,7 @@ export interface UpsertTourStopInput {
   plannedServices: TourStop['plannedServices'];
   arrivalMinutes: number | null;
   estimatedMinutes: number | null;
+  feeShareCents: number | null;
   notes: string | null;
 }
 
@@ -51,6 +52,7 @@ export interface UpsertTourInput {
   stops: UpsertTourStopInput[];
   totalDistanceKm: number | null;
   totalMinutes: number | null;
+  totalTravelFeeCents: number | null;
 }
 
 export function useUpsertTour() {
@@ -72,7 +74,7 @@ export function useUpsertTour() {
         totalMinutes: input.totalMinutes,
         totalRevenueCents: existing?.tour.totalRevenueCents ?? null,
         totalAnimalsCount: existing?.tour.totalAnimalsCount ?? null,
-        totalTravelFeeCents: existing?.tour.totalTravelFeeCents ?? null,
+        totalTravelFeeCents: input.totalTravelFeeCents ?? existing?.tour.totalTravelFeeCents ?? null,
         routeGeometry: existing?.tour.routeGeometry ?? null,
         notes: existing?.tour.notes ?? null,
         completedAt: existing?.tour.completedAt ?? null,
@@ -88,7 +90,7 @@ export function useUpsertTour() {
         arrivalMinutes: s.arrivalMinutes,
         departureMinutes: null,
         estimatedMinutes: s.estimatedMinutes,
-        feeShareCents: null,
+        feeShareCents: s.feeShareCents,
         plannedServices: s.plannedServices,
         actualServices: null,
         notes: s.notes,

@@ -24,7 +24,17 @@ export function TourRoutePolyline({ coords }: Props) {
     }
     let cancelled = false;
     void fetchRouteGeometry(coords).then((g) => {
-      if (!cancelled) setGeometry(g);
+      if (cancelled) return;
+      if (g) {
+        setGeometry(g);
+      } else {
+        // ORS unavailable → fall back to straight-line polyline so the user
+        // still sees the planned order. Same behaviour as the Flutter MiniMap.
+        setGeometry({
+          type: 'LineString',
+          coordinates: coords.map((c) => [c.lon, c.lat]),
+        });
+      }
     });
     return () => {
       cancelled = true;

@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { View, Platform } from 'react-native';
+import { View, Platform, StyleSheet } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { GripVertical, Trash2, Plus, ChevronRight, AlertTriangle } from 'lucide-react-native';
+import { GripVertical, Trash2, Plus, ChevronRight, AlertTriangle, Home } from 'lucide-react-native';
+import { Marker } from '@maplibre/maplibre-react-native';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -14,11 +15,14 @@ import { formatMinutes } from '@/lib/format-minutes';
 import { DraggableList } from '@/ui/components/draggable-list';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { confirm } from '@/ui/components/confirm-dialog';
+import { Map } from '@/ui/components/map';
+import { ClientPin } from '@/ui/components/client-pin';
+import { TourRoutePolyline } from '@/ui/components/tour-route-polyline';
 import { useClients } from '@/state/queries/clients';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
 import { splitTravelCost } from '@/domain/use-cases/cost-split-calculator';
-import { useBaseAddress } from '@/state/queries/settings';
+import { useBaseAddress, useAllSettings } from '@/state/queries/settings';
 import type { TourStatus } from '@/domain/models/tour';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 
@@ -42,6 +46,8 @@ interface Props {
     stops: DraftStop[];
     totalDistanceKm: number;
     totalMinutes: number;
+    totalTravelFeeCents: number;
+    feeShareCentsByClient: Record<string, number>;
   }) => void;
   onAddClients: () => void;
   onRemoveStop: (clientId: string) => void;
@@ -49,8 +55,8 @@ interface Props {
   onUpdateStopServices?: (clientId: string, prests: TourStopService[]) => void;
 }
 
-const PRICE_PER_BRACKET = 8;
-const BRACKET_KM = 10;
+const DEFAULT_BRACKET_KM = 10;
+const DEFAULT_FEE_PER_BRACKET = 8;
 
 export function TourDraftEditor({
   initialStops, initialDate, initialTime,
@@ -65,6 +71,9 @@ export function TourDraftEditor({
 
   const { data: clients = [] } = useClients('all');
   const { data: base } = useBaseAddress();
+  const { data: allSettings } = useAllSettings();
+  const bracketKm = parseFloat(allSettings?.tour_bracket_km ?? '') || DEFAULT_BRACKET_KM;
+  const feePerBracket = parseFloat(allSettings?.tour_fee_eur_per_bracket ?? '') || DEFAULT_FEE_PER_BRACKET;
   const [pickerClientId, setPickerClientId] = useState<string | null>(null);
 
   const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
@@ -133,11 +142,11 @@ export function TourDraftEditor({
     return splitTravelCost({
       baseToStopDistancesKm,
       interStopDistancesKm,
-      pricePerBracket: PRICE_PER_BRACKET,
-      bracketSizeKm: BRACKET_KM,
+      pricePerBracket: feePerBracket,
+      bracketSizeKm: bracketKm,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialStops, base, clients]);
+  }, [initialStops, base, clients, bracketKm, feePerBracket]);
 
   const submit = async () => {
     if (initialStops.length === 0) return;
@@ -151,6 +160,10 @@ export function TourDraftEditor({
       });
       if (!ok) return;
     }
+    const feeShareCentsByClient: Record<string, number> = {};
+    initialStops.forEach((s, i) => {
+      feeShareCentsByClient[s.clientId] = Math.round((split.perStop[i] ?? 0) * 100);
+    });
     onSubmit({
       scheduledDate: format(date, 'yyyy-MM-dd'),
       departureTime: time,
@@ -161,11 +174,54 @@ export function TourDraftEditor({
       })),
       totalDistanceKm,
       totalMinutes,
+      totalTravelFeeCents: Math.round(split.totalEuros * 100),
+      feeShareCentsByClient,
     });
   };
 
+  const routeCoords = useMemo(() => {
+    if (!base) return [];
+    const stopsWithCoords = initialStops
+      .map((s) => {
+        const c = clientsById.get(s.clientId);
+        if (c?.latitude == null || c?.longitude == null) return null;
+        return { id: s.clientId, lat: c.latitude, lon: c.longitude };
+      })
+      .filter((x): x is { id: string; lat: number; lon: number } => x !== null);
+    if (stopsWithCoords.length === 0) return [];
+    return [
+      { id: 'BASE', lat: base.lat, lon: base.lon },
+      ...stopsWithCoords,
+      { id: 'BASE-end', lat: base.lat, lon: base.lon },
+    ];
+  }, [base, initialStops, clientsById]);
+
   const Header = (
     <View style={{ gap: 16, paddingTop: 16, paddingBottom: 8 }}>
+      {base && routeCoords.length > 0 ? (
+        <View style={styles.mapContainer}>
+          <Map initialCenter={{ lat: base.lat, lon: base.lon }} initialZoom={9}>
+            <TourRoutePolyline coords={routeCoords} />
+            <Marker id="pin-base" lngLat={[base.lon, base.lat]} anchor="bottom">
+              <View style={styles.basePin}>
+                <Home size={14} color="#FAF6F0" />
+              </View>
+            </Marker>
+            {initialStops.map((s) => {
+              const c = clientsById.get(s.clientId);
+              if (c?.latitude == null || c?.longitude == null) return null;
+              return (
+                <ClientPin
+                  key={s.clientId}
+                  client={{ ...c, latitude: c.latitude, longitude: c.longitude }}
+                  onPress={() => {}}
+                />
+              );
+            })}
+          </Map>
+        </View>
+      ) : null}
+
       <View className="gap-2">
         <Text className="text-sm font-medium">{t('tours.scheduled_date')}</Text>
         <PressScale onPress={() => setShowDatePicker(true)}>
@@ -335,3 +391,21 @@ export function TourDraftEditor({
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  mapContainer: {
+    height: 200,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  basePin: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: '#FAF6F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#A1602F',
+  },
+});

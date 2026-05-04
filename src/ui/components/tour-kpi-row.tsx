@@ -35,11 +35,16 @@ export function TourKpiRow({ tourId }: Props) {
   if (!kpis) return null;
 
   return (
-    <View className="flex-row gap-2">
-      <KpiTile label={t('tours.kpi_stops')} value={String(kpis.stopCount)} />
-      <KpiTile label={t('tours.kpi_animals_title')} value={String(kpis.animalsTotal)} />
-      <KpiTile label={t('tours.kpi_revenue')} value={formatEur(kpis.revenueCents)} />
-      <KpiTile label={t('tours.kpi_duration')} value={formatMinutes(kpis.durationMinutes)} />
+    <View className="gap-2">
+      <View className="flex-row gap-2">
+        <KpiTile label={t('tours.kpi_stops')} value={String(kpis.stopCount)} />
+        <KpiTile label={t('tours.kpi_animals_title')} value={String(kpis.animalsTotal)} />
+        <KpiTile label={t('tours.kpi_duration')} value={formatMinutes(kpis.durationMinutes)} />
+      </View>
+      <View className="flex-row gap-2">
+        <KpiTile label={t('tours.kpi_revenue')} value={formatEur(kpis.revenueCents)} />
+        <KpiTile label={t('tours.kpi_travel_fees')} value={formatEur(kpis.travelFeeCents)} />
+      </View>
     </View>
   );
 }

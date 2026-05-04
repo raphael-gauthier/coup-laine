@@ -201,6 +201,7 @@
     "kpi_animals_title": "Animaux",
     "kpi_revenue": "Chiffre d'affaires",
     "kpi_duration": "Durée",
+    "kpi_travel_fees": "Frais déplacement",
     "kpi_total": "Total",
     "bilan_intro": "Vérifie et ajuste les prestations réalisées pour chaque étape.",
     "bilan_planned": "Prévu",
@@ -327,13 +328,15 @@
       "save_failed": "Enregistrement impossible"
     },
     "tour_rate": {
-      "row_label": "Tarif kilométrique",
-      "row_hint": "€/km + minimum",
-      "screen_title": "Tarif kilométrique",
-      "rate_per_km_label": "Tarif (€/km)",
-      "min_fee_label": "Minimum (€)",
-      "error_rate": "Doit être un nombre positif.",
-      "error_min_fee": "Doit être un nombre positif.",
+      "row_label": "Frais kilométriques",
+      "row_hint": "Tranches de km × forfait",
+      "screen_title": "Frais kilométriques",
+      "bracket_km_label": "Tranche (km)",
+      "bracket_km_hint": "Distance facturée par tranche",
+      "fee_per_bracket_label": "Forfait par tranche (€)",
+      "fee_per_bracket_hint": "Coût par tranche entamée",
+      "error_bracket": "Doit être un nombre positif.",
+      "error_fee": "Doit être un nombre positif.",
       "save_failed": "Enregistrement impossible"
     },
     "season": {

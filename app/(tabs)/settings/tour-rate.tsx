@@ -16,49 +16,47 @@ export default function TourRateScreen() {
   const { data: settings } = useAllSettings();
   const setSettingMutation = useSetSetting();
 
-  const [ratePerKm, setRatePerKm] = useState(
-    settings?.tour_rate_eur_per_km ?? '0.5'
+  const [bracketKm, setBracketKm] = useState(settings?.tour_bracket_km ?? '10');
+  const [feePerBracket, setFeePerBracket] = useState(
+    settings?.tour_fee_eur_per_bracket ?? '8'
   );
-  const [minFee, setMinFee] = useState(
-    settings?.tour_min_fee_eur ?? '5'
-  );
-  const [rateTouched, setRateTouched] = useState(false);
-  const [minFeeTouched, setMinFeeTouched] = useState(false);
+  const [bracketTouched, setBracketTouched] = useState(false);
+  const [feeTouched, setFeeTouched] = useState(false);
 
   const errors = useMemo(() => {
-    const out: { ratePerKm?: string; minFee?: string } = {};
-    const r = parseFloat(ratePerKm.replace(',', '.'));
-    if (!ratePerKm.trim() || isNaN(r) || r <= 0) {
-      out.ratePerKm = t('settings.tour_rate.error_rate');
+    const out: { bracket?: string; fee?: string } = {};
+    const b = parseFloat(bracketKm.replace(',', '.'));
+    if (!bracketKm.trim() || isNaN(b) || b <= 0) {
+      out.bracket = t('settings.tour_rate.error_bracket');
     }
-    const m = parseFloat(minFee.replace(',', '.'));
-    if (!minFee.trim() || isNaN(m) || m <= 0) {
-      out.minFee = t('settings.tour_rate.error_min_fee');
+    const f = parseFloat(feePerBracket.replace(',', '.'));
+    if (!feePerBracket.trim() || isNaN(f) || f <= 0) {
+      out.fee = t('settings.tour_rate.error_fee');
     }
     return out;
-  }, [ratePerKm, minFee, t]);
+  }, [bracketKm, feePerBracket, t]);
 
-  const canSubmit = !errors.ratePerKm && !errors.minFee && !setSettingMutation.isPending;
+  const canSubmit = !errors.bracket && !errors.fee && !setSettingMutation.isPending;
 
   const onSave = async () => {
-    setRateTouched(true);
-    setMinFeeTouched(true);
+    setBracketTouched(true);
+    setFeeTouched(true);
     if (!canSubmit) {
       void haptics.error();
       return;
     }
-    const rateVal = String(parseFloat(ratePerKm.replace(',', '.')));
-    const minVal = String(parseFloat(minFee.replace(',', '.')));
+    const bracketVal = String(parseFloat(bracketKm.replace(',', '.')));
+    const feeVal = String(parseFloat(feePerBracket.replace(',', '.')));
 
     try {
       await new Promise<void>((resolve, reject) => {
-        setSettingMutation.mutate({ key: 'tour_rate_eur_per_km', value: rateVal }, {
+        setSettingMutation.mutate({ key: 'tour_bracket_km', value: bracketVal }, {
           onSuccess: () => resolve(),
           onError: reject,
         });
       });
       await new Promise<void>((resolve, reject) => {
-        setSettingMutation.mutate({ key: 'tour_min_fee_eur', value: minVal }, {
+        setSettingMutation.mutate({ key: 'tour_fee_eur_per_bracket', value: feeVal }, {
           onSuccess: () => resolve(),
           onError: reject,
         });
@@ -75,30 +73,32 @@ export default function TourRateScreen() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
 
         <View className="gap-2">
-          <Text className="text-sm font-medium">{t('settings.tour_rate.rate_per_km_label')}</Text>
+          <Text className="text-sm font-medium">{t('settings.tour_rate.bracket_km_label')}</Text>
           <Input
-            value={ratePerKm}
-            onChangeText={setRatePerKm}
-            onBlur={() => setRateTouched(true)}
+            value={bracketKm}
+            onChangeText={setBracketKm}
+            onBlur={() => setBracketTouched(true)}
             keyboardType="decimal-pad"
-            placeholder="0,50"
+            placeholder="10"
           />
-          {rateTouched && errors.ratePerKm ? (
-            <Text className="text-sm text-danger dark:text-danger-dark">{errors.ratePerKm}</Text>
+          <Text variant="muted" className="text-xs">{t('settings.tour_rate.bracket_km_hint')}</Text>
+          {bracketTouched && errors.bracket ? (
+            <Text className="text-sm text-danger dark:text-danger-dark">{errors.bracket}</Text>
           ) : null}
         </View>
 
         <View className="gap-2">
-          <Text className="text-sm font-medium">{t('settings.tour_rate.min_fee_label')}</Text>
+          <Text className="text-sm font-medium">{t('settings.tour_rate.fee_per_bracket_label')}</Text>
           <Input
-            value={minFee}
-            onChangeText={setMinFee}
-            onBlur={() => setMinFeeTouched(true)}
+            value={feePerBracket}
+            onChangeText={setFeePerBracket}
+            onBlur={() => setFeeTouched(true)}
             keyboardType="decimal-pad"
-            placeholder="5"
+            placeholder="8"
           />
-          {minFeeTouched && errors.minFee ? (
-            <Text className="text-sm text-danger dark:text-danger-dark">{errors.minFee}</Text>
+          <Text variant="muted" className="text-xs">{t('settings.tour_rate.fee_per_bracket_hint')}</Text>
+          {feeTouched && errors.fee ? (
+            <Text className="text-sm text-danger dark:text-danger-dark">{errors.fee}</Text>
           ) : null}
         </View>
 
