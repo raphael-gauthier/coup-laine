@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import i18n from '@/i18n';
 import { db } from '@/infra/db/client';
 import { ClientRepository } from '@/data/repositories/client-repository';
 import { DistanceMatrixSync } from '@/data/distance-matrix-sync';
@@ -39,12 +40,26 @@ export function useRecomputeAll() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => sync.recomputeAllForBase(),
-    onSuccess: () => {
+    onSuccess: ({ ok, failed }) => {
       void qc.invalidateQueries({ queryKey: recomputeKeys.pending });
       void qc.invalidateQueries({ queryKey: ['clients'] });
+      if (failed > 0 && ok === 0) {
+        errorToast(
+          i18n.t('recompute.failed_title'),
+          i18n.t('recompute.failed_message')
+        );
+      } else if (failed > 0) {
+        errorToast(
+          i18n.t('recompute.partial_title'),
+          i18n.t('recompute.partial_success', { ok, failed })
+        );
+      }
     },
     onError: (err) => {
-      errorToast('Recalcul impossible', err instanceof Error ? err.message : undefined);
+      errorToast(
+        i18n.t('recompute.failed_title'),
+        err instanceof Error ? err.message : undefined
+      );
     },
   });
 }

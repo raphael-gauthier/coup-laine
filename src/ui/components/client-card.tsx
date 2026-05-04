@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { ChevronRight, MapPin } from 'lucide-react-native';
+import { ChevronRight, MapPin, TriangleAlert } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { PressScale } from '@/ui/motion/press-scale';
 import { Surface } from '@/ui/primitives/surface';
@@ -8,9 +8,10 @@ import { Button } from '@/ui/primitives/button';
 import { haptics } from '@/ui/motion/haptics';
 import type { Client } from '@/domain/models/client';
 import { useClientStatusMap } from '@/state/queries/clients';
-import { clientStatusColor } from '@/lib/client-status-color';
-import { animalsTotal } from '@/lib/animals-total';
+import { useSpecies, useAnimalCategories } from '@/state/queries/species';
 import { useAllSettings } from '@/state/queries/settings';
+import { clientStatusColor } from '@/lib/client-status-color';
+import { formatAnimalCountsBySpecies } from '@/lib/animal-counts-summary';
 import { cn } from '@/lib/cn';
 
 interface Props {
@@ -23,9 +24,12 @@ export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
   const { t } = useTranslation();
   const { data: statusMap } = useClientStatusMap();
   const { data: settings } = useAllSettings();
+  const { data: species = [] } = useSpecies();
+  const { data: categories = [] } = useAnimalCategories();
   const status = statusMap?.get(client.id) ?? 'default';
   const colors = clientStatusColor(status, settings as Record<string, string | null>);
-  const total = animalsTotal(client.animalCounts);
+  const animalsText = formatAnimalCountsBySpecies(client.animalCounts, species, categories);
+  const addressLine = [client.addressPostcode, client.addressCity].filter(Boolean).join(' ');
 
   return (
     <PressScale
@@ -39,24 +43,22 @@ export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
         className="flex-row items-center rounded-2xl px-4 py-3 gap-3"
       >
         {colors.bgHex ? (
-          <View style={{ width: 4, height: 48, borderRadius: 2, backgroundColor: colors.bgHex }} />
+          <View style={{ width: 4, height: 56, borderRadius: 2, backgroundColor: colors.bgHex }} />
         ) : (
-          <View className={cn('w-1 h-12 rounded-full', colors.bgClass)} />
+          <View className={cn('w-1 h-14 rounded-full', colors.bgClass)} />
         )}
         <View className="flex-1">
-          <Text className="font-semibold">{client.displayName}</Text>
-          {client.addressCity ? (
+          <Text className="font-semibold" numberOfLines={1}>{client.displayName}</Text>
+          {addressLine ? (
             <View className="flex-row items-center gap-1 mt-0.5">
               <MapPin size={12} color="#5C4E40" />
-              <Text variant="muted" className="text-sm">{client.addressCity}</Text>
+              <Text variant="muted" className="text-sm flex-1" numberOfLines={1}>{addressLine}</Text>
             </View>
           ) : null}
+          {animalsText ? (
+            <Text className="text-sm mt-0.5" numberOfLines={1}>{animalsText}</Text>
+          ) : null}
         </View>
-        {total > 0 ? (
-          <Surface variant="muted" className="rounded-full px-2 py-0.5">
-            <Text variant="muted" className="text-xs">{total}</Text>
-          </Surface>
-        ) : null}
         <Button
           variant={client.isWaiting ? 'primary' : 'secondary'}
           size="sm"
@@ -65,7 +67,17 @@ export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
         >
           {client.isWaiting ? t('clients.unmark_waiting') : t('clients.mark_waiting')}
         </Button>
-        <ChevronRight size={18} color="#5C4E40" />
+        {client.needsDistanceRecompute ? (
+          <Surface
+            variant="danger"
+            className="flex-row items-center gap-1 rounded-full px-2 py-1"
+            accessibilityLabel={t('recompute.card_badge')}
+          >
+            <TriangleAlert size={12} color="#FFFFFF" />
+          </Surface>
+        ) : (
+          <ChevronRight size={18} color="#5C4E40" />
+        )}
       </Surface>
     </PressScale>
   );
