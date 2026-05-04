@@ -10,13 +10,16 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { haptics } from '@/ui/motion/haptics';
 import { useUpsertSpecies, useUpsertAnimalCategory } from '@/state/queries/catalogs';
-import { newId } from '@/lib/id';
 
+interface DefaultCategory {
+  key: string;
+  label: string;
+}
 interface DefaultSpecies {
   id: string;
   label: string;
   iconKey: string;
-  categories: { label: string }[];
+  categories: DefaultCategory[];
 }
 
 const DEFAULT_SPECIES: DefaultSpecies[] = [
@@ -24,25 +27,37 @@ const DEFAULT_SPECIES: DefaultSpecies[] = [
     id: 'species-moutons',
     label: 'Moutons',
     iconKey: 'sheep',
-    categories: [{ label: 'Adultes' }, { label: 'Agneaux' }],
+    categories: [
+      { key: 'adultes', label: 'Adultes' },
+      { key: 'agneaux', label: 'Agneaux' },
+    ],
   },
   {
     id: 'species-chevres',
     label: 'Chèvres',
     iconKey: 'goat',
-    categories: [{ label: 'Adultes' }, { label: 'Chevreaux' }],
+    categories: [
+      { key: 'adultes', label: 'Adultes' },
+      { key: 'chevreaux', label: 'Chevreaux' },
+    ],
   },
   {
     id: 'species-bovins',
     label: 'Bovins',
     iconKey: 'cow',
-    categories: [{ label: 'Vaches' }, { label: 'Veaux' }],
+    categories: [
+      { key: 'vaches', label: 'Vaches' },
+      { key: 'veaux', label: 'Veaux' },
+    ],
   },
   {
     id: 'species-volailles',
     label: 'Volailles',
     iconKey: 'bird',
-    categories: [{ label: 'Poules' }, { label: 'Canards' }],
+    categories: [
+      { key: 'poules', label: 'Poules' },
+      { key: 'canards', label: 'Canards' },
+    ],
   },
 ];
 
@@ -70,7 +85,7 @@ export default function OnboardingSpeciesScreen() {
         });
         for (const [j, cat] of sp.categories.entries()) {
           await upsertCategory.mutateAsync({
-            id: newId(),
+            id: `${sp.id}-cat-${cat.key}`,
             speciesId: sp.id,
             label: cat.label,
             ordering: j + 1,
