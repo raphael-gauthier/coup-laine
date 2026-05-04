@@ -1,14 +1,12 @@
-import { Alert } from 'react-native';
 import { haptics } from '@/ui/motion/haptics';
+import { useToastStore } from '@/ui/components/toast';
 
 /**
- * Show a transient error to the user. For now wraps `Alert.alert` for
- * zero-fuss reliability; a designed toast/snackbar primitive can replace
- * this in J12 polish without changing call sites.
- *
- * Always pair with a haptic error pulse so the feedback is multi-modal.
+ * Show a transient error toast at the top of the screen.
+ * Auto-dismisses after a few seconds; tap to dismiss earlier.
+ * Always pairs with a haptic error pulse.
  */
 export function errorToast(title: string, message?: string): void {
   void haptics.error();
-  Alert.alert(title, message);
+  useToastStore.getState().push({ title, message, variant: 'error' });
 }

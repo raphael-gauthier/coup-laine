@@ -16,6 +16,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, useResolvedColorScheme } from '@/ui/theme/theme-provider';
+import { ToastContainer } from '@/ui/components/toast';
 import { bootstrapDatabase } from '@/infra/db/bootstrap';
 
 export const unstable_settings = {
@@ -44,6 +45,7 @@ function App() {
           <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
           <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
         </Stack>
+        <ToastContainer />
         <StatusBar style="auto" translucent={false} backgroundColor={isDark ? '#16120F' : '#FAF6F0'} />
       </NavThemeProvider>
     </GestureHandlerRootView>
