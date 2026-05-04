@@ -202,11 +202,6 @@ export function TourDraftEditor({
         <View style={styles.mapContainer}>
           <Map initialCenter={{ lat: base.lat, lon: base.lon }} initialZoom={9}>
             <TourRoutePolyline coords={routeCoords} />
-            <Marker id="pin-base" lngLat={[base.lon, base.lat]} anchor="bottom">
-              <View style={styles.basePin}>
-                <Home size={14} color="#FAF6F0" />
-              </View>
-            </Marker>
             {initialStops.map((s) => {
               const c = clientsById.get(s.clientId);
               if (c?.latitude == null || c?.longitude == null) return null;
@@ -218,6 +213,11 @@ export function TourDraftEditor({
                 />
               );
             })}
+            <Marker id="pin-base" lngLat={[base.lon, base.lat]} anchor="bottom">
+              <View style={styles.basePin}>
+                <Home size={16} color="#FAF6F0" />
+              </View>
+            </Marker>
           </Map>
         </View>
       ) : null}
@@ -399,13 +399,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   basePin: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: '#FAF6F0',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#A1602F',
+    backgroundColor: '#1C1612',
   },
 });
