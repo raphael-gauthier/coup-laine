@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Briefcase, Check } from 'lucide-react-native';
+import { Briefcase } from 'lucide-react-native';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
@@ -12,7 +12,7 @@ import { haptics } from '@/ui/motion/haptics';
 import { cn } from '@/lib/cn';
 import { PROFESSION_PRESETS } from '@/domain/catalog/profession-catalog';
 import { useUserProfessions, useSetUserProfessions } from '@/state/queries/settings';
-import { useOnContrastColor, usePrimaryColor } from '@/ui/theme/colors';
+import { usePrimaryColor } from '@/ui/theme/colors';
 
 export default function OnboardingProfessionScreen() {
   const { t } = useTranslation();
@@ -20,7 +20,6 @@ export default function OnboardingProfessionScreen() {
   const { data: persisted = [] } = useUserProfessions();
   const setProfessions = useSetUserProfessions();
   const primary = usePrimaryColor();
-  const onContrast = useOnContrastColor();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [hydrated, setHydrated] = useState(false);
 
@@ -72,13 +71,12 @@ export default function OnboardingProfessionScreen() {
               <PressScale key={m.id} onPress={() => toggle(m.id)} accessibilityLabel={m.label}>
                 <View
                   className={cn(
-                    'flex-row items-center gap-2 rounded-full px-4 py-2 border',
+                    'rounded-full px-4 py-2 border',
                     active
                       ? 'bg-primary dark:bg-primary-dark border-primary dark:border-primary-dark'
                       : 'bg-muted dark:bg-muted-dark border-border dark:border-border-dark'
                   )}
                 >
-                  {active ? <Check size={14} color={onContrast} /> : null}
                   <Text variant={active ? 'onPrimary' : 'default'} className="font-medium">
                     {m.label}
                   </Text>

@@ -22,6 +22,17 @@ import {
 
 type Row = { speciesKey: SpeciesKey; speciesLabel: string; categoryId: string; label: string; key: string };
 
+// Deterministic id from `(speciesKey, label)` so re-running the onboarding
+// upserts existing rows instead of creating duplicates (catalog bug fix).
+function slug(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 export default function OnboardingServicesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -83,6 +94,7 @@ export default function OnboardingServicesScreen() {
         const next = (orderingByCategory.get(r.categoryId) ?? 0) + 1;
         orderingByCategory.set(r.categoryId, next);
         await upsertService.mutateAsync({
+          id: `svc-${r.speciesKey}-${slug(r.label)}`,
           label: r.label,
           priceCents: null,
           minutes: 0,

@@ -1,6 +1,7 @@
 export type SpeciesKey =
   | 'mouton'
   | 'chevre'
+  | 'lama'
   | 'bovin'
   | 'cheval'
   | 'chien'
@@ -20,12 +21,13 @@ export interface CatalogSpecies {
 export const SPECIES_CATALOG: CatalogSpecies[] = [
   { key: 'mouton',   id: 'species-mouton',   label: 'Moutons',   iconKey: 'sheep',  ordering: 1, defaultCategoryId: 'cat-mouton' },
   { key: 'chevre',   id: 'species-chevre',   label: 'Chèvres',   iconKey: 'goat',   ordering: 2, defaultCategoryId: 'cat-chevre' },
-  { key: 'bovin',    id: 'species-bovin',    label: 'Bovins',    iconKey: 'cow',    ordering: 3, defaultCategoryId: 'cat-bovin' },
-  { key: 'cheval',   id: 'species-cheval',   label: 'Chevaux',   iconKey: 'horse',  ordering: 4, defaultCategoryId: 'cat-cheval' },
-  { key: 'chien',    id: 'species-chien',    label: 'Chiens',    iconKey: 'dog',    ordering: 5, defaultCategoryId: 'cat-chien' },
-  { key: 'chat',     id: 'species-chat',     label: 'Chats',     iconKey: 'cat',    ordering: 6, defaultCategoryId: 'cat-chat' },
-  { key: 'volaille', id: 'species-volaille', label: 'Volailles', iconKey: 'bird',   ordering: 7, defaultCategoryId: 'cat-volaille' },
-  { key: 'nac',      id: 'species-nac',      label: 'NAC',       iconKey: 'rabbit', ordering: 8, defaultCategoryId: 'cat-nac' },
+  { key: 'lama',     id: 'species-lama',     label: 'Lamas',     iconKey: 'llama',  ordering: 3, defaultCategoryId: 'cat-lama' },
+  { key: 'bovin',    id: 'species-bovin',    label: 'Bovins',    iconKey: 'cow',    ordering: 4, defaultCategoryId: 'cat-bovin' },
+  { key: 'cheval',   id: 'species-cheval',   label: 'Chevaux',   iconKey: 'horse',  ordering: 5, defaultCategoryId: 'cat-cheval' },
+  { key: 'chien',    id: 'species-chien',    label: 'Chiens',    iconKey: 'dog',    ordering: 6, defaultCategoryId: 'cat-chien' },
+  { key: 'chat',     id: 'species-chat',     label: 'Chats',     iconKey: 'cat',    ordering: 7, defaultCategoryId: 'cat-chat' },
+  { key: 'volaille', id: 'species-volaille', label: 'Volailles', iconKey: 'bird',   ordering: 8, defaultCategoryId: 'cat-volaille' },
+  { key: 'nac',      id: 'species-nac',      label: 'NAC',       iconKey: 'rabbit', ordering: 9, defaultCategoryId: 'cat-nac' },
 ];
 
 export interface ProfessionPreset {
@@ -38,13 +40,15 @@ export interface ProfessionPreset {
 export const PROFESSION_PRESETS: ProfessionPreset[] = [
   {
     id: 'tondeur_ovin',
-    label: 'Tondeur ovin/caprin',
-    speciesKeys: ['mouton', 'chevre'],
+    label: 'Tondeur ovin/caprin/camélidés',
+    speciesKeys: ['mouton', 'chevre', 'lama'],
     services: [
       { speciesKey: 'mouton', label: 'Tonte' },
       { speciesKey: 'mouton', label: 'Pédicure' },
       { speciesKey: 'chevre', label: 'Tonte' },
       { speciesKey: 'chevre', label: 'Pédicure' },
+      { speciesKey: 'lama',   label: 'Tonte' },
+      { speciesKey: 'lama',   label: 'Pédicure' },
     ],
   },
   {
