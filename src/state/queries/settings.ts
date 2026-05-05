@@ -131,7 +131,8 @@ export function useSetUserProfessions() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (ids: string[]) => repo.set('user_professions', JSON.stringify(ids)),
-    onSuccess: () => {
+    onSuccess: (_, ids) => {
+      qc.setQueryData(settingsKeys.byKey('user_professions'), ids);
       void qc.invalidateQueries({ queryKey: settingsKeys.byKey('user_professions') });
     },
   });
