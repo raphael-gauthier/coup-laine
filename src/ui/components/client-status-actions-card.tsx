@@ -1,51 +1,35 @@
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
+import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { useToggleWaiting } from '@/state/queries/clients';
-import { useUpsertManualHistoryEntry, useManualHistoryByClient } from '@/state/queries/history';
+import {
+  useManualHistoryByClient,
+  useDeleteManualHistoryEntry,
+} from '@/state/queries/history';
 import { useAllSettings } from '@/state/queries/settings';
-import { useDeleteManualHistoryEntry } from '@/state/queries/history';
 import type { Client } from '@/domain/models/client';
+import type { ClientStatus } from '@/domain/use-cases/client-status';
 import { haptics } from '@/ui/motion/haptics';
 import { mutationErrorToast } from '@/ui/components/error-toast';
-import { useQueryClient } from '@tanstack/react-query';
-import { clientsKeys } from '@/state/queries/clients';
 
 interface Props {
   client: Client;
+  status: ClientStatus;
 }
 
-export function ClientStatusActionsCard({ client }: Props) {
+export function ClientStatusActionsCard({ client, status }: Props) {
   const { t } = useTranslation();
   const toggleWaiting = useToggleWaiting();
-  const addManualEntry = useUpsertManualHistoryEntry();
   const deleteManualEntry = useDeleteManualHistoryEntry();
   const { data: settings } = useAllSettings();
   const { data: manualEntries = [] } = useManualHistoryByClient(client.id);
   const qc = useQueryClient();
 
-  // "Mark done" — add an empty manual history entry for today
-  const onMarkDone = () => {
-    const today = new Date().toISOString().slice(0, 10);
-    addManualEntry.mutate(
-      { clientId: client.id, date: today, notes: null, services: [] },
-      {
-        onSuccess: () => {
-          void haptics.success();
-          // Invalidate statusMap so it recomputes
-          void qc.invalidateQueries({ queryKey: ['clients', 'statusMap'] });
-        },
-        onError: (err) => {
-          mutationErrorToast(t('clients.mark_done_failed'), err);
-        },
-      }
-    );
-  };
-
-  // "Reset" — delete manual entries from >= seasonStartedAt
   const onReset = () => {
     const seasonStart = settings?.season_started_at ?? new Date().getFullYear() + '-01-01';
     const toDelete = manualEntries.filter((e) => e.date >= seasonStart && e.services.length === 0);
@@ -58,50 +42,44 @@ export function ClientStatusActionsCard({ client }: Props) {
           )
         )
       )
-    ).then(() => {
-      void haptics.success();
-      void qc.invalidateQueries({ queryKey: ['clients', 'statusMap'] });
-    }).catch((err) => {
-      mutationErrorToast(t('clients.reset_status_failed'), err);
-    });
+    )
+      .then(() => {
+        void haptics.success();
+        void qc.invalidateQueries({ queryKey: ['clients', 'statusMap'] });
+      })
+      .catch((err) => {
+        mutationErrorToast(t('clients.reset_status_failed'), err);
+      });
   };
 
-  // Toggle banned — use upsertClient via toggleWaiting analog
-  // Note: there's no direct toggleBanned in queries; we use the waiting toggle pattern
-  // For banned we'll show a UI note — this is a TODO per plan §4.5
-  // The waiting toggle is available
+  // Statuses where this card has nothing useful to offer
+  if (status === 'scheduled' || status === 'noAnimals' || status === 'banned') {
+    return null;
+  }
+
+  const showWaitingToggle = status === 'default' || status === 'waiting';
+  const showReset = status === 'done';
 
   return (
     <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-3">
       <Text className="font-semibold">{t('clients.actions_title')}</Text>
 
-      <View className="flex-row items-center justify-between">
-        <Text className="text-sm">{t('clients.mark_waiting')}</Text>
-        <Button
-          size="sm"
-          variant={client.isWaiting ? 'primary' : 'secondary'}
-          onPress={() => toggleWaiting.mutate({ id: client.id, isWaiting: !client.isWaiting })}
-          loading={toggleWaiting.isPending}
-        >
-          {client.isWaiting ? t('clients.unmark_waiting') : t('clients.mark_waiting')}
+      {showWaitingToggle ? (
+        <View className="flex-row items-center justify-between">
+          <Text>{t('clients.is_waiting_label')}</Text>
+          <ThemedSwitch
+            value={client.isWaiting}
+            onValueChange={(v) => toggleWaiting.mutate({ id: client.id, isWaiting: v })}
+            disabled={toggleWaiting.isPending}
+          />
+        </View>
+      ) : null}
+
+      {showReset ? (
+        <Button variant="ghost" onPress={onReset} loading={deleteManualEntry.isPending}>
+          {t('clients.reset_status')}
         </Button>
-      </View>
-
-      <Button
-        variant="secondary"
-        onPress={onMarkDone}
-        loading={addManualEntry.isPending}
-      >
-        {t('clients.mark_done')}
-      </Button>
-
-      <Button
-        variant="ghost"
-        onPress={onReset}
-        loading={deleteManualEntry.isPending}
-      >
-        {t('clients.reset_status')}
-      </Button>
+      ) : null}
     </Surface>
   );
 }

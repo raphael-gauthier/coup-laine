@@ -47,8 +47,18 @@
     "phone_placeholder": "06 12 34 56 78",
     "add_phone": "Ajouter un téléphone",
     "animal_counts": "Effectifs",
+    "is_waiting_label": "En attente",
     "mark_waiting": "Marquer en attente",
     "unmark_waiting": "Retirer de l'attente",
+    "ban": "Bannir",
+    "unban": "Débannir",
+    "ban_confirm_title": "Bannir ce client ?",
+    "ban_confirm_message": "Le client sera marqué comme banni et exclu des suggestions de tournée. Tu peux le débannir à tout moment.",
+    "find_nearby_cta": "Trouver des clients à proximité",
+    "itinerary_cta": "Itinéraire",
+    "add_intervention_cta": "Ajouter une intervention",
+    "more_actions": "Plus d'actions",
+    "reset_blocked_hint": "Une tournée est déjà planifiée pour ce client.",
     "delete": "Supprimer",
     "delete_confirm_title": "Supprimer ce client ?",
     "delete_confirm_message": "Cette action est définitive. L'historique de tournées du client sera également perdu.",
@@ -84,7 +94,8 @@
     "send_sms": "Envoyer un SMS",
     "errors": {
       "display_name_required": "Le nom est obligatoire.",
-      "toggle_waiting_failed_title": "Statut non mis à jour"
+      "toggle_waiting_failed_title": "Statut non mis à jour",
+      "toggle_banned_failed_title": "Statut bannissement non mis à jour"
     }
   },
   "map": {

@@ -40,11 +40,15 @@ export function ClientKpiRow({ clientId }: Props) {
     : '—';
 
   return (
-    <View className="flex-row gap-2">
-      <KpiTile label={t('clients.kpi_interventions')} value={String(kpis.interventionsCount)} />
-      <KpiTile label={t('clients.kpi_revenue')} value={formatEur(kpis.totalRevenueCents)} />
-      <KpiTile label={t('clients.kpi_last_visit')} value={lastVisit} />
-      <KpiTile label={t('clients.kpi_seasons')} value={String(kpis.yearsSinceFirst)} />
+    <View className="gap-2">
+      <View className="flex-row gap-2">
+        <KpiTile label={t('clients.kpi_interventions')} value={String(kpis.interventionsCount)} />
+        <KpiTile label={t('clients.kpi_revenue')} value={formatEur(kpis.totalRevenueCents)} />
+      </View>
+      <View className="flex-row gap-2">
+        <KpiTile label={t('clients.kpi_last_visit')} value={lastVisit} />
+        <KpiTile label={t('clients.kpi_seasons')} value={String(kpis.yearsSinceFirst)} />
+      </View>
     </View>
   );
 }

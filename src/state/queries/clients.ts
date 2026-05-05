@@ -139,6 +139,41 @@ export function useToggleWaiting() {
   });
 }
 
+export function useToggleBanned() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, isBanned }: { id: string; isBanned: boolean }) => {
+      const now = new Date().toISOString();
+      await repo.setBanned(id, isBanned, now);
+    },
+    onMutate: async ({ id, isBanned }) => {
+      await qc.cancelQueries({ queryKey: clientsKeys.all });
+      const previous = qc.getQueryData<Client>(clientsKeys.byId(id));
+      if (previous) {
+        qc.setQueryData(clientsKeys.byId(id), { ...previous, isBanned });
+      }
+      const allLists = qc.getQueriesData<Client[]>({ queryKey: [...clientsKeys.all, 'list'] });
+      for (const [key, list] of allLists) {
+        if (!list) continue;
+        qc.setQueryData(
+          key,
+          list.map((c) => (c.id === id ? { ...c, isBanned } : c))
+        );
+      }
+      return { previous };
+    },
+    onError: (err, { id }, ctx) => {
+      if (ctx?.previous) qc.setQueryData(clientsKeys.byId(id), ctx.previous);
+      void qc.invalidateQueries({ queryKey: clientsKeys.all });
+      mutationErrorToast(i18n.t('clients.errors.toggle_banned_failed_title'), err);
+    },
+    onSettled: () => {
+      void qc.invalidateQueries({ queryKey: clientsKeys.all });
+      void qc.invalidateQueries({ queryKey: ['clients', 'statusMap'] });
+    },
+  });
+}
+
 const tourRepo = new TourRepository(db);
 const settingsRepo = new SettingsRepository(db);
 
