@@ -5,7 +5,6 @@ export const Payment = z.object({
   methodLabelSnapshot: z.string().nullable(),
   isPaid: z.boolean(),
   paidAt: z.string().nullable(),
-  note: z.string().nullable(),
 });
 
 export type Payment = z.infer<typeof Payment>;
@@ -15,5 +14,4 @@ export const EMPTY_PAYMENT: Payment = {
   methodLabelSnapshot: null,
   isPaid: false,
   paidAt: null,
-  note: null,
 };

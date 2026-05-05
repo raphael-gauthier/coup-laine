@@ -167,7 +167,6 @@ describe('TourRepository payment round-trip', () => {
         methodLabelSnapshot: 'Espèces',
         isPaid: true,
         paidAt: '2026-05-01T12:00:00Z',
-        note: 'OK',
       },
     });
     await repo.upsertTour(tour, [stop]);
@@ -187,7 +186,6 @@ describe('TourRepository payment round-trip', () => {
       methodLabelSnapshot: 'Chèque',
       isPaid: true,
       paidAt: '2026-05-02T09:00:00Z',
-      note: null,
     });
     const got = await repo.byId('t1');
     expect(got!.stops[0]!.payment.methodId).toBe('pm-check');
@@ -202,7 +200,7 @@ describe('TourRepository payment round-trip', () => {
     await repo.upsertTour({ id: 't1', ...baseTour }, [makeStop()]);
     const payments = new Map([['s1', {
       methodId: 'pm-cash', methodLabelSnapshot: 'Espèces',
-      isPaid: true, paidAt: '2026-05-01T12:00:00Z', note: null,
+      isPaid: true, paidAt: '2026-05-01T12:00:00Z',
     }]]);
     await repo.completeWithBilan(
       't1',

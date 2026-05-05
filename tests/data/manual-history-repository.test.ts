@@ -50,7 +50,7 @@ describe('ManualHistoryRepository payment round-trip', () => {
       notes: null, services: [],
       payment: {
         methodId: 'pm-check', methodLabelSnapshot: 'Chèque',
-        isPaid: true, paidAt: '2026-04-15T10:00:00Z', note: null,
+        isPaid: true, paidAt: '2026-04-15T10:00:00Z',
       },
     });
     const all = await repo.listByClient('c1');
@@ -70,7 +70,7 @@ describe('ManualHistoryRepository payment round-trip', () => {
     });
     await repo.markEntryPayment('e1', {
       methodId: 'pm-cash', methodLabelSnapshot: 'Espèces',
-      isPaid: true, paidAt: '2026-05-01T00:00:00Z', note: null,
+      isPaid: true, paidAt: '2026-05-01T00:00:00Z',
     });
     const all = await repo.listByClient('c1');
     const updated = all[0]!;

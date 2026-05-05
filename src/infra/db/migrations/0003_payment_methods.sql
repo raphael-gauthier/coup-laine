@@ -23,8 +23,6 @@ ALTER TABLE `tour_stops` ADD COLUMN `is_paid` integer DEFAULT 0 NOT NULL;
 --> statement-breakpoint
 ALTER TABLE `tour_stops` ADD COLUMN `paid_at` text;
 --> statement-breakpoint
-ALTER TABLE `tour_stops` ADD COLUMN `payment_note` text;
---> statement-breakpoint
 CREATE INDEX `tour_stops_is_paid_idx` ON `tour_stops` (`is_paid`);
 --> statement-breakpoint
 
@@ -35,8 +33,6 @@ ALTER TABLE `manual_history_entries` ADD COLUMN `payment_method_label_snapshot` 
 ALTER TABLE `manual_history_entries` ADD COLUMN `is_paid` integer DEFAULT 0 NOT NULL;
 --> statement-breakpoint
 ALTER TABLE `manual_history_entries` ADD COLUMN `paid_at` text;
---> statement-breakpoint
-ALTER TABLE `manual_history_entries` ADD COLUMN `payment_note` text;
 --> statement-breakpoint
 CREATE INDEX `manual_history_is_paid_idx` ON `manual_history_entries` (`is_paid`);
 --> statement-breakpoint

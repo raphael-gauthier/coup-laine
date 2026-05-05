@@ -14,7 +14,6 @@ interface ManualHistoryRow {
   paymentMethodLabelSnapshot: string | null;
   isPaid: number;
   paidAt: string | null;
-  paymentNote: string | null;
 }
 
 function toRow(e: ManualHistoryEntry) {
@@ -28,7 +27,6 @@ function toRow(e: ManualHistoryEntry) {
     paymentMethodLabelSnapshot: e.payment.methodLabelSnapshot,
     isPaid: e.payment.isPaid ? 1 : 0,
     paidAt: e.payment.paidAt,
-    paymentNote: e.payment.note,
   };
 }
 
@@ -44,7 +42,6 @@ function fromRow(r: ManualHistoryRow): ManualHistoryEntry {
       methodLabelSnapshot: r.paymentMethodLabelSnapshot,
       isPaid: r.isPaid === 1,
       paidAt: r.paidAt,
-      note: r.paymentNote,
     },
   });
 }
@@ -75,7 +72,6 @@ export class ManualHistoryRepository {
       paymentMethodLabelSnapshot: payment.methodLabelSnapshot,
       isPaid: payment.isPaid ? 1 : 0,
       paidAt: payment.paidAt,
-      paymentNote: payment.note,
     }).where(eq(manualHistoryEntries.id, entryId));
   }
 

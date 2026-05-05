@@ -43,7 +43,6 @@ interface TourStopRow {
   paymentMethodLabelSnapshot: string | null;
   isPaid: number;
   paidAt: string | null;
-  paymentNote: string | null;
 }
 
 function tourFromRow(r: TourRow): Tour {
@@ -69,7 +68,6 @@ function stopToRow(s: TourStop) {
     paymentMethodLabelSnapshot: s.payment.methodLabelSnapshot,
     isPaid: s.payment.isPaid ? 1 : 0,
     paidAt: s.payment.paidAt,
-    paymentNote: s.payment.note,
   };
 }
 
@@ -93,7 +91,6 @@ function stopFromRow(r: TourStopRow): TourStop {
       methodLabelSnapshot: r.paymentMethodLabelSnapshot,
       isPaid: r.isPaid === 1,
       paidAt: r.paidAt,
-      note: r.paymentNote,
     },
   });
 }
@@ -176,7 +173,6 @@ export class TourRepository {
       paymentMethodLabelSnapshot: payment.methodLabelSnapshot,
       isPaid: payment.isPaid ? 1 : 0,
       paidAt: payment.paidAt,
-      paymentNote: payment.note,
     }).where(eq(tourStops.id, stopId));
   }
 

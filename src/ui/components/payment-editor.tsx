@@ -9,7 +9,6 @@ import { ChevronDown } from 'lucide-react-native';
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { PressScale } from '@/ui/motion/press-scale';
-import { Input } from '@/ui/primitives/input';
 import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { PaymentMethodPicker } from '@/ui/components/payment-method-picker';
 import { FormField } from '@/ui/components/form-field';
@@ -99,14 +98,6 @@ export function PaymentEditor({ value, onChange, methodError, requireMethodAlway
           ) : null}
         </FormField>
       ) : null}
-
-      <FormField label={t('payments.note')}>
-        <Input
-          value={value.note ?? ''}
-          onChangeText={(text) => onChange({ ...value, note: text.length === 0 ? null : text })}
-          accessibilityLabel={t('payments.note')}
-        />
-      </FormField>
 
       <PaymentMethodPicker
         visible={pickerOpen}

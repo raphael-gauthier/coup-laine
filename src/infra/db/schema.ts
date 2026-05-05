@@ -112,7 +112,6 @@ export const tourStops = sqliteTable(
     paymentMethodLabelSnapshot: text('payment_method_label_snapshot'),
     isPaid: integer('is_paid').notNull().default(0),
     paidAt: text('paid_at'),
-    paymentNote: text('payment_note'),
   },
   (t) => ({
     tourIdx: index('tour_stops_tour_idx').on(t.tourId),
@@ -133,7 +132,6 @@ export const manualHistoryEntries = sqliteTable(
     paymentMethodLabelSnapshot: text('payment_method_label_snapshot'),
     isPaid: integer('is_paid').notNull().default(0),
     paidAt: text('paid_at'),
-    paymentNote: text('payment_note'),
   },
   (t) => ({
     clientIdx: index('manual_history_client_idx').on(t.clientId),

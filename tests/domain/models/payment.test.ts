@@ -8,7 +8,6 @@ describe('Payment', () => {
       methodLabelSnapshot: 'Espèces',
       isPaid: true,
       paidAt: '2026-05-05T10:00:00Z',
-      note: 'rendu monnaie',
     });
     expect(p.isPaid).toBe(true);
     expect(p.methodLabelSnapshot).toBe('Espèces');
@@ -20,7 +19,6 @@ describe('Payment', () => {
       methodLabelSnapshot: null,
       isPaid: false,
       paidAt: null,
-      note: null,
     });
     expect(p.isPaid).toBe(false);
     expect(p.methodId).toBeNull();
@@ -34,7 +32,6 @@ describe('Payment', () => {
       methodLabelSnapshot: null,
       isPaid: true,
       paidAt: '2026-04-12T00:00:00Z',
-      note: null,
     });
     expect(p.isPaid).toBe(true);
     expect(p.methodId).toBeNull();

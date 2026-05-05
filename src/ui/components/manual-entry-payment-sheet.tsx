@@ -23,7 +23,7 @@ interface Props {
 export function ManualEntryPaymentSheet({ visible, entryId, clientId, initial, onClose }: Props) {
   const { t } = useTranslation();
   const [draft, setDraft] = useState<Payment>(initial ?? {
-    methodId: null, methodLabelSnapshot: null, isPaid: false, paidAt: null, note: null,
+    methodId: null, methodLabelSnapshot: null, isPaid: false, paidAt: null,
   });
   const [error, setError] = useState<string | null>(null);
   const mark = useMarkManualEntryPayment();

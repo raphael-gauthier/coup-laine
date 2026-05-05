@@ -577,7 +577,6 @@
     "method_required": "Sélectionne un moyen de paiement",
     "is_paid": "Payé",
     "paid_at": "Date de paiement",
-    "note": "Note (optionnelle)",
     "outstanding_title": "À encaisser",
     "outstanding_summary_one": "{{count}} intervention",
     "outstanding_summary_other": "{{count}} interventions",
