@@ -59,7 +59,7 @@ export function PaymentEditor({ value, onChange, methodError, requireMethodAlway
 
   return (
     <Surface variant="muted" className="rounded-2xl p-3 gap-3">
-      <Text className="font-semibold">{t('payments.title')}</Text>
+      <Text className="text-sm font-semibold">{t('payments.title')}</Text>
 
       <View className="flex-row items-center justify-between">
         <Text className="text-sm font-medium">{t('payments.is_paid')}</Text>
