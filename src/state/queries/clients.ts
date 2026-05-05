@@ -204,6 +204,13 @@ export function useWaitingCommunes() {
   });
 }
 
+export function useClientsWithOutstanding() {
+  return useQuery({
+    queryKey: ['clients', 'outstanding'],
+    queryFn: async () => repo.listClientIdsWithOutstanding(),
+  });
+}
+
 export function useClientStatusMap() {
   return useQuery({
     queryKey: ['clients', 'statusMap'],
