@@ -37,13 +37,17 @@ export function CreateTourSheet({ visible, onClose, onPickManual, onPickOptimize
               {t('tours.create_sheet_subtitle')}
             </Text>
           </View>
-          <PressScale onPress={onClose} className="p-1">
+          <PressScale
+            onPress={onClose}
+            className="p-1"
+            accessibilityLabel={t('common.close')}
+          >
             <X size={22} color="#5C4E40" />
           </PressScale>
         </View>
 
         <View className="gap-2 mt-4">
-          <PressScale onPress={pick(onPickManual)}>
+          <PressScale onPress={pick(onPickManual)} accessibilityLabel={t('tours.create_manual')}>
             <Surface
               variant="muted"
               className="flex-row items-center rounded-2xl px-4 py-4 gap-3"
@@ -61,7 +65,7 @@ export function CreateTourSheet({ visible, onClose, onPickManual, onPickOptimize
             </Surface>
           </PressScale>
 
-          <PressScale onPress={pick(onPickOptimized)}>
+          <PressScale onPress={pick(onPickOptimized)} accessibilityLabel={t('tours.create_optimized')}>
             <Surface
               variant="muted"
               className="flex-row items-center rounded-2xl px-4 py-4 gap-3"

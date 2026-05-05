@@ -35,6 +35,7 @@ export function HistoryRow({ entry, onPress }: Props) {
         void haptics.selection();
         onPress();
       }}
+      accessibilityLabel={dateLabel}
     >
       <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-3">
         <View className="flex-1">

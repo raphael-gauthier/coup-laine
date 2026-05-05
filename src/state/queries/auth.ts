@@ -2,6 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/infra/services/supabase';
 import { errorToast, mutationErrorToast } from '@/ui/components/error-toast';
+import { wipeLocalDatabase } from '@/infra/db/wipe';
+import { bootstrapDatabase } from '@/infra/db/bootstrap';
 import i18n from '@/i18n';
 import type { Session } from '@supabase/supabase-js';
 
@@ -104,8 +106,13 @@ export function useSignOut() {
     mutationFn: async () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      // Privacy: erase the previous user's local data before the next account
+      // signs in on this device. Re-bootstrap so default catalog seeds exist.
+      await wipeLocalDatabase();
+      await bootstrapDatabase();
     },
     onSuccess: () => {
+      qc.clear();
       qc.setQueryData(authKeys.session, null);
     },
     onError: (err) => {

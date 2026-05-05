@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import { supabase } from './supabase';
 
 let inFlight: Promise<void> | null = null;
@@ -16,9 +17,12 @@ export async function ensureAnonymousSession(): Promise<void> {
       const { data } = await supabase.auth.getSession();
       if (data.session) return;
       const { error } = await supabase.auth.signInAnonymously();
-      if (error && __DEV__) {
-        // eslint-disable-next-line no-console
-        console.warn('[auth] anonymous sign-in failed', error.message);
+      if (error) {
+        if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn('[auth] anonymous sign-in failed', error.message);
+        }
+        Sentry.captureException(error, { tags: { context: 'ensureAnonymousSession' } });
       }
     } finally {
       inFlight = null;

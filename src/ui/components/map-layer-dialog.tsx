@@ -19,6 +19,7 @@ export function MapLayerDialog() {
       <PressScale
         onPress={() => setVisible(true)}
         style={{ position: 'absolute', top: 12, right: 12 }}
+        accessibilityLabel={t('map.layers_title')}
       >
         <Surface
           className="rounded-full p-3"
@@ -41,7 +42,7 @@ export function MapLayerDialog() {
           >
             <View className="flex-row items-center justify-between mb-3">
               <Text className="font-semibold">{t('map.layers_title')}</Text>
-              <PressScale onPress={() => setVisible(false)}>
+              <PressScale onPress={() => setVisible(false)} accessibilityLabel={t('common.close')}>
                 <X size={18} color="#5C4E40" />
               </PressScale>
             </View>

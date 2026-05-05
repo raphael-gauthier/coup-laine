@@ -8,6 +8,15 @@
     "loading": "Chargement…",
     "error_generic": "Une erreur est survenue.",
     "retry": "Réessayer",
+    "close": "Fermer",
+    "dismiss": "Ignorer",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "increment": "Augmenter",
+    "decrement": "Diminuer",
+    "open": "Ouvrir",
+    "select": "Sélectionner",
+    "search": "Rechercher",
     "errors": {
       "retry_hint": "Vérifie ta connexion et réessaie."
     }
@@ -79,7 +88,7 @@
     "mark_done_failed": "Impossible de marquer comme fait",
     "reset_status_failed": "Impossible de réinitialiser le statut",
     "last_interventions_title": "Dernières interventions",
-    "no_prestations": "Aucune prestation",
+    "no_services": "Aucune prestation",
     "view_full_history": "Voir l'historique complet",
     "filter_dialog_title": "Filtrer par statut",
     "filter_all_btn": "Tous",
@@ -263,7 +272,11 @@
       "delete_blocked": "Les espèces standard ne peuvent pas être supprimées.",
       "manage_categories": "Gérer les catégories",
       "delete_confirm_title": "Supprimer cette espèce ?",
-      "delete_confirm_message": "Cette action est définitive."
+      "delete_confirm_message": "Cette action est définitive.",
+      "empty_title": "Aucune espèce",
+      "empty_message": "Ajoute une espèce pour catégoriser tes animaux.",
+      "empty_cta": "Nouvelle espèce",
+      "not_found_title": "Espèce introuvable"
     },
     "categories": {
       "list_title": "Catégories",
@@ -271,7 +284,10 @@
       "edit_title": "Modifier la catégorie",
       "label": "Nom",
       "delete_confirm_title": "Supprimer cette catégorie ?",
-      "delete_confirm_message": "Cette action est définitive."
+      "delete_confirm_message": "Cette action est définitive.",
+      "empty_title": "Aucune catégorie",
+      "empty_message": "Ajoute une catégorie pour cette espèce.",
+      "empty_cta": "Nouvelle catégorie"
     },
     "services": {
       "row_label": "Prestations",
@@ -290,7 +306,10 @@
       "no_category": "Sans catégorie",
       "archived_section": "Archivées",
       "delete_confirm_title": "Supprimer cette prestation ?",
-      "delete_confirm_message": "Cette action est définitive."
+      "delete_confirm_message": "Cette action est définitive.",
+      "empty_title": "Aucune prestation",
+      "empty_message": "Crée ta première prestation pour pouvoir l'ajouter aux tournées.",
+      "empty_cta": "Nouvelle prestation"
     },
     "errors": {
       "label_required": "Le nom est obligatoire.",
@@ -410,6 +429,9 @@
     "logged_in_as": "Connecté en tant que {{email}}",
     "sign_in_cta": "Se connecter à mon compte",
     "sign_out_cta": "Se déconnecter",
+    "sign_out_confirm_title": "Te déconnecter de cet appareil ?",
+    "sign_out_confirm_message": "Toutes tes données locales (clients, tournées, historique, paramètres) seront effacées de cet appareil. Tu pourras les retrouver après reconnexion en restaurant une sauvegarde cloud.",
+    "sign_out_confirm_cta": "Se déconnecter et effacer",
     "create_backup_cta": "Sauvegarder maintenant",
     "creating_backup": "Sauvegarde en cours…",
     "no_backups_title": "Aucune sauvegarde",
@@ -453,7 +475,7 @@
       "email_required": "Email obligatoire.",
       "code_invalid_length": "Le code doit contenir 6 chiffres.",
       "email_already_used_title": "Cet email a déjà un compte",
-      "email_already_used_message": "Un nouveau code t'a été envoyé pour te reconnecter à ton compte existant.",
+      "email_already_used_message": "Un nouveau code t'a été envoyé pour te reconnecter à ton compte existant. Les données et sauvegardes cloud créées sous ta session anonyme ne seront pas migrées vers ce compte.",
       "send_failed_title": "Code non envoyé",
       "code_invalid_title": "Code invalide",
       "code_invalid_message": "Le code est expiré ou incorrect. Demande-en un nouveau.",

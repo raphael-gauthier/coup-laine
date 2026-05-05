@@ -1,10 +1,13 @@
-import { useState, useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import type { TFunction } from 'i18next';
 
-import { Text } from '@/ui/primitives/text';
-import { Input } from '@/ui/primitives/input';
 import { Button } from '@/ui/primitives/button';
+import { RHFTextField } from '@/ui/components/rhf-text-field';
+import { haptics } from '@/ui/motion/haptics';
 import type { AnimalCategory } from '@/domain/models/animal-category';
 import type { UpsertCategoryInput } from '@/state/queries/catalogs';
 
@@ -16,39 +19,46 @@ interface Props {
   onCancel?: () => void;
 }
 
+interface FormValues {
+  label: string;
+}
+
+function makeSchema(t: TFunction) {
+  return z.object({
+    label: z.string().trim().min(1, t('catalogs.errors.label_required')),
+  });
+}
+
 export function AnimalCategoryForm({ initial, speciesId, saving, onSubmit, onCancel }: Props) {
   const { t } = useTranslation();
-  const [label, setLabel] = useState(initial?.label ?? '');
-  const [labelTouched, setLabelTouched] = useState(false);
+  const { control, handleSubmit } = useForm<FormValues>({
+    defaultValues: {
+      label: initial?.label ?? '',
+    },
+    resolver: zodResolver(makeSchema(t)),
+    mode: 'onTouched',
+  });
 
-  const errors = useMemo(() => {
-    const out: { label?: string } = {};
-    if (label.trim().length === 0) out.label = t('catalogs.errors.label_required');
-    return out;
-  }, [label, t]);
-
-  const canSubmit = !errors.label && !saving;
-
-  const handleSubmit = () => {
-    setLabelTouched(true);
-    if (!canSubmit) return;
+  const onValid = (values: FormValues) => {
     onSubmit({
       id: initial?.id,
       speciesId,
-      label: label.trim(),
+      label: values.label.trim(),
       ordering: initial?.ordering ?? 100,
     });
   };
 
+  const onInvalid = () => {
+    void haptics.error();
+  };
+
   return (
     <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 32, gap: 16 }}>
-      <View className="gap-2">
-        <Text className="text-sm font-medium">{t('catalogs.categories.label')}</Text>
-        <Input value={label} onChangeText={setLabel} onBlur={() => setLabelTouched(true)} />
-        {labelTouched && errors.label ? (
-          <Text className="text-sm text-danger dark:text-danger-dark">{errors.label}</Text>
-        ) : null}
-      </View>
+      <RHFTextField
+        control={control}
+        name="label"
+        label={t('catalogs.categories.label')}
+      />
 
       <View className="flex-row gap-2 mt-4">
         {onCancel ? (
@@ -56,7 +66,7 @@ export function AnimalCategoryForm({ initial, speciesId, saving, onSubmit, onCan
             {t('common.cancel')}
           </Button>
         ) : null}
-        <Button className="flex-1" onPress={handleSubmit} disabled={!canSubmit} loading={saving}>
+        <Button className="flex-1" onPress={handleSubmit(onValid, onInvalid)} loading={saving}>
           {t('common.save')}
         </Button>
       </View>

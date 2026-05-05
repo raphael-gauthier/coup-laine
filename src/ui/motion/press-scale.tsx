@@ -13,10 +13,12 @@ import Animated, {
 } from 'react-native-reanimated';
 import { motion } from './motion-tokens';
 
-interface Props extends Omit<PressableProps, 'children' | 'style'> {
+interface Props extends Omit<PressableProps, 'children' | 'style' | 'accessibilityLabel'> {
   children: ReactNode;
   scaleTo?: number;
   style?: StyleProp<ViewStyle>;
+  // Required at the type level to prevent unlabelled pressables (a11y regression guard).
+  accessibilityLabel: string;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -31,6 +33,7 @@ export function PressScale({
   style,
   onPressIn,
   onPressOut,
+  accessibilityRole = 'button',
   ...rest
 }: Props) {
   const scale = useSharedValue(1);
@@ -53,6 +56,7 @@ export function PressScale({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={[animatedStyle, style]}
+      accessibilityRole={accessibilityRole}
       {...rest}
     >
       {children}

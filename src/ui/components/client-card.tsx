@@ -36,6 +36,7 @@ export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
         void haptics.selection();
         onPress();
       }}
+      accessibilityLabel={client.displayName}
     >
       <Surface
         variant="muted"

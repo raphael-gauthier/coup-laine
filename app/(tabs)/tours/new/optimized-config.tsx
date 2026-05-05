@@ -18,6 +18,7 @@ import { useBaseAddress } from '@/state/queries/settings';
 import { useResolveDistanceMatrix } from '@/state/queries/distance-matrix';
 import { useTourDraftStore } from '@/state/stores/tour-draft-store';
 import { proposeOptimizedTour } from '@/domain/use-cases/propose-optimized-tour';
+import { useMutedForegroundColor, useOnContrastColor } from '@/ui/theme/colors';
 import type { MatrixCoord } from '@/infra/services/ors-routing';
 
 const MIN_HOURS = 5;
@@ -41,6 +42,8 @@ export default function OptimizedConfigScreen() {
   const [targetMinutes, setTargetMinutes] = useState(8 * 60);
   const [proposing, setProposing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const mutedFg = useMutedForegroundColor();
+  const onContrast = useOnContrastColor();
 
   const onPropose = async () => {
     if (!commune || !base) return;
@@ -112,7 +115,7 @@ export default function OptimizedConfigScreen() {
       <Surface className="flex-1">
         <ScreenHeader title={t('tours.create_optimized')} />
         <EmptyState
-          icon={<Inbox size={48} color="#5C4E40" />}
+          icon={<Inbox size={48} color={mutedFg} />}
           title={t('tours.optimized_empty_title')}
           message={t('tours.optimized_empty_body')}
         />
@@ -139,6 +142,7 @@ export default function OptimizedConfigScreen() {
                   void haptics.selection();
                   setCommune(selected ? null : c.city);
                 }}
+                accessibilityLabel={c.city}
               >
                 <Surface
                   variant={selected ? 'primary' : 'muted'}
@@ -164,7 +168,7 @@ export default function OptimizedConfigScreen() {
                       {t('tours.optimized_commune_option', { count: c.count })}
                     </Text>
                   </View>
-                  {selected ? <Check size={20} color="#FFFFFF" /> : null}
+                  {selected ? <Check size={20} color={onContrast} /> : null}
                 </Surface>
               </PressScale>
             );
@@ -197,12 +201,16 @@ export default function OptimizedConfigScreen() {
             variant="danger"
             className="flex-row items-start gap-2 rounded-2xl px-3 py-2"
           >
-            <AlertCircle size={16} color="#FFFFFF" />
+            <AlertCircle size={16} color={onContrast} />
             <Text variant="onDanger" className="flex-1 text-sm">
               {errorMsg}
             </Text>
-            <PressScale onPress={() => setErrorMsg(null)} className="p-0.5">
-              <X size={16} color="#FFFFFF" />
+            <PressScale
+              onPress={() => setErrorMsg(null)}
+              className="p-0.5"
+              accessibilityLabel={t('common.dismiss')}
+            >
+              <X size={16} color={onContrast} />
             </PressScale>
           </Surface>
         ) : null}

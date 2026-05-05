@@ -81,6 +81,7 @@ export default function MarkerColorsScreen() {
                 void haptics.selection();
                 setPickingStatus(status);
               }}
+              accessibilityLabel={t(labelKey)}
             >
               <Surface
                 variant="muted"

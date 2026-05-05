@@ -1,25 +1,30 @@
 import { useMemo, useState } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus, ChevronRight, ChevronDown } from 'lucide-react-native';
+import { Plus, ChevronRight, ChevronDown, Wrench } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
+import { Button } from '@/ui/primitives/button';
+import { Fab } from '@/ui/primitives/fab';
 import { SectionHeader } from '@/ui/primitives/section-header';
+import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { PressScale } from '@/ui/motion/press-scale';
+import { EmptyState } from '@/ui/components/empty-state';
 import { ErrorState } from '@/ui/components/error-state';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { useServices, useAnimalCategories, useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
-import { useOnContrastColor } from '@/ui/theme/colors';
+import { useOnContrastColor, useMutedForegroundColor } from '@/ui/theme/colors';
 import { formatMinutes } from '@/lib/format-minutes';
 
 export default function ServicesListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const onContrast = useOnContrastColor();
-  const { data: services = [], isError, refetch } = useServices();
+  const mutedFg = useMutedForegroundColor();
+  const { data: services = [], isError, isLoading, refetch } = useServices();
   const { data: categories = [] } = useAnimalCategories();
   const { data: speciesList = [] } = useSpecies();
 
@@ -60,9 +65,34 @@ export default function ServicesListScreen() {
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
 
+  const isEmpty = services.length === 0;
+
   return (
     <Surface className="flex-1">
       <ScreenHeader title={t('catalogs.services.list_title')} />
+      {isLoading ? (
+        <ListSkeleton />
+      ) : isEmpty ? (
+        <EmptyState
+          icon={<Wrench size={48} color={mutedFg} />}
+          title={t('catalogs.services.empty_title')}
+          message={t('catalogs.services.empty_message')}
+          action={
+            <Button
+              onPress={() => {
+                void haptics.selection();
+                router.push('/(tabs)/settings/services/new' as never);
+              }}
+              accessibilityLabel={t('catalogs.services.empty_cta')}
+            >
+              <Plus size={16} color={onContrast} />
+              <Text variant="onPrimary" className="font-semibold">
+                {t('catalogs.services.empty_cta')}
+              </Text>
+            </Button>
+          }
+        />
+      ) : (
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 96 }}>
 
         {Array.from(grouped.bySpecies.entries()).map(([spId, spGroup]) => (
@@ -101,7 +131,7 @@ export default function ServicesListScreen() {
                 <Text variant="muted" className="text-xs font-semibold uppercase tracking-widest">
                   {t('catalogs.services.archived_section')} ({grouped.archived.length})
                 </Text>
-                {archivedExpanded ? <ChevronDown size={14} color="#5C4E40" /> : <ChevronRight size={14} color="#5C4E40" />}
+                {archivedExpanded ? <ChevronDown size={14} color={mutedFg} /> : <ChevronRight size={14} color={mutedFg} />}
               </View>
             </TouchableOpacity>
             {archivedExpanded ? grouped.archived.map((item) => (
@@ -114,32 +144,24 @@ export default function ServicesListScreen() {
         ) : null}
 
       </ScrollView>
+      )}
 
       {/* FAB */}
-      <PressScale
-        onPress={() => {
-          void haptics.selection();
-          router.push('/(tabs)/settings/services/new' as never);
-        }}
-        style={{ position: 'absolute', bottom: 24, right: 24 }}
-      >
-        <Surface
-          variant="primary"
-          className="rounded-full p-4"
-          style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
-        >
-          <Plus size={24} color={onContrast} />
-        </Surface>
-      </PressScale>
+      <Fab
+        icon={Plus}
+        onPress={() => router.push('/(tabs)/settings/services/new' as never)}
+        accessibilityLabel={t('catalogs.services.new_title')}
+      />
     </Surface>
   );
 }
 
 function ServiceRow({ item, onPress }: { item: { label: string; priceCents: number | null; minutes: number; isActive: boolean }; onPress: () => void }) {
   const { t } = useTranslation();
+  const mutedFg = useMutedForegroundColor();
   const priceStr = item.priceCents != null ? `${(item.priceCents / 100).toFixed(2)} €` : '—';
   return (
-    <PressScale onPress={onPress}>
+    <PressScale onPress={onPress} accessibilityLabel={item.label}>
       <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-3 mb-2">
         <View className="flex-1">
           <Text className="font-semibold">{item.label}</Text>
@@ -148,7 +170,7 @@ function ServiceRow({ item, onPress }: { item: { label: string; priceCents: numb
             <Text variant="muted" className="text-xs mt-0.5">{t('catalogs.services.inactive_badge')}</Text>
           ) : null}
         </View>
-        <ChevronRight size={18} color="#5C4E40" />
+        <ChevronRight size={18} color={mutedFg} />
       </Surface>
     </PressScale>
   );

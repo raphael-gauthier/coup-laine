@@ -222,7 +222,10 @@ export function TourDraftEditor({
 
       <View className="gap-2">
         <Text className="text-sm font-medium">{t('tours.scheduled_date')}</Text>
-        <PressScale onPress={() => setShowDatePicker(true)}>
+        <PressScale
+          onPress={() => setShowDatePicker(true)}
+          accessibilityLabel={t('tours.scheduled_date')}
+        >
           <Surface variant="muted" className="rounded-2xl px-4 py-3">
             <Text>{format(date, 'PPPP', { locale: fr })}</Text>
           </Surface>
@@ -241,7 +244,10 @@ export function TourDraftEditor({
 
       <View className="gap-2">
         <Text className="text-sm font-medium">{t('tours.departure_time')}</Text>
-        <PressScale onPress={() => setShowTimePicker(true)}>
+        <PressScale
+          onPress={() => setShowTimePicker(true)}
+          accessibilityLabel={t('tours.departure_time')}
+        >
           <Surface variant="muted" className="rounded-2xl px-4 py-3">
             <Text>{time}</Text>
           </Surface>
@@ -281,7 +287,12 @@ export function TourDraftEditor({
 
       <View className="flex-row items-center justify-between">
         <Text className="text-sm font-medium">{t('tours.stops_section')}</Text>
-        <Button size="sm" variant="ghost" onPress={onAddClients}>
+        <Button
+          size="sm"
+          variant="ghost"
+          onPress={onAddClients}
+          accessibilityLabel={t('tours.add_stops')}
+        >
           <Plus size={14} color={fg} />
           <Text className="font-semibold text-sm">{t('tours.add_stops')}</Text>
         </Button>
@@ -321,10 +332,14 @@ export function TourDraftEditor({
         return (
           <Surface variant="muted" className="rounded-2xl px-3 py-3 mb-2">
             <View className="flex-row items-center gap-3">
-              <PressScale onPressIn={drag}>
+              <PressScale onPressIn={drag} accessibilityLabel={t('tours.reorder_hint')}>
                 <GripVertical size={20} color="#5C4E40" />
               </PressScale>
-              <PressScale className="flex-1" onPress={() => setPickerClientId(item.clientId)}>
+              <PressScale
+                className="flex-1"
+                onPress={() => setPickerClientId(item.clientId)}
+                accessibilityLabel={client?.displayName ?? item.clientId}
+              >
                 <View className="flex-row items-center gap-2">
                   <View className="flex-1 gap-1">
                     <Text className="font-semibold">{client?.displayName ?? item.clientId}</Text>
@@ -363,7 +378,10 @@ export function TourDraftEditor({
                   <ChevronRight size={18} color="#5C4E40" />
                 </View>
               </PressScale>
-              <PressScale onPress={() => onRemoveStop(item.clientId)}>
+              <PressScale
+                onPress={() => onRemoveStop(item.clientId)}
+                accessibilityLabel={t('tours.remove_stop')}
+              >
                 <Trash2 size={16} color="#B23832" />
               </PressScale>
             </View>

@@ -9,6 +9,7 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { haptics } from '@/ui/motion/haptics';
+import { usePrimaryColor } from '@/ui/theme/colors';
 import { useUserProfessions } from '@/state/queries/settings';
 import { useSpecies } from '@/state/queries/species';
 import { useUpsertService } from '@/state/queries/catalogs';
@@ -28,6 +29,7 @@ export default function OnboardingServicesScreen() {
   const { data: speciesList = [] } = useSpecies();
   const upsertService = useUpsertService();
   const [saving, setSaving] = useState(false);
+  const primary = usePrimaryColor();
 
   const enabledSpeciesKeys = useMemo<SpeciesKey[]>(() => {
     const dbIds = new Set(speciesList.map((s) => s.id));
@@ -102,7 +104,7 @@ export default function OnboardingServicesScreen() {
     <Surface className="flex-1">
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, gap: 24 }}>
         <View className="items-center gap-3 mt-12">
-          <ClipboardList size={48} color="#A1602F" />
+          <ClipboardList size={48} color={primary} />
           <Text className="text-2xl font-bold text-center">{t('onboarding.services.title')}</Text>
           <Text variant="muted" className="text-center">{t('onboarding.services.message')}</Text>
         </View>
@@ -136,6 +138,7 @@ export default function OnboardingServicesScreen() {
           onPress={() => void onContinue()}
           disabled={saving}
           loading={saving}
+          accessibilityLabel={t('onboarding.services.cta')}
         >
           <Text variant="onPrimary" className="font-semibold">{t('onboarding.services.cta')}</Text>
         </Button>

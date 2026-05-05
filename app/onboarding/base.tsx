@@ -11,12 +11,14 @@ import { AddressAutocompleteInput } from '@/ui/components/address-autocomplete-i
 import { useSetBaseAddress, type BaseAddress } from '@/state/queries/settings';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import { haptics } from '@/ui/motion/haptics';
+import { usePrimaryColor } from '@/ui/theme/colors';
 import type { BanResult } from '@/infra/services/ban-geocoding';
 
 export default function OnboardingBaseScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const setBase = useSetBaseAddress();
+  const primary = usePrimaryColor();
   const [pending, setPending] = useState<BaseAddress | null>(null);
 
   const onSelect = (r: BanResult) => {
@@ -46,7 +48,7 @@ export default function OnboardingBaseScreen() {
     <Surface className="flex-1">
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, gap: 24 }} keyboardShouldPersistTaps="handled">
         <View className="items-center gap-3 mt-12">
-          <Home size={48} color="#A1602F" />
+          <Home size={48} color={primary} />
           <Text className="text-2xl font-bold text-center">{t('onboarding.base.title')}</Text>
           <Text variant="muted" className="text-center">{t('onboarding.base.message')}</Text>
         </View>
@@ -65,6 +67,7 @@ export default function OnboardingBaseScreen() {
           onPress={onSave}
           disabled={!pending || setBase.isPending}
           loading={setBase.isPending}
+          accessibilityLabel={t('onboarding.base.cta')}
         >
           <Text variant="onPrimary" className="font-semibold">{t('onboarding.base.cta')}</Text>
         </Button>

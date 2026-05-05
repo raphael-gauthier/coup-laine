@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import { Search, ChevronRight } from 'lucide-react-native';
@@ -19,6 +19,7 @@ import { PressScale } from '@/ui/motion/press-scale';
 import { useClients, useClient } from '@/state/queries/clients';
 import { useProximityStore } from '@/state/stores/proximity-store';
 import { findNearbyClients } from '@/domain/use-cases/find-nearby-clients';
+import { useMutedForegroundColor } from '@/ui/theme/colors';
 
 export default function ProximityScreen() {
   const { t } = useTranslation();
@@ -26,7 +27,8 @@ export default function ProximityScreen() {
   const mapRef = useRef<MapHandle>(null);
   const { pivotId, radiusKm, view, setRadiusKm, setView } = useProximityStore();
   const { data: pivot } = useClient(pivotId ?? undefined);
-  const { data: allClients = [] } = useClients('all');
+  const { data: allClients = [], isLoading: clientsLoading } = useClients('all');
+  const mutedFg = useMutedForegroundColor();
 
   const nearby = useMemo(() => {
     if (!pivot || pivot.latitude == null || pivot.longitude == null) return [];
@@ -47,12 +49,23 @@ export default function ProximityScreen() {
       .filter((c): c is NonNullable<typeof c> => c != null);
   }, [nearby, allClients]);
 
+  if (clientsLoading && allClients.length === 0) {
+    return (
+      <Surface className="flex-1">
+        <ScreenHeader variant="root" title={t('proximity.title')} />
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator />
+        </View>
+      </Surface>
+    );
+  }
+
   if (!pivot) {
     return (
       <Surface className="flex-1">
         <ScreenHeader variant="root" title={t('proximity.title')} />
         <EmptyState
-          icon={<Search size={48} color="#5C4E40" />}
+          icon={<Search size={48} color={mutedFg} />}
           title={t('proximity.no_pivot_title')}
           message={t('proximity.no_pivot_message')}
           action={
@@ -70,13 +83,16 @@ export default function ProximityScreen() {
       <ScreenHeader variant="root" title={t('proximity.title')} />
 
       <View className="px-4 pt-2 gap-3">
-        <PressScale onPress={() => router.push('/(tabs)/proximity/pick-pivot')}>
+        <PressScale
+          onPress={() => router.push('/(tabs)/proximity/pick-pivot')}
+          accessibilityLabel={pivot.displayName}
+        >
           <Surface variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
             <View className="flex-1">
               <Text variant="muted" className="text-xs">{t('proximity.pivot_label')}</Text>
               <Text className="font-semibold mt-0.5">{pivot.displayName}</Text>
             </View>
-            <ChevronRight size={18} color="#5C4E40" />
+            <ChevronRight size={18} color={mutedFg} />
           </Surface>
         </PressScale>
 
@@ -110,7 +126,10 @@ export default function ProximityScreen() {
             contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
             ItemSeparatorComponent={() => <View className="h-2" />}
             renderItem={({ item }) => (
-              <PressScale onPress={() => router.push(`/(tabs)/clients/${item.id}`)}>
+              <PressScale
+                onPress={() => router.push(`/(tabs)/clients/${item.id}`)}
+                accessibilityLabel={item.displayName}
+              >
                 <Surface variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
                   <View className="flex-1">
                     <Text className="font-semibold">{item.displayName}</Text>

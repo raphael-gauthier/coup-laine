@@ -35,13 +35,16 @@ import { useNextPlannedTourForClient } from '@/state/queries/tours';
 import { useProximityStore } from '@/state/stores/proximity-store';
 import { haptics } from '@/ui/motion/haptics';
 import { mutationErrorToast } from '@/ui/components/error-toast';
-import { useForegroundColor } from '@/ui/theme/colors';
+import { useDangerColor, useForegroundColor, useMutedForegroundColor, useWaitingColor } from '@/ui/theme/colors';
 
 export default function ClientDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
   const fg = useForegroundColor();
+  const mutedFg = useMutedForegroundColor();
+  const waiting = useWaitingColor();
+  const danger = useDangerColor();
   const { data: client, isError, refetch } = useClient(id);
   const { data: plannedTour } = useNextPlannedTourForClient(id);
   const { data: statusMap } = useClientStatusMap();
@@ -140,13 +143,13 @@ export default function ClientDetailScreen() {
         <PlannedTourCard clientId={client.id} />
 
         {showFindNearby ? (
-          <PressScale onPress={onFindNearby}>
+          <PressScale onPress={onFindNearby} accessibilityLabel={t('clients.find_nearby_cta')}>
             <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-3">
-              <Search size={18} color="#C88226" />
+              <Search size={18} color={waiting} />
               <View className="flex-1">
                 <Text className="text-sm font-medium">{t('clients.find_nearby_cta')}</Text>
               </View>
-              <ChevronRight size={16} color="#5C4E40" />
+              <ChevronRight size={16} color={mutedFg} />
             </Surface>
           </PressScale>
         ) : null}
@@ -173,7 +176,10 @@ export default function ClientDetailScreen() {
         <Surface className="rounded-t-3xl px-4 pt-3 pb-8">
           <View className="self-center w-10 h-1 rounded-full bg-foreground/20 dark:bg-foreground-dark/20 mb-3" />
           <View className="gap-1">
-            <PressScale onPress={onToggleBanned}>
+            <PressScale
+              onPress={onToggleBanned}
+              accessibilityLabel={client.isBanned ? t('clients.unban') : t('clients.ban')}
+            >
               <View className="flex-row items-center gap-3 px-2 py-3">
                 <Ban size={20} color={fg} />
                 <Text className="flex-1 text-base">
@@ -181,10 +187,10 @@ export default function ClientDetailScreen() {
                 </Text>
               </View>
             </PressScale>
-            <PressScale onPress={onDelete}>
+            <PressScale onPress={onDelete} accessibilityLabel={t('clients.delete')}>
               <View className="flex-row items-center gap-3 px-2 py-3">
-                <Trash2 size={20} color="#D9534F" />
-                <Text className="flex-1 text-base" style={{ color: '#D9534F' }}>
+                <Trash2 size={20} color={danger} />
+                <Text className="flex-1 text-base" style={{ color: danger }}>
                   {t('clients.delete')}
                 </Text>
               </View>

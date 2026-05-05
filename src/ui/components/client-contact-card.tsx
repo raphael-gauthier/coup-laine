@@ -7,6 +7,8 @@ import { Text } from '@/ui/primitives/text';
 import { PressScale } from '@/ui/motion/press-scale';
 import { haptics } from '@/ui/motion/haptics';
 import { formatPhone } from '@/lib/phone-formatter';
+import { normalizePhone } from '@/lib/phone-normalizer';
+import { useMutedForegroundColor, usePrimaryColor } from '@/ui/theme/colors';
 import type { Client } from '@/domain/models/client';
 
 interface Props {
@@ -30,6 +32,8 @@ function buildItineraryUrl(client: Client): string | null {
 
 export function ClientContactCard({ client }: Props) {
   const { t } = useTranslation();
+  const mutedFg = useMutedForegroundColor();
+  const primary = usePrimaryColor();
   const itineraryUrl = buildItineraryUrl(client);
   const hasAddress = !!client.addressLabel;
   const hasPhones = client.phones.length > 0;
@@ -46,7 +50,7 @@ export function ClientContactCard({ client }: Props) {
     <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-3">
       {hasAddress ? (
         <View className="flex-row items-center gap-3">
-          <MapPin size={18} color="#5C4E40" />
+          <MapPin size={18} color={mutedFg} />
           <View className="flex-1">
             <Text>{client.addressLabel}</Text>
           </View>
@@ -56,7 +60,7 @@ export function ClientContactCard({ client }: Props) {
               accessibilityLabel={t('clients.itinerary_cta')}
               className="flex-row items-center gap-1 px-3 py-1.5 rounded-full bg-background dark:bg-background-dark"
             >
-              <Navigation size={14} color="#A1602F" />
+              <Navigation size={14} color={primary} />
               <Text variant="primary" className="text-sm font-medium">
                 {t('clients.itinerary_cta')}
               </Text>
@@ -71,27 +75,30 @@ export function ClientContactCard({ client }: Props) {
 
       {hasPhones ? (
         <View className="gap-1">
-          {client.phones.map((p, i) => (
-            <View key={i} className="flex-row items-center justify-between py-0.5">
-              <Text>{formatPhone(p)}</Text>
-              <View className="flex-row gap-1">
-                <Pressable
-                  onPress={() => void Linking.openURL(`tel:${p.replace(/\s/g, '')}`)}
-                  accessibilityLabel={t('clients.call_phone')}
-                  className="p-2"
-                >
-                  <Phone size={18} color="#5C4E40" />
-                </Pressable>
-                <Pressable
-                  onPress={() => void Linking.openURL(`sms:${p.replace(/\s/g, '')}`)}
-                  accessibilityLabel={t('clients.send_sms')}
-                  className="p-2"
-                >
-                  <MessageSquare size={18} color="#5C4E40" />
-                </Pressable>
+          {client.phones.map((p, i) => {
+            const tel = normalizePhone(p);
+            return (
+              <View key={i} className="flex-row items-center justify-between py-0.5">
+                <Text>{formatPhone(p)}</Text>
+                <View className="flex-row gap-1">
+                  <Pressable
+                    onPress={() => tel && void Linking.openURL(`tel:${tel}`)}
+                    accessibilityLabel={t('clients.call_phone')}
+                    className="p-2"
+                  >
+                    <Phone size={18} color={mutedFg} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => tel && void Linking.openURL(`sms:${tel}`)}
+                    accessibilityLabel={t('clients.send_sms')}
+                    className="p-2"
+                  >
+                    <MessageSquare size={18} color={mutedFg} />
+                  </Pressable>
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       ) : null}
     </Surface>

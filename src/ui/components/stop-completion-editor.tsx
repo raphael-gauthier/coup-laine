@@ -91,8 +91,9 @@ export function StopCompletionEditor({
               onChangeText={(v) => setQty(i, v)}
               keyboardType="number-pad"
               style={{ width: 56, textAlign: 'center' }}
+              accessibilityLabel={t('tours.picker_qty')}
             />
-            <PressScale onPress={() => remove(i)}>
+            <PressScale onPress={() => remove(i)} accessibilityLabel={t('common.remove')}>
               <Trash2 size={16} color="#B23832" />
             </PressScale>
           </View>
@@ -101,7 +102,12 @@ export function StopCompletionEditor({
           <Text variant="muted" className="text-xs">{t('tours.bilan_no_show')}</Text>
         ) : null}
 
-        <Button size="sm" variant="secondary" onPress={onAddOffPlan}>
+        <Button
+          size="sm"
+          variant="secondary"
+          onPress={onAddOffPlan}
+          accessibilityLabel={t('tours.bilan_add_off_plan')}
+        >
           <Plus size={14} color="#5C4E40" />
           <Text className="text-sm font-medium">{t('tours.bilan_add_off_plan')}</Text>
         </Button>
@@ -115,6 +121,7 @@ export function StopCompletionEditor({
           multiline
           numberOfLines={3}
           style={{ minHeight: 72, textAlignVertical: 'top' }}
+          accessibilityLabel={t('tours.bilan_note_hint')}
         />
       </View>
     </Surface>

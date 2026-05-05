@@ -9,6 +9,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { haptics } from '@/ui/motion/haptics';
+import { usePrimaryColor } from '@/ui/theme/colors';
 import { useUpsertSpecies, useUpsertAnimalCategory } from '@/state/queries/catalogs';
 import { useUserProfessions } from '@/state/queries/settings';
 import {
@@ -23,6 +24,7 @@ export default function OnboardingSpeciesScreen() {
   const upsertSpecies = useUpsertSpecies();
   const upsertCategory = useUpsertAnimalCategory();
   const { data: professionIds, isSuccess } = useUserProfessions();
+  const primary = usePrimaryColor();
 
   const [enabled, setEnabled] = useState<Record<SpeciesKey, boolean>>(
     () => Object.fromEntries(SPECIES_CATALOG.map((s) => [s.key, false])) as Record<SpeciesKey, boolean>
@@ -74,7 +76,7 @@ export default function OnboardingSpeciesScreen() {
     <Surface className="flex-1">
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, gap: 24 }}>
         <View className="items-center gap-3 mt-12">
-          <Leaf size={48} color="#A1602F" />
+          <Leaf size={48} color={primary} />
           <Text className="text-2xl font-bold text-center">{t('onboarding.species.title')}</Text>
           <Text variant="muted" className="text-center">{t('onboarding.species.message')}</Text>
         </View>
@@ -97,6 +99,7 @@ export default function OnboardingSpeciesScreen() {
           onPress={() => void onContinue()}
           disabled={saving}
           loading={saving}
+          accessibilityLabel={t('onboarding.species.cta')}
         >
           <Text variant="onPrimary" className="font-semibold">{t('onboarding.species.cta')}</Text>
         </Button>

@@ -30,6 +30,7 @@ export function PlannedTourCard({ clientId }: Props) {
         void haptics.selection();
         router.push(`/(tabs)/tours/${tour.id}`);
       }}
+      accessibilityLabel={t('clients.planned_tour_label', { date: dateStr })}
     >
       <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-3">
         <Calendar size={18} color="#C88226" />

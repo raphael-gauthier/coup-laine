@@ -16,7 +16,7 @@ export function RadioRow({ label, selected, onPress }: Props) {
     onPress();
   };
   return (
-    <PressScale onPress={handle}>
+    <PressScale onPress={handle} accessibilityLabel={label}>
       <Surface className="flex-row items-center justify-between rounded-2xl border border-border dark:border-border-dark px-4 py-4">
         <Text className="text-base">{label}</Text>
         {selected && <Check size={20} color="#A1602F" />}

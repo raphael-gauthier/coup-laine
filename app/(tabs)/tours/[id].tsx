@@ -159,7 +159,10 @@ export default function TourDetailScreen() {
 
         {/* Complete button */}
         {tour.status !== 'completed' ? (
-          <Button onPress={() => router.push(`/(tabs)/tours/${tour.id}/complete` as never)}>
+          <Button
+            onPress={() => router.push(`/(tabs)/tours/${tour.id}/complete` as never)}
+            accessibilityLabel={t('tours.complete_cta')}
+          >
             <CircleCheck size={18} color={onContrast} />
             <Text variant="onPrimary" className="font-semibold">{t('tours.complete_cta')}</Text>
           </Button>

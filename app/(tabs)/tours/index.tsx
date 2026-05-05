@@ -7,9 +7,8 @@ import { Plus, Route as RouteIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { motion } from '@/ui/motion/motion-tokens';
-import { PressScale } from '@/ui/motion/press-scale';
-import { haptics } from '@/ui/motion/haptics';
 import { Surface } from '@/ui/primitives/surface';
+import { Fab } from '@/ui/primitives/fab';
 import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { SegmentedControl } from '@/ui/components/segmented-control';
 import { TourCard } from '@/ui/components/tour-card';
@@ -19,23 +18,18 @@ import { ScreenHeader } from '@/ui/components/screen-header';
 import { CreateTourSheet } from '@/ui/components/create-tour-sheet';
 import { useTours } from '@/state/queries/tours';
 import type { TourStatus } from '@/domain/models/tour';
-import { useOnContrastColor } from '@/ui/theme/colors';
+import { useMutedForegroundColor } from '@/ui/theme/colors';
 
 type Filter = 'planned' | 'completed';
 
 export default function ToursListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
-  const onContrast = useOnContrastColor();
+  const mutedFg = useMutedForegroundColor();
   const [filter, setFilter] = useState<Filter>('planned');
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
 
   const { data: tours = [], isError, isLoading, refetch } = useTours(filter as TourStatus);
-
-  const onCreate = () => {
-    void haptics.selection();
-    setCreateSheetVisible(true);
-  };
 
   const closeSheet = () => setCreateSheetVisible(false);
 
@@ -60,7 +54,7 @@ export default function ToursListScreen() {
         <ListSkeleton />
       ) : tours.length === 0 ? (
         <EmptyState
-          icon={<RouteIcon size={48} color="#5C4E40" />}
+          icon={<RouteIcon size={48} color={mutedFg} />}
           title={t('tours.empty_filtered_title')}
           message={t('tours.empty_filtered_message')}
         />
@@ -86,19 +80,11 @@ export default function ToursListScreen() {
         />
       )}
 
-      <PressScale
-        onPress={onCreate}
+      <Fab
+        icon={Plus}
+        onPress={() => setCreateSheetVisible(true)}
         accessibilityLabel={t('tours.empty_cta')}
-        style={{ position: 'absolute', bottom: 24, right: 24 }}
-      >
-        <Surface
-          variant="primary"
-          className="rounded-full p-4"
-          style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
-        >
-          <Plus size={24} color={onContrast} />
-        </Surface>
-      </PressScale>
+      />
 
       <CreateTourSheet
         visible={createSheetVisible}

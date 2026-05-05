@@ -91,6 +91,7 @@ export function ConfirmTypedDialog({
               onChangeText={setTyped}
               placeholder={typedConfirmation}
               autoCapitalize="characters"
+              accessibilityLabel={typedConfirmation}
             />
           </View>
           <View className="flex-row gap-2">

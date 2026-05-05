@@ -161,7 +161,7 @@ export function ServicePickerSheet({
     const sp = category ? speciesById.get(category.speciesId) : null;
     return (
       <View className="flex-row items-center py-3 gap-3 border-b border-border dark:border-border-dark">
-        <PressScale onPress={() => toggle(item.id)}>
+        <PressScale onPress={() => toggle(item.id)} accessibilityLabel={item.label}>
           <View
             className={cn(
               'w-6 h-6 rounded-md items-center justify-center border',
@@ -184,13 +184,19 @@ export function ServicePickerSheet({
         </View>
         {checked ? (
           <View className="flex-row items-center gap-2">
-            <PressScale onPress={() => setQty(item.id, sel.qty - 1)}>
+            <PressScale
+              onPress={() => setQty(item.id, sel.qty - 1)}
+              accessibilityLabel={t('common.decrement')}
+            >
               <View className="w-8 h-8 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
                 <Minus size={14} color={fg} />
               </View>
             </PressScale>
             <Text className="w-8 text-center font-semibold">{sel.qty}</Text>
-            <PressScale onPress={() => setQty(item.id, sel.qty + 1)}>
+            <PressScale
+              onPress={() => setQty(item.id, sel.qty + 1)}
+              accessibilityLabel={t('common.increment')}
+            >
               <View className="w-8 h-8 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
                 <Plus size={14} color={fg} />
               </View>
@@ -211,7 +217,7 @@ export function ServicePickerSheet({
       <Surface className="rounded-t-3xl" style={{ maxHeight: '80%' }}>
         <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
           <Text className="text-lg font-semibold">{t('tours.add_service')}</Text>
-          <PressScale onPress={onClose}>
+          <PressScale onPress={onClose} accessibilityLabel={t('common.close')}>
             <X size={22} color="#5C4E40" />
           </PressScale>
         </View>
@@ -229,6 +235,7 @@ export function ServicePickerSheet({
                   onClose();
                   router.push('/(tabs)/settings/services' as never);
                 }}
+                accessibilityLabel={t('tours.picker_empty_cta')}
               >
                 <Text variant="onPrimary" className="font-semibold">
                   {t('tours.picker_empty_cta')}
@@ -260,7 +267,7 @@ export function ServicePickerSheet({
 
         {active.length > 0 ? (
           <View className="px-4 pt-2 pb-6 border-t border-border dark:border-border-dark">
-            <Button onPress={handleConfirm}>
+            <Button onPress={handleConfirm} accessibilityLabel={t('tours.picker_confirm')}>
               <Text variant="onPrimary" className="font-semibold">
                 {t('tours.picker_confirm')}
               </Text>

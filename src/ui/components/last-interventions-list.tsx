@@ -55,7 +55,7 @@ export function LastInterventionsList({ clientId }: Props) {
               ` → ${formatEur(revenueCents)}`
             : t('clients.no_services');
         return (
-          <PressScale key={key} onPress={() => goToItem(item)}>
+          <PressScale key={key} onPress={() => goToItem(item)} accessibilityLabel={date}>
             <View className="flex-row items-center gap-2 py-1">
               <View className="flex-1 gap-0.5">
                 <Text className="text-sm font-medium">{date}</Text>
@@ -75,6 +75,7 @@ export function LastInterventionsList({ clientId }: Props) {
             void haptics.selection();
             router.push(`/(tabs)/clients/${clientId}/history` as never);
           }}
+          accessibilityLabel={t('clients.view_full_history')}
         >
           <View className="flex-row items-center gap-1 pt-1">
             <Text variant="primary" className="text-sm">
@@ -85,7 +86,7 @@ export function LastInterventionsList({ clientId }: Props) {
         </PressScale>
       ) : null}
 
-      <PressScale onPress={onAddIntervention}>
+      <PressScale onPress={onAddIntervention} accessibilityLabel={t('clients.add_intervention_cta')}>
         <View className="flex-row items-center gap-2 pt-1">
           <Plus size={16} color="#A1602F" />
           <Text variant="primary" className="text-sm font-medium">

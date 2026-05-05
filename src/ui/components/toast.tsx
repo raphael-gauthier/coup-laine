@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInUp, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 import { AlertCircle, CheckCircle2, X } from 'lucide-react-native';
 import { create } from 'zustand';
+import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
@@ -62,6 +63,7 @@ export function ToastContainer() {
 }
 
 function ToastCard({ entry }: { entry: ToastEntry }) {
+  const { t } = useTranslation();
   const dismiss = useToastStore((s) => s.dismiss);
   const onContrast = useOnContrastColor();
 
@@ -77,7 +79,7 @@ function ToastCard({ entry }: { entry: ToastEntry }) {
       layout={LinearTransition.duration(motion.duration.normal)}
       style={{ marginBottom: 8 }}
     >
-      <PressScale onPress={() => dismiss(entry.id)}>
+      <PressScale onPress={() => dismiss(entry.id)} accessibilityLabel={t('common.dismiss')}>
         <Surface
           variant={entry.variant === 'success' ? 'success' : 'danger'}
           className="flex-row items-start gap-2 rounded-2xl px-3 py-3"

@@ -54,7 +54,7 @@ export function ColorPickerSheet({ visible, currentHex, defaultHex, onSelect, on
       <Surface className="rounded-t-3xl px-4 pb-8 pt-4">
         <View className="flex-row items-center justify-between mb-4">
           <Text className="text-lg font-semibold">{t('settings.marker_colors.picker_title')}</Text>
-          <PressScale onPress={onClose}>
+          <PressScale onPress={onClose} accessibilityLabel={t('common.close')}>
             <X size={22} color="#5C4E40" />
           </PressScale>
         </View>
@@ -71,7 +71,11 @@ export function ColorPickerSheet({ visible, currentHex, defaultHex, onSelect, on
         <Text className="text-sm font-medium mb-2">{t('settings.marker_colors.quick_pick')}</Text>
         <View className="flex-row flex-wrap gap-3 mb-4">
           {QUICK_PICKS.map((hex) => (
-            <PressScale key={hex} onPress={() => handleQuickPick(hex)}>
+            <PressScale
+              key={hex}
+              onPress={() => handleQuickPick(hex)}
+              accessibilityLabel={`${t('common.select')} ${hex}`}
+            >
               <View
                 style={{
                   width: 36,
@@ -95,6 +99,7 @@ export function ColorPickerSheet({ visible, currentHex, defaultHex, onSelect, on
           autoCorrect={false}
           placeholder="#A1602F"
           maxLength={7}
+          accessibilityLabel={t('settings.marker_colors.custom_hex')}
         />
         {custom !== '' && !customValid ? (
           <Text className="text-sm text-danger dark:text-danger-dark mt-1">

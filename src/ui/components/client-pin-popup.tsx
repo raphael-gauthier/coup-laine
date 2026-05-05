@@ -119,13 +119,19 @@ export function ClientPinPopup({ client, onClose }: Props) {
       <Surface className="rounded-t-3xl px-4 pt-4 pb-8">
         {/* Close button (top-right, outside the tappable card area) */}
         <View className="absolute right-3 top-3 z-10">
-          <PressScale onPress={onClose} className="p-1">
-            <X size={22} color="#5C4E40" />
+          <PressScale
+            onPress={onClose}
+            className="p-1"
+            accessibilityLabel={t('common.close')}
+          >
+            <View className="w-11 h-11 items-center justify-center">
+              <X size={22} color="#5C4E40" />
+            </View>
           </PressScale>
         </View>
 
         {/* Tappable card body — opens client detail */}
-        <PressScale onPress={openDetail}>
+        <PressScale onPress={openDetail} accessibilityLabel={client.displayName}>
           {/* Title row: name + status badge + chevron */}
           <View className="flex-row items-center gap-2 pr-8">
             <Text className="flex-1 text-xl font-bold" numberOfLines={1}>
@@ -176,11 +182,21 @@ export function ClientPinPopup({ client, onClose }: Props) {
 
         {/* Action buttons — row 1: Itinéraire + Planifier */}
         <View className="flex-row gap-2 mt-4">
-          <Button className="flex-1" variant="secondary" onPress={openItinerary}>
+          <Button
+            className="flex-1"
+            variant="secondary"
+            onPress={openItinerary}
+            accessibilityLabel={t('map.pin_popup_itinerary')}
+          >
             <Compass size={16} color="#5C4E40" />
             <Text className="font-semibold">{t('map.pin_popup_itinerary')}</Text>
           </Button>
-          <Button className="flex-1" variant="secondary" onPress={openPlan}>
+          <Button
+            className="flex-1"
+            variant="secondary"
+            onPress={openPlan}
+            accessibilityLabel={t('map.pin_popup_plan')}
+          >
             <RouteIcon size={16} color="#5C4E40" />
             <Text className="font-semibold">{t('map.pin_popup_plan')}</Text>
           </Button>
@@ -193,6 +209,7 @@ export function ClientPinPopup({ client, onClose }: Props) {
             variant="secondary"
             onPress={callPhone}
             disabled={!principalPhoneTel}
+            accessibilityLabel={t('map.pin_popup_call')}
           >
             <Phone size={16} color="#5C4E40" />
             <Text className="font-semibold">{t('map.pin_popup_call')}</Text>
@@ -202,6 +219,7 @@ export function ClientPinPopup({ client, onClose }: Props) {
             variant="secondary"
             onPress={sendSms}
             disabled={!principalPhoneTel}
+            accessibilityLabel={t('map.pin_popup_sms')}
           >
             <MessageSquare size={16} color="#5C4E40" />
             <Text className="font-semibold">{t('map.pin_popup_sms')}</Text>

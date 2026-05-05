@@ -10,10 +10,11 @@ import { haptics } from '@/ui/motion/haptics';
 interface Props {
   initialValue?: string;
   placeholder?: string;
+  accessibilityLabel?: string;
   onSelect: (result: BanResult) => void;
 }
 
-export function AddressAutocompleteInput({ initialValue = '', placeholder, onSelect }: Props) {
+export function AddressAutocompleteInput({ initialValue = '', placeholder, accessibilityLabel, onSelect }: Props) {
   const [query, setQuery] = useState(initialValue);
   const [results, setResults] = useState<BanResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -73,6 +74,7 @@ export function AddressAutocompleteInput({ initialValue = '', placeholder, onSel
         placeholder={placeholder}
         autoCapitalize="none"
         autoCorrect={false}
+        accessibilityLabel={accessibilityLabel ?? placeholder ?? ''}
       />
       {loading && (
         <View className="flex-row items-center gap-2 px-2">
@@ -87,6 +89,7 @@ export function AddressAutocompleteInput({ initialValue = '', placeholder, onSel
               key={`${item.label}-${index}`}
               onPress={() => handleSelect(item)}
               className={index === 0 ? '' : 'border-t border-border dark:border-border-dark'}
+              accessibilityLabel={item.label}
             >
               <View className="px-4 py-3">
                 <Text>{item.label}</Text>

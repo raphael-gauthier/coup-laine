@@ -116,7 +116,11 @@ export default function CloudScreen() {
           </Text>
         </Surface>
 
-        <Button onPress={onCreate} loading={create.isPending}>
+        <Button
+          onPress={onCreate}
+          loading={create.isPending}
+          accessibilityLabel={t('cloud.create_backup_cta')}
+        >
           <CloudUpload size={18} color={onContrast} />
           <Text variant="onPrimary" className="font-semibold">
             {create.isPending ? t('cloud.creating_backup') : t('cloud.create_backup_cta')}
@@ -144,6 +148,7 @@ export default function CloudScreen() {
                   className="flex-1"
                   onPress={() => onRestore(b.name)}
                   loading={restore.isPending}
+                  accessibilityLabel={t('cloud.restore_cta')}
                 >
                   <RefreshCw size={14} color={fg} />
                   <Text className="font-semibold">{t('cloud.restore_cta')}</Text>
@@ -162,7 +167,21 @@ export default function CloudScreen() {
           ))
         )}
 
-        <Button variant="secondary" onPress={() => signOut.mutate()} loading={signOut.isPending} className="mt-4">
+        <Button
+          variant="secondary"
+          onPress={async () => {
+            const ok = await confirm({
+              title: t('cloud.sign_out_confirm_title'),
+              message: t('cloud.sign_out_confirm_message'),
+              confirmLabel: t('cloud.sign_out_confirm_cta'),
+              cancelLabel: t('common.cancel'),
+              destructive: true,
+            });
+            if (ok) signOut.mutate();
+          }}
+          loading={signOut.isPending}
+          className="mt-4"
+        >
           {t('cloud.sign_out_cta')}
         </Button>
       </ScrollView>

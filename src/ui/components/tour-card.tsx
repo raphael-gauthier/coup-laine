@@ -42,6 +42,7 @@ export function TourCard({ tour, stopCount, onPress }: Props) {
         void haptics.selection();
         onPress();
       }}
+      accessibilityLabel={date}
     >
       <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-2">
         <View className="flex-row items-center justify-between">

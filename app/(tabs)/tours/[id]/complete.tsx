@@ -222,7 +222,11 @@ export default function CompleteTourScreen() {
           />
         ))}
 
-        <Button onPress={onConfirm} loading={complete.isPending}>
+        <Button
+          onPress={onConfirm}
+          loading={complete.isPending}
+          accessibilityLabel={t('tours.complete_confirm_yes')}
+        >
           <CircleCheck size={18} color={onContrast} />
           <Text variant="onPrimary" className="font-semibold">{t('tours.complete_confirm_yes')}</Text>
         </Button>

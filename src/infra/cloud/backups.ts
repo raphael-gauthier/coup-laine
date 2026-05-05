@@ -1,24 +1,11 @@
 import { supabase } from '@/infra/services/supabase';
 import { db } from '@/infra/db/client';
 import * as schema from '@/infra/db/schema';
+import { BackupSnapshotSchema, type ValidatedBackupSnapshot } from './backup-schema';
 
 const BUCKET = 'backups';
 
-interface BackupSnapshot {
-  schemaVersion: 2;
-  createdAt: string;
-  tables: {
-    clients: unknown[];
-    species: unknown[];
-    animal_categories: unknown[];
-    services: unknown[];
-    tours: unknown[];
-    tour_stops: unknown[];
-    manual_history_entries: unknown[];
-    distance_matrix: unknown[];
-    settings: unknown[];
-  };
-}
+type BackupSnapshot = ValidatedBackupSnapshot;
 
 export interface BackupFile {
   name: string;
@@ -48,25 +35,27 @@ async function dumpAllTables(): Promise<BackupSnapshot['tables']> {
 }
 
 async function wipeAndRestore(tables: BackupSnapshot['tables']): Promise<void> {
-  await db.delete(schema.distanceMatrix);
-  await db.delete(schema.manualHistoryEntries);
-  await db.delete(schema.tourStops);
-  await db.delete(schema.tours);
-  await db.delete(schema.animalCategories);
-  await db.delete(schema.species);
-  await db.delete(schema.services);
-  await db.delete(schema.clients);
-  await db.delete(schema.settings);
+  await db.transaction(async (tx) => {
+    await tx.delete(schema.distanceMatrix);
+    await tx.delete(schema.manualHistoryEntries);
+    await tx.delete(schema.tourStops);
+    await tx.delete(schema.tours);
+    await tx.delete(schema.animalCategories);
+    await tx.delete(schema.species);
+    await tx.delete(schema.services);
+    await tx.delete(schema.clients);
+    await tx.delete(schema.settings);
 
-  for (const row of tables.species) await db.insert(schema.species).values(row as typeof schema.species.$inferInsert);
-  for (const row of tables.animal_categories) await db.insert(schema.animalCategories).values(row as typeof schema.animalCategories.$inferInsert);
-  for (const row of tables.services) await db.insert(schema.services).values(row as typeof schema.services.$inferInsert);
-  for (const row of tables.clients) await db.insert(schema.clients).values(row as typeof schema.clients.$inferInsert);
-  for (const row of tables.tours) await db.insert(schema.tours).values(row as typeof schema.tours.$inferInsert);
-  for (const row of tables.tour_stops) await db.insert(schema.tourStops).values(row as typeof schema.tourStops.$inferInsert);
-  for (const row of tables.manual_history_entries) await db.insert(schema.manualHistoryEntries).values(row as typeof schema.manualHistoryEntries.$inferInsert);
-  for (const row of tables.distance_matrix) await db.insert(schema.distanceMatrix).values(row as typeof schema.distanceMatrix.$inferInsert);
-  for (const row of tables.settings) await db.insert(schema.settings).values(row as typeof schema.settings.$inferInsert);
+    for (const row of tables.species) await tx.insert(schema.species).values(row as typeof schema.species.$inferInsert);
+    for (const row of tables.animal_categories) await tx.insert(schema.animalCategories).values(row as typeof schema.animalCategories.$inferInsert);
+    for (const row of tables.services) await tx.insert(schema.services).values(row as typeof schema.services.$inferInsert);
+    for (const row of tables.clients) await tx.insert(schema.clients).values(row as typeof schema.clients.$inferInsert);
+    for (const row of tables.tours) await tx.insert(schema.tours).values(row as typeof schema.tours.$inferInsert);
+    for (const row of tables.tour_stops) await tx.insert(schema.tourStops).values(row as typeof schema.tourStops.$inferInsert);
+    for (const row of tables.manual_history_entries) await tx.insert(schema.manualHistoryEntries).values(row as typeof schema.manualHistoryEntries.$inferInsert);
+    for (const row of tables.distance_matrix) await tx.insert(schema.distanceMatrix).values(row as typeof schema.distanceMatrix.$inferInsert);
+    for (const row of tables.settings) await tx.insert(schema.settings).values(row as typeof schema.settings.$inferInsert);
+  });
 }
 
 export async function createBackup(): Promise<string> {
@@ -122,11 +111,11 @@ export async function restoreBackup(name: string): Promise<void> {
   const { data, error } = await supabase.storage.from(BUCKET).download(path);
   if (error) throw error;
   const text = await data.text();
-  const snapshot = JSON.parse(text) as BackupSnapshot;
-  if (snapshot.schemaVersion !== 2) {
-    throw new Error(`Unknown schema (v${snapshot.schemaVersion})`);
+  const parsed = BackupSnapshotSchema.safeParse(JSON.parse(text));
+  if (!parsed.success) {
+    throw new Error(`Invalid backup format: ${parsed.error.issues[0]?.message ?? 'unknown error'}`);
   }
-  await wipeAndRestore(snapshot.tables);
+  await wipeAndRestore(parsed.data.tables);
 }
 
 export async function deleteBackup(name: string): Promise<void> {

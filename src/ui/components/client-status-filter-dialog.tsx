@@ -89,10 +89,14 @@ export function ClientStatusFilterDialog({ visible, onClose }: Props) {
 }
 
 export function ClientFilterButton() {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   return (
     <>
-      <PressScale onPress={() => setVisible(true)}>
+      <PressScale
+        onPress={() => setVisible(true)}
+        accessibilityLabel={t('clients.filter_dialog_title')}
+      >
         <Filter size={20} color="#5C4E40" />
       </PressScale>
       <ClientStatusFilterDialog visible={visible} onClose={() => setVisible(false)} />

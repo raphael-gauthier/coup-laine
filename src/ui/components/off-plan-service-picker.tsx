@@ -48,7 +48,7 @@ export function OffPlanServicePicker({ visible, excludedServiceIds, onPick, onCl
       <Surface className="rounded-t-3xl" style={{ maxHeight: '70%' }}>
         <View className="flex-row items-center justify-between px-4 pt-4 pb-2">
           <Text className="text-lg font-semibold">{t('tours.bilan_off_plan_picker_title')}</Text>
-          <PressScale onPress={onClose}>
+          <PressScale onPress={onClose} accessibilityLabel={t('common.close')}>
             <X size={22} color={fg} />
           </PressScale>
         </View>
@@ -64,7 +64,7 @@ export function OffPlanServicePicker({ visible, excludedServiceIds, onPick, onCl
               const sp = category ? speciesById.get(category.speciesId) : null;
               const subtitle = [sp?.label, category?.label].filter(Boolean).join(' · ');
               return (
-                <PressScale key={p.id} onPress={() => onPick(p)}>
+                <PressScale key={p.id} onPress={() => onPick(p)} accessibilityLabel={p.label}>
                   <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-1">
                     <Text className="text-sm font-semibold">{p.label}</Text>
                     <Text variant="muted" className="text-xs">

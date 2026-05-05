@@ -7,10 +7,9 @@ import { Plus, UserRound } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { motion } from '@/ui/motion/motion-tokens';
-import { PressScale } from '@/ui/motion/press-scale';
-import { haptics } from '@/ui/motion/haptics';
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
+import { Fab } from '@/ui/primitives/fab';
 import { Text } from '@/ui/primitives/text';
 import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { SearchBar } from '@/ui/components/search-bar';
@@ -24,12 +23,13 @@ import { ClientFilterButton } from '@/ui/components/client-status-filter-dialog'
 import { useClients, useToggleWaiting, useClientStatusMap, type ClientsFilter } from '@/state/queries/clients';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
 import { matchesAny } from '@/lib/text-search';
-import { useOnContrastColor } from '@/ui/theme/colors';
+import { useOnContrastColor, useMutedForegroundColor } from '@/ui/theme/colors';
 
 export default function ClientsListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const onContrast = useOnContrastColor();
+  const mutedFg = useMutedForegroundColor();
   const [filter, setFilter] = useState<ClientsFilter>('all');
   const [search, setSearch] = useState('');
 
@@ -82,12 +82,15 @@ export default function ClientsListScreen() {
         <ListSkeleton />
       ) : filtered.length === 0 ? (
         <EmptyState
-          icon={<UserRound size={48} color="#5C4E40" />}
+          icon={<UserRound size={48} color={mutedFg} />}
           title={search ? t('clients.empty_filtered_title') : t('clients.empty_title')}
           message={search ? t('clients.empty_filtered_message') : t('clients.empty_message')}
           action={
             !search ? (
-              <Button onPress={() => router.push('/(tabs)/clients/new')}>
+              <Button
+                onPress={() => router.push('/(tabs)/clients/new')}
+                accessibilityLabel={t('clients.empty_cta')}
+              >
                 <Plus size={16} color={onContrast} />
                 <Text variant="onPrimary" className="font-semibold">
                   {t('clients.empty_cta')}
@@ -118,22 +121,11 @@ export default function ClientsListScreen() {
         />
       )}
 
-      <PressScale
-        onPress={() => {
-          void haptics.selection();
-          router.push('/(tabs)/clients/new');
-        }}
+      <Fab
+        icon={Plus}
+        onPress={() => router.push('/(tabs)/clients/new')}
         accessibilityLabel={t('clients.empty_cta')}
-        style={{ position: 'absolute', bottom: 24, right: 24 }}
-      >
-        <Surface
-          variant="primary"
-          className="rounded-full p-4"
-          style={{ shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 }}
-        >
-          <Plus size={24} color={onContrast} />
-        </Surface>
-      </PressScale>
+      />
     </Surface>
   );
 }

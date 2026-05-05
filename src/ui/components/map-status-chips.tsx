@@ -49,6 +49,7 @@ export function MapStatusChips() {
               void haptics.selection();
               setFilter(filter);
             }}
+            accessibilityLabel={t(labelKey)}
           >
             <View
               className={cn(

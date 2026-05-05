@@ -32,6 +32,7 @@ export function SegmentedControl<T extends string>({ options, value, onChange }:
               'flex-1 py-2 rounded-xl items-center',
               selected && 'bg-background dark:bg-background-dark'
             )}
+            accessibilityLabel={opt.label}
           >
             <Text className={cn('font-medium', selected ? '' : 'opacity-60')}>
               {opt.label}

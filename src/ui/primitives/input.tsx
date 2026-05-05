@@ -1,8 +1,11 @@
 import { TextInput, useColorScheme, type TextInputProps } from 'react-native';
 import { cn } from '@/lib/cn';
 
-interface Props extends TextInputProps {
+interface Props extends Omit<TextInputProps, 'accessibilityLabel'> {
   className?: string;
+  // Required at the type level so screen readers always announce a meaningful
+  // field name, even when a visible <Text> label is rendered alongside.
+  accessibilityLabel: string;
 }
 
 export function Input({ className, style, ...rest }: Props) {

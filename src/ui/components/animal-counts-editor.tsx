@@ -48,8 +48,9 @@ export function AnimalCountsEditor({ value, onChange }: Props) {
                         void haptics.selection();
                         setCount(cat.id, count - 1);
                       }}
+                      accessibilityLabel={t('common.decrement')}
                     >
-                      <View className="w-9 h-9 rounded-full items-center justify-center bg-background dark:bg-[#4A3F33]">
+                      <View className="w-11 h-11 rounded-full items-center justify-center bg-background dark:bg-[#4A3F33]">
                         <Minus size={16} color={stepperIconColor} />
                       </View>
                     </PressScale>
@@ -59,8 +60,9 @@ export function AnimalCountsEditor({ value, onChange }: Props) {
                         void haptics.selection();
                         setCount(cat.id, count + 1);
                       }}
+                      accessibilityLabel={t('common.increment')}
                     >
-                      <View className="w-9 h-9 rounded-full items-center justify-center bg-background dark:bg-[#4A3F33]">
+                      <View className="w-11 h-11 rounded-full items-center justify-center bg-background dark:bg-[#4A3F33]">
                         <Plus size={16} color={stepperIconColor} />
                       </View>
                     </PressScale>

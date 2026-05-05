@@ -26,18 +26,49 @@ import { ensureAnonymousSession } from '@/infra/services/ensure-session';
 import { useAutoBackup } from '@/state/hooks/use-auto-backup';
 import * as Sentry from '@sentry/react-native';
 
+// Keys whose values are PII or domain data that must never reach Sentry.
+const PII_KEYS = new Set([
+  'email',
+  'phone',
+  'phones',
+  'address',
+  'addressLabel',
+  'latitude',
+  'longitude',
+  'displayName',
+  'notes',
+]);
+
+function scrubPii<T>(value: T, depth = 0): T {
+  if (depth > 6 || value == null) return value;
+  if (Array.isArray(value)) return value.map((v) => scrubPii(v, depth + 1)) as unknown as T;
+  if (typeof value !== 'object') return value;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+    if (PII_KEYS.has(k) || k.startsWith('client')) {
+      out[k] = '[scrubbed]';
+    } else {
+      out[k] = scrubPii(v, depth + 1);
+    }
+  }
+  return out as T;
+}
+
 Sentry.init({
   dsn: 'https://c73c08e2338f9626e0a374a9f92eecfc@o4511336006352896.ingest.de.sentry.io/4511336009302096',
-
-  // Adds more context data to events (IP address, cookies, user, etc.)
-  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
-  sendDefaultPii: true,
-
-  // Enable Logs
-  enableLogs: true,
-
-  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-  // spotlight: __DEV__,
+  sendDefaultPii: false,
+  enableLogs: __DEV__,
+  beforeSend(event) {
+    if (event.user) event.user = { id: event.user.id };
+    if (event.contexts) event.contexts = scrubPii(event.contexts);
+    if (event.extra) event.extra = scrubPii(event.extra);
+    if (event.tags) event.tags = scrubPii(event.tags);
+    return event;
+  },
+  beforeBreadcrumb(breadcrumb) {
+    if (breadcrumb.data) breadcrumb.data = scrubPii(breadcrumb.data);
+    return breadcrumb;
+  },
 });
 
 export const unstable_settings = {

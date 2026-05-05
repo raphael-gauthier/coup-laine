@@ -45,7 +45,12 @@ export function ClientAnimalsSection({ client }: Props) {
       <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-3">
         <View className="flex-row items-center justify-between">
           <Text className="font-semibold">{t('clients.animals_section_title')}</Text>
-          <Button size="sm" variant="ghost" onPress={() => setEditing(true)}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onPress={() => setEditing(true)}
+            accessibilityLabel={t('common.edit')}
+          >
             <Plus size={14} color={fg} />
             <Text className="font-semibold text-sm">{t('common.edit')}</Text>
           </Button>

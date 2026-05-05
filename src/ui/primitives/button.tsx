@@ -48,15 +48,20 @@ const TEXT_VARIANT_FOR: Record<ButtonVariant, 'default' | 'onPrimary' | 'onDange
   accent: 'onAccent',
 };
 
-interface Props extends VariantProps<typeof buttonSurfaceVariants> {
-  children: ReactNode;
+type CommonProps = VariantProps<typeof buttonSurfaceVariants> & {
   onPress?: () => void;
   disabled?: boolean;
   loading?: boolean;
   className?: string;
   hapticOnPress?: boolean;
-  accessibilityLabel?: string;
-}
+};
+
+// String children auto-derive the accessibility name from the visible label,
+// so accessibilityLabel is optional. Custom (icon/composite) children must
+// pass an explicit accessibilityLabel.
+type Props =
+  | (CommonProps & { children: string; accessibilityLabel?: string })
+  | (CommonProps & { children: Exclude<ReactNode, string>; accessibilityLabel: string });
 
 export function Button({
   children,
@@ -69,6 +74,8 @@ export function Button({
   hapticOnPress = true,
   accessibilityLabel,
 }: Props) {
+  const resolvedAccessibilityLabel =
+    accessibilityLabel ?? (typeof children === 'string' ? children : '');
   const handlePress = () => {
     if (disabled || loading) return;
     if (hapticOnPress) void haptics.selection();
@@ -82,7 +89,7 @@ export function Button({
     <PressScale
       onPress={handlePress}
       disabled={disabled || loading}
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={resolvedAccessibilityLabel}
       accessibilityRole="button"
       className={cn(
         buttonSurfaceVariants({ variant, size }),

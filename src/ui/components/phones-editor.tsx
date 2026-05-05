@@ -72,14 +72,14 @@ export function PhonesEditor({ value, onChange }: Props) {
             placeholder="06 12 34 56 78"
             placeholderTextColor={isDark ? '#B4A490' : '#94816C'}
           />
-          <PressScale onPress={() => remove(index)}>
-            <View className="w-10 h-10 rounded-full items-center justify-center bg-muted dark:bg-muted-dark">
+          <PressScale onPress={() => remove(index)} accessibilityLabel={t('common.remove')}>
+            <View className="w-11 h-11 rounded-full items-center justify-center bg-muted dark:bg-muted-dark">
               <X size={18} color="#B23832" />
             </View>
           </PressScale>
         </View>
       ))}
-      <Button variant="ghost" size="sm" onPress={add}>
+      <Button variant="ghost" size="sm" onPress={add} accessibilityLabel={t('clients.add_phone')}>
         <Plus size={16} color={fg} />
         <Text className="font-semibold">{t('clients.add_phone')}</Text>
       </Button>

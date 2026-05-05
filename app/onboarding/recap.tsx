@@ -9,6 +9,7 @@ import { Button } from '@/ui/primitives/button';
 import { useBaseAddress, useMarkOnboardingComplete } from '@/state/queries/settings';
 import { useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
+import { usePrimaryColor } from '@/ui/theme/colors';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 
 export default function OnboardingRecapScreen() {
@@ -17,6 +18,7 @@ export default function OnboardingRecapScreen() {
   const { data: base } = useBaseAddress();
   const { data: speciesList = [] } = useSpecies();
   const markComplete = useMarkOnboardingComplete();
+  const primary = usePrimaryColor();
 
   const onLaunch = () => {
     markComplete.mutate(undefined, {
@@ -33,7 +35,7 @@ export default function OnboardingRecapScreen() {
   return (
     <Surface className="flex-1 items-center justify-center px-8">
       <View className="items-center gap-6 max-w-sm w-full">
-        <CheckCircle size={64} color="#A1602F" />
+        <CheckCircle size={64} color={primary} />
         <Text className="text-2xl font-bold text-center">{t('onboarding.recap.title')}</Text>
         <Text variant="muted" className="text-center">{t('onboarding.recap.message')}</Text>
 
@@ -57,6 +59,7 @@ export default function OnboardingRecapScreen() {
           onPress={onLaunch}
           disabled={markComplete.isPending}
           loading={markComplete.isPending}
+          accessibilityLabel={t('onboarding.recap.cta')}
         >
           <Text variant="onPrimary" className="font-semibold">{t('onboarding.recap.cta')}</Text>
         </Button>

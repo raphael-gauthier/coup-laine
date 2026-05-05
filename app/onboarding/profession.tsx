@@ -12,12 +12,15 @@ import { haptics } from '@/ui/motion/haptics';
 import { cn } from '@/lib/cn';
 import { PROFESSION_PRESETS } from '@/domain/catalog/profession-catalog';
 import { useUserProfessions, useSetUserProfessions } from '@/state/queries/settings';
+import { useOnContrastColor, usePrimaryColor } from '@/ui/theme/colors';
 
 export default function OnboardingProfessionScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { data: persisted = [] } = useUserProfessions();
   const setProfessions = useSetUserProfessions();
+  const primary = usePrimaryColor();
+  const onContrast = useOnContrastColor();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [hydrated, setHydrated] = useState(false);
 
@@ -57,7 +60,7 @@ export default function OnboardingProfessionScreen() {
     <Surface className="flex-1">
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, gap: 24 }}>
         <View className="items-center gap-3 mt-12">
-          <Briefcase size={48} color="#A1602F" />
+          <Briefcase size={48} color={primary} />
           <Text className="text-2xl font-bold text-center">{t('onboarding.profession.title')}</Text>
           <Text variant="muted" className="text-center">{t('onboarding.profession.message')}</Text>
         </View>
@@ -66,7 +69,7 @@ export default function OnboardingProfessionScreen() {
           {PROFESSION_PRESETS.map((m) => {
             const active = selected.has(m.id);
             return (
-              <PressScale key={m.id} onPress={() => toggle(m.id)}>
+              <PressScale key={m.id} onPress={() => toggle(m.id)} accessibilityLabel={m.label}>
                 <View
                   className={cn(
                     'flex-row items-center gap-2 rounded-full px-4 py-2 border',
@@ -75,7 +78,7 @@ export default function OnboardingProfessionScreen() {
                       : 'bg-muted dark:bg-muted-dark border-border dark:border-border-dark'
                   )}
                 >
-                  {active ? <Check size={14} color="#FAF6F0" /> : null}
+                  {active ? <Check size={14} color={onContrast} /> : null}
                   <Text variant={active ? 'onPrimary' : 'default'} className="font-medium">
                     {m.label}
                   </Text>
@@ -91,6 +94,7 @@ export default function OnboardingProfessionScreen() {
           onPress={onContinue}
           disabled={setProfessions.isPending}
           loading={setProfessions.isPending}
+          accessibilityLabel={t('onboarding.profession.cta')}
         >
           <Text variant="onPrimary" className="font-semibold">{t('onboarding.profession.cta')}</Text>
         </Button>

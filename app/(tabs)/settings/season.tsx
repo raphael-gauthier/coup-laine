@@ -55,7 +55,7 @@ export default function SeasonScreen() {
 
         <View className="gap-2">
           <Text className="text-sm font-medium">{t('settings.season.date_label')}</Text>
-          <PressScale onPress={() => setShowPicker(true)}>
+          <PressScale onPress={() => setShowPicker(true)} accessibilityLabel={t('settings.season.date_label')}>
             <Surface variant="muted" className="rounded-2xl px-4 py-3">
               <Text>{format(date, 'PPPP', { locale: fr })}</Text>
             </Surface>

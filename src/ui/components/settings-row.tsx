@@ -19,7 +19,7 @@ export function SettingsRow({ label, hint, onPress, testID }: Props) {
   };
   return (
     <View className="mb-2">
-      <PressScale onPress={handle} testID={testID}>
+      <PressScale onPress={handle} testID={testID} accessibilityLabel={label}>
         <Surface className="flex-row items-center justify-between rounded-2xl border border-border dark:border-border-dark px-4 py-4">
         <View className="flex-1 pr-4">
           <Text className="text-base font-medium">{label}</Text>

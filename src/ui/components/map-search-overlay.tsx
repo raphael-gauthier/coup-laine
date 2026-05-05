@@ -42,6 +42,7 @@ export function MapSearchOverlay({ clients, onFlyTo }: Props) {
       <PressScale
         onPress={() => setExpanded(true)}
         style={{ position: 'absolute', top: 12, left: 12 }}
+        accessibilityLabel={t('map.search_placeholder')}
       >
         <Surface
           className="rounded-full p-3"

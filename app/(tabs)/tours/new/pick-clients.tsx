@@ -76,6 +76,7 @@ export default function PickClientsScreen() {
                   void haptics.selection();
                   toggle(item.id);
                 }}
+                accessibilityLabel={item.displayName}
               >
                 <Surface
                   variant="muted"
