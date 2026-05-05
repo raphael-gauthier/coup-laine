@@ -1,10 +1,9 @@
 import { View } from 'react-native';
-import { ChevronRight, MapPin, TriangleAlert } from 'lucide-react-native';
+import { ChevronRight, Hourglass, MapPin, TriangleAlert } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { PressScale } from '@/ui/motion/press-scale';
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
-import { Button } from '@/ui/primitives/button';
 import { haptics } from '@/ui/motion/haptics';
 import type { Client } from '@/domain/models/client';
 import { useClientStatusMap } from '@/state/queries/clients';
@@ -59,14 +58,22 @@ export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
             <Text className="text-sm mt-0.5" numberOfLines={1}>{animalsText}</Text>
           ) : null}
         </View>
-        <Button
-          variant={client.isWaiting ? 'primary' : 'secondary'}
-          size="sm"
-          onPress={onToggleWaiting}
-          hapticOnPress={false}
+        <PressScale
+          onPress={() => {
+            void haptics.selection();
+            onToggleWaiting();
+          }}
+          accessibilityLabel={client.isWaiting ? t('clients.unmark_waiting') : t('clients.mark_waiting')}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: client.isWaiting }}
+          className="p-2"
         >
-          {client.isWaiting ? t('clients.unmark_waiting') : t('clients.mark_waiting')}
-        </Button>
+          <Hourglass
+            size={20}
+            color={client.isWaiting ? '#A1602F' : '#5C4E40'}
+            fill={client.isWaiting ? '#A1602F' : 'transparent'}
+          />
+        </PressScale>
         {client.needsDistanceRecompute ? (
           <Surface
             variant="danger"
