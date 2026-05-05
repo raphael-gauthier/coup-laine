@@ -5,6 +5,7 @@ import { ClientRepository } from '@/data/repositories/client-repository';
 import type { Tour, TourStatus } from '@/domain/models/tour';
 import type { TourStop } from '@/domain/models/tour-stop';
 import { newId } from '@/lib/id';
+import { EMPTY_PAYMENT } from '@/domain/models/payment';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import i18n from '@/i18n';
 
@@ -96,6 +97,7 @@ export function useUpsertTour() {
         actualServices: null,
         notes: s.notes,
         completedAt: null,
+        payment: EMPTY_PAYMENT,
       }));
       await tourRepo.upsertTour(tour, stops);
       return { tour, stops };
@@ -151,7 +153,7 @@ export function useCompleteWithBilan() {
       perStopNotes: Map<string, string | null>;
       completedAt: string;
     }) => {
-      await tourRepo.completeWithBilan(tourId, perStopActuals, perStopNotes, completedAt);
+      await tourRepo.completeWithBilan(tourId, perStopActuals, perStopNotes, new Map(), completedAt);
 
       // Update client lastShearingDate + unmark waiting
       const result = await tourRepo.byId(tourId);

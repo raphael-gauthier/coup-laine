@@ -1,6 +1,7 @@
 import type { Tour } from '@/domain/models/tour';
 import type { TourStop } from '@/domain/models/tour-stop';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
+import { EMPTY_PAYMENT } from '@/domain/models/payment';
 
 interface InputStop {
   clientId: string;
@@ -65,6 +66,7 @@ export function buildTourDraft({
     actualServices: null,
     notes: s.notes,
     completedAt: null,
+    payment: EMPTY_PAYMENT,
   }));
   return { tour, stops: tourStops };
 }
