@@ -1,6 +1,5 @@
-import { useContext, type ReactElement, type ComponentType } from 'react';
-import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
-import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
+import { type ReactElement, type ComponentType } from 'react';
+import { type StyleProp, type ViewStyle } from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
@@ -12,9 +11,9 @@ interface Props<T> {
   onReorder: (next: T[]) => void;
   renderItem: (params: { item: T; index: number; drag: () => void; isActive: boolean }) => ReactElement;
   /**
-   * Use these to embed surrounding content (form fields, totals, save buttons)
-   * inside the same scroll surface as the draggable items. This is the only
-   * way to avoid the "VirtualizedLists nested in ScrollView" RN error.
+   * Use these to embed surrounding content (form fields, totals) inside the
+   * same scroll surface as the draggable items. This is the only way to avoid
+   * the "VirtualizedLists nested in ScrollView" RN error.
    */
   ListHeaderComponent?: ComponentType | ReactElement | null;
   ListFooterComponent?: ComponentType | ReactElement | null;
@@ -30,20 +29,6 @@ export function DraggableList<T>({
   ListFooterComponent,
   contentContainerStyle,
 }: Props<T>) {
-  // Unlike RN's ScrollView, DraggableFlatList doesn't auto-inset for the
-  // bottom tab bar — its footer ends up half-hidden behind the bar. Read the
-  // tab bar height directly from the context (returns undefined outside a
-  // tab navigator, so the wrapper is safe to use anywhere) and bake it into
-  // contentContainerStyle.paddingBottom so callers don't have to think
-  // about it.
-  const tabBarHeight = useContext(BottomTabBarHeightContext) ?? 0;
-  const flat = StyleSheet.flatten(contentContainerStyle) ?? {};
-  const callerPaddingBottom = typeof flat.paddingBottom === 'number' ? flat.paddingBottom : 0;
-  const mergedStyle = {
-    ...flat,
-    paddingBottom: callerPaddingBottom + tabBarHeight,
-  };
-
   return (
     <DraggableFlatList
       data={data}
@@ -51,7 +36,7 @@ export function DraggableList<T>({
       onDragEnd={({ data: next }) => onReorder(next)}
       ListHeaderComponent={ListHeaderComponent}
       ListFooterComponent={ListFooterComponent}
-      contentContainerStyle={mergedStyle}
+      contentContainerStyle={contentContainerStyle}
       renderItem={({ item, getIndex, drag, isActive }: RenderItemParams<T>) => (
         <ScaleDecorator>
           {renderItem({ item, index: getIndex() ?? 0, drag, isActive })}

@@ -279,30 +279,18 @@ export function TourDraftEditor({
     </View>
   );
 
-  const Footer = (
-    <View style={{ gap: 8, paddingTop: 16, paddingBottom: 16 }}>
-      <Button
-        onPress={() => void submit()}
-        loading={saving}
-        disabled={initialStops.length === 0 || saving}
-      >
-        {t('common.save')}
-      </Button>
-    </View>
-  );
-
   const pickerStop = pickerClientId ? initialStops.find((s) => s.clientId === pickerClientId) : null;
   const pickerClient = pickerClientId ? clientsById.get(pickerClientId) : null;
 
   return (
     <>
+    <View style={{ flex: 1 }}>
     <DraggableList
       data={initialStops}
       keyExtractor={(s) => s.clientId}
       onReorder={onReorderStops}
       ListHeaderComponent={Header}
-      ListFooterComponent={Footer}
-      contentContainerStyle={{ paddingHorizontal: 16 }}
+      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
       renderItem={({ item, index, drag }) => {
         const client = clientsById.get(item.clientId);
         const arr = arrivals[index];
@@ -367,6 +355,16 @@ export function TourDraftEditor({
         );
       }}
     />
+    </View>
+    <View className="px-4 pt-3 pb-6 border-t border-border dark:border-border-dark bg-background dark:bg-background-dark">
+      <Button
+        onPress={() => void submit()}
+        loading={saving}
+        disabled={initialStops.length === 0 || saving}
+      >
+        {t('common.save')}
+      </Button>
+    </View>
     {pickerClientId && pickerClient ? (
       <ServicePickerSheet
         key={pickerClientId}
