@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/infra/services/supabase';
 import { errorToast } from '@/ui/components/error-toast';
+import i18n from '@/i18n';
 import type { Session } from '@supabase/supabase-js';
 
 export const authKeys = {
@@ -30,17 +31,65 @@ export function useSession() {
   });
 }
 
-export function useSignInOtp() {
-  return useMutation({
-    mutationFn: async (email: string) => {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: 'coupelaine://auth/callback' },
-      });
+export type OtpKind = 'email' | 'email_change';
+
+export interface SendOtpResult {
+  /** Which verifyOtp `type` the caller must use to confirm the code. */
+  kind: OtpKind;
+}
+
+/**
+ * Sends a 6-digit OTP code by email. If the current Supabase session is
+ * anonymous, the code links the new email to that anonymous user (preserving
+ * the user id and any cloud data). Otherwise it triggers a normal sign-in /
+ * sign-up flow.
+ */
+export function useSendOtp() {
+  return useMutation<SendOtpResult, Error, string>({
+    mutationFn: async (email) => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user.is_anonymous) {
+        const { error } = await supabase.auth.updateUser({ email });
+        if (!error) return { kind: 'email_change' };
+        // Email already belongs to an existing account: drop the anonymous
+        // session and send a regular sign-in OTP to that account instead.
+        const conflict = error.code === 'email_exists' || error.status === 422;
+        if (!conflict) throw error;
+        await supabase.auth.signOut();
+        const { error: otpError } = await supabase.auth.signInWithOtp({ email });
+        if (otpError) throw otpError;
+        errorToast(
+          i18n.t('auth.errors.email_already_used_title'),
+          i18n.t('auth.errors.email_already_used_message'),
+        );
+        return { kind: 'email' };
+      }
+      const { error } = await supabase.auth.signInWithOtp({ email });
       if (error) throw error;
+      return { kind: 'email' };
     },
     onError: (err) => {
       errorToast('Envoi impossible', err instanceof Error ? err.message : undefined);
+    },
+  });
+}
+
+export interface VerifyOtpInput {
+  email: string;
+  token: string;
+  kind: OtpKind;
+}
+
+export function useVerifyOtp() {
+  return useMutation<Session, Error, VerifyOtpInput>({
+    mutationFn: async ({ email, token, kind }) => {
+      const { data, error } = await supabase.auth.verifyOtp({ email, token, type: kind });
+      if (error) throw error;
+      if (!data.session) throw new Error('No session returned after OTP verification');
+      return data.session;
+    },
+    onError: (err) => {
+      errorToast('Code invalide', err instanceof Error ? err.message : undefined);
     },
   });
 }

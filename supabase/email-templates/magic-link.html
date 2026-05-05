@@ -8,7 +8,7 @@
   <body style="margin:0; padding:0; background-color:#FAF8F3; font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif; color:#161A15;">
     <!-- Preheader (caché, visible en preview de l'inbox) -->
     <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
-      Votre lien de connexion à Coup'Laine — valable 1h.
+      Votre code de connexion à Coup'Laine — valable 1h.
     </div>
 
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#FAF8F3;">
@@ -23,7 +23,7 @@
                   Coup'Laine
                 </div>
                 <h1 style="margin:12px 0 0 0; font-size:28px; font-weight:600; line-height:1.15; letter-spacing:-0.5px; color:#1F3A2E;">
-                  Votre lien de connexion
+                  Votre code de connexion
                 </h1>
               </td>
             </tr>
@@ -35,40 +35,22 @@
                   Bonjour,
                 </p>
                 <p style="margin:0 0 16px 0;">
-                  Pour vous connecter à votre compte Coup'Laine sur cet appareil, tapez sur le bouton ci-dessous depuis votre téléphone.
+                  Pour vous connecter à votre compte Coup'Laine, saisissez le code ci-dessous dans l'application.
                 </p>
                 <p style="margin:0 0 0 0; color:#5F635A; font-size:13px;">
-                  Le lien est valable une heure et ne fonctionne qu'une seule fois.
+                  Le code est valable une heure et ne fonctionne qu'une seule fois.
                 </p>
               </td>
             </tr>
 
-            <!-- CTA -->
+            <!-- Code -->
             <tr>
               <td align="center" style="padding:8px 40px 32px 40px;">
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                  <tr>
-                    <td align="center" bgcolor="#1F3A2E" style="border-radius:8px;">
-                      <a href="{{ .ConfirmationURL }}"
-                         target="_blank"
-                         style="display:inline-block; padding:14px 28px; font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; font-weight:600; letter-spacing:-0.1px; color:#FAF8F3; text-decoration:none; border-radius:8px;">
-                        Se connecter
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-
-            <!-- Fallback URL -->
-            <tr>
-              <td style="padding:0 40px 32px 40px; font-size:13px; line-height:1.5; color:#5F635A;">
-                <p style="margin:0 0 8px 0;">
-                  Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur&nbsp;:
-                </p>
-                <p style="margin:0; word-break:break-all;">
-                  <a href="{{ .ConfirmationURL }}" style="color:#8B5A2B; text-decoration:underline;">{{ .ConfirmationURL }}</a>
-                </p>
+                <div style="display:inline-block; padding:20px 32px; background-color:#F4EFE2; border:1px solid #D4CEBE; border-radius:12px;">
+                  <div style="font-family:'SF Mono','Menlo','Consolas',monospace; font-size:36px; font-weight:600; letter-spacing:8px; color:#1F3A2E;">
+                    {{ .Token }}
+                  </div>
+                </div>
               </td>
             </tr>
 

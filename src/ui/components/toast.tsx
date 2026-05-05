@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInUp, FadeOutUp, LinearTransition } from 'react-native-reanimated';
-import { AlertCircle, X } from 'lucide-react-native';
+import { AlertCircle, CheckCircle2, X } from 'lucide-react-native';
 import { create } from 'zustand';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -10,10 +10,11 @@ import { Text } from '@/ui/primitives/text';
 import { PressScale } from '@/ui/motion/press-scale';
 import { motion } from '@/ui/motion/motion-tokens';
 import { newId } from '@/lib/id';
+import { useOnContrastColor } from '@/ui/theme/colors';
 
 const AUTO_DISMISS_MS = 4000;
 
-export type ToastVariant = 'error';
+export type ToastVariant = 'error' | 'success';
 
 export interface ToastEntry {
   id: string;
@@ -62,6 +63,7 @@ export function ToastContainer() {
 
 function ToastCard({ entry }: { entry: ToastEntry }) {
   const dismiss = useToastStore((s) => s.dismiss);
+  const onContrast = useOnContrastColor();
 
   useEffect(() => {
     const handle = setTimeout(() => dismiss(entry.id), AUTO_DISMISS_MS);
@@ -77,7 +79,7 @@ function ToastCard({ entry }: { entry: ToastEntry }) {
     >
       <PressScale onPress={() => dismiss(entry.id)}>
         <Surface
-          variant="danger"
+          variant={entry.variant === 'success' ? 'success' : 'danger'}
           className="flex-row items-start gap-2 rounded-2xl px-3 py-3"
           style={{
             shadowColor: '#000',
@@ -87,18 +89,22 @@ function ToastCard({ entry }: { entry: ToastEntry }) {
             elevation: 6,
           }}
         >
-          <AlertCircle size={18} color="#FFFFFF" style={{ marginTop: 1 }} />
+          {entry.variant === 'success' ? (
+            <CheckCircle2 size={18} color={onContrast} style={{ marginTop: 1 }} />
+          ) : (
+            <AlertCircle size={18} color={onContrast} style={{ marginTop: 1 }} />
+          )}
           <View className="flex-1">
-            <Text variant="onDanger" className="text-sm font-semibold">
+            <Text variant={entry.variant === 'success' ? 'onSuccess' : 'onDanger'} className="text-sm font-semibold">
               {entry.title}
             </Text>
             {entry.message ? (
-              <Text variant="onDanger" className="text-sm opacity-90 mt-0.5">
+              <Text variant={entry.variant === 'success' ? 'onSuccess' : 'onDanger'} className="text-sm opacity-90 mt-0.5">
                 {entry.message}
               </Text>
             ) : null}
           </View>
-          <X size={16} color="#FFFFFF" style={{ marginTop: 2, opacity: 0.8 }} />
+          <X size={16} color={onContrast} style={{ marginTop: 2, opacity: 0.8 }} />
         </Surface>
       </PressScale>
     </Animated.View>

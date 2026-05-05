@@ -19,6 +19,7 @@ import { ThemeProvider, useResolvedColorScheme } from '@/ui/theme/theme-provider
 import { ToastContainer } from '@/ui/components/toast';
 import { bootstrapDatabase } from '@/infra/db/bootstrap';
 import { ensureAnonymousSession } from '@/infra/services/ensure-session';
+import { useAutoBackup } from '@/state/hooks/use-auto-backup';
 
 export const unstable_settings = {
   anchor: 'index',
@@ -30,6 +31,8 @@ const queryClient = new QueryClient({
 
 function App() {
   const isDark = useResolvedColorScheme() === 'dark';
+
+  useAutoBackup();
 
   useEffect(() => {
     if (Platform.OS === 'android') {

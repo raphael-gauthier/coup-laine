@@ -85,8 +85,23 @@ export async function createBackup(): Promise<string> {
     upsert: false,
   });
   if (error) throw error;
+
+  // Keep only the most recent HISTORY_WINDOW backups (mirrors Flutter behaviour).
+  // Best-effort: a failure here doesn't invalidate the backup we just uploaded.
+  try {
+    const all = await listBackups();
+    const stale = all.slice(HISTORY_WINDOW).map((f) => `${uid}/${f.name}`);
+    if (stale.length > 0) {
+      await supabase.storage.from(BUCKET).remove(stale);
+    }
+  } catch {
+    /* ignore */
+  }
+
   return path;
 }
+
+const HISTORY_WINDOW = 3;
 
 export async function listBackups(): Promise<BackupFile[]> {
   const uid = await userId();

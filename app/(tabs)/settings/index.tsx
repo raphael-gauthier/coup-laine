@@ -73,7 +73,7 @@ export default function SettingsScreen() {
         <SectionHeader title={t('settings.section_cloud')} />
         <SettingsRow
           label={t('cloud.row_label')}
-          hint={session ? t('cloud.row_hint_logged_in') : t('cloud.row_hint_logged_out')}
+          hint={session && !session.user.is_anonymous ? t('cloud.row_hint_logged_in') : t('cloud.row_hint_logged_out')}
           onPress={() => router.push('/(tabs)/settings/cloud' as never)}
         />
       </ScrollView>

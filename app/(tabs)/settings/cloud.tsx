@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { format, parseISO } from 'date-fns';
+import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { CloudUpload, RefreshCw, Trash2 } from 'lucide-react-native';
 
@@ -16,7 +16,7 @@ import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm, ConfirmTypedDialog } from '@/ui/components/confirm-dialog';
 import { useSession, useSignOut } from '@/state/queries/auth';
 import { useBackups, useCreateBackup, useRestoreBackup, useDeleteBackup } from '@/state/queries/backups';
-import { haptics } from '@/ui/motion/haptics';
+import { successToast } from '@/ui/components/error-toast';
 import { useOnContrastColor, useForegroundColor } from '@/ui/theme/colors';
 
 export default function CloudScreen() {
@@ -32,7 +32,7 @@ export default function CloudScreen() {
   const { data: backups = [], isError, isLoading, refetch } = useBackups();
   const [restoreDialogName, setRestoreDialogName] = useState<string | null>(null);
 
-  if (!session) {
+  if (!session || session.user.is_anonymous) {
     return (
       <Surface className="flex-1">
         <ScreenHeader title={t('cloud.screen_title')} />
@@ -55,7 +55,9 @@ export default function CloudScreen() {
     const name = restoreDialogName;
     setRestoreDialogName(null);
     restore.mutate(name, {
-      onSuccess: () => { void haptics.success(); },
+      onSuccess: () => {
+        successToast(t('cloud.restore_success_title'), t('cloud.restore_success_message'));
+      },
     });
   };
 
@@ -69,9 +71,22 @@ export default function CloudScreen() {
     });
     if (!ok) return;
     del.mutate(name, {
-      onSuccess: () => { void haptics.success(); },
+      onSuccess: () => { successToast(t('cloud.delete_success_title')); },
     });
   };
+
+  const onCreate = () => {
+    create.mutate(undefined, {
+      onSuccess: () => {
+        successToast(t('cloud.backup_success_title'), t('cloud.backup_success_message'));
+      },
+    });
+  };
+
+  const lastBackupIso = backups[0]?.createdAt;
+  const lastBackupRelative = lastBackupIso
+    ? formatDistanceToNow(parseISO(lastBackupIso), { locale: fr, addSuffix: true })
+    : null;
 
   return (
     <Surface className="flex-1">
@@ -87,13 +102,21 @@ export default function CloudScreen() {
         onCancel={() => setRestoreDialogName(null)}
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32, gap: 12 }}>
-        <Surface variant="muted" className="rounded-2xl px-4 py-3">
+        <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-1">
           <Text variant="muted" className="text-xs">
             {t('cloud.logged_in_as', { email: session.user.email ?? '' })}
           </Text>
+          <Text className="text-sm">
+            {lastBackupRelative
+              ? t('cloud.last_backup_label', { when: lastBackupRelative })
+              : t('cloud.last_backup_never')}
+          </Text>
+          <Text variant="muted" className="text-xs mt-1">
+            {t('cloud.auto_backup_intro')}
+          </Text>
         </Surface>
 
-        <Button onPress={() => create.mutate()} loading={create.isPending}>
+        <Button onPress={onCreate} loading={create.isPending}>
           <CloudUpload size={18} color={onContrast} />
           <Text variant="onPrimary" className="font-semibold">
             {create.isPending ? t('cloud.creating_backup') : t('cloud.create_backup_cta')}
