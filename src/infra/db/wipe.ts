@@ -15,6 +15,7 @@ export async function wipeLocalDatabase(): Promise<void> {
     await tx.delete(schema.animalCategories);
     await tx.delete(schema.species);
     await tx.delete(schema.services);
+    await tx.delete(schema.paymentMethods);
     await tx.delete(schema.clients);
     await tx.delete(schema.settings);
   });

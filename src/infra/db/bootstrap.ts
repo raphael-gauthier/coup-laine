@@ -2,6 +2,7 @@
 import { migrate } from 'drizzle-orm/expo-sqlite/migrator';
 import { db } from './client';
 import migrations from './migrations/migrations';
+import { paymentMethods } from './schema';
 import { SettingsRepository } from '@/data/repositories/settings-repository';
 import { isThemeMode, useThemeStore } from '@/state/stores/theme-store';
 import { ClientRepository } from '@/data/repositories/client-repository';
@@ -26,6 +27,22 @@ function defaultSeasonStart(): string {
   return `${year}-05-01`;
 }
 
+const PAYMENT_METHODS_SEED: Array<{ id: string; label: string; ordering: number }> = [
+  { id: 'pm-cash', label: 'Espèces', ordering: 1 },
+  { id: 'pm-check', label: 'Chèque', ordering: 2 },
+  { id: 'pm-transfer', label: 'Virement', ordering: 3 },
+  { id: 'pm-card', label: 'Carte bancaire', ordering: 4 },
+];
+
+async function seedPaymentMethods() {
+  for (const pm of PAYMENT_METHODS_SEED) {
+    await db
+      .insert(paymentMethods)
+      .values({ ...pm, isActive: 1, archivedAt: null })
+      .onConflictDoNothing({ target: paymentMethods.id });
+  }
+}
+
 async function seedSettingsDefaults(repo: SettingsRepository) {
   const setIfMissing = async (key: string, value: string) => {
     if ((await repo.get(key)) === null) await repo.set(key, value);
@@ -45,6 +62,7 @@ export async function bootstrapDatabase() {
 
   const settingsRepo = new SettingsRepository(db);
   await seedSettingsDefaults(settingsRepo);
+  await seedPaymentMethods();
 
   const persistedMode = await settingsRepo.get('theme_mode');
   if (persistedMode && isThemeMode(persistedMode)) {

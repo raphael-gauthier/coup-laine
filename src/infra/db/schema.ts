@@ -64,6 +64,14 @@ export const services = sqliteTable('services', {
   ordering: integer('ordering').notNull(),
 });
 
+export const paymentMethods = sqliteTable('payment_methods', {
+  id: text('id').primaryKey(),
+  label: text('label').notNull(),
+  isActive: integer('is_active').notNull().default(1),
+  archivedAt: text('archived_at'),
+  ordering: integer('ordering').notNull(),
+});
+
 export const tours = sqliteTable('tours', {
   id: text('id').primaryKey(),
   scheduledDate: text('scheduled_date').notNull(),
@@ -100,10 +108,16 @@ export const tourStops = sqliteTable(
     actualServices: text('actual_services'),
     notes: text('notes'),
     completedAt: text('completed_at'),
+    paymentMethodId: text('payment_method_id').references(() => paymentMethods.id),
+    paymentMethodLabelSnapshot: text('payment_method_label_snapshot'),
+    isPaid: integer('is_paid').notNull().default(0),
+    paidAt: text('paid_at'),
+    paymentNote: text('payment_note'),
   },
   (t) => ({
     tourIdx: index('tour_stops_tour_idx').on(t.tourId),
     clientIdx: index('tour_stops_client_idx').on(t.clientId),
+    isPaidIdx: index('tour_stops_is_paid_idx').on(t.isPaid),
   })
 );
 
@@ -115,9 +129,15 @@ export const manualHistoryEntries = sqliteTable(
     date: text('date').notNull(),
     notes: text('notes'),
     services: text('services').notNull().default('[]'),
+    paymentMethodId: text('payment_method_id').references(() => paymentMethods.id),
+    paymentMethodLabelSnapshot: text('payment_method_label_snapshot'),
+    isPaid: integer('is_paid').notNull().default(0),
+    paidAt: text('paid_at'),
+    paymentNote: text('payment_note'),
   },
   (t) => ({
     clientIdx: index('manual_history_client_idx').on(t.clientId),
+    isPaidIdx: index('manual_history_is_paid_idx').on(t.isPaid),
   })
 );
 
