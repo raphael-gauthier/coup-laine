@@ -15,10 +15,21 @@ interface Props {
   stop: TourStop;
   client: Client | undefined;
   actuals: TourStopService[];
+  note: string;
   onChangeActuals: (next: TourStopService[]) => void;
+  onChangeNote: (next: string) => void;
+  onAddOffPlan: () => void;
 }
 
-export function StopCompletionEditor({ stop, client, actuals, onChangeActuals }: Props) {
+export function StopCompletionEditor({
+  stop,
+  client,
+  actuals,
+  note,
+  onChangeActuals,
+  onChangeNote,
+  onAddOffPlan,
+}: Props) {
   const { t } = useTranslation();
   const displayName = stop.clientNameSnapshot ?? client?.displayName ?? stop.clientId;
 
@@ -89,6 +100,22 @@ export function StopCompletionEditor({ stop, client, actuals, onChangeActuals }:
         {actuals.length === 0 ? (
           <Text variant="muted" className="text-xs">{t('tours.bilan_no_show')}</Text>
         ) : null}
+
+        <Button size="sm" variant="secondary" onPress={onAddOffPlan}>
+          <Plus size={14} color="#5C4E40" />
+          <Text className="text-sm font-medium">{t('tours.bilan_add_off_plan')}</Text>
+        </Button>
+      </View>
+
+      <View className="gap-1">
+        <Text variant="muted" className="text-xs">{t('tours.bilan_note_hint')}</Text>
+        <Input
+          value={note}
+          onChangeText={onChangeNote}
+          multiline
+          numberOfLines={3}
+          style={{ minHeight: 72, textAlignVertical: 'top' }}
+        />
       </View>
     </Surface>
   );

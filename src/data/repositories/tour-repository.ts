@@ -145,6 +145,7 @@ export class TourRepository {
   async completeWithBilan(
     tourId: string,
     perStopActuals: Map<string, import('@/domain/models/tour-stop-service').TourStopService[]>,
+    perStopNotes: Map<string, string | null>,
     completedAt: string
   ): Promise<void> {
     const result = await this.byId(tourId);
@@ -154,6 +155,7 @@ export class TourRepository {
     const updatedStops = stops.map((s) => ({
       ...s,
       actualServices: perStopActuals.get(s.id) ?? s.plannedServices,
+      notes: perStopNotes.has(s.id) ? perStopNotes.get(s.id) ?? null : s.notes,
       completedAt,
     }));
 

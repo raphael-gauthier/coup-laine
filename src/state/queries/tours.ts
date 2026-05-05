@@ -138,13 +138,15 @@ export function useCompleteWithBilan() {
     mutationFn: async ({
       tourId,
       perStopActuals,
+      perStopNotes,
       completedAt,
     }: {
       tourId: string;
       perStopActuals: Map<string, TourStop['plannedServices']>;
+      perStopNotes: Map<string, string | null>;
       completedAt: string;
     }) => {
-      await tourRepo.completeWithBilan(tourId, perStopActuals, completedAt);
+      await tourRepo.completeWithBilan(tourId, perStopActuals, perStopNotes, completedAt);
 
       // Update client lastShearingDate + unmark waiting
       const result = await tourRepo.byId(tourId);

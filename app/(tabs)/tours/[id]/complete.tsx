@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -12,12 +12,43 @@ import { Button } from '@/ui/primitives/button';
 import { ErrorState } from '@/ui/components/error-state';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { StopCompletionEditor } from '@/ui/components/stop-completion-editor';
+import { OffPlanServicePicker } from '@/ui/components/off-plan-service-picker';
+import { confirm } from '@/ui/components/confirm-dialog';
 import { useTour, useCompleteWithBilan } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
+import { useAnimalCategories, useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
 import { errorToast } from '@/ui/components/error-toast';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
+import type { Service } from '@/domain/models/service';
 import { useOnContrastColor } from '@/ui/theme/colors';
+import { formatMinutes } from '@/lib/format-minutes';
+import { cn } from '@/lib/cn';
+
+function formatEur(cents: number): string {
+  return `${(cents / 100).toFixed(0)} €`;
+}
+
+function formatDeltaEur(cents: number): string {
+  if (cents === 0) return '0 €';
+  const sign = cents > 0 ? '+' : '−';
+  return `${sign}${(Math.abs(cents) / 100).toFixed(0)} €`;
+}
+
+interface KpiTileProps {
+  label: string;
+  value: string;
+  valueClassName?: string;
+}
+
+function KpiTile({ label, value, valueClassName }: KpiTileProps) {
+  return (
+    <Surface variant="muted" className="flex-1 rounded-2xl p-3 gap-1">
+      <Text variant="muted" className="text-xs">{label}</Text>
+      <Text className={cn('text-xl font-bold', valueClassName)}>{value}</Text>
+    </Surface>
+  );
+}
 
 export default function CompleteTourScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,32 +57,107 @@ export default function CompleteTourScreen() {
   const onContrast = useOnContrastColor();
   const { data, isError, refetch } = useTour(id);
   const { data: clients = [] } = useClients('all');
+  const { data: categories = [] } = useAnimalCategories();
+  const { data: speciesList = [] } = useSpecies();
   const complete = useCompleteWithBilan();
 
-  const clientsById = new globalThis.Map(clients.map((c) => [c.id, c]));
+  const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
+  const categoriesById = useMemo(() => new globalThis.Map(categories.map((c) => [c.id, c])), [categories]);
+  const speciesById = useMemo(() => new globalThis.Map(speciesList.map((s) => [s.id, s])), [speciesList]);
 
   const [perStopActuals, setPerStopActuals] = useState<Record<string, TourStopService[]>>({});
+  const [perStopNotes, setPerStopNotes] = useState<Record<string, string>>({});
+  const [offPlanForStopId, setOffPlanForStopId] = useState<string | null>(null);
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!data) return <Surface className="flex-1" />;
 
   const { tour, stops } = data;
 
-  const getActuals = (stopId: string, defaultPrests: TourStopService[]) => {
-    return perStopActuals[stopId] ?? defaultPrests;
-  };
+  const getActuals = (stopId: string, defaultPrests: TourStopService[]) =>
+    perStopActuals[stopId] ?? defaultPrests;
 
-  const setActuals = (stopId: string, prests: TourStopService[]) => {
+  const setActuals = (stopId: string, prests: TourStopService[]) =>
     setPerStopActuals((prev) => ({ ...prev, [stopId]: prests }));
+
+  const getNote = (stopId: string) => perStopNotes[stopId] ?? '';
+
+  const setNote = (stopId: string, note: string) =>
+    setPerStopNotes((prev) => ({ ...prev, [stopId]: note }));
+
+  const buildServiceFromCatalog = (svc: Service): TourStopService => {
+    const category = svc.categoryId ? categoriesById.get(svc.categoryId) : null;
+    const sp = category ? speciesById.get(category.speciesId) : null;
+    return {
+      serviceId: svc.id,
+      qty: 1,
+      nameSnapshot: svc.label,
+      priceCentsSnapshot: svc.priceCents ?? 0,
+      minutesSnapshot: svc.minutes,
+      categoryIdSnapshot: svc.categoryId,
+      categoryNameSnapshot: category?.label ?? null,
+      speciesNameSnapshot: sp?.label ?? null,
+    };
   };
 
-  const onConfirm = () => {
-    const map = new Map<string, TourStopService[]>();
+  const onPickOffPlan = (svc: Service) => {
+    if (!offPlanForStopId) return;
+    const stop = stops.find((s) => s.id === offPlanForStopId);
+    if (!stop) return;
+    const current = getActuals(offPlanForStopId, stop.plannedServices);
+    setActuals(offPlanForStopId, [...current, buildServiceFromCatalog(svc)]);
+    setOffPlanForStopId(null);
+  };
+
+  // Live totals from current draft.
+  const feeCents = tour.totalTravelFeeCents ?? 0;
+  let actualMinutes = 0;
+  let actualRevenueCents = 0;
+  let plannedRevenueCents = 0;
+  let stopsValidated = 0;
+
+  for (const stop of stops) {
+    const actuals = getActuals(stop.id, stop.plannedServices);
+    let stopHasAny = false;
+    for (const a of actuals) {
+      if (a.qty <= 0) continue;
+      stopHasAny = true;
+      actualMinutes += a.qty * a.minutesSnapshot;
+      actualRevenueCents += a.qty * a.priceCentsSnapshot;
+    }
+    if (stopHasAny) stopsValidated += 1;
+    for (const p of stop.plannedServices) {
+      plannedRevenueCents += p.qty * p.priceCentsSnapshot;
+    }
+  }
+
+  const totalActualRevenue = actualRevenueCents + feeCents;
+  const deltaCents = actualRevenueCents - plannedRevenueCents;
+
+  const onConfirm = async () => {
+    const ok = await confirm({
+      title: t('tours.bilan_confirm_title'),
+      message: t('tours.bilan_confirm_body'),
+      confirmLabel: t('tours.complete_confirm_yes'),
+      cancelLabel: t('common.cancel'),
+      destructive: true,
+    });
+    if (!ok) return;
+
+    const actualsMap = new Map<string, TourStopService[]>();
+    const notesMap = new Map<string, string | null>();
     for (const stop of stops) {
-      map.set(stop.id, getActuals(stop.id, stop.plannedServices));
+      actualsMap.set(stop.id, getActuals(stop.id, stop.plannedServices));
+      const trimmed = getNote(stop.id).trim();
+      notesMap.set(stop.id, trimmed.length === 0 ? null : trimmed);
     }
     complete.mutate(
-      { tourId: tour.id, perStopActuals: map, completedAt: new Date().toISOString() },
+      {
+        tourId: tour.id,
+        perStopActuals: actualsMap,
+        perStopNotes: notesMap,
+        completedAt: new Date().toISOString(),
+      },
       {
         onSuccess: () => {
           void haptics.success();
@@ -73,13 +179,46 @@ export default function CompleteTourScreen() {
         </Text>
         <Text variant="muted">{t('tours.bilan_intro')}</Text>
 
+        <View className="gap-2">
+          <View className="flex-row gap-2">
+            <KpiTile
+              label={t('tours.bilan_kpi_stops_validated')}
+              value={`${stopsValidated}/${stops.length}`}
+            />
+            <KpiTile
+              label={t('tours.bilan_kpi_actual_revenue')}
+              value={formatEur(totalActualRevenue)}
+            />
+          </View>
+          <View className="flex-row gap-2">
+            <KpiTile
+              label={t('tours.bilan_kpi_actual_duration')}
+              value={formatMinutes(actualMinutes)}
+            />
+            <KpiTile
+              label={t('tours.bilan_kpi_delta')}
+              value={formatDeltaEur(deltaCents)}
+              valueClassName={
+                deltaCents === 0
+                  ? undefined
+                  : deltaCents > 0
+                    ? 'text-primary dark:text-primary-dark'
+                    : 'text-danger dark:text-danger-dark'
+              }
+            />
+          </View>
+        </View>
+
         {stops.map((stop) => (
           <StopCompletionEditor
             key={stop.id}
             stop={stop}
             client={clientsById.get(stop.clientId)}
             actuals={getActuals(stop.id, stop.plannedServices)}
+            note={getNote(stop.id)}
             onChangeActuals={(next) => setActuals(stop.id, next)}
+            onChangeNote={(next) => setNote(stop.id, next)}
+            onAddOffPlan={() => setOffPlanForStopId(stop.id)}
           />
         ))}
 
@@ -88,6 +227,20 @@ export default function CompleteTourScreen() {
           <Text variant="onPrimary" className="font-semibold">{t('tours.complete_confirm_yes')}</Text>
         </Button>
       </ScrollView>
+
+      <OffPlanServicePicker
+        visible={offPlanForStopId !== null}
+        excludedServiceIds={
+          offPlanForStopId
+            ? getActuals(
+                offPlanForStopId,
+                stops.find((s) => s.id === offPlanForStopId)?.plannedServices ?? []
+              ).map((a) => a.serviceId)
+            : []
+        }
+        onPick={onPickOffPlan}
+        onClose={() => setOffPlanForStopId(null)}
+      />
     </Surface>
   );
 }
