@@ -17,6 +17,7 @@ import { RHFTextField } from '@/ui/components/rhf-text-field';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { haptics } from '@/ui/motion/haptics';
 import { useClient } from '@/state/queries/clients';
+import { EMPTY_PAYMENT } from '@/domain/models/payment';
 import type { ManualHistoryEntry } from '@/domain/models/manual-history-entry';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { UpsertManualHistoryInput } from '@/state/queries/history';
@@ -67,6 +68,7 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
       date: format(values.date, 'yyyy-MM-dd'),
       notes: values.notes.trim() || null,
       services,
+      payment: EMPTY_PAYMENT,  // Task 14 wires real PaymentEditor state
     });
   };
 
