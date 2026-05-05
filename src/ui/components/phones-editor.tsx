@@ -40,12 +40,25 @@ export function PhonesEditor({ value, onChange }: Props) {
   const isDark = useColorScheme() === 'dark';
   const fg = useForegroundColor();
 
+  // Always render at least one row so users don't miss the field. When
+  // `value` is empty we render a placeholder ghost row that materialises
+  // into the array on first keystroke.
+  const rows = value.length > 0 ? value : [''];
+
   const update = (index: number, masked: string) => {
+    const normalized = toLocalMasked(masked);
+    if (value.length === 0) {
+      onChange([normalized]);
+      return;
+    }
     const next = [...value];
-    next[index] = toLocalMasked(masked);
+    next[index] = normalized;
     onChange(next);
   };
-  const remove = (index: number) => onChange(value.filter((_, i) => i !== index));
+  const remove = (index: number) => {
+    if (value.length === 0) return;
+    onChange(value.filter((_, i) => i !== index));
+  };
   const add = () => onChange([...value, '']);
 
   const inputStyle = {
@@ -61,7 +74,7 @@ export function PhonesEditor({ value, onChange }: Props) {
   return (
     <View className="gap-2">
       <Text className="text-sm font-medium">{t('clients.phones')}</Text>
-      {value.map((phone, index) => (
+      {rows.map((phone, index) => (
         <View key={index} className="flex-row items-center gap-2">
           <MaskInput
             style={inputStyle}
@@ -72,11 +85,13 @@ export function PhonesEditor({ value, onChange }: Props) {
             placeholder="06 12 34 56 78"
             placeholderTextColor={isDark ? '#B4A490' : '#94816C'}
           />
-          <PressScale onPress={() => remove(index)} accessibilityLabel={t('common.remove')}>
-            <View className="w-11 h-11 rounded-full items-center justify-center bg-muted dark:bg-muted-dark">
-              <X size={18} color="#B23832" />
-            </View>
-          </PressScale>
+          {rows.length > 1 ? (
+            <PressScale onPress={() => remove(index)} accessibilityLabel={t('common.remove')}>
+              <View className="w-11 h-11 rounded-full items-center justify-center bg-muted dark:bg-muted-dark">
+                <X size={18} color="#B23832" />
+              </View>
+            </PressScale>
+          ) : null}
         </View>
       ))}
       <Button variant="ghost" size="sm" onPress={add} accessibilityLabel={t('clients.add_phone')}>
