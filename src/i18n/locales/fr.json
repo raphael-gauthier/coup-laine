@@ -247,7 +247,7 @@
     "bilan_kpi_stops_validated": "Étapes validées",
     "bilan_kpi_actual_revenue": "CA réel",
     "bilan_kpi_actual_duration": "Durée réelle",
-    "bilan_kpi_delta": "Δ vs prévu",
+    "bilan_kpi_delta": "Écart vs prévu",
     "bilan_confirm_title": "Clôturer la tournée ?",
     "bilan_confirm_body": "Cette action enregistre les prestations réalisées et met à jour les fiches clients.",
     "picker_suggested": "Suggérées",
