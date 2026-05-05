@@ -56,7 +56,19 @@
       "expo-secure-store",
       [
         "@maplibre/maplibre-react-native",
-        { "android": { "downloadIntent": false } }
+        {
+          "android": {
+            "downloadIntent": false
+          }
+        }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "couplaine",
+          "organization": "ravnkode"
+        }
       ]
     ],
     "experiments": {

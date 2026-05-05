@@ -48,3 +48,5 @@ coverage/
 # Drizzle
 drizzle/.snapshots
 .grepai/
+
+.env.local

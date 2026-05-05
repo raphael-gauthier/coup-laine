@@ -1,7 +1,11 @@
 import 'react-native-get-random-values';
 import '../global.css';
 import '@/i18n';
-import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider as NavThemeProvider,
+} from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
@@ -20,6 +24,21 @@ import { ToastContainer } from '@/ui/components/toast';
 import { bootstrapDatabase } from '@/infra/db/bootstrap';
 import { ensureAnonymousSession } from '@/infra/services/ensure-session';
 import { useAutoBackup } from '@/state/hooks/use-auto-backup';
+import * as Sentry from '@sentry/react-native';
+
+Sentry.init({
+  dsn: 'https://c73c08e2338f9626e0a374a9f92eecfc@o4511336006352896.ingest.de.sentry.io/4511336009302096',
+
+  // Adds more context data to events (IP address, cookies, user, etc.)
+  // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
+  sendDefaultPii: true,
+
+  // Enable Logs
+  enableLogs: true,
+
+  // uncomment the line below to enable Spotlight (https://spotlightjs.com)
+  // spotlight: __DEV__,
+});
 
 export const unstable_settings = {
   anchor: 'index',
@@ -50,13 +69,17 @@ function App() {
           <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
         </Stack>
         <ToastContainer />
-        <StatusBar style="auto" translucent={false} backgroundColor={isDark ? '#16120F' : '#FAF6F0'} />
+        <StatusBar
+          style="auto"
+          translucent={false}
+          backgroundColor={isDark ? '#16120F' : '#FAF6F0'}
+        />
       </NavThemeProvider>
     </GestureHandlerRootView>
   );
 }
 
-export default function RootLayout() {
+export default Sentry.wrap(function RootLayout() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -93,4 +116,4 @@ export default function RootLayout() {
       </QueryClientProvider>
     </SafeAreaProvider>
   );
-}
+});
