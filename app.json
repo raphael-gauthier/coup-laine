@@ -1,36 +1,35 @@
 {
   "expo": {
-    "name": "Coupe-laine",
+    "name": "Coup'Laine",
     "slug": "coupe-laine",
+    "description": "Compagnon quotidien du tondeur de mouton.",
     "version": "0.8.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "coupelaine",
+    "scheme": "couplaine",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "assetBundlePatterns": ["**/*"],
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FAF6F0"
+      "backgroundColor": "#F8F4ED"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "fr.coupelaine.app",
+      "bundleIdentifier": "fr.raphaelgauthier.couplaine",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Pour centrer la carte sur votre position."
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#F8F4ED",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "fr.coupelaine.app",
+      "package": "fr.raphaelgauthier.couplaine",
       "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"]
     },
     "web": {
@@ -46,9 +45,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#FAF6F0",
+          "backgroundColor": "#F8F4ED",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#1A1612"
           }
         }
       ],
