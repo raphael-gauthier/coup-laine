@@ -15,8 +15,11 @@ import { PressScale } from '@/ui/motion/press-scale';
 import { FormField } from '@/ui/components/form-field';
 import { RHFTextField } from '@/ui/components/rhf-text-field';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
+import { PaymentEditor } from '@/ui/components/payment-editor';
 import { haptics } from '@/ui/motion/haptics';
 import { useClient } from '@/state/queries/clients';
+import { EMPTY_PAYMENT } from '@/domain/models/payment';
+import type { Payment } from '@/domain/models/payment';
 import type { ManualHistoryEntry } from '@/domain/models/manual-history-entry';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { UpsertManualHistoryInput } from '@/state/queries/history';
@@ -52,6 +55,11 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [services, setServices] = useState<TourStopService[]>(initial?.services ?? []);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [payment, setPayment] = useState<Payment>(initial?.payment ?? {
+    ...EMPTY_PAYMENT,
+    isPaid: true,
+  });
+  const [methodError, setMethodError] = useState<string | null>(null);
 
   const { data: client } = useClient(clientId);
 
@@ -61,12 +69,21 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
   );
 
   const onValid = (values: FormValues) => {
+    // Method always required for manual history (per spec asymmetry)
+    if (!payment.methodId) {
+      setMethodError(t('payments.method_required'));
+      void haptics.error();
+      return;
+    }
+    setMethodError(null);
+
     onSubmit({
       id: initial?.id,
       clientId,
       date: format(values.date, 'yyyy-MM-dd'),
       notes: values.notes.trim() || null,
       services,
+      payment,
     });
   };
 
@@ -134,6 +151,13 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
           </Button>
         </Surface>
       </FormField>
+
+      <PaymentEditor
+        value={payment}
+        onChange={setPayment}
+        methodError={methodError}
+        requireMethodAlways
+      />
 
       <View className="flex-row gap-2 mt-4">
         {onCancel ? (

@@ -7,6 +7,7 @@ import { Plus, UserRound } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { motion } from '@/ui/motion/motion-tokens';
+import { PressScale } from '@/ui/motion/press-scale';
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
 import { Fab } from '@/ui/primitives/fab';
@@ -20,7 +21,7 @@ import { ErrorState } from '@/ui/components/error-state';
 import { RecomputeBanner } from '@/ui/components/recompute-banner';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { ClientFilterButton } from '@/ui/components/client-status-filter-dialog';
-import { useClients, useToggleWaiting, useClientStatusMap, type ClientsFilter } from '@/state/queries/clients';
+import { useClients, useToggleWaiting, useClientStatusMap, useClientsWithOutstanding, type ClientsFilter } from '@/state/queries/clients';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
 import { matchesAny } from '@/lib/text-search';
 import { useOnContrastColor, useMutedForegroundColor } from '@/ui/theme/colors';
@@ -32,9 +33,11 @@ export default function ClientsListScreen() {
   const mutedFg = useMutedForegroundColor();
   const [filter, setFilter] = useState<ClientsFilter>('all');
   const [search, setSearch] = useState('');
+  const [outstandingOnly, setOutstandingOnly] = useState(false);
 
   const { data: allClients = [], isLoading, isError, refetch } = useClients(filter);
   const { data: statusMap } = useClientStatusMap();
+  const { data: outstandingIds } = useClientsWithOutstanding();
   const toggle = useToggleWaiting();
   const { enabledStatuses } = useClientFiltersStore();
 
@@ -47,12 +50,16 @@ export default function ClientsListScreen() {
         return enabledStatuses.has(s);
       });
     }
+    // Apply outstanding filter
+    if (outstandingOnly && outstandingIds) {
+      list = list.filter((c) => outstandingIds.has(c.id));
+    }
     // Apply text search
     if (search.trim()) {
       list = list.filter((c) => matchesAny([c.displayName, c.addressCity], search));
     }
     return list;
-  }, [allClients, search, enabledStatuses, statusMap]);
+  }, [allClients, search, enabledStatuses, statusMap, outstandingOnly, outstandingIds]);
 
   return (
     <Surface className="flex-1">
@@ -74,6 +81,20 @@ export default function ClientsListScreen() {
             { value: 'waiting', label: t('clients.filter_waiting') },
           ]}
         />
+        <View className="flex-row gap-2">
+          <PressScale
+            onPress={() => setOutstandingOnly((v) => !v)}
+            accessibilityLabel={t('clients.filters.outstanding')}
+          >
+            <Surface
+              className={`rounded-full px-3 py-2 ${outstandingOnly ? 'bg-primary dark:bg-primary-dark' : 'border border-border dark:border-border-dark'}`}
+            >
+              <Text className={outstandingOnly ? 'text-primary-foreground dark:text-primary-dark-foreground text-xs font-medium' : 'text-xs font-medium'}>
+                {t('clients.filters.outstanding')}
+              </Text>
+            </Surface>
+          </PressScale>
+        </View>
       </View>
 
       {isError ? (

@@ -107,6 +107,7 @@ export function useSetBaseAddress() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: settingsKeys.base() });
       void qc.invalidateQueries({ queryKey: ['clients'] });
+      void qc.invalidateQueries({ queryKey: ['recompute', 'pending'] });
     },
   });
 }

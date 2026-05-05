@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { TourStopService } from './tour-stop-service';
+import { Payment } from './payment';
 
 export const ManualHistoryEntry = z.object({
   id: z.string(),
@@ -7,6 +8,7 @@ export const ManualHistoryEntry = z.object({
   date: z.string(),
   notes: z.string().nullable(),
   services: z.array(TourStopService),
+  payment: Payment,
 });
 
 export type ManualHistoryEntry = z.infer<typeof ManualHistoryEntry>;

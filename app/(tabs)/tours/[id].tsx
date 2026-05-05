@@ -1,6 +1,6 @@
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pencil, Trash2, CircleCheck } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
@@ -16,6 +16,7 @@ import { mutationErrorToast } from '@/ui/components/error-toast';
 import { TourKpiRow } from '@/ui/components/tour-kpi-row';
 import { ServiceAggregationSummary } from '@/ui/components/service-aggregation-summary';
 import { TourStopRow } from '@/ui/components/tour-stop-row';
+import { StopPaymentSheet } from '@/ui/components/stop-payment-sheet';
 import { useTour, useDeleteTour } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
 import { useBaseAddress } from '@/state/queries/settings';
@@ -25,6 +26,26 @@ import { ClientPin } from '@/ui/components/client-pin';
 import { BasePin } from '@/ui/components/base-pin';
 import { TourRoutePolyline } from '@/ui/components/tour-route-polyline';
 import { useOnContrastColor, useForegroundColor } from '@/ui/theme/colors';
+import { computeTourPaymentKpis } from '@/domain/use-cases/compute-tour-payment-kpis';
+import type { Payment } from '@/domain/models/payment';
+
+function formatEur(cents: number): string {
+  return `${(cents / 100).toFixed(0)} €`;
+}
+
+interface KpiTileProps {
+  label: string;
+  value: string;
+}
+
+function KpiTile({ label, value }: KpiTileProps) {
+  return (
+    <Surface variant="muted" className="flex-1 rounded-2xl p-3 gap-1">
+      <Text variant="muted" className="text-xs">{label}</Text>
+      <Text className="text-xl font-bold">{value}</Text>
+    </Surface>
+  );
+}
 
 export default function TourDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -36,6 +57,7 @@ export default function TourDetailScreen() {
   const deleteMutation = useDeleteTour();
   const { data: clients = [] } = useClients('all');
   const { data: base } = useBaseAddress();
+  const [paymentSheet, setPaymentSheet] = useState<{ stopId: string; payment: Payment } | null>(null);
 
   const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
 
@@ -99,6 +121,19 @@ export default function TourDetailScreen() {
         {/* KPI row */}
         <TourKpiRow tourId={tour.id} />
 
+        {/* Payment KPIs — completed tours only */}
+        {tour.status === 'completed' ? (() => {
+          const kpis = computeTourPaymentKpis({ stops });
+          return (
+            <View className="flex-row gap-2">
+              <KpiTile label={t('payments.kpi_collected')} value={formatEur(kpis.collectedCents)} />
+              {kpis.outstandingCents > 0 ? (
+                <KpiTile label={t('payments.kpi_outstanding')} value={formatEur(kpis.outstandingCents)} />
+              ) : null}
+            </View>
+          );
+        })() : null}
+
         {/* Service aggregation */}
         <ServiceAggregationSummary tourId={tour.id} />
 
@@ -153,6 +188,10 @@ export default function TourDetailScreen() {
               stop={stop}
               client={clientsById.get(stop.clientId)}
               departureTime={tour.departureTime}
+              showPaymentBadge={tour.status === 'completed'}
+              onPress={tour.status === 'completed'
+                ? () => setPaymentSheet({ stopId: stop.id, payment: stop.payment })
+                : undefined}
             />
           ))}
         </View>
@@ -168,6 +207,14 @@ export default function TourDetailScreen() {
           </Button>
         ) : null}
       </ScrollView>
+
+      <StopPaymentSheet
+        visible={paymentSheet !== null}
+        stopId={paymentSheet?.stopId ?? null}
+        tourId={tour.id}
+        initial={paymentSheet?.payment ?? null}
+        onClose={() => setPaymentSheet(null)}
+      />
     </Surface>
   );
 }

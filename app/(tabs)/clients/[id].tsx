@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Modal, TouchableOpacity, View, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
@@ -24,6 +24,9 @@ import { PlannedTourCard } from '@/ui/components/planned-tour-card';
 import { ClientAnimalsSection } from '@/ui/components/client-animals-section';
 import { ClientStatusActionsCard } from '@/ui/components/client-status-actions-card';
 import { LastInterventionsList } from '@/ui/components/last-interventions-list';
+import { ClientOutstandingCard } from '@/ui/components/client-outstanding-card';
+import { StopPaymentSheet } from '@/ui/components/stop-payment-sheet';
+import { ManualEntryPaymentSheet } from '@/ui/components/manual-entry-payment-sheet';
 import { PressScale } from '@/ui/motion/press-scale';
 import {
   useClient,
@@ -31,11 +34,15 @@ import {
   useDeleteClient,
   useToggleBanned,
 } from '@/state/queries/clients';
-import { useNextPlannedTourForClient } from '@/state/queries/tours';
+import { useNextPlannedTourForClient, useTours } from '@/state/queries/tours';
+import { useManualHistoryByClient } from '@/state/queries/history';
 import { useProximityStore } from '@/state/stores/proximity-store';
 import { haptics } from '@/ui/motion/haptics';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import { useDangerColor, useForegroundColor, useMutedForegroundColor, useWaitingColor } from '@/ui/theme/colors';
+import { computeClientOutstanding } from '@/domain/use-cases/compute-client-outstanding';
+import type { TourStop } from '@/domain/models/tour-stop';
+import type { Payment } from '@/domain/models/payment';
 
 export default function ClientDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -52,6 +59,37 @@ export default function ClientDetailScreen() {
   const deleteMutation = useDeleteClient();
   const toggleBanned = useToggleBanned();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: tours = [] } = useTours('completed');
+  const { data: manualEntries = [] } = useManualHistoryByClient(id);
+
+  const unpaidStops = useMemo(() => {
+    const out: Array<{ stop: TourStop; tourId: string; scheduledDate: string }> = [];
+    for (const { tour, stops } of tours) {
+      for (const s of stops) {
+        if (s.clientId !== id) continue;
+        if (!s.completedAt) continue;
+        if (s.payment.isPaid) continue;
+        out.push({ stop: s, tourId: tour.id, scheduledDate: tour.scheduledDate });
+      }
+    }
+    return out;
+  }, [tours, id]);
+
+  const unpaidEntries = useMemo(
+    () => manualEntries.filter((e) => !e.payment.isPaid),
+    [manualEntries]
+  );
+
+  const outstanding = useMemo(
+    () => computeClientOutstanding({
+      completedStops: unpaidStops.map((u) => u.stop),
+      manualEntries: unpaidEntries,
+    }),
+    [unpaidStops, unpaidEntries]
+  );
+
+  const [stopSheet, setStopSheet] = useState<{ stopId: string; tourId: string; payment: Payment } | null>(null);
+  const [entrySheet, setEntrySheet] = useState<{ entryId: string; clientId: string; payment: Payment } | null>(null);
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!client) return <Surface className="flex-1" />;
@@ -140,6 +178,17 @@ export default function ClientDetailScreen() {
 
         <ClientKpiRow clientId={client.id} />
 
+        {outstanding.unpaidCount > 0 ? (
+          <ClientOutstandingCard
+            unpaidStops={unpaidStops}
+            unpaidEntries={unpaidEntries}
+            totalCents={outstanding.unpaidCents}
+            count={outstanding.unpaidCount}
+            onTapStop={(s) => setStopSheet({ stopId: s.stop.id, tourId: s.tourId, payment: s.stop.payment })}
+            onTapEntry={(e) => setEntrySheet({ entryId: e.id, clientId: id, payment: e.payment })}
+          />
+        ) : null}
+
         <PlannedTourCard clientId={client.id} />
 
         {showFindNearby ? (
@@ -160,6 +209,21 @@ export default function ClientDetailScreen() {
 
         <LastInterventionsList clientId={client.id} />
       </ScrollView>
+
+      <StopPaymentSheet
+        visible={stopSheet !== null}
+        stopId={stopSheet?.stopId ?? null}
+        tourId={stopSheet?.tourId ?? ''}
+        initial={stopSheet?.payment ?? null}
+        onClose={() => setStopSheet(null)}
+      />
+      <ManualEntryPaymentSheet
+        visible={entrySheet !== null}
+        entryId={entrySheet?.entryId ?? null}
+        clientId={entrySheet?.clientId ?? ''}
+        initial={entrySheet?.payment ?? null}
+        onClose={() => setEntrySheet(null)}
+      />
 
       <Modal
         visible={menuOpen}

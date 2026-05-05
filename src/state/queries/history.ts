@@ -5,6 +5,7 @@ import { ManualHistoryRepository } from '@/data/repositories/manual-history-repo
 import { mergeClientHistory } from '@/domain/use-cases/merge-client-history';
 import type { ManualHistoryEntry } from '@/domain/models/manual-history-entry';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
+import type { Payment } from '@/domain/models/payment';
 import { newId } from '@/lib/id';
 import { kpisKeys } from '@/state/queries/kpis';
 import { mutationErrorToast } from '@/ui/components/error-toast';
@@ -67,6 +68,7 @@ export interface UpsertManualHistoryInput {
   date: string;
   notes: string | null;
   services: TourStopService[];
+  payment: Payment;
 }
 
 export function useUpsertManualHistoryEntry() {
@@ -79,6 +81,7 @@ export function useUpsertManualHistoryEntry() {
         date: input.date,
         notes: input.notes,
         services: input.services,
+        payment: input.payment,
       };
       await manualRepo.upsert(entry);
       return entry;
@@ -107,6 +110,24 @@ export function useDeleteManualHistoryEntry() {
     },
     onError: (err) => {
       mutationErrorToast(i18n.t('history.errors.delete_failed_title'), err);
+    },
+  });
+}
+
+export function useMarkManualEntryPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ entryId, clientId: _cid, payment }: { entryId: string; clientId: string; payment: Payment }) => {
+      await manualRepo.markEntryPayment(entryId, payment);
+    },
+    onSuccess: (_, { clientId }) => {
+      void qc.invalidateQueries({ queryKey: historyKeys.byClient(clientId) });
+      void qc.invalidateQueries({ queryKey: historyKeys.manualByClient(clientId) });
+      void qc.invalidateQueries({ queryKey: kpisKeys.client(clientId) });
+      void qc.invalidateQueries({ queryKey: ['clients'] });
+    },
+    onError: (err) => {
+      mutationErrorToast(i18n.t('payments.errors.save_failed_title'), err);
     },
   });
 }

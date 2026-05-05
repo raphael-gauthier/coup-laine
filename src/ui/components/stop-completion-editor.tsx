@@ -10,6 +10,8 @@ import { PressScale } from '@/ui/motion/press-scale';
 import type { TourStop } from '@/domain/models/tour-stop';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { Client } from '@/domain/models/client';
+import type { Payment } from '@/domain/models/payment';
+import { PaymentEditor } from '@/ui/components/payment-editor';
 
 interface Props {
   stop: TourStop;
@@ -19,6 +21,9 @@ interface Props {
   onChangeActuals: (next: TourStopService[]) => void;
   onChangeNote: (next: string) => void;
   onAddOffPlan: () => void;
+  payment: Payment;
+  paymentError?: string | null;
+  onChangePayment: (next: Payment) => void;
 }
 
 export function StopCompletionEditor({
@@ -29,6 +34,9 @@ export function StopCompletionEditor({
   onChangeActuals,
   onChangeNote,
   onAddOffPlan,
+  payment,
+  paymentError,
+  onChangePayment,
 }: Props) {
   const { t } = useTranslation();
   const displayName = stop.clientNameSnapshot ?? client?.displayName ?? stop.clientId;
@@ -51,11 +59,11 @@ export function StopCompletionEditor({
   const different = JSON.stringify(actuals) !== JSON.stringify(stop.plannedServices);
 
   return (
-    <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-3">
+    <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-4">
       <View className="flex-row items-center justify-between">
-        <Text className="font-semibold">{displayName}</Text>
+        <Text className="text-lg font-bold">{displayName}</Text>
         {different ? (
-          <Text variant="muted" className="text-xs text-danger dark:text-danger-dark">
+          <Text className="text-xs font-medium text-danger dark:text-danger-dark">
             {t('tours.bilan_differs')}
           </Text>
         ) : null}
@@ -63,22 +71,22 @@ export function StopCompletionEditor({
 
       {/* Planned preview */}
       <View className="gap-1">
-        <Text variant="muted" className="text-xs">{t('tours.bilan_planned')}</Text>
+        <Text className="text-sm font-semibold">{t('tours.bilan_planned')}</Text>
         {stop.plannedServices.length > 0 ? (
           stop.plannedServices.map((p, i) => (
-            <Text key={i} variant="muted" className="text-xs">
+            <Text key={i} className="text-sm">
               {p.nameSnapshot} ×{p.qty}
             </Text>
           ))
         ) : (
-          <Text variant="muted" className="text-xs">{t('tours.bilan_no_planned')}</Text>
+          <Text variant="muted" className="text-sm">{t('tours.bilan_no_planned')}</Text>
         )}
       </View>
 
       {/* Actual editable */}
       <View className="gap-2">
         <View className="flex-row items-center justify-between">
-          <Text variant="muted" className="text-xs">{t('tours.bilan_actual')}</Text>
+          <Text className="text-sm font-semibold">{t('tours.bilan_actual')}</Text>
           <Button size="sm" variant="secondary" onPress={matchPlanned}>
             {t('tours.bilan_match_planned')}
           </Button>
@@ -99,7 +107,7 @@ export function StopCompletionEditor({
           </View>
         ))}
         {actuals.length === 0 ? (
-          <Text variant="muted" className="text-xs">{t('tours.bilan_no_show')}</Text>
+          <Text variant="muted" className="text-sm">{t('tours.bilan_no_show')}</Text>
         ) : null}
 
         <Button
@@ -114,7 +122,7 @@ export function StopCompletionEditor({
       </View>
 
       <View className="gap-1">
-        <Text variant="muted" className="text-xs">{t('tours.bilan_note_hint')}</Text>
+        <Text className="text-sm font-semibold">{t('tours.bilan_note_hint')}</Text>
         <Input
           value={note}
           onChangeText={onChangeNote}
@@ -124,6 +132,8 @@ export function StopCompletionEditor({
           accessibilityLabel={t('tours.bilan_note_hint')}
         />
       </View>
+
+      <PaymentEditor value={payment} onChange={onChangePayment} methodError={paymentError ?? null} />
     </Surface>
   );
 }

@@ -1,6 +1,9 @@
 import { createTestDb } from './_helpers/test-db';
 import { ClientRepository } from '@/data/repositories/client-repository';
 import { TourRepository } from '@/data/repositories/tour-repository';
+import { EMPTY_PAYMENT } from '@/domain/models/payment';
+import type { Tour } from '@/domain/models/tour';
+import type { TourStop } from '@/domain/models/tour-stop';
 
 const NOW = '2026-05-03T12:00:00.000Z';
 
@@ -51,6 +54,7 @@ const sampleStops = [
     feeShareCents: null,
     plannedServices: [], actualServices: null,
     notes: null, completedAt: null,
+    payment: EMPTY_PAYMENT,
   },
   {
     id: 's2', tourId: 't1', clientId: 'c2',
@@ -59,6 +63,7 @@ const sampleStops = [
     feeShareCents: null,
     plannedServices: [], actualServices: null,
     notes: null, completedAt: null,
+    payment: EMPTY_PAYMENT,
   },
 ];
 
@@ -111,6 +116,102 @@ describe('TourRepository', () => {
     await tRepo.markStopCompleted('s1', NOW);
     const r = await tRepo.byId('t1');
     expect(r?.stops.find((s) => s.id === 's1')?.completedAt).toBe(NOW);
+    close();
+  });
+});
+
+const baseTour: Omit<Tour, 'id'> = {
+  scheduledDate: '2026-05-01',
+  departureTime: '08:00',
+  baseLat: 0, baseLng: 0,
+  status: 'planned',
+  totalDistanceKm: null, totalDriveSeconds: null, totalMinutes: null,
+  totalRevenueCents: null, totalAnimalsCount: null, totalTravelFeeCents: null,
+  routeGeometry: null, notes: null, completedAt: null,
+  createdAt: 'x', updatedAt: 'x',
+};
+
+function makeStop(overrides: Partial<TourStop> = {}): TourStop {
+  return {
+    id: 's1', tourId: 't1', clientId: 'c1', clientNameSnapshot: null,
+    ordering: 0, arrivalMinutes: null, departureMinutes: null,
+    estimatedMinutes: null, feeShareCents: null,
+    plannedServices: [], actualServices: null,
+    notes: null, completedAt: null,
+    payment: EMPTY_PAYMENT,
+    ...overrides,
+  };
+}
+
+async function seedClient(db: any, id = 'c1') {
+  const repo = new ClientRepository(db);
+  await repo.upsert({
+    id, displayName: 'Test', phones: [],
+    addressLabel: null, addressCity: null, addressPostcode: null,
+    latitude: null, longitude: null,
+    isWaiting: false, isBanned: false, needsDistanceRecompute: false,
+    lastShearingDate: null, animalCounts: [], markerColorHex: null,
+    createdAt: 'x', updatedAt: 'x',
+  });
+}
+
+describe('TourRepository payment round-trip', () => {
+  it('persists and reads back the payment field on a stop', async () => {
+    const { db, close } = createTestDb();
+    await seedClient(db);
+    const repo = new TourRepository(db);
+    const tour = { id: 't1', ...baseTour };
+    const stop = makeStop({
+      payment: {
+        methodId: 'pm-cash',
+        methodLabelSnapshot: 'Espèces',
+        isPaid: true,
+        paidAt: '2026-05-01T12:00:00Z',
+      },
+    });
+    await repo.upsertTour(tour, [stop]);
+    const got = await repo.byId('t1');
+    expect(got!.stops[0]!.payment.isPaid).toBe(true);
+    expect(got!.stops[0]!.payment.methodLabelSnapshot).toBe('Espèces');
+    close();
+  });
+
+  it('markStopPayment updates only the payment columns', async () => {
+    const { db, close } = createTestDb();
+    await seedClient(db);
+    const repo = new TourRepository(db);
+    await repo.upsertTour({ id: 't1', ...baseTour }, [makeStop()]);
+    await repo.markStopPayment('s1', {
+      methodId: 'pm-check',
+      methodLabelSnapshot: 'Chèque',
+      isPaid: true,
+      paidAt: '2026-05-02T09:00:00Z',
+    });
+    const got = await repo.byId('t1');
+    expect(got!.stops[0]!.payment.methodId).toBe('pm-check');
+    expect(got!.stops[0]!.payment.isPaid).toBe(true);
+    close();
+  });
+
+  it('completeWithBilan writes per-stop payments alongside actuals', async () => {
+    const { db, close } = createTestDb();
+    await seedClient(db);
+    const repo = new TourRepository(db);
+    await repo.upsertTour({ id: 't1', ...baseTour }, [makeStop()]);
+    const payments = new Map([['s1', {
+      methodId: 'pm-cash', methodLabelSnapshot: 'Espèces',
+      isPaid: true, paidAt: '2026-05-01T12:00:00Z',
+    }]]);
+    await repo.completeWithBilan(
+      't1',
+      new Map([['s1', []]]),
+      new Map([['s1', null]]),
+      payments,
+      '2026-05-01T12:00:00Z'
+    );
+    const got = await repo.byId('t1');
+    expect(got!.stops[0]!.payment.isPaid).toBe(true);
+    expect(got!.tour.status).toBe('completed');
     close();
   });
 });

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
+import { PressScale } from '@/ui/motion/press-scale';
 import type { TourStop } from '@/domain/models/tour-stop';
 import type { Client } from '@/domain/models/client';
 
@@ -23,9 +24,11 @@ interface Props {
   stop: TourStop;
   client: Client | undefined;
   departureTime: string;
+  onPress?: () => void;
+  showPaymentBadge?: boolean;
 }
 
-export function TourStopRow({ stop, client, departureTime }: Props) {
+export function TourStopRow({ stop, client, departureTime, onPress, showPaymentBadge }: Props) {
   const { t } = useTranslation();
   const services = stop.actualServices ?? stop.plannedServices;
   const revenueCents = services.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0);
@@ -38,7 +41,7 @@ export function TourStopRow({ stop, client, departureTime }: Props) {
 
   const displayName = stop.clientNameSnapshot ?? client?.displayName ?? stop.clientId;
 
-  return (
+  const content = (
     <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-1">
       <View className="flex-row items-center justify-between">
         <Text className="font-semibold flex-1">{displayName}</Text>
@@ -49,9 +52,28 @@ export function TourStopRow({ stop, client, departureTime }: Props) {
       {prestSummary ? (
         <Text variant="muted" className="text-xs">{prestSummary}</Text>
       ) : null}
+      {showPaymentBadge ? (
+        <Text variant="muted" className="text-xs">
+          {stop.payment.isPaid
+            ? stop.payment.methodLabelSnapshot
+              ? t('payments.paid_badge', { method: stop.payment.methodLabelSnapshot })
+              : t('payments.paid_badge_unknown')
+            : t('payments.unpaid_badge')}
+        </Text>
+      ) : null}
       {stop.notes ? (
         <Text variant="muted" className="text-xs">🗒 {stop.notes}</Text>
       ) : null}
     </Surface>
   );
+
+  if (onPress) {
+    return (
+      <PressScale onPress={onPress} accessibilityLabel={displayName}>
+        {content}
+      </PressScale>
+    );
+  }
+
+  return content;
 }

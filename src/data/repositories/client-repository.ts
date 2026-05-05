@@ -1,5 +1,5 @@
-import { eq } from 'drizzle-orm';
-import { clients } from '@/infra/db/schema';
+import { and, eq, isNotNull } from 'drizzle-orm';
+import { clients, tourStops, manualHistoryEntries } from '@/infra/db/schema';
 import type { Db } from '@/infra/db/client';
 import { Client } from '@/domain/models/client';
 
@@ -111,5 +111,20 @@ export class ClientRepository {
 
   async delete(id: string): Promise<void> {
     await this.db.delete(clients).where(eq(clients.id, id));
+  }
+
+  async listClientIdsWithOutstanding(): Promise<Set<string>> {
+    const stopRows = await this.db
+      .selectDistinct({ clientId: tourStops.clientId })
+      .from(tourStops)
+      .where(and(eq(tourStops.isPaid, 0), isNotNull(tourStops.completedAt)));
+    const entryRows = await this.db
+      .selectDistinct({ clientId: manualHistoryEntries.clientId })
+      .from(manualHistoryEntries)
+      .where(eq(manualHistoryEntries.isPaid, 0));
+    const out = new Set<string>();
+    for (const r of stopRows) out.add(r.clientId);
+    for (const r of entryRows) out.add(r.clientId);
+    return out;
   }
 }
