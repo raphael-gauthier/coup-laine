@@ -27,7 +27,7 @@ function defaultSeasonStart(): string {
   return `${year}-05-01`;
 }
 
-const PAYMENT_METHODS_SEED: Array<{ id: string; label: string; ordering: number }> = [
+const PAYMENT_METHODS_SEED: { id: string; label: string; ordering: number }[] = [
   { id: 'pm-cash', label: 'Espèces', ordering: 1 },
   { id: 'pm-check', label: 'Chèque', ordering: 2 },
   { id: 'pm-transfer', label: 'Virement', ordering: 3 },
