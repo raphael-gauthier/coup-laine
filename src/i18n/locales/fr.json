@@ -101,6 +101,9 @@
     "filter_status_banned": "Banni",
     "call_phone": "Appeler",
     "send_sms": "Envoyer un SMS",
+    "filters": {
+      "outstanding": "Impayés"
+    },
     "errors": {
       "display_name_required": "Le nom est obligatoire.",
       "toggle_waiting_failed_title": "Statut non mis à jour",
@@ -311,6 +314,22 @@
       "empty_title": "Aucune prestation",
       "empty_message": "Crée ta première prestation pour pouvoir l'ajouter aux tournées.",
       "empty_cta": "Nouvelle prestation"
+    },
+    "payment_methods": {
+      "row_label": "Moyens de paiement",
+      "row_hint": "Espèces, chèque, virement, …",
+      "list_title": "Moyens de paiement",
+      "new_title": "Nouveau moyen de paiement",
+      "edit_title": "Modifier le moyen de paiement",
+      "label": "Libellé",
+      "active": "Actif",
+      "archived_section": "Archivés",
+      "empty_title": "Aucun moyen de paiement",
+      "empty_message": "Ajoute un moyen de paiement pour commencer.",
+      "empty_cta": "Ajouter un moyen",
+      "delete_confirm_title": "Supprimer ce moyen de paiement ?",
+      "delete_confirm_message": "Action irréversible. Si la méthode est utilisée, archive-la plutôt.",
+      "inactive_badge": "Désactivé"
     },
     "errors": {
       "label_required": "Le nom est obligatoire.",
@@ -549,6 +568,28 @@
       "restore_cta": "Restaurer la sauvegarde",
       "fresh_cta": "Repartir de zéro",
       "restore_failed": "Restauration impossible"
+    }
+  },
+  "payments": {
+    "title": "Paiement",
+    "method": "Moyen de paiement",
+    "method_picker_title": "Choisir un moyen",
+    "method_required": "Sélectionne un moyen de paiement",
+    "is_paid": "Payé",
+    "paid_at": "Date de paiement",
+    "note": "Note (optionnelle)",
+    "outstanding_title": "À encaisser",
+    "outstanding_summary_one": "{{count}} intervention",
+    "outstanding_summary_other": "{{count}} interventions",
+    "editor_title": "Modifier le paiement",
+    "mark_as_paid": "Marquer comme payé",
+    "paid_badge": "Payé · {{method}}",
+    "paid_badge_unknown": "Payé",
+    "unpaid_badge": "Impayé",
+    "kpi_collected": "Encaissé",
+    "kpi_outstanding": "Reste dû",
+    "errors": {
+      "save_failed_title": "Échec de l'enregistrement du paiement"
     }
   }
 }
