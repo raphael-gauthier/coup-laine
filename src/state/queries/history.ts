@@ -6,6 +6,7 @@ import { mergeClientHistory } from '@/domain/use-cases/merge-client-history';
 import type { ManualHistoryEntry } from '@/domain/models/manual-history-entry';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import { newId } from '@/lib/id';
+import { EMPTY_PAYMENT } from '@/domain/models/payment';
 import { kpisKeys } from '@/state/queries/kpis';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import i18n from '@/i18n';
@@ -79,6 +80,7 @@ export function useUpsertManualHistoryEntry() {
         date: input.date,
         notes: input.notes,
         services: input.services,
+        payment: EMPTY_PAYMENT,
       };
       await manualRepo.upsert(entry);
       return entry;
