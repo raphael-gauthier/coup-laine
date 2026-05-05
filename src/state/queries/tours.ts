@@ -6,6 +6,7 @@ import type { Tour, TourStatus } from '@/domain/models/tour';
 import type { TourStop } from '@/domain/models/tour-stop';
 import { newId } from '@/lib/id';
 import { EMPTY_PAYMENT } from '@/domain/models/payment';
+import type { Payment } from '@/domain/models/payment';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import i18n from '@/i18n';
 
@@ -146,14 +147,16 @@ export function useCompleteWithBilan() {
       tourId,
       perStopActuals,
       perStopNotes,
+      perStopPayments,
       completedAt,
     }: {
       tourId: string;
       perStopActuals: Map<string, TourStop['plannedServices']>;
       perStopNotes: Map<string, string | null>;
+      perStopPayments: Map<string, Payment>;
       completedAt: string;
     }) => {
-      await tourRepo.completeWithBilan(tourId, perStopActuals, perStopNotes, new Map(), completedAt);
+      await tourRepo.completeWithBilan(tourId, perStopActuals, perStopNotes, perStopPayments, completedAt);
 
       // Update client lastShearingDate + unmark waiting
       const result = await tourRepo.byId(tourId);
@@ -180,6 +183,24 @@ export function useCompleteWithBilan() {
     },
     onError: (err) => {
       mutationErrorToast(i18n.t('tours.errors.complete_failed_title'), err);
+    },
+  });
+}
+
+export function useMarkStopPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ stopId, tourId: _tourId, payment }: { stopId: string; tourId: string; payment: Payment }) => {
+      await tourRepo.markStopPayment(stopId, payment);
+    },
+    onSuccess: (_, { tourId }) => {
+      void qc.invalidateQueries({ queryKey: toursKeys.byId(tourId) });
+      void qc.invalidateQueries({ queryKey: toursKeys.all });
+      void qc.invalidateQueries({ queryKey: ['clients'] });
+      void qc.invalidateQueries({ queryKey: ['history'] });
+    },
+    onError: (err) => {
+      mutationErrorToast(i18n.t('payments.errors.save_failed_title'), err);
     },
   });
 }

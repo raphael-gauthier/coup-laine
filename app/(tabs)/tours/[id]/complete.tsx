@@ -156,6 +156,7 @@ export default function CompleteTourScreen() {
         tourId: tour.id,
         perStopActuals: actualsMap,
         perStopNotes: notesMap,
+        perStopPayments: new Map(),
         completedAt: new Date().toISOString(),
       },
       {
