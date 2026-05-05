@@ -18,7 +18,7 @@ import { useTour, useCompleteWithBilan } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
 import { useAnimalCategories, useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { Service } from '@/domain/models/service';
 import { useOnContrastColor } from '@/ui/theme/colors';
@@ -164,7 +164,7 @@ export default function CompleteTourScreen() {
           router.replace(`/(tabs)/tours/${tour.id}` as never);
         },
         onError: (err) => {
-          errorToast(t('tours.save_failed_title'), err instanceof Error ? err.message : undefined);
+          mutationErrorToast(t('tours.save_failed_title'), err);
         },
       }
     );
