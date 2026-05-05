@@ -50,3 +50,6 @@ drizzle/.snapshots
 .grepai/
 
 .env.local
+
+# Local build scripts
+build-local.ps1
