@@ -21,6 +21,7 @@ import { haptics } from '@/ui/motion/haptics';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { Service } from '@/domain/models/service';
+import type { Payment } from '@/domain/models/payment';
 import { useOnContrastColor } from '@/ui/theme/colors';
 import { formatMinutes } from '@/lib/format-minutes';
 import { cn } from '@/lib/cn';
@@ -67,6 +68,8 @@ export default function CompleteTourScreen() {
 
   const [perStopActuals, setPerStopActuals] = useState<Record<string, TourStopService[]>>({});
   const [perStopNotes, setPerStopNotes] = useState<Record<string, string>>({});
+  const [perStopPayments, setPerStopPayments] = useState<Record<string, Payment>>({});
+  const [perStopPaymentErrors, setPerStopPaymentErrors] = useState<Record<string, string | null>>({});
   const [offPlanForStopId, setOffPlanForStopId] = useState<string | null>(null);
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
@@ -84,6 +87,12 @@ export default function CompleteTourScreen() {
 
   const setNote = (stopId: string, note: string) =>
     setPerStopNotes((prev) => ({ ...prev, [stopId]: note }));
+
+  const getPayment = (stopId: string, defaultPayment: Payment) =>
+    perStopPayments[stopId] ?? defaultPayment;
+
+  const setPayment = (stopId: string, p: Payment) =>
+    setPerStopPayments((prev) => ({ ...prev, [stopId]: p }));
 
   const buildServiceFromCatalog = (svc: Service): TourStopService => {
     const category = svc.categoryId ? categoriesById.get(svc.categoryId) : null;
@@ -135,6 +144,26 @@ export default function CompleteTourScreen() {
   const deltaCents = actualRevenueCents - plannedRevenueCents;
 
   const onConfirm = async () => {
+    // Validate: stops with services AND isPaid=true must have a methodId
+    const errors: Record<string, string | null> = {};
+    let hasError = false;
+    for (const stop of stops) {
+      const actuals = getActuals(stop.id, stop.plannedServices);
+      const stopHasAny = actuals.some((a) => a.qty > 0);
+      if (!stopHasAny) continue;
+      const p = getPayment(stop.id, stop.payment);
+      if (p.isPaid && !p.methodId) {
+        errors[stop.id] = t('payments.method_required');
+        hasError = true;
+      }
+    }
+    if (hasError) {
+      setPerStopPaymentErrors(errors);
+      void haptics.error();
+      return;
+    }
+    setPerStopPaymentErrors({});
+
     const ok = await confirm({
       title: t('tours.bilan_confirm_title'),
       message: t('tours.bilan_confirm_body'),
@@ -146,17 +175,19 @@ export default function CompleteTourScreen() {
 
     const actualsMap = new Map<string, TourStopService[]>();
     const notesMap = new Map<string, string | null>();
+    const paymentsMap = new Map<string, Payment>();
     for (const stop of stops) {
       actualsMap.set(stop.id, getActuals(stop.id, stop.plannedServices));
       const trimmed = getNote(stop.id).trim();
       notesMap.set(stop.id, trimmed.length === 0 ? null : trimmed);
+      paymentsMap.set(stop.id, getPayment(stop.id, stop.payment));
     }
     complete.mutate(
       {
         tourId: tour.id,
         perStopActuals: actualsMap,
         perStopNotes: notesMap,
-        perStopPayments: new Map(),
+        perStopPayments: paymentsMap,
         completedAt: new Date().toISOString(),
       },
       {
@@ -220,6 +251,9 @@ export default function CompleteTourScreen() {
             onChangeActuals={(next) => setActuals(stop.id, next)}
             onChangeNote={(next) => setNote(stop.id, next)}
             onAddOffPlan={() => setOffPlanForStopId(stop.id)}
+            payment={getPayment(stop.id, stop.payment)}
+            paymentError={perStopPaymentErrors[stop.id] ?? null}
+            onChangePayment={(next) => setPayment(stop.id, next)}
           />
         ))}
 

@@ -10,6 +10,8 @@ import { PressScale } from '@/ui/motion/press-scale';
 import type { TourStop } from '@/domain/models/tour-stop';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { Client } from '@/domain/models/client';
+import type { Payment } from '@/domain/models/payment';
+import { PaymentEditor } from '@/ui/components/payment-editor';
 
 interface Props {
   stop: TourStop;
@@ -19,6 +21,9 @@ interface Props {
   onChangeActuals: (next: TourStopService[]) => void;
   onChangeNote: (next: string) => void;
   onAddOffPlan: () => void;
+  payment: Payment;
+  paymentError?: string | null;
+  onChangePayment: (next: Payment) => void;
 }
 
 export function StopCompletionEditor({
@@ -29,6 +34,9 @@ export function StopCompletionEditor({
   onChangeActuals,
   onChangeNote,
   onAddOffPlan,
+  payment,
+  paymentError,
+  onChangePayment,
 }: Props) {
   const { t } = useTranslation();
   const displayName = stop.clientNameSnapshot ?? client?.displayName ?? stop.clientId;
@@ -124,6 +132,8 @@ export function StopCompletionEditor({
           accessibilityLabel={t('tours.bilan_note_hint')}
         />
       </View>
+
+      <PaymentEditor value={payment} onChange={onChangePayment} methodError={paymentError ?? null} />
     </Surface>
   );
 }
