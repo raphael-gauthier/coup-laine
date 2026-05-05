@@ -6,6 +6,7 @@ import { mergeClientHistory } from '@/domain/use-cases/merge-client-history';
 import type { ManualHistoryEntry } from '@/domain/models/manual-history-entry';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import { newId } from '@/lib/id';
+import { kpisKeys } from '@/state/queries/kpis';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import i18n from '@/i18n';
 
@@ -85,6 +86,7 @@ export function useUpsertManualHistoryEntry() {
     onSuccess: (entry) => {
       void qc.invalidateQueries({ queryKey: historyKeys.byClient(entry.clientId) });
       void qc.invalidateQueries({ queryKey: historyKeys.manualByClient(entry.clientId) });
+      void qc.invalidateQueries({ queryKey: kpisKeys.client(entry.clientId) });
     },
     onError: (err) => {
       mutationErrorToast(i18n.t('history.errors.save_failed_title'), err);
@@ -101,6 +103,7 @@ export function useDeleteManualHistoryEntry() {
     onSuccess: (_, { clientId }) => {
       void qc.invalidateQueries({ queryKey: historyKeys.byClient(clientId) });
       void qc.invalidateQueries({ queryKey: historyKeys.manualByClient(clientId) });
+      void qc.invalidateQueries({ queryKey: kpisKeys.client(clientId) });
     },
     onError: (err) => {
       mutationErrorToast(i18n.t('history.errors.delete_failed_title'), err);

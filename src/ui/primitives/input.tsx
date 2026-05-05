@@ -8,11 +8,15 @@ interface Props extends Omit<TextInputProps, 'accessibilityLabel'> {
   accessibilityLabel: string;
 }
 
-export function Input({ className, style, ...rest }: Props) {
+export function Input({ className, style, multiline, textAlignVertical, ...rest }: Props) {
   const isDark = useColorScheme() === 'dark';
   return (
     <TextInput
       placeholderTextColor={isDark ? '#B4A490' : '#5C4E40'}
+      multiline={multiline}
+      // Android centers multiline text vertically by default; force top
+      // alignment so the cursor starts at the top of the textarea.
+      textAlignVertical={textAlignVertical ?? (multiline ? 'top' : undefined)}
       className={cn(
         'rounded-2xl border border-border dark:border-border-dark',
         'bg-input dark:bg-input-dark',

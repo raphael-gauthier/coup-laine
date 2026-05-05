@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
+import { Input } from '@/ui/primitives/input';
 import { PressScale } from '@/ui/motion/press-scale';
 import { useServices, useAnimalCategories, useSpecies } from '@/state/queries/species';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
@@ -27,10 +28,29 @@ interface Props {
   initialSelection: TourStopService[];
   onConfirm: (services: TourStopService[]) => void;
   onClose: () => void;
+  // When true, each selected row exposes an editable unit price input that
+  // overrides the catalog price for the resulting TourStopService.
+  priceEditable?: boolean;
 }
 
 interface SelectedEntry {
   qty: number;
+  // Free-form draft of the unit price in euros (e.g. "12.50"). Parsed to
+  // cents at confirm time. Only populated when priceEditable is true.
+  priceDraft?: string;
+}
+
+function centsToDraft(cents: number): string {
+  return (cents / 100).toFixed(2);
+}
+
+function draftToCents(draft: string | undefined, fallback: number): number {
+  if (draft == null) return fallback;
+  const normalized = draft.replace(',', '.').trim();
+  if (normalized === '') return 0;
+  const n = Number(normalized);
+  if (!Number.isFinite(n) || n < 0) return fallback;
+  return Math.round(n * 100);
 }
 
 export function ServicePickerSheet({
@@ -39,6 +59,7 @@ export function ServicePickerSheet({
   initialSelection,
   onConfirm,
   onClose,
+  priceEditable = false,
 }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -89,12 +110,18 @@ export function ServicePickerSheet({
     if (services.length === 0) return;
     const next: Record<string, SelectedEntry> = {};
     for (const s of initialSelection) {
-      next[s.serviceId] = { qty: s.qty };
+      next[s.serviceId] = {
+        qty: s.qty,
+        priceDraft: priceEditable ? centsToDraft(s.priceCentsSnapshot) : undefined,
+      };
     }
     for (const p of suggested) {
       if (next[p.id]) continue;
       const count = p.categoryId ? countByCategoryId.get(p.categoryId) ?? 1 : 1;
-      next[p.id] = { qty: Math.max(1, count) };
+      next[p.id] = {
+        qty: Math.max(1, count),
+        priceDraft: priceEditable ? centsToDraft(p.priceCents ?? 0) : undefined,
+      };
     }
     setSelected(next);
     setHydrated(true);
@@ -104,6 +131,7 @@ export function ServicePickerSheet({
     initialSelection,
     suggested,
     countByCategoryId,
+    priceEditable,
   ]);
 
   const toggle = (id: string) => {
@@ -115,7 +143,10 @@ export function ServicePickerSheet({
         const p = active.find((x) => x.id === id);
         const count =
           p?.categoryId ? countByCategoryId.get(p.categoryId) ?? 1 : 1;
-        next[id] = { qty: Math.max(1, count) };
+        next[id] = {
+          qty: Math.max(1, count),
+          priceDraft: priceEditable ? centsToDraft(p?.priceCents ?? 0) : undefined,
+        };
       }
       return next;
     });
@@ -123,19 +154,33 @@ export function ServicePickerSheet({
 
   const setQty = (id: string, qty: number) => {
     setSelected((prev) => {
-      if (!prev[id]) return prev;
-      return { ...prev, [id]: { qty: Math.max(1, qty) } };
+      const cur = prev[id];
+      if (!cur) return prev;
+      return { ...prev, [id]: { ...cur, qty: Math.max(1, qty) } };
     });
   };
 
-  const buildService = (p: typeof active[number], qty: number): TourStopService => {
+  const setPriceDraft = (id: string, draft: string) => {
+    setSelected((prev) => {
+      const cur = prev[id];
+      if (!cur) return prev;
+      return { ...prev, [id]: { ...cur, priceDraft: draft } };
+    });
+  };
+
+  const buildService = (
+    p: typeof active[number],
+    qty: number,
+    priceDraft: string | undefined
+  ): TourStopService => {
     const category = p.categoryId ? categoriesById.get(p.categoryId) : null;
     const sp = category ? speciesById.get(category.speciesId) : null;
+    const fallback = p.priceCents ?? 0;
     return {
       serviceId: p.id,
       qty,
       nameSnapshot: p.label,
-      priceCentsSnapshot: p.priceCents ?? 0,
+      priceCentsSnapshot: priceEditable ? draftToCents(priceDraft, fallback) : fallback,
       minutesSnapshot: p.minutes,
       categoryIdSnapshot: p.categoryId,
       categoryNameSnapshot: category?.label ?? null,
@@ -149,7 +194,7 @@ export function ServicePickerSheet({
     for (const p of active) {
       const sel = selected[p.id];
       if (!sel || sel.qty <= 0) continue;
-      out.push(buildService(p, sel.qty));
+      out.push(buildService(p, sel.qty, sel.priceDraft));
     }
     onConfirm(out);
   };
@@ -160,47 +205,64 @@ export function ServicePickerSheet({
     const category = item.categoryId ? categoriesById.get(item.categoryId) : null;
     const sp = category ? speciesById.get(category.speciesId) : null;
     return (
-      <View className="flex-row items-center py-3 gap-3 border-b border-border dark:border-border-dark">
-        <PressScale onPress={() => toggle(item.id)} accessibilityLabel={item.label}>
-          <View
-            className={cn(
-              'w-6 h-6 rounded-md items-center justify-center border',
-              checked
-                ? 'bg-primary dark:bg-primary-dark border-primary dark:border-primary-dark'
-                : 'border-border dark:border-border-dark'
-            )}
-          >
-            {checked ? <Check size={14} color={onContrast} /> : null}
+      <View className="py-3 gap-2 border-b border-border dark:border-border-dark">
+        <View className="flex-row items-center gap-3">
+          <PressScale onPress={() => toggle(item.id)} accessibilityLabel={item.label}>
+            <View
+              className={cn(
+                'w-6 h-6 rounded-md items-center justify-center border',
+                checked
+                  ? 'bg-primary dark:bg-primary-dark border-primary dark:border-primary-dark'
+                  : 'border-border dark:border-border-dark'
+              )}
+            >
+              {checked ? <Check size={14} color={onContrast} /> : null}
+            </View>
+          </PressScale>
+          <View className="flex-1">
+            <Text className="text-sm font-medium">{item.label}</Text>
+            <Text variant="muted" className="text-xs">
+              {[sp?.label, category?.label].filter(Boolean).join(' · ') || '—'}
+            </Text>
+            <Text variant="muted" className="text-xs">
+              {formatEur(item.priceCents)} · {formatMinutes(item.minutes)}
+            </Text>
           </View>
-        </PressScale>
-        <View className="flex-1">
-          <Text className="text-sm font-medium">{item.label}</Text>
-          <Text variant="muted" className="text-xs">
-            {[sp?.label, category?.label].filter(Boolean).join(' · ') || '—'}
-          </Text>
-          <Text variant="muted" className="text-xs">
-            {formatEur(item.priceCents)} · {formatMinutes(item.minutes)}
-          </Text>
+          {checked ? (
+            <View className="flex-row items-center gap-2">
+              <PressScale
+                onPress={() => setQty(item.id, sel.qty - 1)}
+                accessibilityLabel={t('common.decrement')}
+              >
+                <View className="w-8 h-8 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
+                  <Minus size={14} color={fg} />
+                </View>
+              </PressScale>
+              <Text className="w-8 text-center font-semibold">{sel.qty}</Text>
+              <PressScale
+                onPress={() => setQty(item.id, sel.qty + 1)}
+                accessibilityLabel={t('common.increment')}
+              >
+                <View className="w-8 h-8 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
+                  <Plus size={14} color={fg} />
+                </View>
+              </PressScale>
+            </View>
+          ) : null}
         </View>
-        {checked ? (
-          <View className="flex-row items-center gap-2">
-            <PressScale
-              onPress={() => setQty(item.id, sel.qty - 1)}
-              accessibilityLabel={t('common.decrement')}
-            >
-              <View className="w-8 h-8 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
-                <Minus size={14} color={fg} />
-              </View>
-            </PressScale>
-            <Text className="w-8 text-center font-semibold">{sel.qty}</Text>
-            <PressScale
-              onPress={() => setQty(item.id, sel.qty + 1)}
-              accessibilityLabel={t('common.increment')}
-            >
-              <View className="w-8 h-8 rounded-full bg-muted dark:bg-muted-dark items-center justify-center">
-                <Plus size={14} color={fg} />
-              </View>
-            </PressScale>
+        {checked && priceEditable ? (
+          <View className="flex-row items-center gap-2 pl-9">
+            <Text variant="muted" className="text-xs">
+              {t('tours.picker_unit_price')}
+            </Text>
+            <Input
+              accessibilityLabel={t('tours.picker_unit_price')}
+              value={sel.priceDraft ?? ''}
+              onChangeText={(v) => setPriceDraft(item.id, v)}
+              keyboardType="decimal-pad"
+              className="flex-1 py-2"
+            />
+            <Text variant="muted" className="text-xs">€</Text>
           </View>
         ) : null}
       </View>

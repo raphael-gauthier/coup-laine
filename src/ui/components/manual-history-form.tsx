@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, View, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useTranslation } from 'react-i18next';
@@ -14,8 +14,11 @@ import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
 import { FormField } from '@/ui/components/form-field';
 import { RHFTextField } from '@/ui/components/rhf-text-field';
+import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { haptics } from '@/ui/motion/haptics';
+import { useClient } from '@/state/queries/clients';
 import type { ManualHistoryEntry } from '@/domain/models/manual-history-entry';
+import type { TourStopService } from '@/domain/models/tour-stop-service';
 import type { UpsertManualHistoryInput } from '@/state/queries/history';
 
 interface Props {
@@ -47,6 +50,15 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
     mode: 'onTouched',
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [services, setServices] = useState<TourStopService[]>(initial?.services ?? []);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const { data: client } = useClient(clientId);
+
+  const totalCents = useMemo(
+    () => services.reduce((sum, s) => sum + s.qty * s.priceCentsSnapshot, 0),
+    [services]
+  );
 
   const onValid = (values: FormValues) => {
     onSubmit({
@@ -54,7 +66,7 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
       clientId,
       date: format(values.date, 'yyyy-MM-dd'),
       notes: values.notes.trim() || null,
-      services: initial?.services ?? [],
+      services,
     });
   };
 
@@ -97,6 +109,32 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
         className="min-h-[100px] py-2"
       />
 
+      <FormField label={t('history.manual.services')}>
+        <Surface variant="muted" className="rounded-2xl p-3 gap-2">
+          {services.length === 0 ? (
+            <Text variant="muted" className="text-sm">{t('history.manual.no_services')}</Text>
+          ) : (
+            services.map((s) => (
+              <View key={s.serviceId} className="flex-row items-center justify-between">
+                <Text className="text-sm flex-1">
+                  {s.nameSnapshot} × {s.qty}
+                </Text>
+                <Text className="text-sm font-medium">
+                  {((s.qty * s.priceCentsSnapshot) / 100).toFixed(2)} €
+                </Text>
+              </View>
+            ))
+          )}
+          <View className="flex-row items-center justify-between pt-2 border-t border-border dark:border-border-dark">
+            <Text className="text-sm font-semibold">{t('history.manual.total')}</Text>
+            <Text className="text-base font-semibold">{(totalCents / 100).toFixed(2)} €</Text>
+          </View>
+          <Button variant="secondary" onPress={() => setPickerOpen(true)}>
+            {services.length === 0 ? t('history.manual.add_services') : t('history.manual.edit_services')}
+          </Button>
+        </Surface>
+      </FormField>
+
       <View className="flex-row gap-2 mt-4">
         {onCancel ? (
           <Button variant="secondary" className="flex-1" onPress={onCancel} disabled={saving}>
@@ -107,6 +145,18 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
           {t('common.save')}
         </Button>
       </View>
+
+      <ServicePickerSheet
+        visible={pickerOpen}
+        clientAnimalCounts={client?.animalCounts ?? []}
+        initialSelection={services}
+        priceEditable
+        onConfirm={(next) => {
+          setServices(next);
+          setPickerOpen(false);
+        }}
+        onClose={() => setPickerOpen(false)}
+      />
     </ScrollView>
   );
 }
