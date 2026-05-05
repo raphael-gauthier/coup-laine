@@ -165,7 +165,7 @@
     "create_sheet_title": "Nouvelle tournée",
     "create_sheet_subtitle": "Comment veux-tu créer la tournée ?",
     "create_manual_hint": "Choisis et ordonne les clients à la main.",
-    "create_optimized_hint": "On calcule l'ordre optimal pour minimiser la distance.",
+    "create_optimized_hint": "Choisis une commune et un rayon, puis sélectionne les clients à inclure.",
     "empty_filtered_title": "Aucune tournée",
     "empty_filtered_message": "Aucune tournée dans cette catégorie.",
     "new_title": "Nouvelle tournée",
@@ -263,12 +263,20 @@
     "optimized_commune_title": "Commune de départ",
     "optimized_commune_option_one": "{{count}} client en attente",
     "optimized_commune_option_other": "{{count}} clients en attente",
-    "optimized_duration_title": "Durée cible",
-    "optimized_propose": "Proposer la tournée",
+    "optimized_radius_title": "Rayon",
+    "optimized_radius_value": "{{value}} km",
+    "optimized_clients_title": "Clients à proximité",
+    "optimized_clients_count_one": "{{count}} client à moins de {{radius}} km",
+    "optimized_clients_count_other": "{{count}} clients à moins de {{radius}} km",
+    "optimized_select_all": "Tout cocher",
+    "optimized_deselect_all": "Tout décocher",
+    "optimized_no_clients_in_radius": "Aucun client en attente dans ce rayon.",
+    "optimized_distance": "{{value}} km",
+    "optimized_continue": "Continuer ({{count}})",
     "optimized_empty_title": "Aucune commune en attente",
     "optimized_empty_body": "Marque des clients en attente pour proposer une tournée optimisée.",
     "optimized_propose_failed": "Impossible de proposer une tournée.",
-    "optimized_propose_empty": "Aucun client à inclure pour cette commune."
+    "optimized_propose_empty": "Sélectionne au moins un client."
   },
   "catalogs": {
     "species": {
