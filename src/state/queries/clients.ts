@@ -90,10 +90,13 @@ export function useUpsertClient() {
       await repo.upsert(client);
       return client;
     },
-    onSuccess: (client) => {
-      void qc.invalidateQueries({ queryKey: clientsKeys.all });
-      void qc.invalidateQueries({ queryKey: recomputeKeys.pending });
+    onSuccess: async (client) => {
       qc.setQueryData(clientsKeys.byId(client.id), client);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: clientsKeys.all }),
+        qc.invalidateQueries({ queryKey: recomputeKeys.pending }),
+        qc.invalidateQueries({ queryKey: ['kpis'] }),
+      ]);
 
       if (client.needsDistanceRecompute && client.latitude != null) {
         void distanceSync.recomputeForClient(client.id).finally(() => {
@@ -111,6 +114,7 @@ export function useDeleteClient() {
     mutationFn: (id: string) => repo.delete(id),
     onSuccess: (_, id) => {
       void qc.invalidateQueries({ queryKey: clientsKeys.all });
+      void qc.invalidateQueries({ queryKey: ['kpis'] });
       qc.removeQueries({ queryKey: clientsKeys.byId(id) });
     },
   });
@@ -146,6 +150,7 @@ export function useToggleWaiting() {
     },
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: clientsKeys.all });
+      void qc.invalidateQueries({ queryKey: ['kpis'] });
     },
   });
 }
@@ -181,6 +186,7 @@ export function useToggleBanned() {
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: clientsKeys.all });
       void qc.invalidateQueries({ queryKey: ['clients', 'statusMap'] });
+      void qc.invalidateQueries({ queryKey: ['kpis'] });
     },
   });
 }

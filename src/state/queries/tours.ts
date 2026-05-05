@@ -102,6 +102,8 @@ export function useUpsertTour() {
     },
     onSuccess: ({ tour }) => {
       void qc.invalidateQueries({ queryKey: toursKeys.all });
+      void qc.invalidateQueries({ queryKey: ['clients'] });
+      void qc.invalidateQueries({ queryKey: ['kpis'] });
       qc.removeQueries({ queryKey: toursKeys.byId(tour.id) });
     },
   });
@@ -128,6 +130,8 @@ export function useDeleteTour() {
     mutationFn: (id: string) => tourRepo.deleteTour(id),
     onSuccess: (_, id) => {
       void qc.invalidateQueries({ queryKey: toursKeys.all });
+      void qc.invalidateQueries({ queryKey: ['clients'] });
+      void qc.invalidateQueries({ queryKey: ['kpis'] });
       qc.removeQueries({ queryKey: toursKeys.byId(id) });
     },
   });
@@ -168,6 +172,8 @@ export function useCompleteWithBilan() {
     onSuccess: (_, { tourId }) => {
       void qc.invalidateQueries({ queryKey: toursKeys.all });
       void qc.invalidateQueries({ queryKey: ['clients'] });
+      void qc.invalidateQueries({ queryKey: ['kpis'] });
+      void qc.invalidateQueries({ queryKey: ['history'] });
       qc.removeQueries({ queryKey: toursKeys.byId(tourId) });
     },
     onError: (err) => {
@@ -210,6 +216,8 @@ export function useCompleteTour() {
     onSuccess: ({ tour }) => {
       void qc.invalidateQueries({ queryKey: toursKeys.all });
       void qc.invalidateQueries({ queryKey: ['clients'] });
+      void qc.invalidateQueries({ queryKey: ['kpis'] });
+      void qc.invalidateQueries({ queryKey: ['history'] });
       qc.removeQueries({ queryKey: toursKeys.byId(tour.id) });
     },
     onError: (err) => {
