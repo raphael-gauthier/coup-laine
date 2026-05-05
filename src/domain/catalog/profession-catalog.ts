@@ -34,7 +34,7 @@ export interface ProfessionPreset {
   id: string;
   label: string;
   speciesKeys: SpeciesKey[];
-  services: Array<{ speciesKey: SpeciesKey; label: string }>;
+  services: { speciesKey: SpeciesKey; label: string }[];
 }
 
 export const PROFESSION_PRESETS: ProfessionPreset[] = [
@@ -166,10 +166,10 @@ export function unionSpeciesFromProfessions(professionIds: string[]): SpeciesKey
 export function unionServicesFromProfessions(
   professionIds: string[],
   enabledSpecies: SpeciesKey[]
-): Array<{ speciesKey: SpeciesKey; label: string }> {
+): { speciesKey: SpeciesKey; label: string }[] {
   const enabled = new Set(enabledSpecies);
   const seen = new Set<string>();
-  const out: Array<{ speciesKey: SpeciesKey; label: string }> = [];
+  const out: { speciesKey: SpeciesKey; label: string }[] = [];
   for (const id of professionIds) {
     const m = professionById(id);
     if (!m) continue;

@@ -17,7 +17,7 @@ export function matchesQuery(haystack: string | null | undefined, query: string)
   return normalize(haystack).includes(normalize(query));
 }
 
-export function matchesAny(fields: Array<string | null | undefined>, query: string): boolean {
+export function matchesAny(fields: (string | null | undefined)[], query: string): boolean {
   if (!query.trim()) return true;
   return fields.some((f) => f && matchesQuery(f, query));
 }

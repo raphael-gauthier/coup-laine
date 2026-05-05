@@ -28,7 +28,7 @@ interface Props {
 
 export function ClientStatusFilterDialog({ visible, onClose }: Props) {
   const { t } = useTranslation();
-  const { enabledStatuses, toggle, setAll, setNone } = useClientFiltersStore();
+  const { enabledStatuses, toggle } = useClientFiltersStore();
   // Local draft state
   const [draft, setDraft] = useState<Set<ClientStatus>>(new Set(enabledStatuses));
 

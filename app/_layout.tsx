@@ -11,11 +11,6 @@ import { StatusBar } from 'expo-status-bar';
 import * as NavigationBar from 'expo-navigation-bar';
 import { ActivityIndicator, LogBox, Platform, View } from 'react-native';
 import { useEffect, useState } from 'react';
-
-// MapTiler styles include a fake "attribution" vector source with no tiles —
-// MapLibre warns "source must have tiles" but the map still renders correctly.
-// Silence the cosmetic warning so it doesn't crowd the dev logs.
-LogBox.ignoreLogs(['source must have tiles']);
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -25,6 +20,11 @@ import { bootstrapDatabase } from '@/infra/db/bootstrap';
 import { ensureAnonymousSession } from '@/infra/services/ensure-session';
 import { useAutoBackup } from '@/state/hooks/use-auto-backup';
 import * as Sentry from '@sentry/react-native';
+
+// MapTiler styles include a fake "attribution" vector source with no tiles —
+// MapLibre warns "source must have tiles" but the map still renders correctly.
+// Silence the cosmetic warning so it doesn't crowd the dev logs.
+LogBox.ignoreLogs(['source must have tiles']);
 
 // Keys whose values are PII or domain data that must never reach Sentry.
 const PII_KEYS = new Set([

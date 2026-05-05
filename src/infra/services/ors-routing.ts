@@ -105,7 +105,7 @@ export async function fetchRouteGeometry(
   const url = `${env.orsBaseUrl}/v2/directions/driving-car/geojson`;
   const headers = await authHeaders();
   if (__DEV__) {
-    // eslint-disable-next-line no-console
+     
     console.log('[ors] fetchRouteGeometry', {
       url,
       hasAuth: 'Authorization' in headers,
@@ -125,7 +125,7 @@ export async function fetchRouteGeometry(
     if (!response.ok) {
       if (__DEV__) {
         const text = await response.text().catch(() => '<no body>');
-        // eslint-disable-next-line no-console
+         
         console.warn('[ors] fetchRouteGeometry not ok', response.status, text.slice(0, 500));
       }
       return null;
@@ -134,7 +134,7 @@ export async function fetchRouteGeometry(
     return json.features?.[0]?.geometry ?? null;
   } catch (err) {
     if (__DEV__) {
-      // eslint-disable-next-line no-console
+       
       console.warn('[ors] fetchRouteGeometry threw', err instanceof Error ? err.message : String(err));
     }
     return null;

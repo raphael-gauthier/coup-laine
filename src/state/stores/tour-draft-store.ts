@@ -8,7 +8,7 @@ interface TourDraftState {
   toggle: (id: string) => void;
   setOrder: (ids: string[]) => void;
   setStopServices: (clientId: string, services: TourStopService[]) => void;
-  hydrateServices: (entries: Array<{ clientId: string; services: TourStopService[] }>) => void;
+  hydrateServices: (entries: { clientId: string; services: TourStopService[] }[]) => void;
 }
 
 export const useTourDraftStore = create<TourDraftState>((set) => ({

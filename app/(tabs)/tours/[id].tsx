@@ -93,10 +93,6 @@ export default function TourDetailScreen() {
     });
   };
 
-  const routeGeometry = tour.routeGeometry
-    ? (() => { try { return JSON.parse(tour.routeGeometry); } catch { return null; } })()
-    : null;
-
   return (
     <Surface className="flex-1">
       <ScreenHeader

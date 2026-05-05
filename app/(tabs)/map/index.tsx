@@ -1,6 +1,5 @@
 import { useRef, useMemo, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { MapPinOff } from 'lucide-react-native';
@@ -26,14 +25,13 @@ type GeoClient = Client & { latitude: number; longitude: number };
 
 export default function MapScreen() {
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapHandle>(null);
   const { data: clients = [], isError, isLoading, refetch } = useClients('all');
   const { data: base } = useBaseAddress();
   const { data: statusMap } = useClientStatusMap();
   const { activeFilter } = useMapFiltersStore();
-  const { showClientPins, showBasePin, showProximityCircle } = useMapLayersStore();
+  const { showClientPins, showBasePin } = useMapLayersStore();
   const mutedFg = useMutedForegroundColor();
 
   const [selectedClient, setSelectedClient] = useState<GeoClient | null>(null);

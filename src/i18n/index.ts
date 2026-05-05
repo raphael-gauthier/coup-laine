@@ -5,6 +5,7 @@ import fr from './locales/fr.json';
 
 const deviceLocale = getLocales()[0]?.languageCode ?? 'fr';
 
+// eslint-disable-next-line import/no-named-as-default-member
 i18n.use(initReactI18next).init({
   resources: { fr: { translation: fr } },
   lng: deviceLocale === 'fr' ? 'fr' : 'fr',

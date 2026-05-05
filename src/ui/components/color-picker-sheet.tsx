@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal, View, ScrollView, TouchableOpacity } from 'react-native';
+import { Modal, View, TouchableOpacity } from 'react-native';
 import { X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 

@@ -19,7 +19,7 @@ export async function ensureAnonymousSession(): Promise<void> {
       const { error } = await supabase.auth.signInAnonymously();
       if (error) {
         if (__DEV__) {
-          // eslint-disable-next-line no-console
+           
           console.warn('[auth] anonymous sign-in failed', error.message);
         }
         Sentry.captureException(error, { tags: { context: 'ensureAnonymousSession' } });

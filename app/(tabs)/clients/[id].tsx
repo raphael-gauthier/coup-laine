@@ -63,7 +63,7 @@ export default function ClientDetailScreen() {
   const { data: manualEntries = [] } = useManualHistoryByClient(id);
 
   const unpaidStops = useMemo(() => {
-    const out: Array<{ stop: TourStop; tourId: string; scheduledDate: string }> = [];
+    const out: { stop: TourStop; tourId: string; scheduledDate: string }[] = [];
     for (const { tour, stops } of tours) {
       for (const s of stops) {
         if (s.clientId !== id) continue;
