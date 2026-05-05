@@ -3,15 +3,18 @@ import { db } from '@/infra/db/client';
 import { ClientRepository } from '@/data/repositories/client-repository';
 import { TourRepository } from '@/data/repositories/tour-repository';
 import { SettingsRepository } from '@/data/repositories/settings-repository';
+import { DistanceMatrixSync } from '@/data/distance-matrix-sync';
 import { computeClientStatus, type ClientStatus } from '@/domain/use-cases/client-status';
 import { findCommunesWithWaiting, type CommuneCount } from '@/domain/use-cases/find-communes-with-waiting';
 import { animalsTotal } from '@/lib/animals-total';
 import type { Client } from '@/domain/models/client';
 import { newId } from '@/lib/id';
 import { mutationErrorToast } from '@/ui/components/error-toast';
+import { recomputeKeys } from '@/state/queries/recompute';
 import i18n from '@/i18n';
 
 const repo = new ClientRepository(db);
+const distanceSync = new DistanceMatrixSync(db);
 
 export const clientsKeys = {
   all: ['clients'] as const,
@@ -89,7 +92,15 @@ export function useUpsertClient() {
     },
     onSuccess: (client) => {
       void qc.invalidateQueries({ queryKey: clientsKeys.all });
+      void qc.invalidateQueries({ queryKey: recomputeKeys.pending });
       qc.setQueryData(clientsKeys.byId(client.id), client);
+
+      if (client.needsDistanceRecompute && client.latitude != null) {
+        void distanceSync.recomputeForClient(client.id).finally(() => {
+          void qc.invalidateQueries({ queryKey: clientsKeys.all });
+          void qc.invalidateQueries({ queryKey: recomputeKeys.pending });
+        });
+      }
     },
   });
 }
