@@ -3,7 +3,7 @@ import i18n from '@/i18n';
 import { db } from '@/infra/db/client';
 import { ClientRepository } from '@/data/repositories/client-repository';
 import { DistanceMatrixSync } from '@/data/distance-matrix-sync';
-import { errorToast } from '@/ui/components/error-toast';
+import { errorToast, mutationErrorToast } from '@/ui/components/error-toast';
 
 const clientRepo = new ClientRepository(db);
 const sync = new DistanceMatrixSync(db);
@@ -31,7 +31,7 @@ export function useRecomputeForClient() {
       void qc.invalidateQueries({ queryKey: ['clients'] });
     },
     onError: (err) => {
-      errorToast('Recalcul impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('recompute.failed_title'), err);
     },
   });
 }
@@ -56,10 +56,7 @@ export function useRecomputeAll() {
       }
     },
     onError: (err) => {
-      errorToast(
-        i18n.t('recompute.failed_title'),
-        err instanceof Error ? err.message : undefined
-      );
+      mutationErrorToast(i18n.t('recompute.failed_title'), err);
     },
   });
 }

@@ -8,7 +8,8 @@ import { findCommunesWithWaiting, type CommuneCount } from '@/domain/use-cases/f
 import { animalsTotal } from '@/lib/animals-total';
 import type { Client } from '@/domain/models/client';
 import { newId } from '@/lib/id';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
+import i18n from '@/i18n';
 
 const repo = new ClientRepository(db);
 
@@ -130,7 +131,7 @@ export function useToggleWaiting() {
     onError: (err, { id }, ctx) => {
       if (ctx?.previous) qc.setQueryData(clientsKeys.byId(id), ctx.previous);
       void qc.invalidateQueries({ queryKey: clientsKeys.all });
-      errorToast('Action impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('clients.errors.toggle_waiting_failed_title'), err);
     },
     onSettled: () => {
       void qc.invalidateQueries({ queryKey: clientsKeys.all });

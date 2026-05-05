@@ -6,7 +6,8 @@ import { mergeClientHistory } from '@/domain/use-cases/merge-client-history';
 import type { ManualHistoryEntry } from '@/domain/models/manual-history-entry';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 import { newId } from '@/lib/id';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
+import i18n from '@/i18n';
 
 const tourRepo = new TourRepository(db);
 const manualRepo = new ManualHistoryRepository(db);
@@ -86,7 +87,7 @@ export function useUpsertManualHistoryEntry() {
       void qc.invalidateQueries({ queryKey: historyKeys.manualByClient(entry.clientId) });
     },
     onError: (err) => {
-      errorToast('Enregistrement impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('history.errors.save_failed_title'), err);
     },
   });
 }
@@ -102,7 +103,7 @@ export function useDeleteManualHistoryEntry() {
       void qc.invalidateQueries({ queryKey: historyKeys.manualByClient(clientId) });
     },
     onError: (err) => {
-      errorToast('Suppression impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('history.errors.delete_failed_title'), err);
     },
   });
 }

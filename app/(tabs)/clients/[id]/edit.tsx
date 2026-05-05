@@ -6,7 +6,7 @@ import { ClientForm } from '@/ui/components/client-form';
 import { ErrorState } from '@/ui/components/error-state';
 import { useClient, useUpsertClient } from '@/state/queries/clients';
 import { haptics } from '@/ui/motion/haptics';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 
 export default function EditClientScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -32,7 +32,7 @@ export default function EditClientScreen() {
               router.back();
             },
             onError: (err) => {
-              errorToast(t('clients.save_failed_title'), err instanceof Error ? err.message : undefined);
+              mutationErrorToast(t('clients.save_failed_title'), err);
             },
           })
         }

@@ -7,7 +7,7 @@ import { Text } from '@/ui/primitives/text';
 import { PressScale } from '@/ui/motion/press-scale';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { ColorPickerSheet } from '@/ui/components/color-picker-sheet';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import { useAllSettings, useSetSetting, type SettingKey } from '@/state/queries/settings';
 import { clientStatusColor } from '@/lib/client-status-color';
 import { useResolvedColorScheme } from '@/ui/theme/theme-provider';
@@ -59,7 +59,7 @@ export default function MarkerColorsScreen() {
       {
         onSuccess: () => { void haptics.success(); },
         onError: (err) => {
-          errorToast(t('settings.marker_colors.save_failed'), err instanceof Error ? err.message : undefined);
+          mutationErrorToast(t('settings.marker_colors.save_failed'), err);
         },
       }
     );

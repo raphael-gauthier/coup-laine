@@ -6,7 +6,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
 import { Slider } from '@/ui/primitives/slider';
 import { ScreenHeader } from '@/ui/components/screen-header';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import { useAllSettings, useSetSetting } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
 
@@ -27,7 +27,7 @@ export default function ProximityScreen() {
       {
         onSuccess: () => { void haptics.success(); },
         onError: (err) => {
-          errorToast(t('settings.proximity.save_failed'), err instanceof Error ? err.message : undefined);
+          mutationErrorToast(t('settings.proximity.save_failed'), err);
         },
       }
     );

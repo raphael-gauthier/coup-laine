@@ -5,7 +5,8 @@ import { ClientRepository } from '@/data/repositories/client-repository';
 import type { Tour, TourStatus } from '@/domain/models/tour';
 import type { TourStop } from '@/domain/models/tour-stop';
 import { newId } from '@/lib/id';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
+import i18n from '@/i18n';
 
 const tourRepo = new TourRepository(db);
 const clientRepo = new ClientRepository(db);
@@ -170,7 +171,7 @@ export function useCompleteWithBilan() {
       qc.removeQueries({ queryKey: toursKeys.byId(tourId) });
     },
     onError: (err) => {
-      errorToast('Clôture impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('tours.errors.complete_failed_title'), err);
     },
   });
 }
@@ -212,7 +213,7 @@ export function useCompleteTour() {
       qc.removeQueries({ queryKey: toursKeys.byId(tour.id) });
     },
     onError: (err) => {
-      errorToast('Clôture impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('tours.errors.complete_failed_title'), err);
     },
   });
 }

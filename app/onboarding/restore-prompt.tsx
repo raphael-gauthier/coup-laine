@@ -8,7 +8,7 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { useBackups, useRestoreBackup } from '@/state/queries/backups';
 import { haptics } from '@/ui/motion/haptics';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 
 export default function RestorePromptScreen() {
   const { t } = useTranslation();
@@ -26,7 +26,7 @@ export default function RestorePromptScreen() {
         router.replace('/(tabs)/clients' as never);
       },
       onError: (err) => {
-        errorToast(t('onboarding.restore_prompt.restore_failed'), err instanceof Error ? err.message : undefined);
+        mutationErrorToast(t('onboarding.restore_prompt.restore_failed'), err);
       },
     });
   };

@@ -10,7 +10,7 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
 import { ScreenHeader } from '@/ui/components/screen-header';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import { useAllSettings, useSetSetting } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
 
@@ -33,7 +33,7 @@ export default function SeasonScreen() {
       {
         onSuccess: () => { void haptics.success(); },
         onError: (err) => {
-          errorToast(t('settings.season.save_failed'), err instanceof Error ? err.message : undefined);
+          mutationErrorToast(t('settings.season.save_failed'), err);
         },
       }
     );

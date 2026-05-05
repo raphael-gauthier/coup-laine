@@ -4,7 +4,8 @@ import { SpeciesRepository } from '@/data/repositories/species-repository';
 import { AnimalCategoryRepository } from '@/data/repositories/animal-category-repository';
 import { ServiceRepository } from '@/data/repositories/service-repository';
 import { newId } from '@/lib/id';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
+import i18n from '@/i18n';
 import type { Species } from '@/domain/models/species';
 import type { AnimalCategory } from '@/domain/models/animal-category';
 import type { Service } from '@/domain/models/service';
@@ -40,7 +41,7 @@ export function useUpsertSpecies() {
       void qc.invalidateQueries({ queryKey: ['species'] });
     },
     onError: (err) => {
-      errorToast('Enregistrement impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('catalogs.errors.save_failed_title'), err);
     },
   });
 }
@@ -59,7 +60,7 @@ export function useDeleteSpecies() {
       void qc.invalidateQueries({ queryKey: ['species'] });
     },
     onError: (err) => {
-      errorToast('Suppression impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('catalogs.errors.delete_failed_title'), err);
     },
   });
 }
@@ -91,7 +92,7 @@ export function useUpsertAnimalCategory() {
       void qc.invalidateQueries({ queryKey: ['animalCategories'] });
     },
     onError: (err) => {
-      errorToast('Enregistrement impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('catalogs.errors.save_failed_title'), err);
     },
   });
 }
@@ -104,7 +105,7 @@ export function useDeleteAnimalCategory() {
       void qc.invalidateQueries({ queryKey: ['animalCategories'] });
     },
     onError: (err) => {
-      errorToast('Suppression impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('catalogs.errors.delete_failed_title'), err);
     },
   });
 }
@@ -141,7 +142,7 @@ export function useUpsertService() {
       void qc.invalidateQueries({ queryKey: ['services'] });
     },
     onError: (err) => {
-      errorToast('Enregistrement impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('catalogs.errors.save_failed_title'), err);
     },
   });
 }
@@ -154,7 +155,7 @@ export function useDeleteService() {
       void qc.invalidateQueries({ queryKey: ['services'] });
     },
     onError: (err) => {
-      errorToast('Suppression impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('catalogs.errors.delete_failed_title'), err);
     },
   });
 }

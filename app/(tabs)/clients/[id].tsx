@@ -18,7 +18,7 @@ import { LastInterventionsList } from '@/ui/components/last-interventions-list';
 import { useClient, useDeleteClient } from '@/state/queries/clients';
 import { formatPhone } from '@/lib/phone-formatter';
 import { haptics } from '@/ui/motion/haptics';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import { useOnContrastColor, useForegroundColor } from '@/ui/theme/colors';
 
 export default function ClientDetailScreen() {
@@ -48,7 +48,7 @@ export default function ClientDetailScreen() {
         router.back();
       },
       onError: (err) => {
-        errorToast(t('clients.delete_failed_title'), err instanceof Error ? err.message : undefined);
+        mutationErrorToast(t('clients.delete_failed_title'), err);
       },
     });
   };

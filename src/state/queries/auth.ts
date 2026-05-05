@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/infra/services/supabase';
-import { errorToast } from '@/ui/components/error-toast';
+import { errorToast, mutationErrorToast } from '@/ui/components/error-toast';
 import i18n from '@/i18n';
 import type { Session } from '@supabase/supabase-js';
 
@@ -69,7 +69,7 @@ export function useSendOtp() {
       return { kind: 'email' };
     },
     onError: (err) => {
-      errorToast('Envoi impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('auth.errors.send_failed_title'), err);
     },
   });
 }
@@ -89,7 +89,11 @@ export function useVerifyOtp() {
       return data.session;
     },
     onError: (err) => {
-      errorToast('Code invalide', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(
+        i18n.t('auth.errors.code_invalid_title'),
+        err,
+        i18n.t('auth.errors.code_invalid_message'),
+      );
     },
   });
 }
@@ -105,7 +109,7 @@ export function useSignOut() {
       qc.setQueryData(authKeys.session, null);
     },
     onError: (err) => {
-      errorToast('Déconnexion impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('auth.errors.signout_failed_title'), err);
     },
   });
 }

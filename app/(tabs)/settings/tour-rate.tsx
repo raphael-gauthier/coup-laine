@@ -7,7 +7,7 @@ import { Text } from '@/ui/primitives/text';
 import { Input } from '@/ui/primitives/input';
 import { Button } from '@/ui/primitives/button';
 import { ScreenHeader } from '@/ui/components/screen-header';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import { useAllSettings, useSetSetting } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
 
@@ -63,7 +63,7 @@ export default function TourRateScreen() {
       });
       void haptics.success();
     } catch (err) {
-      errorToast(t('settings.tour_rate.save_failed'), err instanceof Error ? err.message : undefined);
+      mutationErrorToast(t('settings.tour_rate.save_failed'), err);
     }
   };
 

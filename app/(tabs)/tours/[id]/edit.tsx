@@ -8,7 +8,7 @@ import { TourDraftEditor } from '@/ui/components/tour-draft-editor';
 import { ErrorState } from '@/ui/components/error-state';
 import { useTour, useUpsertTour } from '@/state/queries/tours';
 import { useBaseAddress } from '@/state/queries/settings';
-import { errorToast } from '@/ui/components/error-toast';
+import { errorToast, mutationErrorToast } from '@/ui/components/error-toast';
 import { haptics } from '@/ui/motion/haptics';
 import { useTourDraftStore } from '@/state/stores/tour-draft-store';
 
@@ -71,7 +71,7 @@ export default function EditTourScreen() {
         onUpdateStopServices={setStopServices}
         onSubmit={(input) => {
           if (!base) {
-            errorToast('Base manquante', 'Configure ton adresse de domicile.');
+            errorToast(t('tours.errors.base_missing_title'), t('tours.errors.base_missing_message'));
             return;
           }
           upsert.mutate(
@@ -96,7 +96,7 @@ export default function EditTourScreen() {
                 router.back();
               },
               onError: (err) => {
-                errorToast(t('tours.save_failed_title'), err instanceof Error ? err.message : undefined);
+                mutationErrorToast(t('tours.save_failed_title'), err);
               },
             }
           );

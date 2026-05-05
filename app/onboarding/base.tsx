@@ -9,7 +9,7 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { AddressAutocompleteInput } from '@/ui/components/address-autocomplete-input';
 import { useSetBaseAddress, type BaseAddress } from '@/state/queries/settings';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import { haptics } from '@/ui/motion/haptics';
 import type { BanResult } from '@/infra/services/ban-geocoding';
 
@@ -37,7 +37,7 @@ export default function OnboardingBaseScreen() {
         router.push('/onboarding/profession' as never);
       },
       onError: (err) => {
-        errorToast(t('common.error_generic'), err instanceof Error ? err.message : undefined);
+        mutationErrorToast(t('onboarding.base.save_failed_title'), err);
       },
     });
   };

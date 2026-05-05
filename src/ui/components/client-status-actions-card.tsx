@@ -10,7 +10,7 @@ import { useAllSettings } from '@/state/queries/settings';
 import { useDeleteManualHistoryEntry } from '@/state/queries/history';
 import type { Client } from '@/domain/models/client';
 import { haptics } from '@/ui/motion/haptics';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { clientsKeys } from '@/state/queries/clients';
 
@@ -39,7 +39,7 @@ export function ClientStatusActionsCard({ client }: Props) {
           void qc.invalidateQueries({ queryKey: ['clients', 'statusMap'] });
         },
         onError: (err) => {
-          errorToast(t('clients.mark_done_failed'), err instanceof Error ? err.message : undefined);
+          mutationErrorToast(t('clients.mark_done_failed'), err);
         },
       }
     );
@@ -62,7 +62,7 @@ export function ClientStatusActionsCard({ client }: Props) {
       void haptics.success();
       void qc.invalidateQueries({ queryKey: ['clients', 'statusMap'] });
     }).catch((err) => {
-      errorToast(t('clients.reset_status_failed'), err instanceof Error ? err.message : undefined);
+      mutationErrorToast(t('clients.reset_status_failed'), err);
     });
   };
 

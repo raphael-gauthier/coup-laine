@@ -11,7 +11,7 @@ import type { Client } from '@/domain/models/client';
 import { useUpsertClient } from '@/state/queries/clients';
 import { useAnimalCategories } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import { useForegroundColor } from '@/ui/theme/colors';
 
 // Simple species emoji mapping by category label keywords
@@ -100,7 +100,7 @@ export function ClientAnimalsSection({ client }: Props) {
                     setEditing(false);
                   },
                   onError: (err) => {
-                    errorToast(t('clients.save_failed_title'), err instanceof Error ? err.message : undefined);
+                    mutationErrorToast(t('clients.save_failed_title'), err);
                   },
                 }
               );

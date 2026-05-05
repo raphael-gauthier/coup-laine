@@ -9,7 +9,7 @@ import { Button } from '@/ui/primitives/button';
 import { useBaseAddress, useMarkOnboardingComplete } from '@/state/queries/settings';
 import { useSpecies } from '@/state/queries/species';
 import { haptics } from '@/ui/motion/haptics';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 
 export default function OnboardingRecapScreen() {
   const { t } = useTranslation();
@@ -25,7 +25,7 @@ export default function OnboardingRecapScreen() {
         router.replace('/(tabs)/clients' as never);
       },
       onError: (err) => {
-        errorToast(t('common.error_generic'), err instanceof Error ? err.message : undefined);
+        mutationErrorToast(t('onboarding.recap.launch_failed'), err);
       },
     });
   };

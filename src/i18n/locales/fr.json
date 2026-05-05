@@ -7,7 +7,10 @@
     "back": "Retour",
     "loading": "Chargement…",
     "error_generic": "Une erreur est survenue.",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "errors": {
+      "retry_hint": "Vérifie ta connexion et réessaie."
+    }
   },
   "hello": {
     "title": "Coupe-laine",
@@ -63,8 +66,8 @@
     "actions_title": "Actions",
     "mark_done": "Marquer comme fait cette saison",
     "reset_status": "Réinitialiser le statut",
-    "mark_done_failed": "Action impossible",
-    "reset_status_failed": "Action impossible",
+    "mark_done_failed": "Impossible de marquer comme fait",
+    "reset_status_failed": "Impossible de réinitialiser le statut",
     "last_interventions_title": "Dernières interventions",
     "no_prestations": "Aucune prestation",
     "view_full_history": "Voir l'historique complet",
@@ -80,7 +83,8 @@
     "call_phone": "Appeler",
     "send_sms": "Envoyer un SMS",
     "errors": {
-      "display_name_required": "Le nom est obligatoire."
+      "display_name_required": "Le nom est obligatoire.",
+      "toggle_waiting_failed_title": "Statut non mis à jour"
     }
   },
   "map": {
@@ -187,7 +191,10 @@
     "status_completed": "Terminée",
     "errors": {
       "no_stops": "Sélectionne au moins un client.",
-      "departure_invalid": "Heure de départ invalide (format HH:mm)."
+      "departure_invalid": "Heure de départ invalide (format HH:mm).",
+      "complete_failed_title": "Clôture impossible",
+      "base_missing_title": "Domicile non configuré",
+      "base_missing_message": "Configure ton adresse de domicile dans Réglages avant de planifier une tournée."
     },
     "pick_clients_title": "Choisir des clients",
     "pick_clients_continue": "Continuer ({{count}})",
@@ -277,7 +284,9 @@
     "errors": {
       "label_required": "Le nom est obligatoire.",
       "minutes_invalid": "Doit être un nombre positif.",
-      "price_invalid": "Doit être un nombre positif ou vide."
+      "price_invalid": "Doit être un nombre positif ou vide.",
+      "save_failed_title": "Enregistrement impossible",
+      "delete_failed_title": "Suppression impossible"
     }
   },
   "history": {
@@ -297,7 +306,9 @@
       "delete_confirm_message": "Cette action est définitive."
     },
     "errors": {
-      "date_required": "Date obligatoire."
+      "date_required": "Date obligatoire.",
+      "save_failed_title": "Enregistrement impossible",
+      "delete_failed_title": "Suppression impossible"
     }
   },
   "settings": {
@@ -328,7 +339,8 @@
       "address_label": "Adresse",
       "address_placeholder": "Saisir une adresse française…",
       "current_label": "Adresse enregistrée :",
-      "save_button": "Enregistrer l'adresse"
+      "save_button": "Enregistrer l'adresse",
+      "save_failed": "Adresse non enregistrée"
     },
     "proximity": {
       "row_label": "Rayon de proximité",
@@ -404,7 +416,12 @@
     "restore_confirm_message": "Toutes tes données locales (clients, tournées, historique) seront remplacées par celles de la sauvegarde. Cette action est irréversible.",
     "restore_typed_word": "RESTAURER",
     "delete_confirm_title": "Supprimer cette sauvegarde ?",
-    "delete_confirm_message": "Cette action est définitive."
+    "delete_confirm_message": "Cette action est définitive.",
+    "errors": {
+      "backup_failed_title": "Sauvegarde impossible",
+      "restore_failed_title": "Restauration impossible",
+      "delete_failed_title": "Suppression impossible"
+    }
   },
   "auth": {
     "login_title": "Connexion",
@@ -425,7 +442,11 @@
       "email_required": "Email obligatoire.",
       "code_invalid_length": "Le code doit contenir 6 chiffres.",
       "email_already_used_title": "Cet email a déjà un compte",
-      "email_already_used_message": "Un nouveau code t'a été envoyé pour te reconnecter à ton compte existant."
+      "email_already_used_message": "Un nouveau code t'a été envoyé pour te reconnecter à ton compte existant.",
+      "send_failed_title": "Code non envoyé",
+      "code_invalid_title": "Code invalide",
+      "code_invalid_message": "Le code est expiré ou incorrect. Demande-en un nouveau.",
+      "signout_failed_title": "Déconnexion impossible"
     },
     "signed_in_title": "Connecté",
     "signed_in_message": "Sauvegarde cloud activée pour {{email}}."
@@ -441,8 +462,7 @@
     "partial_title": "Recalcul partiel",
     "running": "Recalcul en cours…",
     "success": "Recalcul terminé",
-    "partial_success": "{{ok}} OK, {{failed}} échec",
-    "failed_title": "Recalcul impossible"
+    "partial_success": "{{ok}} OK, {{failed}} échec"
   },
   "onboarding": {
     "welcome": {
@@ -453,7 +473,8 @@
     "base": {
       "title": "Ton domicile",
       "message": "L'adresse depuis laquelle tu pars pour tes tournées. Tu peux la changer plus tard dans Réglages.",
-      "cta": "Continuer"
+      "cta": "Continuer",
+      "save_failed_title": "Adresse non enregistrée"
     },
     "profession": {
       "title": "Ton métier",
@@ -480,7 +501,8 @@
       "species_label": "Espèces",
       "species_count_one": "{{count}} espèce",
       "species_count_other": "{{count}} espèces",
-      "cta": "Lancer l'application"
+      "cta": "Lancer l'application",
+      "launch_failed": "Démarrage impossible"
     },
     "restore_prompt": {
       "title": "Données trouvées",

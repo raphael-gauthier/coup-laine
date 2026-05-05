@@ -12,7 +12,7 @@ import { Button } from '@/ui/primitives/button';
 import { ErrorState } from '@/ui/components/error-state';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { confirm } from '@/ui/components/confirm-dialog';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 import { TourKpiRow } from '@/ui/components/tour-kpi-row';
 import { ServiceAggregationSummary } from '@/ui/components/service-aggregation-summary';
 import { TourStopRow } from '@/ui/components/tour-stop-row';
@@ -59,7 +59,7 @@ export default function TourDetailScreen() {
         router.back();
       },
       onError: (err) => {
-        errorToast(t('tours.delete_failed_title'), err instanceof Error ? err.message : undefined);
+        mutationErrorToast(t('tours.delete_failed_title'), err);
       },
     });
   };

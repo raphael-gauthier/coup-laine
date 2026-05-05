@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createBackup, listBackups, restoreBackup, deleteBackup } from '@/infra/cloud/backups';
-import { errorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast } from '@/ui/components/error-toast';
+import i18n from '@/i18n';
 
 export const backupsKeys = {
   list: ['backups', 'list'] as const,
@@ -21,7 +22,7 @@ export function useCreateBackup() {
       void qc.invalidateQueries({ queryKey: backupsKeys.list });
     },
     onError: (err) => {
-      errorToast('Sauvegarde impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('cloud.errors.backup_failed_title'), err);
     },
   });
 }
@@ -34,7 +35,7 @@ export function useRestoreBackup() {
       void qc.invalidateQueries();
     },
     onError: (err) => {
-      errorToast('Restauration impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('cloud.errors.restore_failed_title'), err);
     },
   });
 }
@@ -47,7 +48,7 @@ export function useDeleteBackup() {
       void qc.invalidateQueries({ queryKey: backupsKeys.list });
     },
     onError: (err) => {
-      errorToast('Suppression impossible', err instanceof Error ? err.message : undefined);
+      mutationErrorToast(i18n.t('cloud.errors.delete_failed_title'), err);
     },
   });
 }
