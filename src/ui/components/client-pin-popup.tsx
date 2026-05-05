@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { X, ChevronRight, Compass, Route as RouteIcon, Phone, MessageSquare } from 'lucide-react-native';
+import { X, ChevronRight, Compass, Route as RouteIcon, Phone, MessageSquare, Clock } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -26,9 +26,11 @@ import { cn } from '@/lib/cn';
 interface Props {
   client: Client & { latitude: number; longitude: number };
   onClose: () => void;
+  arrivalTime?: string;
+  onNavigate?: () => void;
 }
 
-export function ClientPinPopup({ client, onClose }: Props) {
+export function ClientPinPopup({ client, onClose, arrivalTime, onNavigate }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const { data: statusMap } = useClientStatusMap();
@@ -99,14 +101,19 @@ export function ClientPinPopup({ client, onClose }: Props) {
     void Linking.openURL(url);
   };
 
+  const dismissForNavigation = () => {
+    if (onNavigate) onNavigate();
+    else onClose();
+  };
+
   const openPlan = () => {
     setPivotId(client.id);
-    onClose();
+    dismissForNavigation();
     router.push('/(tabs)/proximity');
   };
 
   const openDetail = () => {
-    onClose();
+    dismissForNavigation();
     router.push(`/(tabs)/clients/${client.id}`);
   };
 
@@ -159,6 +166,16 @@ export function ClientPinPopup({ client, onClose }: Props) {
             )}
             <ChevronRight size={18} color="#5C4E40" />
           </View>
+
+          {/* Estimated arrival time (tour context) */}
+          {arrivalTime ? (
+            <View className="flex-row items-center gap-1.5 mt-1">
+              <Clock size={14} color="#5C4E40" />
+              <Text className="text-sm font-medium" numberOfLines={1}>
+                {t('tours.pin_popup_arrival', { time: arrivalTime })}
+              </Text>
+            </View>
+          ) : null}
 
           {/* Address + distance */}
           {addressLine ? (

@@ -212,6 +212,13 @@
     "delete_failed_title": "Suppression impossible",
     "status_planned": "Planifiée",
     "status_completed": "Terminée",
+    "map": {
+      "expand_a11y": "Agrandir la carte",
+      "close_a11y": "Fermer la carte",
+      "fit_bounds_a11y": "Ajuster à l'itinéraire",
+      "recenter_base_a11y": "Recentrer sur le domicile"
+    },
+    "pin_popup_arrival": "Arrivée estimée à {{time}}",
     "errors": {
       "no_stops": "Sélectionne au moins un client.",
       "departure_invalid": "Heure de départ invalide (format HH:mm).",

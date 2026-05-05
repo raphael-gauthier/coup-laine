@@ -6,11 +6,12 @@ import { useResolvedColorScheme } from '@/ui/theme/theme-provider';
 interface Props {
   lat: number;
   lon: number;
+  onPress?: () => void;
 }
 
 const ICON_COLOR = { light: '#A1602F', dark: '#C68A58' };
 
-export function BasePin({ lat, lon }: Props) {
+export function BasePin({ lat, lon, onPress }: Props) {
   const scheme = useResolvedColorScheme();
 
   return (
@@ -18,6 +19,7 @@ export function BasePin({ lat, lon }: Props) {
       id="base-pin"
       lngLat={[lon, lat]}
       anchor="bottom"
+      onPress={onPress}
     >
       <View
         className="rounded-full p-2 bg-background dark:bg-background-dark"

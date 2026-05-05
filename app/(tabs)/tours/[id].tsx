@@ -1,4 +1,4 @@
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pencil, Trash2, CircleCheck } from 'lucide-react-native';
@@ -21,13 +21,20 @@ import { useTour, useDeleteTour } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
 import { useBaseAddress } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
-import { Map } from '@/ui/components/map';
-import { ClientPin } from '@/ui/components/client-pin';
-import { BasePin } from '@/ui/components/base-pin';
-import { TourRoutePolyline } from '@/ui/components/tour-route-polyline';
+import { TourMapPreview, type PreviewStop } from '@/ui/components/tour-map-preview';
 import { useOnContrastColor, useForegroundColor } from '@/ui/theme/colors';
 import { computeTourPaymentKpis } from '@/domain/use-cases/compute-tour-payment-kpis';
+import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
+import { haversineDistanceKm } from '@/lib/haversine-distance';
 import type { Payment } from '@/domain/models/payment';
+
+function minutesToTime(minutes: number, departureTime: string): string {
+  const [bh, bm] = departureTime.split(':').map(Number);
+  const total = (bh ?? 0) * 60 + (bm ?? 0) + minutes;
+  const h = Math.floor(total / 60) % 24;
+  const m = total % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
 function formatEur(cents: number): string {
   return `${(cents / 100).toFixed(0)} €`;
@@ -138,46 +145,52 @@ export default function TourDetailScreen() {
         <ServiceAggregationSummary tourId={tour.id} />
 
         {/* Map with route geometry if present */}
-        {base && stops.length > 0 ? (
-          <View style={styles.mapContainer}>
-            <Map
-              initialCenter={{ lat: base.lat, lon: base.lon }}
-              initialZoom={9}
-            >
-              <TourRoutePolyline
-                coords={[
-                  { id: 'BASE', lat: base.lat, lon: base.lon },
-                  ...stops
-                    .filter((s) => {
-                      const c = clientsById.get(s.clientId);
-                      return c?.latitude != null && c?.longitude != null;
-                    })
-                    .map((s) => {
-                      const c = clientsById.get(s.clientId)!;
-                      return { id: s.clientId, lat: c.latitude!, lon: c.longitude! };
-                    }),
-                  { id: 'BASE-end', lat: base.lat, lon: base.lon },
-                ]}
-              />
-              {stops
-                .filter((s) => {
-                  const c = clientsById.get(s.clientId);
-                  return c?.latitude != null && c?.longitude != null;
-                })
-                .map((s) => {
-                  const c = clientsById.get(s.clientId)!;
-                  return (
-                    <ClientPin
-                      key={s.id}
-                      client={{ ...c, latitude: c.latitude!, longitude: c.longitude! }}
-                      onPress={() => {}}
-                    />
-                  );
-                })}
-              <BasePin lat={base.lat} lon={base.lon} />
-            </Map>
-          </View>
-        ) : null}
+        {base && stops.length > 0 ? (() => {
+          const distanceKm = (from: string, to: string): number => {
+            const get = (key: string) =>
+              key === 'BASE'
+                ? { lat: base.lat, lon: base.lon }
+                : (() => {
+                    const c = clientsById.get(key);
+                    return c?.latitude != null && c?.longitude != null
+                      ? { lat: c.latitude, lon: c.longitude }
+                      : null;
+                  })();
+            const a = get(from);
+            const b = get(to);
+            if (!a || !b) return 0;
+            return haversineDistanceKm(a, b);
+          };
+          const arrivals = estimateTourArrivals({
+            departureTime: tour.departureTime,
+            stops: stops.map((s) => ({
+              clientId: s.clientId,
+              plannedServices: s.plannedServices,
+            })),
+            travelMinutesBetween: (from, to) => Math.round(distanceKm(from, to) * 1.5),
+          });
+          const previewStops: PreviewStop[] = stops
+            .map((s, i): PreviewStop | null => {
+              const c = clientsById.get(s.clientId);
+              if (c?.latitude == null || c?.longitude == null) return null;
+              return {
+                id: s.id,
+                client: { ...c, latitude: c.latitude, longitude: c.longitude },
+                arrivalTime:
+                  s.arrivalMinutes != null
+                    ? minutesToTime(s.arrivalMinutes, tour.departureTime)
+                    : arrivals[i]?.arrivalTime,
+              };
+            })
+            .filter((x): x is PreviewStop => x !== null);
+          if (previewStops.length === 0) return null;
+          return (
+            <TourMapPreview
+              base={{ lat: base.lat, lon: base.lon }}
+              stops={previewStops}
+            />
+          );
+        })() : null}
 
         {/* Stops list */}
         <View className="gap-2">
@@ -218,11 +231,3 @@ export default function TourDetailScreen() {
     </Surface>
   );
 }
-
-const styles = StyleSheet.create({
-  mapContainer: {
-    height: 200,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-});

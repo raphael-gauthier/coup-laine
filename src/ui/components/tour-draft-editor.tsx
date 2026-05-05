@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Platform, StyleSheet } from 'react-native';
+import { View, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GripVertical, Trash2, Plus, ChevronRight, AlertTriangle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -14,10 +14,7 @@ import { formatMinutes } from '@/lib/format-minutes';
 import { DraggableList } from '@/ui/components/draggable-list';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { confirm } from '@/ui/components/confirm-dialog';
-import { Map } from '@/ui/components/map';
-import { ClientPin } from '@/ui/components/client-pin';
-import { BasePin } from '@/ui/components/base-pin';
-import { TourRoutePolyline } from '@/ui/components/tour-route-polyline';
+import { TourMapPreview, type PreviewStop } from '@/ui/components/tour-map-preview';
 import { useClients } from '@/state/queries/clients';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
@@ -181,43 +178,24 @@ export function TourDraftEditor({
     });
   };
 
-  const routeCoords = useMemo(() => {
-    if (!base) return [];
-    const stopsWithCoords = initialStops
-      .map((s) => {
+  const previewStops = useMemo<PreviewStop[]>(() => {
+    return initialStops
+      .map((s, i): PreviewStop | null => {
         const c = clientsById.get(s.clientId);
         if (c?.latitude == null || c?.longitude == null) return null;
-        return { id: s.clientId, lat: c.latitude, lon: c.longitude };
+        return {
+          id: s.clientId,
+          client: { ...c, latitude: c.latitude, longitude: c.longitude },
+          arrivalTime: arrivals[i]?.arrivalTime,
+        };
       })
-      .filter((x): x is { id: string; lat: number; lon: number } => x !== null);
-    if (stopsWithCoords.length === 0) return [];
-    return [
-      { id: 'BASE', lat: base.lat, lon: base.lon },
-      ...stopsWithCoords,
-      { id: 'BASE-end', lat: base.lat, lon: base.lon },
-    ];
-  }, [base, initialStops, clientsById]);
+      .filter((x): x is PreviewStop => x !== null);
+  }, [initialStops, clientsById, arrivals]);
 
   const Header = (
     <View style={{ gap: 16, paddingTop: 16, paddingBottom: 8 }}>
-      {base && routeCoords.length > 0 ? (
-        <View style={styles.mapContainer}>
-          <Map initialCenter={{ lat: base.lat, lon: base.lon }} initialZoom={9}>
-            <TourRoutePolyline coords={routeCoords} />
-            {initialStops.map((s) => {
-              const c = clientsById.get(s.clientId);
-              if (c?.latitude == null || c?.longitude == null) return null;
-              return (
-                <ClientPin
-                  key={s.clientId}
-                  client={{ ...c, latitude: c.latitude, longitude: c.longitude }}
-                  onPress={() => {}}
-                />
-              );
-            })}
-            <BasePin lat={base.lat} lon={base.lon} />
-          </Map>
-        </View>
+      {base && previewStops.length > 0 ? (
+        <TourMapPreview base={{ lat: base.lat, lon: base.lon }} stops={previewStops} />
       ) : null}
 
       <View className="gap-2">
@@ -407,11 +385,3 @@ export function TourDraftEditor({
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  mapContainer: {
-    height: 200,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-});
