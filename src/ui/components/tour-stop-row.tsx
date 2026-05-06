@@ -52,9 +52,11 @@ export function TourStopRow({ stop, client, departureTime, onPress, showPaymentB
       {prestSummary ? (
         <Text variant="muted" className="text-xs">{prestSummary}</Text>
       ) : null}
-      <Text variant="muted" className="text-xs">
-        {t('common.travel_fee_inline', { amount: formatEur(stop.travelFeeCents ?? 0) })}
-      </Text>
+      {stop.travelFeeCents !== null ? (
+        <Text variant="muted" className="text-xs">
+          {t('common.travel_fee_inline', { amount: formatEur(stop.travelFeeCents) })}
+        </Text>
+      ) : null}
       {showPaymentBadge ? (
         <Text variant="muted" className="text-xs">
           {stop.payment.isPaid

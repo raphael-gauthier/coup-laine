@@ -11,6 +11,10 @@ import { haptics } from '@/ui/motion/haptics';
 import { cn } from '@/lib/cn';
 import type { Intervention } from '@/domain/models/intervention';
 
+function formatEur(cents: number): string {
+  return `${(cents / 100).toFixed(0)} €`;
+}
+
 interface Props {
   entry: Intervention;
   onPress: () => void;
@@ -59,13 +63,15 @@ export function HistoryRow({ entry, onPress }: Props) {
           {entry.notes ? (
             <Text variant="muted" className="text-sm mt-1" numberOfLines={2}>{entry.notes}</Text>
           ) : null}
-          <Text variant="muted" className="text-xs mt-1">
-            {t('common.travel_fee_inline', { amount: `${((entry.travelFeeCents ?? 0) / 100).toFixed(0)} €` })}
-          </Text>
+          {entry.travelFeeCents !== null ? (
+            <Text variant="muted" className="text-xs mt-1">
+              {t('common.travel_fee_inline', { amount: formatEur(entry.travelFeeCents) })}
+            </Text>
+          ) : null}
         </View>
         {totalCents > 0 ? (
           <Text className="text-sm font-semibold">
-            {(totalCents / 100).toFixed(0)} €
+            {formatEur(totalCents)}
           </Text>
         ) : null}
         {entry.source === 'manual' ? (
