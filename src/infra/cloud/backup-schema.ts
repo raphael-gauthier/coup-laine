@@ -68,7 +68,6 @@ const TourRow = z.object({
   totalMinutes: optInt,
   totalRevenueCents: optInt,
   totalAnimalsCount: optInt,
-  totalTravelFeeCents: optInt,
   routeGeometry: optStr,
   notes: optStr,
   completedAt: optStr,
@@ -85,7 +84,7 @@ const TourStopRow = z.object({
   arrivalMinutes: optInt,
   departureMinutes: optInt,
   estimatedMinutes: optInt,
-  feeShareCents: optInt,
+  travelFeeCents: optInt,
   plannedServices: z.string(),
   actualServices: optStr,
   notes: optStr,
@@ -98,6 +97,7 @@ const ManualHistoryEntryRow = z.object({
   date: z.string(),
   notes: optStr,
   services: z.string(),
+  travelFeeCents: optInt,
 });
 
 const DistanceMatrixRow = z.object({
