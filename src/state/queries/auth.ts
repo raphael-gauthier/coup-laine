@@ -5,6 +5,7 @@ import { errorToast, mutationErrorToast } from '@/ui/components/error-toast';
 import { wipeLocalDatabase } from '@/infra/db/wipe';
 import { bootstrapDatabase } from '@/infra/db/bootstrap';
 import i18n from '@/i18n';
+import { ensureAnonymousSession } from '@/infra/services/ensure-session';
 import type { Session } from '@supabase/supabase-js';
 
 export const authKeys = {
@@ -117,6 +118,35 @@ export function useSignOut() {
     },
     onError: (err) => {
       mutationErrorToast(i18n.t('auth.errors.signout_failed_title'), err);
+    },
+  });
+}
+
+export function useDeleteAccount() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.functions.invoke('delete-account', {
+        method: 'POST',
+      });
+      if (error) throw error;
+
+      // EF has invalidated the user server-side. Clean up locally.
+      await wipeLocalDatabase();
+      await bootstrapDatabase();
+
+      // Best-effort sign-out (the JWT is already dead).
+      await supabase.auth.signOut().catch(() => {});
+
+      // Re-create an anonymous session so ORS proxy keeps working.
+      await ensureAnonymousSession();
+    },
+    onSuccess: () => {
+      qc.clear();
+      qc.setQueryData(authKeys.session, null);
+    },
+    onError: (err) => {
+      mutationErrorToast(i18n.t('cloud.delete_account.error_toast'), err);
     },
   });
 }
