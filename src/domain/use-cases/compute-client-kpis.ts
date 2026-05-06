@@ -3,6 +3,7 @@ import type { TourStopService } from '@/domain/models/tour-stop-service';
 interface InterventionItem {
   date: string;
   services: TourStopService[];
+  travelFeeCents: number | null;
 }
 
 interface Input {
@@ -31,7 +32,10 @@ export function computeClientKpis({ tourStops, manualEntries, today }: Input): C
     };
   }
   const totalRevenueCents = all.reduce(
-    (sum, item) => sum + item.services.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0),
+    (sum, item) =>
+      sum +
+      item.services.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0) +
+      (item.travelFeeCents ?? 0),
     0
   );
   const sortedDates = all.map((i) => i.date).sort();
@@ -42,7 +46,6 @@ export function computeClientKpis({ tourStops, manualEntries, today }: Input): C
   const todayYear = parseInt(today.slice(0, 4), 10);
   const fullYears = (() => {
     const diff = todayYear - firstYear;
-    // If today's MM-DD < first's MM-DD, the anniversary hasn't passed yet
     if (today.slice(5) < firstDate.slice(5)) return Math.max(0, diff - 1);
     return diff;
   })();

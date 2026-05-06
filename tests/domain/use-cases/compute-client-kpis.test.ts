@@ -31,21 +31,22 @@ describe('computeClientKpis', () => {
     });
   });
 
-  it('counts and sums across both sources', () => {
+  it('counts and sums services + travel fees across both sources', () => {
     const r = computeClientKpis({
       tourStops: [
-        { date: '2026-03-10', services: [ps({ qty: 5, priceCentsSnapshot: 800 })] },
-        { date: '2025-04-05', services: [ps({ qty: 3, priceCentsSnapshot: 600 })] },
+        { date: '2026-03-10', services: [ps({ qty: 5, priceCentsSnapshot: 800 })], travelFeeCents: 1500 },
+        { date: '2025-04-05', services: [ps({ qty: 3, priceCentsSnapshot: 600 })], travelFeeCents: null },
       ],
       manualEntries: [
-        { date: '2024-06-15', services: [ps({ qty: 2, priceCentsSnapshot: 500 })] },
+        { date: '2024-06-15', services: [ps({ qty: 2, priceCentsSnapshot: 500 })], travelFeeCents: 700 },
       ],
       today: '2026-05-03',
     });
     expect(r.interventionsCount).toBe(3);
-    expect(r.totalRevenueCents).toBe(5 * 800 + 3 * 600 + 2 * 500); // 4000 + 1800 + 1000 = 6800
+    // services: 5*800 + 3*600 + 2*500 = 6800 ; fees: 1500 + 0 + 700 = 2200 ; total: 9000
+    expect(r.totalRevenueCents).toBe(9000);
     expect(r.firstInterventionDate).toBe('2024-06-15');
     expect(r.lastInterventionDate).toBe('2026-03-10');
-    expect(r.yearsSinceFirst).toBe(1); // 2026-2024 = 2 years calendar but 1 full year diff (less than 2 elapsed by date)
+    expect(r.yearsSinceFirst).toBe(1);
   });
 });
