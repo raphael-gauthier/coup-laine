@@ -83,7 +83,7 @@ export class ClientRepository {
     const rows = await this.db
       .select()
       .from(clients)
-      .where(eq(clients.needsDistanceRecompute, 1));
+      .where(and(eq(clients.needsDistanceRecompute, 1), isNull(clients.anonymizedAt)));
     return rows.map((r) => fromRow(r as ClientRow));
   }
 
