@@ -7,6 +7,7 @@ import type { TFunction } from 'i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
+import { Text } from '@/ui/primitives/text';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { RHFTextField } from '@/ui/components/rhf-text-field';
 import { mutationErrorToast } from '@/ui/components/error-toast';
@@ -75,6 +76,10 @@ export default function TourRateScreen() {
     <Surface className="flex-1">
       <ScreenHeader title={t('settings.tour_rate.screen_title')} />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
+
+        <Text variant="muted" className="text-sm">
+          {t('settings.tour_rate.explanation')}
+        </Text>
 
         <RHFTextField
           control={control}
