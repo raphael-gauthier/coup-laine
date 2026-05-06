@@ -22,6 +22,7 @@ const sampleClient = (id: string) => ({
   lastShearingDate: null,
   animalCounts: [],
   markerColorHex: null,
+  anonymizedAt: null,
   createdAt: NOW,
   updatedAt: NOW,
 });
@@ -150,7 +151,7 @@ async function seedClient(db: any, id = 'c1') {
     latitude: null, longitude: null,
     isWaiting: false, isBanned: false, needsDistanceRecompute: false,
     lastShearingDate: null, animalCounts: [], markerColorHex: null,
-    createdAt: 'x', updatedAt: 'x',
+    anonymizedAt: null, createdAt: 'x', updatedAt: 'x',
   });
 }
 

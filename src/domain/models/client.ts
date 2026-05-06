@@ -16,6 +16,7 @@ export const Client = z.object({
   lastShearingDate: z.string().nullable(),
   animalCounts: AnimalCountList,
   markerColorHex: z.string().nullable(),
+  anonymizedAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

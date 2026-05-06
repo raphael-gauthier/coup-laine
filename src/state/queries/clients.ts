@@ -84,6 +84,7 @@ export function useUpsertClient() {
         lastShearingDate: existing?.lastShearingDate ?? null,
         animalCounts: input.animalCounts,
         markerColorHex: existing?.markerColorHex ?? null,
+        anonymizedAt: existing?.anonymizedAt ?? null,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       };

@@ -19,6 +19,7 @@ function toRow(c: Client) {
     lastShearingDate: c.lastShearingDate,
     animalCounts: JSON.stringify(c.animalCounts),
     markerColorHex: c.markerColorHex,
+    anonymizedAt: c.anonymizedAt,
     createdAt: c.createdAt,
     updatedAt: c.updatedAt,
   };
@@ -39,6 +40,7 @@ interface ClientRow {
   lastShearingDate: string | null;
   animalCounts: string;
   markerColorHex: string | null;
+  anonymizedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,6 +53,7 @@ function fromRow(r: ClientRow): Client {
     isBanned: r.isBanned === 1,
     needsDistanceRecompute: r.needsDistanceRecompute === 1,
     animalCounts: JSON.parse(r.animalCounts),
+    anonymizedAt: r.anonymizedAt ?? null,
   });
 }
 
