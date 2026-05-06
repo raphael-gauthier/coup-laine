@@ -15,7 +15,6 @@ export const Tour = z.object({
   totalMinutes: z.number().int().nullable(),
   totalRevenueCents: z.number().int().nullable(),
   totalAnimalsCount: z.number().int().nullable(),
-  totalTravelFeeCents: z.number().int().nullable(),
   routeGeometry: z.string().nullable(),
   notes: z.string().nullable(),
   completedAt: z.string().nullable(),
