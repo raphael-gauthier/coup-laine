@@ -38,7 +38,6 @@ const sampleTour = {
   totalMinutes: null,
   totalRevenueCents: null,
   totalAnimalsCount: null,
-  totalTravelFeeCents: null,
   routeGeometry: null,
   notes: null,
   completedAt: null,
@@ -51,7 +50,7 @@ const sampleStops = [
     id: 's1', tourId: 't1', clientId: 'c1',
     clientNameSnapshot: null, ordering: 0,
     arrivalMinutes: null, departureMinutes: null, estimatedMinutes: null,
-    feeShareCents: null,
+    travelFeeCents: null,
     plannedServices: [], actualServices: null,
     notes: null, completedAt: null,
     payment: EMPTY_PAYMENT,
@@ -60,7 +59,7 @@ const sampleStops = [
     id: 's2', tourId: 't1', clientId: 'c2',
     clientNameSnapshot: null, ordering: 1,
     arrivalMinutes: null, departureMinutes: null, estimatedMinutes: null,
-    feeShareCents: null,
+    travelFeeCents: null,
     plannedServices: [], actualServices: null,
     notes: null, completedAt: null,
     payment: EMPTY_PAYMENT,
@@ -126,7 +125,7 @@ const baseTour: Omit<Tour, 'id'> = {
   baseLat: 0, baseLng: 0,
   status: 'planned',
   totalDistanceKm: null, totalDriveSeconds: null, totalMinutes: null,
-  totalRevenueCents: null, totalAnimalsCount: null, totalTravelFeeCents: null,
+  totalRevenueCents: null, totalAnimalsCount: null,
   routeGeometry: null, notes: null, completedAt: null,
   createdAt: 'x', updatedAt: 'x',
 };
@@ -135,7 +134,7 @@ function makeStop(overrides: Partial<TourStop> = {}): TourStop {
   return {
     id: 's1', tourId: 't1', clientId: 'c1', clientNameSnapshot: null,
     ordering: 0, arrivalMinutes: null, departureMinutes: null,
-    estimatedMinutes: null, feeShareCents: null,
+    estimatedMinutes: null, travelFeeCents: null,
     plannedServices: [], actualServices: null,
     notes: null, completedAt: null,
     payment: EMPTY_PAYMENT,
@@ -207,6 +206,7 @@ describe('TourRepository payment round-trip', () => {
       new Map([['s1', []]]),
       new Map([['s1', null]]),
       payments,
+      new Map<string, number>(),
       '2026-05-01T12:00:00Z'
     );
     const got = await repo.byId('t1');

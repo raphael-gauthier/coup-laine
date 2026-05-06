@@ -13,7 +13,7 @@ const svc = (qty: number, priceCents: number) => ({
 const stop = (overrides: Partial<TourStop> = {}): TourStop => ({
   id: 's', tourId: 't', clientId: 'c', clientNameSnapshot: null,
   ordering: 0, arrivalMinutes: null, departureMinutes: null,
-  estimatedMinutes: null, feeShareCents: null,
+  estimatedMinutes: null, travelFeeCents: null,
   plannedServices: [], actualServices: [],
   notes: null, completedAt: '2026-05-01T12:00:00Z',
   payment: EMPTY_PAYMENT, ...overrides,
@@ -21,7 +21,7 @@ const stop = (overrides: Partial<TourStop> = {}): TourStop => ({
 
 const entry = (overrides: Partial<ManualHistoryEntry> = {}): ManualHistoryEntry => ({
   id: 'e', clientId: 'c', date: '2026-04-15',
-  notes: null, services: [], payment: EMPTY_PAYMENT, ...overrides,
+  notes: null, services: [], travelFeeCents: null, payment: EMPTY_PAYMENT, ...overrides,
 });
 
 describe('computeClientOutstanding', () => {

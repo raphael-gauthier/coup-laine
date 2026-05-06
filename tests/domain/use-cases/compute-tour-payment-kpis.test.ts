@@ -12,7 +12,7 @@ const svc = (qty: number, priceCents: number) => ({
 const stop = (overrides: Partial<TourStop> = {}): TourStop => ({
   id: 's', tourId: 't', clientId: 'c', clientNameSnapshot: null,
   ordering: 0, arrivalMinutes: null, departureMinutes: null,
-  estimatedMinutes: null, feeShareCents: null,
+  estimatedMinutes: null, travelFeeCents: null,
   plannedServices: [], actualServices: [],
   notes: null, completedAt: '2026-05-01T12:00:00Z',
   payment: EMPTY_PAYMENT, ...overrides,
