@@ -1,7 +1,14 @@
 import { supabase } from '@/infra/services/supabase';
 import { db } from '@/infra/db/client';
 import * as schema from '@/infra/db/schema';
-import { BackupSnapshotSchema, BackupSnapshotV2Schema, migrateV2ToV3, type ValidatedBackupSnapshot } from './backup-schema';
+import {
+  BackupSnapshotV4Schema,
+  BackupSnapshotV3Schema,
+  BackupSnapshotV2Schema,
+  migrateV2ToV3,
+  migrateV3ToV4,
+  type ValidatedBackupSnapshot,
+} from './backup-schema';
 
 const BUCKET = 'backups';
 
@@ -61,7 +68,7 @@ async function wipeAndRestore(tables: BackupSnapshot['tables']): Promise<void> {
 export async function createBackup(): Promise<string> {
   const uid = await userId();
   const snapshot: BackupSnapshot = {
-    schemaVersion: 3,
+    schemaVersion: 4,
     createdAt: new Date().toISOString(),
     tables: await dumpAllTables(),
   };
@@ -113,20 +120,26 @@ export async function restoreBackup(name: string): Promise<void> {
   const text = await data.text();
   const json = JSON.parse(text);
 
-  const v3 = BackupSnapshotSchema.safeParse(json);
+  const v4 = BackupSnapshotV4Schema.safeParse(json);
+  if (v4.success) {
+    await wipeAndRestore(v4.data.tables);
+    return;
+  }
+
+  const v3 = BackupSnapshotV3Schema.safeParse(json);
   if (v3.success) {
-    await wipeAndRestore(v3.data.tables);
+    await wipeAndRestore(migrateV3ToV4(v3.data).tables);
     return;
   }
 
   const v2 = BackupSnapshotV2Schema.safeParse(json);
   if (v2.success) {
-    const migrated = migrateV2ToV3(v2.data);
-    await wipeAndRestore(migrated.tables);
+    const v3FromV2 = migrateV2ToV3(v2.data);
+    await wipeAndRestore(migrateV3ToV4(v3FromV2).tables);
     return;
   }
 
-  throw new Error(`Invalid backup format: ${v3.error.issues[0]?.message ?? 'unknown error'}`);
+  throw new Error(`Invalid backup format: ${v4.error.issues[0]?.message ?? 'unknown error'}`);
 }
 
 export async function deleteBackup(name: string): Promise<void> {
