@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, isNull } from 'drizzle-orm';
+import { and, eq, isNotNull, isNull, or } from 'drizzle-orm';
 import { clients, tourStops, manualHistoryEntries, distanceMatrix } from '@/infra/db/schema';
 import type { Db } from '@/infra/db/client';
 import { Client } from '@/domain/models/client';
@@ -121,13 +121,20 @@ export class ClientRepository {
   }
 
   async anonymize(id: string, now: string): Promise<void> {
+    // Operations are NOT wrapped in a transaction: drizzle's transaction() expects
+    // a sync callback with the better-sqlite3 driver, but our updates are awaited
+    // reads + writes. Crash-resilience instead relies on operation order: related
+    // rows are scrubbed first, then the client UPDATE stamps anonymizedAt last.
+    // On retry, the use case returns a no-op plan if anonymizedAt is already set,
+    // so re-running anonymize() is safe regardless of where a previous call crashed.
     const clientRows = await this.db.select().from(clients).where(eq(clients.id, id));
     if (!clientRows[0]) return;
     const client = fromRow(clientRows[0] as ClientRow);
 
     const stopRows = await this.db.select().from(tourStops).where(eq(tourStops.clientId, id));
     const entryRows = await this.db.select().from(manualHistoryEntries).where(eq(manualHistoryEntries.clientId, id));
-    const dmRows = await this.db.select().from(distanceMatrix);
+    const dmRows = await this.db.select().from(distanceMatrix)
+      .where(or(eq(distanceMatrix.fromId, id), eq(distanceMatrix.toId, id)));
 
     const stops = stopRows.map((r) => ({ id: r.id, clientId: r.clientId }));
     const entries = entryRows.map((r) => ({ id: r.id, clientId: r.clientId }));
