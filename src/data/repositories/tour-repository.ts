@@ -17,7 +17,6 @@ interface TourRow {
   totalMinutes: number | null;
   totalRevenueCents: number | null;
   totalAnimalsCount: number | null;
-  totalTravelFeeCents: number | null;
   routeGeometry: string | null;
   notes: string | null;
   completedAt: string | null;
@@ -34,7 +33,7 @@ interface TourStopRow {
   arrivalMinutes: number | null;
   departureMinutes: number | null;
   estimatedMinutes: number | null;
-  feeShareCents: number | null;
+  travelFeeCents: number | null;
   plannedServices: string;
   actualServices: string | null;
   notes: string | null;
@@ -59,7 +58,7 @@ function stopToRow(s: TourStop) {
     arrivalMinutes: s.arrivalMinutes,
     departureMinutes: s.departureMinutes,
     estimatedMinutes: s.estimatedMinutes,
-    feeShareCents: s.feeShareCents,
+    travelFeeCents: s.travelFeeCents,
     plannedServices: JSON.stringify(s.plannedServices),
     actualServices: s.actualServices === null ? null : JSON.stringify(s.actualServices),
     notes: s.notes,
@@ -81,7 +80,7 @@ function stopFromRow(r: TourStopRow): TourStop {
     arrivalMinutes: r.arrivalMinutes,
     departureMinutes: r.departureMinutes,
     estimatedMinutes: r.estimatedMinutes,
-    feeShareCents: r.feeShareCents,
+    travelFeeCents: r.travelFeeCents,
     plannedServices: JSON.parse(r.plannedServices),
     actualServices: r.actualServices === null ? null : JSON.parse(r.actualServices),
     notes: r.notes,
