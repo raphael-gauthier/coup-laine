@@ -38,7 +38,7 @@ import { useNextPlannedTourForClient, useTours } from '@/state/queries/tours';
 import { useManualHistoryByClient } from '@/state/queries/history';
 import { useProximityStore } from '@/state/stores/proximity-store';
 import { haptics } from '@/ui/motion/haptics';
-import { mutationErrorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast, successToast } from '@/ui/components/error-toast';
 import { useDangerColor, useForegroundColor, useMutedForegroundColor, useWaitingColor } from '@/ui/theme/colors';
 import { computeClientOutstanding } from '@/domain/use-cases/compute-client-outstanding';
 import type { TourStop } from '@/domain/models/tour-stop';
@@ -98,6 +98,7 @@ export default function ClientDetailScreen() {
   if (client.anonymizedAt) {
     // Defensive : a deep link landed on an anonymized client. Redirect to the list.
     setTimeout(() => {
+      successToast(t('clients.anonymized_redirect_toast'));
       router.back();
     }, 0);
     return <Surface className="flex-1" />;

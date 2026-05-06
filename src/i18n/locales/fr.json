@@ -76,6 +76,7 @@
     "delete_cta_confirm": "Supprimer définitivement",
     "saved_toast": "Client enregistré",
     "deleted_toast": "Client supprimé",
+    "anonymized_redirect_toast": "Ce client a été supprimé.",
     "save_failed_title": "Enregistrement impossible",
     "delete_failed_title": "Suppression impossible",
     "kpi_interventions": "Interventions",
