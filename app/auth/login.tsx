@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { TFunction } from 'i18next';
 import { ArrowLeft, Mail } from 'lucide-react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { LEGAL_URLS } from '@/infra/config/legal-urls';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
@@ -121,6 +123,9 @@ export default function LoginScreen() {
 
   const codeStep = otpKind != null;
 
+  const openTerms = () => WebBrowser.openBrowserAsync(LEGAL_URLS.terms);
+  const openPrivacy = () => WebBrowser.openBrowserAsync(LEGAL_URLS.privacyPolicy);
+
   return (
     <Surface className="flex-1">
       <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 24, gap: 24 }}>
@@ -192,6 +197,19 @@ export default function LoginScreen() {
             <Button onPress={emailForm.handleSubmit(emailValid, emailInvalid)} loading={sendOtp.isPending}>
               {t('auth.send_code_cta')}
             </Button>
+            <Surface variant="muted" className="rounded-2xl px-4 py-3 mt-2">
+              <Text variant="muted" className="text-xs text-center">
+                {t('auth.terms_notice')}
+              </Text>
+              <View className="flex-row justify-center gap-4 mt-2">
+                <PressScale onPress={openTerms} accessibilityLabel={t('auth.terms_link')}>
+                  <Text className="text-xs underline">{t('auth.terms_link')}</Text>
+                </PressScale>
+                <PressScale onPress={openPrivacy} accessibilityLabel={t('auth.privacy_link')}>
+                  <Text className="text-xs underline">{t('auth.privacy_link')}</Text>
+                </PressScale>
+              </View>
+            </Surface>
           </>
         )}
       </ScrollView>
