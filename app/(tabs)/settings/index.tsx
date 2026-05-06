@@ -81,6 +81,13 @@ export default function SettingsScreen() {
           hint={session && !session.user.is_anonymous ? t('cloud.row_hint_logged_in') : t('cloud.row_hint_logged_out')}
           onPress={() => router.push('/(tabs)/settings/cloud' as never)}
         />
+
+        <SectionHeader title={t('settings.section_legal')} />
+        <SettingsRow
+          label={t('settings.legal.row_label')}
+          hint={t('settings.legal.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/legal' as never)}
+        />
       </ScrollView>
     </Surface>
   );
