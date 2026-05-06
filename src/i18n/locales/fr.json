@@ -467,6 +467,16 @@
       "apply_custom": "Appliquer",
       "reset": "Réinitialiser (thème par défaut)",
       "save_failed": "Enregistrement impossible"
+    },
+    "section_legal": "Légal",
+    "legal": {
+      "row_label": "Légal & confidentialité",
+      "row_hint": "Mentions légales, politique de confidentialité, CGU",
+      "screen_title": "Légal & confidentialité",
+      "legal_notices": "Mentions légales",
+      "privacy_policy": "Politique de confidentialité",
+      "terms": "CGU et accord de sous-traitance",
+      "app_version": "Version de l'app : {{version}}"
     }
   },
   "cloud": {
@@ -530,7 +540,10 @@
       "signout_failed_title": "Déconnexion impossible"
     },
     "signed_in_title": "Connecté",
-    "signed_in_message": "Sauvegarde cloud activée pour {{email}}."
+    "signed_in_message": "Sauvegarde cloud activée pour {{email}}.",
+    "terms_notice": "En vous connectant, vous acceptez les CGU et l'accord de sous-traitance. Vos données métier seront sauvegardées sur Supabase (eu-west-3, Paris).",
+    "terms_link": "Lire les CGU",
+    "privacy_link": "Politique de confidentialité"
   },
   "recompute": {
     "banner_title_one": "{{count}} client à recalculer",
@@ -549,7 +562,9 @@
     "welcome": {
       "title": "Bienvenue sur Coupe-laine",
       "message": "Ton compagnon quotidien pour gérer tes clients et planifier tes tournées. Quelques infos pour commencer.",
-      "cta": "Commencer"
+      "cta": "Commencer",
+      "privacy_intro": "Coup'Laine fonctionne en local sur votre appareil. L'autocomplétion d'adresse (BAN) et les calculs d'itinéraire (OpenRouteService) nécessitent une connexion internet. La sauvegarde cloud est optionnelle.",
+      "privacy_link": "En savoir plus"
     },
     "base": {
       "title": "Ton domicile",
