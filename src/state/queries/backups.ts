@@ -86,7 +86,7 @@ export function useExportData() {
       }
       await Sharing.shareAsync(file.uri, {
         mimeType: 'application/json',
-        dialogTitle: 'Exporter mes données',
+        dialogTitle: i18n.t('cloud.export_data.dialog_title'),
         UTI: 'public.json',
       });
     },
