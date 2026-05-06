@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { CloudUpload, RefreshCw, Trash2 } from 'lucide-react-native';
+import { CloudUpload, RefreshCw, Trash2, Download, AlertTriangle } from 'lucide-react-native';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
@@ -13,9 +13,10 @@ import { ListSkeleton } from '@/ui/primitives/skeleton';
 import { ErrorState } from '@/ui/components/error-state';
 import { EmptyState } from '@/ui/components/empty-state';
 import { ScreenHeader } from '@/ui/components/screen-header';
+import { SectionHeader } from '@/ui/primitives/section-header';
 import { confirm, ConfirmTypedDialog } from '@/ui/components/confirm-dialog';
-import { useSession, useSignOut } from '@/state/queries/auth';
-import { useBackups, useCreateBackup, useRestoreBackup, useDeleteBackup } from '@/state/queries/backups';
+import { useSession, useSignOut, useDeleteAccount } from '@/state/queries/auth';
+import { useBackups, useCreateBackup, useRestoreBackup, useDeleteBackup, useExportData } from '@/state/queries/backups';
 import { successToast } from '@/ui/components/error-toast';
 import { useOnContrastColor, useForegroundColor } from '@/ui/theme/colors';
 
@@ -29,8 +30,11 @@ export default function CloudScreen() {
   const create = useCreateBackup();
   const restore = useRestoreBackup();
   const del = useDeleteBackup();
+  const exportData = useExportData();
+  const deleteAccount = useDeleteAccount();
   const { data: backups = [], isError, isLoading, refetch } = useBackups();
   const [restoreDialogName, setRestoreDialogName] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   if (!session || session.user.is_anonymous) {
     return (
@@ -83,6 +87,24 @@ export default function CloudScreen() {
     });
   };
 
+  const onExport = () => {
+    exportData.mutate(undefined, {
+      onSuccess: () => {
+        successToast(t('cloud.export_data.cta'));
+      },
+    });
+  };
+
+  const handleDeleteConfirmed = () => {
+    setDeleteDialogOpen(false);
+    deleteAccount.mutate(undefined, {
+      onSuccess: () => {
+        successToast(t('cloud.delete_account.success_toast'));
+        router.replace('/onboarding/welcome' as never);
+      },
+    });
+  };
+
   const lastBackupIso = backups[0]?.createdAt;
   const lastBackupRelative = lastBackupIso
     ? formatDistanceToNow(parseISO(lastBackupIso), { locale: fr, addSuffix: true })
@@ -100,6 +122,16 @@ export default function CloudScreen() {
         cancelLabel={t('common.cancel')}
         onConfirm={handleRestoreConfirmed}
         onCancel={() => setRestoreDialogName(null)}
+      />
+      <ConfirmTypedDialog
+        visible={deleteDialogOpen}
+        title={t('cloud.delete_account.confirm_title')}
+        message={t('cloud.delete_account.confirm_message')}
+        typedConfirmation={t('cloud.delete_account.typed_word')}
+        confirmLabel={t('cloud.delete_account.cta_confirm')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setDeleteDialogOpen(false)}
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32, gap: 12 }}>
         <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-1">
@@ -169,6 +201,17 @@ export default function CloudScreen() {
 
         <Button
           variant="secondary"
+          onPress={onExport}
+          loading={exportData.isPending}
+          accessibilityLabel={t('cloud.export_data.cta')}
+          className="mt-4"
+        >
+          <Download size={16} color={fg} />
+          <Text className="font-semibold">{t('cloud.export_data.cta')}</Text>
+        </Button>
+
+        <Button
+          variant="secondary"
           onPress={async () => {
             const ok = await confirm({
               title: t('cloud.sign_out_confirm_title'),
@@ -180,10 +223,25 @@ export default function CloudScreen() {
             if (ok) signOut.mutate();
           }}
           loading={signOut.isPending}
-          className="mt-4"
+          className="mt-2"
         >
           {t('cloud.sign_out_cta')}
         </Button>
+
+        <View className="mt-8">
+          <SectionHeader title={t('cloud.danger_section_title')} />
+          <Button
+            variant="danger"
+            onPress={() => setDeleteDialogOpen(true)}
+            loading={deleteAccount.isPending}
+            accessibilityLabel={t('cloud.delete_account.cta')}
+          >
+            <AlertTriangle size={16} color={onContrast} />
+            <Text variant="onPrimary" className="font-semibold">
+              {t('cloud.delete_account.cta')}
+            </Text>
+          </Button>
+        </View>
       </ScrollView>
     </Surface>
   );
