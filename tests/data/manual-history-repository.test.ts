@@ -32,8 +32,8 @@ describe('ManualHistoryRepository', () => {
     const cRepo = new ClientRepository(db);
     const repo = new ManualHistoryRepository(db);
     await cRepo.upsert(sampleClient);
-    await repo.upsert({ id: 'h1', clientId: 'c1', date: '2025-06-01', notes: null, services: [], payment: EMPTY_PAYMENT });
-    await repo.upsert({ id: 'h2', clientId: 'c1', date: '2026-01-15', notes: null, services: [], payment: EMPTY_PAYMENT });
+    await repo.upsert({ id: 'h1', clientId: 'c1', date: '2025-06-01', notes: null, services: [], travelFeeCents: null, payment: EMPTY_PAYMENT });
+    await repo.upsert({ id: 'h2', clientId: 'c1', date: '2026-01-15', notes: null, services: [], travelFeeCents: null, payment: EMPTY_PAYMENT });
     const entries = await repo.listByClient('c1');
     expect(entries.map((e) => e.id)).toEqual(['h2', 'h1']);
     close();
@@ -47,7 +47,7 @@ describe('ManualHistoryRepository payment round-trip', () => {
     const repo = new ManualHistoryRepository(db);
     await repo.upsert({
       id: 'e1', clientId: 'c1', date: '2026-04-15',
-      notes: null, services: [],
+      notes: null, services: [], travelFeeCents: null,
       payment: {
         methodId: 'pm-check', methodLabelSnapshot: 'Chèque',
         isPaid: true, paidAt: '2026-04-15T10:00:00Z',
@@ -66,7 +66,7 @@ describe('ManualHistoryRepository payment round-trip', () => {
     const repo = new ManualHistoryRepository(db);
     await repo.upsert({
       id: 'e1', clientId: 'c1', date: '2026-04-15',
-      notes: 'note', services: [], payment: EMPTY_PAYMENT,
+      notes: 'note', services: [], travelFeeCents: null, payment: EMPTY_PAYMENT,
     });
     await repo.markEntryPayment('e1', {
       methodId: 'pm-cash', methodLabelSnapshot: 'Espèces',
@@ -77,6 +77,36 @@ describe('ManualHistoryRepository payment round-trip', () => {
     expect(updated.notes).toBe('note');
     expect(updated.payment.isPaid).toBe(true);
     expect(updated.payment.methodId).toBe('pm-cash');
+    close();
+  });
+});
+
+describe('ManualHistoryRepository travel fee round-trip', () => {
+  it('persists and reads back travelFeeCents', async () => {
+    const { db, close } = createTestDb();
+    await seedClient(db);
+    const repo = new ManualHistoryRepository(db);
+    await repo.upsert({
+      id: 'e1', clientId: 'c1', date: '2026-04-15',
+      notes: null, services: [], travelFeeCents: 1500,
+      payment: EMPTY_PAYMENT,
+    });
+    const all = await repo.listByClient('c1');
+    expect(all[0]!.travelFeeCents).toBe(1500);
+    close();
+  });
+
+  it('persists null travelFeeCents', async () => {
+    const { db, close } = createTestDb();
+    await seedClient(db);
+    const repo = new ManualHistoryRepository(db);
+    await repo.upsert({
+      id: 'e2', clientId: 'c1', date: '2026-04-16',
+      notes: null, services: [], travelFeeCents: null,
+      payment: EMPTY_PAYMENT,
+    });
+    const all = await repo.listByClient('c1');
+    expect(all[0]!.travelFeeCents).toBeNull();
     close();
   });
 });
