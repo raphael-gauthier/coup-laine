@@ -17,6 +17,7 @@
     "open": "Ouvrir",
     "select": "Sélectionner",
     "search": "Rechercher",
+    "travel_fee_inline": "Frais de déplacement : {{amount}}",
     "errors": {
       "retry_hint": "Vérifie ta connexion et réessaie."
     }

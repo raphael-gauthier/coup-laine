@@ -59,6 +59,9 @@ export function HistoryRow({ entry, onPress }: Props) {
           {entry.notes ? (
             <Text variant="muted" className="text-sm mt-1" numberOfLines={2}>{entry.notes}</Text>
           ) : null}
+          <Text variant="muted" className="text-xs mt-1">
+            {t('common.travel_fee_inline', { amount: `${((entry.travelFeeCents ?? 0) / 100).toFixed(0)} €` })}
+          </Text>
         </View>
         {totalCents > 0 ? (
           <Text className="text-sm font-semibold">
