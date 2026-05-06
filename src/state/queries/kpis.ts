@@ -34,13 +34,21 @@ export function useClientKpis(clientId: string | undefined) {
       const tourStops = completed.flatMap(({ tour, stops }) =>
         stops
           .filter((s) => s.clientId === clientId)
-          .map((s) => ({ date: tour.scheduledDate, services: s.actualServices ?? s.plannedServices }))
+          .map((s) => ({
+            date: tour.scheduledDate,
+            services: s.actualServices ?? s.plannedServices,
+            travelFeeCents: s.travelFeeCents,
+          }))
       );
       const manualEntries = await manualRepo.listByClient(clientId);
       const today = new Date().toISOString().slice(0, 10);
       return computeClientKpis({
         tourStops,
-        manualEntries: manualEntries.map((e) => ({ date: e.date, services: e.services })),
+        manualEntries: manualEntries.map((e) => ({
+          date: e.date,
+          services: e.services,
+          travelFeeCents: e.travelFeeCents,
+        })),
         today,
       });
     },
@@ -65,10 +73,10 @@ export function useTourKpis(tourId: string | undefined) {
         stops: stops.map((s) => ({
           clientId: s.clientId,
           plannedServices: s.actualServices ?? s.plannedServices,
+          travelFeeCents: s.travelFeeCents,
         })),
         totalDistanceKm: tour.totalDistanceKm ?? 0,
         totalDriveSeconds: tour.totalDriveSeconds ?? 0,
-        totalTravelFeeCents: tour.totalTravelFeeCents ?? 0,
         animalCountsByClient,
       });
     },
