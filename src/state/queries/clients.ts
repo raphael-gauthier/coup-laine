@@ -109,13 +109,18 @@ export function useUpsertClient() {
   });
 }
 
-export function useDeleteClient() {
+export function useAnonymizeClient() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => repo.delete(id),
+    mutationFn: async (id: string) => {
+      const now = new Date().toISOString();
+      await repo.anonymize(id, now);
+    },
     onSuccess: (_, id) => {
       void qc.invalidateQueries({ queryKey: clientsKeys.all });
       void qc.invalidateQueries({ queryKey: ['kpis'] });
+      void qc.invalidateQueries({ queryKey: ['clients', 'statusMap'] });
+      void qc.invalidateQueries({ queryKey: ['clients', 'outstanding'] });
       qc.removeQueries({ queryKey: clientsKeys.byId(id) });
     },
   });

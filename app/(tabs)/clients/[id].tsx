@@ -31,7 +31,7 @@ import { PressScale } from '@/ui/motion/press-scale';
 import {
   useClient,
   useClientStatusMap,
-  useDeleteClient,
+  useAnonymizeClient,
   useToggleBanned,
 } from '@/state/queries/clients';
 import { useNextPlannedTourForClient, useTours } from '@/state/queries/tours';
@@ -56,7 +56,7 @@ export default function ClientDetailScreen() {
   const { data: plannedTour } = useNextPlannedTourForClient(id);
   const { data: statusMap } = useClientStatusMap();
   const setPivotId = useProximityStore((s) => s.setPivotId);
-  const deleteMutation = useDeleteClient();
+  const anonymizeMutation = useAnonymizeClient();
   const toggleBanned = useToggleBanned();
   const [menuOpen, setMenuOpen] = useState(false);
   const { data: tours = [] } = useTours('completed');
@@ -106,7 +106,7 @@ export default function ClientDetailScreen() {
       destructive: true,
     });
     if (!ok) return;
-    deleteMutation.mutate(client.id, {
+    anonymizeMutation.mutate(client.id, {
       onSuccess: () => {
         void haptics.success();
         router.back();
