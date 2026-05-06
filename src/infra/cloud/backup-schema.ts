@@ -228,7 +228,7 @@ export const BackupSnapshotV2Schema = z.object({
   schemaVersion: z.literal(2),
   createdAt: z.string(),
   tables: z.object({
-    clients: z.array(ClientRow),
+    clients: z.array(ClientRowV3),
     species: z.array(SpeciesRow),
     animal_categories: z.array(AnimalCategoryRow),
     services: z.array(ServiceRow),
