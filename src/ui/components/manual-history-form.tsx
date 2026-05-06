@@ -16,6 +16,7 @@ import { FormField } from '@/ui/components/form-field';
 import { RHFTextField } from '@/ui/components/rhf-text-field';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { PaymentEditor } from '@/ui/components/payment-editor';
+import { Input } from '@/ui/primitives/input';
 import { haptics } from '@/ui/motion/haptics';
 import { useClient } from '@/state/queries/clients';
 import { EMPTY_PAYMENT } from '@/domain/models/payment';
@@ -59,6 +60,7 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
     ...EMPTY_PAYMENT,
     isPaid: true,
   });
+  const [travelFeeCents, setTravelFeeCents] = useState<number>(initial?.travelFeeCents ?? 0);
   const [methodError, setMethodError] = useState<string | null>(null);
 
   const { data: client } = useClient(clientId);
@@ -83,6 +85,7 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
       date: format(values.date, 'yyyy-MM-dd'),
       notes: values.notes.trim() || null,
       services,
+      travelFeeCents: travelFeeCents > 0 ? travelFeeCents : null,
       payment,
     });
   };
@@ -143,13 +146,44 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
             ))
           )}
           <View className="flex-row items-center justify-between pt-2 border-t border-border dark:border-border-dark">
-            <Text className="text-sm font-semibold">{t('history.manual.total')}</Text>
-            <Text className="text-base font-semibold">{(totalCents / 100).toFixed(2)} €</Text>
+            <Text className="text-sm font-medium">{t('history.manual.services_subtotal')}</Text>
+            <Text className="text-sm font-medium">{(totalCents / 100).toFixed(2)} €</Text>
+          </View>
+          {travelFeeCents > 0 ? (
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm font-medium">{t('history.manual.travel_fee_subtotal')}</Text>
+              <Text className="text-sm font-medium">{(travelFeeCents / 100).toFixed(2)} €</Text>
+            </View>
+          ) : null}
+          <View className="flex-row items-center justify-between pt-2 border-t border-border dark:border-border-dark">
+            <Text className="text-sm font-semibold">{t('history.manual.grand_total')}</Text>
+            <Text className="text-base font-semibold">{((totalCents + travelFeeCents) / 100).toFixed(2)} €</Text>
           </View>
           <Button variant="secondary" onPress={() => setPickerOpen(true)}>
             {services.length === 0 ? t('history.manual.add_services') : t('history.manual.edit_services')}
           </Button>
         </Surface>
+      </FormField>
+
+      <FormField
+        label={t('history.manual.travel_fee_label')}
+        hint={t('history.manual.travel_fee_hint')}
+      >
+        <Input
+          value={travelFeeCents === 0 ? '' : (travelFeeCents / 100).toString()}
+          onChangeText={(v) => {
+            if (v.trim() === '') {
+              setTravelFeeCents(0);
+              return;
+            }
+            const n = parseFloat(v.replace(',', '.'));
+            if (Number.isNaN(n) || n < 0) return;
+            setTravelFeeCents(Math.round(n * 100));
+          }}
+          keyboardType="decimal-pad"
+          placeholder="0"
+          accessibilityLabel={t('history.manual.travel_fee_label')}
+        />
       </FormField>
 
       <PaymentEditor
