@@ -41,7 +41,6 @@ export interface UpsertTourStopInput {
   plannedServices: TourStop['plannedServices'];
   arrivalMinutes: number | null;
   estimatedMinutes: number | null;
-  feeShareCents: number | null;
   notes: string | null;
 }
 
@@ -55,7 +54,6 @@ export interface UpsertTourInput {
   stops: UpsertTourStopInput[];
   totalDistanceKm: number | null;
   totalMinutes: number | null;
-  totalTravelFeeCents: number | null;
 }
 
 export function useUpsertTour() {
@@ -77,7 +75,6 @@ export function useUpsertTour() {
         totalMinutes: input.totalMinutes,
         totalRevenueCents: existing?.tour.totalRevenueCents ?? null,
         totalAnimalsCount: existing?.tour.totalAnimalsCount ?? null,
-        totalTravelFeeCents: input.totalTravelFeeCents ?? existing?.tour.totalTravelFeeCents ?? null,
         routeGeometry: existing?.tour.routeGeometry ?? null,
         notes: existing?.tour.notes ?? null,
         completedAt: existing?.tour.completedAt ?? null,
@@ -93,7 +90,7 @@ export function useUpsertTour() {
         arrivalMinutes: s.arrivalMinutes,
         departureMinutes: null,
         estimatedMinutes: s.estimatedMinutes,
-        feeShareCents: s.feeShareCents,
+        travelFeeCents: null,
         plannedServices: s.plannedServices,
         actualServices: null,
         notes: s.notes,
@@ -148,15 +145,17 @@ export function useCompleteWithBilan() {
       perStopActuals,
       perStopNotes,
       perStopPayments,
+      perStopTravelFees,
       completedAt,
     }: {
       tourId: string;
       perStopActuals: Map<string, TourStop['plannedServices']>;
       perStopNotes: Map<string, string | null>;
       perStopPayments: Map<string, Payment>;
+      perStopTravelFees: Map<string, number>;
       completedAt: string;
     }) => {
-      await tourRepo.completeWithBilan(tourId, perStopActuals, perStopNotes, perStopPayments, completedAt);
+      await tourRepo.completeWithBilan(tourId, perStopActuals, perStopNotes, perStopPayments, perStopTravelFees, completedAt);
 
       // Update client lastShearingDate + unmark waiting
       const result = await tourRepo.byId(tourId);

@@ -180,6 +180,7 @@ export class TourRepository {
     perStopActuals: Map<string, import('@/domain/models/tour-stop-service').TourStopService[]>,
     perStopNotes: Map<string, string | null>,
     perStopPayments: Map<string, Payment>,
+    perStopTravelFees: Map<string, number>,
     completedAt: string
   ): Promise<void> {
     const result = await this.byId(tourId);
@@ -191,6 +192,7 @@ export class TourRepository {
       actualServices: perStopActuals.get(s.id) ?? s.plannedServices,
       notes: perStopNotes.has(s.id) ? perStopNotes.get(s.id) ?? null : s.notes,
       payment: perStopPayments.get(s.id) ?? s.payment,
+      travelFeeCents: perStopTravelFees.has(s.id) ? perStopTravelFees.get(s.id)! : s.travelFeeCents,
       completedAt,
     }));
 
