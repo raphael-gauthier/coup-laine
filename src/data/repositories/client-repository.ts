@@ -135,6 +135,21 @@ export class ClientRepository {
 
     const plan = planAnonymization(client, stops, entries, dm, now);
 
+    for (const upd of plan.tourStopUpdates) {
+      await this.db.update(tourStops)
+        .set({ clientNameSnapshot: upd.clientNameSnapshot, notes: upd.notes })
+        .where(eq(tourStops.id, upd.id));
+    }
+    for (const upd of plan.manualEntryUpdates) {
+      await this.db.update(manualHistoryEntries)
+        .set({ notes: upd.notes })
+        .where(eq(manualHistoryEntries.id, upd.id));
+    }
+    for (const del of plan.distanceMatrixDeletes) {
+      await this.db.delete(distanceMatrix)
+        .where(and(eq(distanceMatrix.fromId, del.fromId), eq(distanceMatrix.toId, del.toId)));
+    }
+
     if (Object.keys(plan.client.updates).length > 0) {
       const u = plan.client.updates;
       const updates: Record<string, unknown> = {};
@@ -152,21 +167,6 @@ export class ClientRepository {
       if (u.anonymizedAt !== undefined) updates.anonymizedAt = u.anonymizedAt;
       updates.updatedAt = now;
       await this.db.update(clients).set(updates).where(eq(clients.id, id));
-    }
-
-    for (const upd of plan.tourStopUpdates) {
-      await this.db.update(tourStops)
-        .set({ clientNameSnapshot: upd.clientNameSnapshot, notes: upd.notes })
-        .where(eq(tourStops.id, upd.id));
-    }
-    for (const upd of plan.manualEntryUpdates) {
-      await this.db.update(manualHistoryEntries)
-        .set({ notes: upd.notes })
-        .where(eq(manualHistoryEntries.id, upd.id));
-    }
-    for (const del of plan.distanceMatrixDeletes) {
-      await this.db.delete(distanceMatrix)
-        .where(and(eq(distanceMatrix.fromId, del.fromId), eq(distanceMatrix.toId, del.toId)));
     }
   }
 
