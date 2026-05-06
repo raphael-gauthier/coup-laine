@@ -29,6 +29,12 @@ export function HistoryRow({ entry, onPress }: Props) {
   const { t } = useTranslation();
   const dateLabel = format(parseISO(`${entry.date}T00:00:00`), 'PPP', { locale: fr });
 
+  const servicesCents = entry.services.reduce(
+    (sum, s) => sum + (s.qty > 0 ? s.qty * s.priceCentsSnapshot : 0),
+    0
+  );
+  const totalCents = servicesCents + (entry.travelFeeCents ?? 0);
+
   return (
     <PressScale
       onPress={() => {
@@ -54,6 +60,11 @@ export function HistoryRow({ entry, onPress }: Props) {
             <Text variant="muted" className="text-sm mt-1" numberOfLines={2}>{entry.notes}</Text>
           ) : null}
         </View>
+        {totalCents > 0 ? (
+          <Text className="text-sm font-semibold">
+            {(totalCents / 100).toFixed(0)} €
+          </Text>
+        ) : null}
         {entry.source === 'manual' ? (
           <Pencil size={16} color="#5C4E40" />
         ) : (
