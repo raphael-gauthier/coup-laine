@@ -16,21 +16,29 @@ function sumServices(services: TourStopService[]): number {
   return total;
 }
 
+interface CompletedStopInput extends TourStop {
+  travelFeeCents: number | null;
+}
+
+interface ManualEntryInput extends ManualHistoryEntry {
+  travelFeeCents: number | null;
+}
+
 export function computeClientOutstanding(args: {
-  completedStops: TourStop[];
-  manualEntries: ManualHistoryEntry[];
+  completedStops: CompletedStopInput[];
+  manualEntries: ManualEntryInput[];
 }): ClientOutstanding {
   let cents = 0;
   let count = 0;
   for (const stop of args.completedStops) {
     if (stop.payment.isPaid) continue;
     const services = stop.actualServices ?? stop.plannedServices;
-    cents += sumServices(services);
+    cents += sumServices(services) + (stop.travelFeeCents ?? 0);
     count += 1;
   }
   for (const entry of args.manualEntries) {
     if (entry.payment.isPaid) continue;
-    cents += sumServices(entry.services);
+    cents += sumServices(entry.services) + (entry.travelFeeCents ?? 0);
     count += 1;
   }
   return { unpaidCents: cents, unpaidCount: count };
