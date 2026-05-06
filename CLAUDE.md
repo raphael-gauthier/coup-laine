@@ -82,3 +82,10 @@ This worktree (`rn-migration` branch) targets **iOS + Android** via Expo + React
 - French is allowed only inside `src/i18n/locales/*.json` **values** (the actual UI text). Never inside keys.
 - If you spot a French identifier or path while working (e.g. `prestation`, `metier`, `tournee`), flag it. Don't introduce new ones — even temporarily.
 - When the user gives a durable instruction or convention (like the rule above, a naming choice, a workflow preference, a hook setup) that future sessions should know, **update this `CLAUDE.md` in the same turn** before continuing. Memory files are for cross-conversation context; project conventions belong here so any agent in the repo picks them up.
+
+**RGPD compliance — MVP shipped 2026-05-06.**
+
+The app already implements the MVP RGPD : hosted legal docs surface (`src/infra/config/legal-urls.ts` + `app/(tabs)/settings/legal.tsx` + onboarding/login info notices), client anonymization (`ClientRepository.anonymize` + `planAnonymization` use case — scrubs identity, preserves compta per Code de commerce L123-22), cloud account deletion (`supabase/functions/delete-account` Edge Function + `useDeleteAccount` hook), data portability export (`useExportData` hook). Full spec: `docs/superpowers/specs/2026-05-06-rgpd-mvp-design.md`.
+
+- Before implementing any new feature or behavior change, **evaluate the RGPD impact**. Triggers to watch for: new field/column storing personal data (identity, contact, geoloc, free-text notes), new external service or SDK processing personal data, change to retention / deletion / export / consent flows, new tracker or telemetry, modification of who can access backups, change to the anonymization scrub list.
+- If the change touches personal data even indirectly, **stop, flag the impact explicitly to the user, and ask before continuing**. Don't proceed silently — the user is the data controller and must validate the trade-off (lawful basis, retention, sub-processors, info notice update).
