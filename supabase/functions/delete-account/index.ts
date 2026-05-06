@@ -2,7 +2,21 @@ import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
-const SERVICE_ROLE = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const SECRET_KEYS_RAW = Deno.env.get('SUPABASE_SECRET_KEYS');
+
+let SECRET_KEY: string | undefined;
+if (SECRET_KEYS_RAW) {
+  try {
+    const parsed = JSON.parse(SECRET_KEYS_RAW) as Record<string, string>;
+    SECRET_KEY = parsed['default'];
+  } catch {
+    SECRET_KEY = undefined;
+  }
+}
+// Backward-compat fallback for projects still on the legacy key.
+if (!SECRET_KEY) {
+  SECRET_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+}
 const BUCKET = 'backups';
 
 const corsHeaders: HeadersInit = {
@@ -25,7 +39,7 @@ serve(async (req: Request) => {
   if (req.method !== 'POST') {
     return jsonResponse({ error: 'Method not allowed' }, 405);
   }
-  if (!SUPABASE_URL || !SERVICE_ROLE) {
+  if (!SUPABASE_URL || !SECRET_KEY) {
     return jsonResponse({ error: 'Server not configured' }, 500);
   }
 
@@ -35,7 +49,7 @@ serve(async (req: Request) => {
   }
 
   // 1. Identify the user via their JWT.
-  const userClient = createClient(SUPABASE_URL, SERVICE_ROLE, {
+  const userClient = createClient(SUPABASE_URL, SECRET_KEY, {
     global: { headers: { Authorization: auth } },
     auth: { persistSession: false },
   });
@@ -50,7 +64,7 @@ serve(async (req: Request) => {
   const uid = user.id;
 
   // 2. Admin client for privileged operations.
-  const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
+  const admin = createClient(SUPABASE_URL, SECRET_KEY, {
     auth: { persistSession: false },
   });
 

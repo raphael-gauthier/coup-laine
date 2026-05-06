@@ -8,7 +8,29 @@ const optStr = z.string().nullable().optional();
 const optInt = z.number().int().nullable().optional();
 const optReal = z.number().nullable().optional();
 
+// v4 (current) client row — includes anonymizedAt.
 const ClientRow = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  phones: z.string(),
+  addressLabel: optStr,
+  addressCity: optStr,
+  addressPostcode: optStr,
+  latitude: optReal,
+  longitude: optReal,
+  isWaiting: z.number().int(),
+  isBanned: z.number().int(),
+  needsDistanceRecompute: z.number().int(),
+  lastShearingDate: optStr,
+  animalCounts: z.string(),
+  markerColorHex: optStr,
+  anonymizedAt: optStr,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+// v3 client row — no anonymizedAt, needed to parse old backups.
+const ClientRowV3 = z.object({
   id: z.string(),
   displayName: z.string(),
   phones: z.string(),
@@ -114,8 +136,26 @@ const SettingsRow = z.object({
   value: z.string(),
 });
 
-export const BackupSnapshotSchema = z.object({
+export const BackupSnapshotV3Schema = z.object({
   schemaVersion: z.literal(3),
+  createdAt: z.string(),
+  tables: z.object({
+    clients: z.array(ClientRowV3),
+    species: z.array(SpeciesRow),
+    animal_categories: z.array(AnimalCategoryRow),
+    services: z.array(ServiceRow),
+    tours: z.array(TourRow),
+    tour_stops: z.array(TourStopRow),
+    manual_history_entries: z.array(ManualHistoryEntryRow),
+    distance_matrix: z.array(DistanceMatrixRow),
+    settings: z.array(SettingsRow),
+  }),
+});
+
+export type ValidatedBackupSnapshotV3 = z.infer<typeof BackupSnapshotV3Schema>;
+
+export const BackupSnapshotV4Schema = z.object({
+  schemaVersion: z.literal(4),
   createdAt: z.string(),
   tables: z.object({
     clients: z.array(ClientRow),
@@ -130,7 +170,11 @@ export const BackupSnapshotSchema = z.object({
   }),
 });
 
-export type ValidatedBackupSnapshot = z.infer<typeof BackupSnapshotSchema>;
+export type ValidatedBackupSnapshotV4 = z.infer<typeof BackupSnapshotV4Schema>;
+
+// Backward-compatible aliases — other files importing these continue to work.
+export const BackupSnapshotSchema = BackupSnapshotV4Schema;
+export type ValidatedBackupSnapshot = ValidatedBackupSnapshotV4;
 
 // =============================================================
 // v2 (pre-travel-fees-rework) backup schema, kept for migration.
@@ -184,7 +228,7 @@ export const BackupSnapshotV2Schema = z.object({
   schemaVersion: z.literal(2),
   createdAt: z.string(),
   tables: z.object({
-    clients: z.array(ClientRow),
+    clients: z.array(ClientRowV3),
     species: z.array(SpeciesRow),
     animal_categories: z.array(AnimalCategoryRow),
     services: z.array(ServiceRow),
@@ -198,7 +242,7 @@ export const BackupSnapshotV2Schema = z.object({
 
 export type ValidatedBackupSnapshotV2 = z.infer<typeof BackupSnapshotV2Schema>;
 
-export function migrateV2ToV3(v2: ValidatedBackupSnapshotV2): ValidatedBackupSnapshot {
+export function migrateV2ToV3(v2: ValidatedBackupSnapshotV2): ValidatedBackupSnapshotV3 {
   return {
     schemaVersion: 3,
     createdAt: v2.createdAt,
@@ -213,6 +257,17 @@ export function migrateV2ToV3(v2: ValidatedBackupSnapshotV2): ValidatedBackupSna
         ...e,
         travelFeeCents: null,
       })),
+    },
+  };
+}
+
+export function migrateV3ToV4(v3: ValidatedBackupSnapshotV3): ValidatedBackupSnapshotV4 {
+  return {
+    schemaVersion: 4,
+    createdAt: v3.createdAt,
+    tables: {
+      ...v3.tables,
+      clients: v3.tables.clients.map((c) => ({ ...c, anonymizedAt: null })),
     },
   };
 }

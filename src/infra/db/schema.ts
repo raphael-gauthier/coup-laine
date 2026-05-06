@@ -18,6 +18,7 @@ export const clients = sqliteTable(
     lastShearingDate: text('last_shearing_date'),
     animalCounts: text('animal_counts').notNull().default('[]'),
     markerColorHex: text('marker_color_hex'),
+    anonymizedAt: text('anonymized_at'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
   },

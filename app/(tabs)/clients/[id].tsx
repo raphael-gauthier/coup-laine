@@ -16,7 +16,7 @@ import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { ErrorState } from '@/ui/components/error-state';
 import { ScreenHeader } from '@/ui/components/screen-header';
-import { confirm } from '@/ui/components/confirm-dialog';
+import { confirm, ConfirmTypedDialog } from '@/ui/components/confirm-dialog';
 import { ClientKpiRow } from '@/ui/components/client-kpi-row';
 import { ClientStatusBadge } from '@/ui/components/client-status-badge';
 import { ClientContactCard } from '@/ui/components/client-contact-card';
@@ -31,14 +31,14 @@ import { PressScale } from '@/ui/motion/press-scale';
 import {
   useClient,
   useClientStatusMap,
-  useDeleteClient,
+  useAnonymizeClient,
   useToggleBanned,
 } from '@/state/queries/clients';
 import { useNextPlannedTourForClient, useTours } from '@/state/queries/tours';
 import { useManualHistoryByClient } from '@/state/queries/history';
 import { useProximityStore } from '@/state/stores/proximity-store';
 import { haptics } from '@/ui/motion/haptics';
-import { mutationErrorToast } from '@/ui/components/error-toast';
+import { mutationErrorToast, successToast } from '@/ui/components/error-toast';
 import { useDangerColor, useForegroundColor, useMutedForegroundColor, useWaitingColor } from '@/ui/theme/colors';
 import { computeClientOutstanding } from '@/domain/use-cases/compute-client-outstanding';
 import type { TourStop } from '@/domain/models/tour-stop';
@@ -56,9 +56,10 @@ export default function ClientDetailScreen() {
   const { data: plannedTour } = useNextPlannedTourForClient(id);
   const { data: statusMap } = useClientStatusMap();
   const setPivotId = useProximityStore((s) => s.setPivotId);
-  const deleteMutation = useDeleteClient();
+  const anonymizeMutation = useAnonymizeClient();
   const toggleBanned = useToggleBanned();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const { data: tours = [] } = useTours('completed');
   const { data: manualEntries = [] } = useManualHistoryByClient(id);
 
@@ -94,19 +95,25 @@ export default function ClientDetailScreen() {
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!client) return <Surface className="flex-1" />;
 
+  if (client.anonymizedAt) {
+    // Defensive : a deep link landed on an anonymized client. Redirect to the list.
+    setTimeout(() => {
+      successToast(t('clients.anonymized_redirect_toast'));
+      router.back();
+    }, 0);
+    return <Surface className="flex-1" />;
+  }
+
   const status = statusMap?.get(client.id) ?? 'default';
 
-  const onDelete = async () => {
+  const onDelete = () => {
     setMenuOpen(false);
-    const ok = await confirm({
-      title: t('clients.delete_confirm_title'),
-      message: t('clients.delete_confirm_message'),
-      confirmLabel: t('clients.delete'),
-      cancelLabel: t('common.cancel'),
-      destructive: true,
-    });
-    if (!ok) return;
-    deleteMutation.mutate(client.id, {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirmed = () => {
+    setDeleteDialogOpen(false);
+    anonymizeMutation.mutate(client.id, {
       onSuccess: () => {
         void haptics.success();
         router.back();
@@ -262,6 +269,17 @@ export default function ClientDetailScreen() {
           </View>
         </Surface>
       </Modal>
+
+      <ConfirmTypedDialog
+        visible={deleteDialogOpen}
+        title={t('clients.delete_confirm_title')}
+        message={t('clients.delete_confirm_message')}
+        typedConfirmation={t('clients.delete_typed_word')}
+        confirmLabel={t('clients.delete_cta_confirm')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setDeleteDialogOpen(false)}
+      />
     </Surface>
   );
 }

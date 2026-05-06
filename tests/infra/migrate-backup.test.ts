@@ -1,4 +1,4 @@
-import { BackupSnapshotV2Schema, migrateV2ToV3 } from '@/infra/cloud/backup-schema';
+import { BackupSnapshotV2Schema, migrateV2ToV3, BackupSnapshotV3Schema, migrateV3ToV4 } from '@/infra/cloud/backup-schema';
 
 describe('migrateV2ToV3', () => {
   const v2Snapshot = {
@@ -98,5 +98,66 @@ describe('migrateV2ToV3', () => {
 
     // manual_history_entries: travelFeeCents added (null)
     expect(v3.tables.manual_history_entries[0]?.travelFeeCents).toBeNull();
+  });
+});
+
+describe('migrateV3ToV4', () => {
+  const v3Snapshot = {
+    schemaVersion: 3 as const,
+    createdAt: '2026-05-01T10:00:00Z',
+    tables: {
+      clients: [
+        {
+          id: 'c1',
+          displayName: 'Test',
+          phones: '[]',
+          addressLabel: null,
+          addressCity: null,
+          addressPostcode: null,
+          latitude: null,
+          longitude: null,
+          isWaiting: 0,
+          isBanned: 0,
+          needsDistanceRecompute: 0,
+          lastShearingDate: null,
+          animalCounts: '[]',
+          markerColorHex: null,
+          createdAt: '2025-01-01T00:00:00Z',
+          updatedAt: '2025-01-01T00:00:00Z',
+        },
+      ],
+      species: [],
+      animal_categories: [],
+      services: [],
+      tours: [],
+      tour_stops: [],
+      manual_history_entries: [],
+      distance_matrix: [],
+      settings: [],
+    },
+  };
+
+  it('parses a v3 snapshot', () => {
+    const result = BackupSnapshotV3Schema.safeParse(v3Snapshot);
+    expect(result.success).toBe(true);
+  });
+
+  it('migrates v3 → v4 by adding anonymizedAt: null to every client', () => {
+    const parsed = BackupSnapshotV3Schema.parse(v3Snapshot);
+    const v4 = migrateV3ToV4(parsed);
+
+    expect(v4.schemaVersion).toBe(4);
+    expect(v4.createdAt).toBe('2026-05-01T10:00:00Z');
+    expect(v4.tables.clients[0]?.anonymizedAt).toBeNull();
+  });
+
+  it('preserves all other client fields untouched', () => {
+    const parsed = BackupSnapshotV3Schema.parse(v3Snapshot);
+    const v4 = migrateV3ToV4(parsed);
+    const client = v4.tables.clients[0];
+    expect(client?.id).toBe('c1');
+    expect(client?.displayName).toBe('Test');
+    expect(client?.markerColorHex).toBeNull();
+    expect(client?.createdAt).toBe('2025-01-01T00:00:00Z');
   });
 });
