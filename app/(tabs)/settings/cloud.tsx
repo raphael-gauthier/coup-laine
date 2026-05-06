@@ -90,7 +90,7 @@ export default function CloudScreen() {
   const onExport = () => {
     exportData.mutate(undefined, {
       onSuccess: () => {
-        successToast(t('cloud.export_data.cta'));
+        successToast(t('cloud.export_data.success_toast'));
       },
     });
   };

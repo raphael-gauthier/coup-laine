@@ -517,6 +517,7 @@
       "cta": "Télécharger mes données",
       "loading": "Préparation de l'export…",
       "dialog_title": "Exporter mes données",
+      "success_toast": "Vos données ont été exportées.",
       "error_toast": "Export impossible"
     },
     "danger_section_title": "Zone de danger",
