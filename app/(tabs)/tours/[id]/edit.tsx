@@ -86,7 +86,6 @@ export default function EditTourScreen() {
                 plannedServices: s.plannedServices,
                 arrivalMinutes: null,
                 estimatedMinutes: null,
-                feeShareCents: input.feeShareCentsByClient[s.clientId] ?? null,
                 notes: s.notes,
               })),
             },
