@@ -59,11 +59,10 @@ Aucun.
 - [ ] **Step 1 : Créer le fichier**
 
 ```ts
-// src/infra/config/legal-urls.ts
 export const LEGAL_URLS = {
-  mentionsLegales: 'https://ravnkode.com/coup-laine/legal/mentions-legales.html',
-  privacyPolicy:   'https://ravnkode.com/coup-laine/legal/politique-confidentialite.html',
-  terms:           'https://ravnkode.com/coup-laine/legal/cgu.html',
+  legalNotices:  'https://ravnkode.com/coup-laine/legal/mentions-legales.html',
+  privacyPolicy: 'https://ravnkode.com/coup-laine/legal/politique-confidentialite.html',
+  terms:         'https://ravnkode.com/coup-laine/legal/cgu.html',
 } as const;
 
 export type LegalUrlKey = keyof typeof LEGAL_URLS;
@@ -100,7 +99,7 @@ Dans `settings.*`, ajouter (à côté des autres `section_*` existants) :
   "row_label": "Légal & confidentialité",
   "row_hint": "Mentions légales, politique de confidentialité, CGU",
   "screen_title": "Légal & confidentialité",
-  "mentions_legales": "Mentions légales",
+  "legal_notices": "Mentions légales",
   "privacy_policy": "Politique de confidentialité",
   "terms": "CGU et accord de sous-traitance",
   "app_version": "Version de l'app : {{version}}"
@@ -172,8 +171,8 @@ export default function LegalScreen() {
       <ScreenHeader title={t('settings.legal.screen_title')} />
       <ScrollView contentContainerClassName="px-4 pb-8">
         <SettingsRow
-          label={t('settings.legal.mentions_legales')}
-          onPress={() => open(LEGAL_URLS.mentionsLegales)}
+          label={t('settings.legal.legal_notices')}
+          onPress={() => open(LEGAL_URLS.legalNotices)}
         />
         <SettingsRow
           label={t('settings.legal.privacy_policy')}
