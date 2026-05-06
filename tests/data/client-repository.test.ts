@@ -117,12 +117,12 @@ describe('ClientRepository.listClientIdsWithOutstanding', () => {
       { id: 't1', scheduledDate: '2026-05-01', departureTime: '08:00',
         baseLat: 0, baseLng: 0, status: 'completed',
         totalDistanceKm: null, totalDriveSeconds: null, totalMinutes: null,
-        totalRevenueCents: null, totalAnimalsCount: null, totalTravelFeeCents: null,
+        totalRevenueCents: null, totalAnimalsCount: null,
         routeGeometry: null, notes: null, completedAt: '2026-05-01T12:00:00Z',
         createdAt: 'x', updatedAt: 'x' },
       [{ id: 's1', tourId: 't1', clientId: 'c1', clientNameSnapshot: null,
          ordering: 0, arrivalMinutes: null, departureMinutes: null,
-         estimatedMinutes: null, feeShareCents: null,
+         estimatedMinutes: null, travelFeeCents: null,
          plannedServices: [], actualServices: [],
          notes: null, completedAt: '2026-05-01T12:00:00Z',
          payment: EMPTY_PAYMENT }]
@@ -131,7 +131,7 @@ describe('ClientRepository.listClientIdsWithOutstanding', () => {
     // c2: unpaid manual entry -> outstanding
     await manualRepo.upsert({
       id: 'e1', clientId: 'c2', date: '2026-04-01',
-      notes: null, services: [], payment: EMPTY_PAYMENT,
+      notes: null, services: [], travelFeeCents: null, payment: EMPTY_PAYMENT,
     });
 
     // c3: planned tour stop unpaid -> NOT outstanding (not completed)
@@ -139,12 +139,12 @@ describe('ClientRepository.listClientIdsWithOutstanding', () => {
       { id: 't2', scheduledDate: '2026-06-01', departureTime: '08:00',
         baseLat: 0, baseLng: 0, status: 'planned',
         totalDistanceKm: null, totalDriveSeconds: null, totalMinutes: null,
-        totalRevenueCents: null, totalAnimalsCount: null, totalTravelFeeCents: null,
+        totalRevenueCents: null, totalAnimalsCount: null,
         routeGeometry: null, notes: null, completedAt: null,
         createdAt: 'x', updatedAt: 'x' },
       [{ id: 's2', tourId: 't2', clientId: 'c3', clientNameSnapshot: null,
          ordering: 0, arrivalMinutes: null, departureMinutes: null,
-         estimatedMinutes: null, feeShareCents: null,
+         estimatedMinutes: null, travelFeeCents: null,
          plannedServices: [], actualServices: null,
          notes: null, completedAt: null,
          payment: EMPTY_PAYMENT }]

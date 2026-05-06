@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -17,6 +17,11 @@ import { confirm } from '@/ui/components/confirm-dialog';
 import { useTour, useCompleteWithBilan } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
 import { useAnimalCategories, useSpecies } from '@/state/queries/species';
+import { computeClientTravelFee } from '@/domain/use-cases/compute-client-travel-fee';
+import { resolveBaseDistance } from '@/domain/use-cases/resolve-base-distance';
+import { DistanceMatrixRepository } from '@/data/repositories/distance-matrix-repository';
+import { db } from '@/infra/db/client';
+import { useAllSettings } from '@/state/queries/settings';
 import { haptics } from '@/ui/motion/haptics';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
@@ -41,6 +46,10 @@ interface KpiTileProps {
   value: string;
   valueClassName?: string;
 }
+
+const distanceMatrixRepo = new DistanceMatrixRepository(db);
+const DEFAULT_BRACKET_KM = 10;
+const DEFAULT_FEE_PER_BRACKET = 8;
 
 function KpiTile({ label, value, valueClassName }: KpiTileProps) {
   return (
@@ -71,6 +80,39 @@ export default function CompleteTourScreen() {
   const [perStopPayments, setPerStopPayments] = useState<Record<string, Payment>>({});
   const [perStopPaymentErrors, setPerStopPaymentErrors] = useState<Record<string, string | null>>({});
   const [offPlanForStopId, setOffPlanForStopId] = useState<string | null>(null);
+  const [perStopTravelFees, setPerStopTravelFees] = useState<Record<string, number>>({});
+  const { data: allSettings } = useAllSettings();
+  const bracketKm = parseFloat(allSettings?.tour_bracket_km ?? '') || DEFAULT_BRACKET_KM;
+  const feePerBracket = parseFloat(allSettings?.tour_fee_eur_per_bracket ?? '') || DEFAULT_FEE_PER_BRACKET;
+
+  useEffect(() => {
+    if (!data) return;
+    if (Object.keys(perStopTravelFees).length > 0) return;
+    let cancelled = false;
+    (async () => {
+      const next: Record<string, number> = {};
+      for (const stop of data.stops) {
+        // If the stop already has a stored fee (e.g. tour was reopened), reuse it.
+        if (stop.travelFeeCents !== null) {
+          next[stop.id] = stop.travelFeeCents;
+          continue;
+        }
+        const client = clientsById.get(stop.clientId);
+        const cached = await distanceMatrixRepo.byPair('BASE', stop.clientId);
+        const distanceKm = resolveBaseDistance({
+          base: { lat: data.tour.baseLat, lon: data.tour.baseLng },
+          client: client?.latitude != null && client?.longitude != null
+            ? { lat: client.latitude, lon: client.longitude }
+            : null,
+          lookup: () => cached ? { distanceKm: cached.distanceKm, failed: cached.failed } : null,
+        });
+        next[stop.id] = computeClientTravelFee({ distanceKm, bracketKm, feePerBracket });
+      }
+      if (!cancelled) setPerStopTravelFees(next);
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.tour.id, clientsById, bracketKm, feePerBracket]);
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!data) return <Surface className="flex-1" />;
@@ -93,6 +135,10 @@ export default function CompleteTourScreen() {
 
   const setPayment = (stopId: string, p: Payment) =>
     setPerStopPayments((prev) => ({ ...prev, [stopId]: p }));
+
+  const getTravelFee = (stopId: string) => perStopTravelFees[stopId] ?? 0;
+  const setTravelFee = (stopId: string, cents: number) =>
+    setPerStopTravelFees((prev) => ({ ...prev, [stopId]: cents }));
 
   const buildServiceFromCatalog = (svc: Service): TourStopService => {
     const category = svc.categoryId ? categoriesById.get(svc.categoryId) : null;
@@ -119,7 +165,7 @@ export default function CompleteTourScreen() {
   };
 
   // Live totals from current draft.
-  const feeCents = tour.totalTravelFeeCents ?? 0;
+  const feeCents = Object.values(perStopTravelFees).reduce((s, c) => s + c, 0);
   let actualMinutes = 0;
   let actualRevenueCents = 0;
   let plannedRevenueCents = 0;
@@ -176,11 +222,13 @@ export default function CompleteTourScreen() {
     const actualsMap = new Map<string, TourStopService[]>();
     const notesMap = new Map<string, string | null>();
     const paymentsMap = new Map<string, Payment>();
+    const travelFeesMap = new Map<string, number>();
     for (const stop of stops) {
       actualsMap.set(stop.id, getActuals(stop.id, stop.plannedServices));
       const trimmed = getNote(stop.id).trim();
       notesMap.set(stop.id, trimmed.length === 0 ? null : trimmed);
       paymentsMap.set(stop.id, getPayment(stop.id, stop.payment));
+      travelFeesMap.set(stop.id, getTravelFee(stop.id));
     }
     complete.mutate(
       {
@@ -188,6 +236,7 @@ export default function CompleteTourScreen() {
         perStopActuals: actualsMap,
         perStopNotes: notesMap,
         perStopPayments: paymentsMap,
+        perStopTravelFees: travelFeesMap,
         completedAt: new Date().toISOString(),
       },
       {
@@ -254,6 +303,8 @@ export default function CompleteTourScreen() {
             payment={getPayment(stop.id, stop.payment)}
             paymentError={perStopPaymentErrors[stop.id] ?? null}
             onChangePayment={(next) => setPayment(stop.id, next)}
+            travelFeeCents={getTravelFee(stop.id)}
+            onChangeTravelFee={(cents) => setTravelFee(stop.id, cents)}
           />
         ))}
 

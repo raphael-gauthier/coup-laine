@@ -7,6 +7,7 @@ interface TourStopHistoryItem {
   date: string;
   services: TourStopService[];
   notes: string | null;
+  travelFeeCents: number | null;
 }
 
 interface ManualHistoryItem {
@@ -14,6 +15,7 @@ interface ManualHistoryItem {
   date: string;
   services: TourStopService[];
   notes: string | null;
+  travelFeeCents: number | null;
 }
 
 interface Input {
@@ -26,6 +28,7 @@ export function mergeClientHistory({ tourStopsWithDate, manualEntries }: Input):
     source: 'tour',
     date: t.date,
     services: t.services,
+    travelFeeCents: t.travelFeeCents,
     notes: t.notes,
     tourId: t.tourId,
     tourStopId: t.stopId,
@@ -35,6 +38,7 @@ export function mergeClientHistory({ tourStopsWithDate, manualEntries }: Input):
     source: 'manual',
     date: m.date,
     services: m.services,
+    travelFeeCents: m.travelFeeCents,
     notes: m.notes,
     tourId: null,
     tourStopId: null,

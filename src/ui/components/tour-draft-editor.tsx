@@ -18,7 +18,7 @@ import { TourMapPreview, type PreviewStop } from '@/ui/components/tour-map-previ
 import { useClients } from '@/state/queries/clients';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
-import { splitTravelCost } from '@/domain/use-cases/cost-split-calculator';
+import { computeClientTravelFee } from '@/domain/use-cases/compute-client-travel-fee';
 import { useBaseAddress, useAllSettings } from '@/state/queries/settings';
 import { useForegroundColor } from '@/ui/theme/colors';
 import type { TourStatus } from '@/domain/models/tour';
@@ -44,8 +44,6 @@ interface Props {
     stops: DraftStop[];
     totalDistanceKm: number;
     totalMinutes: number;
-    totalTravelFeeCents: number;
-    feeShareCentsByClient: Record<string, number>;
   }) => void;
   onAddClients: () => void;
   onRemoveStop: (clientId: string) => void;
@@ -133,19 +131,21 @@ export function TourDraftEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialStops, arrivals]);
 
-  const split = useMemo(() => {
-    const baseToStopDistancesKm = initialStops.map((s) => distanceKm('BASE', s.clientId));
-    const interStopDistancesKm = initialStops.slice(1).map((s, i) =>
-      distanceKm(initialStops[i]!.clientId, s.clientId)
+  const perStopFeeCents = useMemo(() => {
+    return initialStops.map((s) =>
+      computeClientTravelFee({
+        distanceKm: distanceKm('BASE', s.clientId),
+        bracketKm,
+        feePerBracket,
+      })
     );
-    return splitTravelCost({
-      baseToStopDistancesKm,
-      interStopDistancesKm,
-      pricePerBracket: feePerBracket,
-      bracketSizeKm: bracketKm,
-    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialStops, base, clients, bracketKm, feePerBracket]);
+
+  const totalFeeCents = useMemo(
+    () => perStopFeeCents.reduce((s, c) => s + c, 0),
+    [perStopFeeCents]
+  );
 
   const submit = async () => {
     if (initialStops.length === 0) return;
@@ -159,10 +159,6 @@ export function TourDraftEditor({
       });
       if (!ok) return;
     }
-    const feeShareCentsByClient: Record<string, number> = {};
-    initialStops.forEach((s, i) => {
-      feeShareCentsByClient[s.clientId] = Math.round((split.perStop[i] ?? 0) * 100);
-    });
     onSubmit({
       scheduledDate: format(date, 'yyyy-MM-dd'),
       departureTime: time,
@@ -173,8 +169,6 @@ export function TourDraftEditor({
       })),
       totalDistanceKm,
       totalMinutes,
-      totalTravelFeeCents: Math.round(split.totalEuros * 100),
-      feeShareCentsByClient,
     });
   };
 
@@ -259,7 +253,7 @@ export function TourDraftEditor({
         </View>
         <View className="flex-row justify-between mt-1">
           <Text variant="muted">{t('tours.total_cost')}</Text>
-          <Text className="font-semibold">{split.totalEuros} €</Text>
+          <Text className="font-semibold">{(totalFeeCents / 100).toFixed(0)} €</Text>
         </View>
       </Surface>
 
@@ -294,7 +288,7 @@ export function TourDraftEditor({
       renderItem={({ item, index, drag }) => {
         const client = clientsById.get(item.clientId);
         const arr = arrivals[index];
-        const share = split.perStop[index] ?? 0;
+        const stopFee = perStopFeeCents[index] ?? 0;
         return (
           <Surface variant="muted" className="rounded-2xl px-3 py-3 mb-2">
             <View className="flex-row items-center gap-3">
@@ -311,7 +305,7 @@ export function TourDraftEditor({
                     <Text className="font-semibold">{client?.displayName ?? item.clientId}</Text>
                     {arr ? (
                       <Text variant="muted" className="text-xs">
-                        {t('tours.stop_arrival')} {arr.arrivalTime} · {formatMinutes(arr.estimatedMinutes)} · {share} €
+                        {t('tours.stop_arrival')} {arr.arrivalTime} · {formatMinutes(arr.estimatedMinutes)} · {(stopFee / 100).toFixed(0)} €
                       </Text>
                     ) : null}
                     {item.plannedServices.length > 0 ? (() => {

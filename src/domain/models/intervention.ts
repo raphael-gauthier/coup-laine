@@ -7,6 +7,7 @@ export const Intervention = z.object({
   source: InterventionSource,
   date: z.string(),
   services: z.array(TourStopService),
+  travelFeeCents: z.number().int().nullable(),
   notes: z.string().nullable(),
   tourId: z.string().nullable(),
   tourStopId: z.string().nullable(),

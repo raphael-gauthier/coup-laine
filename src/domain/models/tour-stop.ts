@@ -11,7 +11,7 @@ export const TourStop = z.object({
   arrivalMinutes: z.number().int().nullable(),
   departureMinutes: z.number().int().nullable(),
   estimatedMinutes: z.number().int().nullable(),
-  feeShareCents: z.number().int().nullable(),
+  travelFeeCents: z.number().int().nullable(),
   plannedServices: z.array(TourStopService),
   actualServices: z.array(TourStopService).nullable(),
   notes: z.string().nullable(),

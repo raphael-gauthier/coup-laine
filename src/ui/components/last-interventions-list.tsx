@@ -62,6 +62,11 @@ export function LastInterventionsList({ clientId }: Props) {
                 <Text variant="muted" className="text-xs">
                   {prestSummary}
                 </Text>
+                {item.travelFeeCents !== null ? (
+                  <Text variant="muted" className="text-xs">
+                    {t('common.travel_fee_inline', { amount: formatEur(item.travelFeeCents) })}
+                  </Text>
+                ) : null}
               </View>
               <ChevronRight size={14} color="#5C4E40" />
             </View>

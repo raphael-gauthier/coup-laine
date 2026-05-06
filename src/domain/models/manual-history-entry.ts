@@ -8,6 +8,7 @@ export const ManualHistoryEntry = z.object({
   date: z.string(),
   notes: z.string().nullable(),
   services: z.array(TourStopService),
+  travelFeeCents: z.number().int().nullable(),
   payment: Payment,
 });
 

@@ -34,6 +34,7 @@ export function useClientHistory(clientId: string | undefined) {
             stopId: s.id,
             date: tour.scheduledDate,
             services: s.actualServices ?? s.plannedServices,
+            travelFeeCents: s.travelFeeCents,
             notes: s.notes,
           }))
       );
@@ -46,6 +47,7 @@ export function useClientHistory(clientId: string | undefined) {
           id: e.id,
           date: e.date,
           services: e.services,
+          travelFeeCents: e.travelFeeCents,
           notes: e.notes,
         })),
       });
@@ -68,6 +70,7 @@ export interface UpsertManualHistoryInput {
   date: string;
   notes: string | null;
   services: TourStopService[];
+  travelFeeCents: number | null;
   payment: Payment;
 }
 
@@ -81,6 +84,7 @@ export function useUpsertManualHistoryEntry() {
         date: input.date,
         notes: input.notes,
         services: input.services,
+        travelFeeCents: input.travelFeeCents,
         payment: input.payment,
       };
       await manualRepo.upsert(entry);

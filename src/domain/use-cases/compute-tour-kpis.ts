@@ -4,14 +4,13 @@ import type { TourStopService } from '@/domain/models/tour-stop-service';
 interface Stop {
   clientId: string;
   plannedServices: TourStopService[];
+  travelFeeCents: number | null;
 }
 
 interface Input {
   stops: Stop[];
   totalDistanceKm: number;
   totalDriveSeconds: number;
-  totalTravelFeeCents: number;
-  /** Map clientId → animals total (for the tour's animals KPI). */
   animalCountsByClient: Map<string, number>;
 }
 
@@ -27,7 +26,7 @@ export interface TourKpis {
 }
 
 export function computeTourKpis({
-  stops, totalDistanceKm, totalDriveSeconds, totalTravelFeeCents, animalCountsByClient,
+  stops, totalDistanceKm, totalDriveSeconds, animalCountsByClient,
 }: Input): TourKpis {
   if (stops.length === 0) {
     return {
@@ -42,17 +41,18 @@ export function computeTourKpis({
     };
   }
   const aggregates = aggregateServices(stops.map((s) => s.plannedServices));
-  const revenueCents = aggregates.reduce((s, a) => s + a.totalRevenueCents, 0);
+  const servicesRevenue = aggregates.reduce((s, a) => s + a.totalRevenueCents, 0);
+  const travelFeeCents = stops.reduce((s, st) => s + (st.travelFeeCents ?? 0), 0);
   const serviceMinutes = aggregates.reduce((s, a) => s + a.totalMinutes, 0);
   const driveMinutes = Math.round(totalDriveSeconds / 60);
   const animalsTotal = stops.reduce((s, stop) => s + (animalCountsByClient.get(stop.clientId) ?? 0), 0);
   return {
     stopCount: stops.length,
     animalsTotal,
-    revenueCents,
+    revenueCents: servicesRevenue + travelFeeCents,
     durationMinutes: driveMinutes + serviceMinutes,
     driveMinutes,
-    travelFeeCents: totalTravelFeeCents,
+    travelFeeCents,
     distanceKm: totalDistanceKm,
     serviceAggregates: aggregates,
   };

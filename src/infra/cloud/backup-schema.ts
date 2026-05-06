@@ -68,7 +68,6 @@ const TourRow = z.object({
   totalMinutes: optInt,
   totalRevenueCents: optInt,
   totalAnimalsCount: optInt,
-  totalTravelFeeCents: optInt,
   routeGeometry: optStr,
   notes: optStr,
   completedAt: optStr,
@@ -85,7 +84,7 @@ const TourStopRow = z.object({
   arrivalMinutes: optInt,
   departureMinutes: optInt,
   estimatedMinutes: optInt,
-  feeShareCents: optInt,
+  travelFeeCents: optInt,
   plannedServices: z.string(),
   actualServices: optStr,
   notes: optStr,
@@ -98,6 +97,7 @@ const ManualHistoryEntryRow = z.object({
   date: z.string(),
   notes: optStr,
   services: z.string(),
+  travelFeeCents: optInt,
 });
 
 const DistanceMatrixRow = z.object({
@@ -115,7 +115,7 @@ const SettingsRow = z.object({
 });
 
 export const BackupSnapshotSchema = z.object({
-  schemaVersion: z.literal(2),
+  schemaVersion: z.literal(3),
   createdAt: z.string(),
   tables: z.object({
     clients: z.array(ClientRow),
@@ -131,3 +131,88 @@ export const BackupSnapshotSchema = z.object({
 });
 
 export type ValidatedBackupSnapshot = z.infer<typeof BackupSnapshotSchema>;
+
+// =============================================================
+// v2 (pre-travel-fees-rework) backup schema, kept for migration.
+// =============================================================
+
+const TourRowV2 = z.object({
+  id: z.string(),
+  scheduledDate: z.string(),
+  departureTime: z.string(),
+  baseLat: z.number(),
+  baseLng: z.number(),
+  status: z.string(),
+  totalDistanceKm: optReal,
+  totalDriveSeconds: optInt,
+  totalMinutes: optInt,
+  totalRevenueCents: optInt,
+  totalAnimalsCount: optInt,
+  totalTravelFeeCents: optInt,
+  routeGeometry: optStr,
+  notes: optStr,
+  completedAt: optStr,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+const TourStopRowV2 = z.object({
+  id: z.string(),
+  tourId: z.string(),
+  clientId: z.string(),
+  clientNameSnapshot: optStr,
+  ordering: z.number().int(),
+  arrivalMinutes: optInt,
+  departureMinutes: optInt,
+  estimatedMinutes: optInt,
+  feeShareCents: optInt,
+  plannedServices: z.string(),
+  actualServices: optStr,
+  notes: optStr,
+  completedAt: optStr,
+});
+
+const ManualHistoryEntryRowV2 = z.object({
+  id: z.string(),
+  clientId: z.string(),
+  date: z.string(),
+  notes: optStr,
+  services: z.string(),
+});
+
+export const BackupSnapshotV2Schema = z.object({
+  schemaVersion: z.literal(2),
+  createdAt: z.string(),
+  tables: z.object({
+    clients: z.array(ClientRow),
+    species: z.array(SpeciesRow),
+    animal_categories: z.array(AnimalCategoryRow),
+    services: z.array(ServiceRow),
+    tours: z.array(TourRowV2),
+    tour_stops: z.array(TourStopRowV2),
+    manual_history_entries: z.array(ManualHistoryEntryRowV2),
+    distance_matrix: z.array(DistanceMatrixRow),
+    settings: z.array(SettingsRow),
+  }),
+});
+
+export type ValidatedBackupSnapshotV2 = z.infer<typeof BackupSnapshotV2Schema>;
+
+export function migrateV2ToV3(v2: ValidatedBackupSnapshotV2): ValidatedBackupSnapshot {
+  return {
+    schemaVersion: 3,
+    createdAt: v2.createdAt,
+    tables: {
+      ...v2.tables,
+      tours: v2.tables.tours.map(({ totalTravelFeeCents: _drop, ...rest }) => rest),
+      tour_stops: v2.tables.tour_stops.map(({ feeShareCents, ...rest }) => ({
+        ...rest,
+        travelFeeCents: feeShareCents ?? null,
+      })),
+      manual_history_entries: v2.tables.manual_history_entries.map((e) => ({
+        ...e,
+        travelFeeCents: null,
+      })),
+    },
+  };
+}

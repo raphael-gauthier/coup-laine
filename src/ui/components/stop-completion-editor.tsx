@@ -24,6 +24,8 @@ interface Props {
   payment: Payment;
   paymentError?: string | null;
   onChangePayment: (next: Payment) => void;
+  travelFeeCents: number;
+  onChangeTravelFee: (cents: number) => void;
 }
 
 export function StopCompletionEditor({
@@ -37,6 +39,8 @@ export function StopCompletionEditor({
   payment,
   paymentError,
   onChangePayment,
+  travelFeeCents,
+  onChangeTravelFee,
 }: Props) {
   const { t } = useTranslation();
   const displayName = stop.clientNameSnapshot ?? client?.displayName ?? stop.clientId;
@@ -131,6 +135,26 @@ export function StopCompletionEditor({
           style={{ minHeight: 72, textAlignVertical: 'top' }}
           accessibilityLabel={t('tours.bilan_note_hint')}
         />
+      </View>
+
+      <View className="gap-1">
+        <Text className="text-sm font-semibold">{t('tours.bilan_travel_fee_label')}</Text>
+        <Input
+          value={travelFeeCents === 0 ? '' : (travelFeeCents / 100).toString()}
+          onChangeText={(v) => {
+            if (v.trim() === '') {
+              onChangeTravelFee(0);
+              return;
+            }
+            const n = parseFloat(v.replace(',', '.'));
+            if (Number.isNaN(n) || n < 0) return;
+            onChangeTravelFee(Math.round(n * 100));
+          }}
+          keyboardType="decimal-pad"
+          placeholder="0"
+          accessibilityLabel={t('tours.bilan_travel_fee_label')}
+        />
+        <Text variant="muted" className="text-xs">{t('tours.bilan_travel_fee_hint')}</Text>
       </View>
 
       <PaymentEditor value={payment} onChange={onChangePayment} methodError={paymentError ?? null} />

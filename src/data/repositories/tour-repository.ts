@@ -17,7 +17,6 @@ interface TourRow {
   totalMinutes: number | null;
   totalRevenueCents: number | null;
   totalAnimalsCount: number | null;
-  totalTravelFeeCents: number | null;
   routeGeometry: string | null;
   notes: string | null;
   completedAt: string | null;
@@ -34,7 +33,7 @@ interface TourStopRow {
   arrivalMinutes: number | null;
   departureMinutes: number | null;
   estimatedMinutes: number | null;
-  feeShareCents: number | null;
+  travelFeeCents: number | null;
   plannedServices: string;
   actualServices: string | null;
   notes: string | null;
@@ -59,7 +58,7 @@ function stopToRow(s: TourStop) {
     arrivalMinutes: s.arrivalMinutes,
     departureMinutes: s.departureMinutes,
     estimatedMinutes: s.estimatedMinutes,
-    feeShareCents: s.feeShareCents,
+    travelFeeCents: s.travelFeeCents,
     plannedServices: JSON.stringify(s.plannedServices),
     actualServices: s.actualServices === null ? null : JSON.stringify(s.actualServices),
     notes: s.notes,
@@ -81,7 +80,7 @@ function stopFromRow(r: TourStopRow): TourStop {
     arrivalMinutes: r.arrivalMinutes,
     departureMinutes: r.departureMinutes,
     estimatedMinutes: r.estimatedMinutes,
-    feeShareCents: r.feeShareCents,
+    travelFeeCents: r.travelFeeCents,
     plannedServices: JSON.parse(r.plannedServices),
     actualServices: r.actualServices === null ? null : JSON.parse(r.actualServices),
     notes: r.notes,
@@ -181,6 +180,7 @@ export class TourRepository {
     perStopActuals: Map<string, import('@/domain/models/tour-stop-service').TourStopService[]>,
     perStopNotes: Map<string, string | null>,
     perStopPayments: Map<string, Payment>,
+    perStopTravelFees: Map<string, number>,
     completedAt: string
   ): Promise<void> {
     const result = await this.byId(tourId);
@@ -192,6 +192,7 @@ export class TourRepository {
       actualServices: perStopActuals.get(s.id) ?? s.plannedServices,
       notes: perStopNotes.has(s.id) ? perStopNotes.get(s.id) ?? null : s.notes,
       payment: perStopPayments.get(s.id) ?? s.payment,
+      travelFeeCents: perStopTravelFees.has(s.id) ? perStopTravelFees.get(s.id)! : s.travelFeeCents,
       completedAt,
     }));
 

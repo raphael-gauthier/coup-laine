@@ -10,6 +10,7 @@ interface ManualHistoryRow {
   date: string;
   notes: string | null;
   services: string;
+  travelFeeCents: number | null;
   paymentMethodId: string | null;
   paymentMethodLabelSnapshot: string | null;
   isPaid: number;
@@ -23,6 +24,7 @@ function toRow(e: ManualHistoryEntry) {
     date: e.date,
     notes: e.notes,
     services: JSON.stringify(e.services),
+    travelFeeCents: e.travelFeeCents,
     paymentMethodId: e.payment.methodId,
     paymentMethodLabelSnapshot: e.payment.methodLabelSnapshot,
     isPaid: e.payment.isPaid ? 1 : 0,
@@ -37,6 +39,7 @@ function fromRow(r: ManualHistoryRow): ManualHistoryEntry {
     date: r.date,
     notes: r.notes,
     services: JSON.parse(r.services),
+    travelFeeCents: r.travelFeeCents,
     payment: {
       methodId: r.paymentMethodId,
       methodLabelSnapshot: r.paymentMethodLabelSnapshot,

@@ -20,7 +20,7 @@ export function computeTourPaymentKpis(args: { stops: TourStop[] }): TourPayment
   let outstanding = 0;
   for (const stop of args.stops) {
     const services = stop.actualServices ?? stop.plannedServices;
-    const value = sumServices(services);
+    const value = sumServices(services) + (stop.travelFeeCents ?? 0);
     if (stop.payment.isPaid) collected += value;
     else outstanding += value;
   }
