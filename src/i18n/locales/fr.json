@@ -512,6 +512,22 @@
       "backup_failed_title": "Sauvegarde impossible",
       "restore_failed_title": "Restauration impossible",
       "delete_failed_title": "Suppression impossible"
+    },
+    "export_data": {
+      "cta": "Télécharger mes données",
+      "loading": "Préparation de l'export…",
+      "dialog_title": "Exporter mes données",
+      "error_toast": "Export impossible"
+    },
+    "danger_section_title": "Zone de danger",
+    "delete_account": {
+      "cta": "Supprimer mon compte cloud",
+      "confirm_title": "Supprimer définitivement votre compte ?",
+      "confirm_message": "Cette action est irréversible. Tous vos backups cloud seront supprimés (vos données locales sur cet appareil aussi). Vous pourrez recréer un compte plus tard, mais sans pouvoir restaurer ce qui aura été effacé.",
+      "typed_word": "SUPPRIMER",
+      "cta_confirm": "Supprimer mon compte",
+      "success_toast": "Votre compte cloud a été supprimé.",
+      "error_toast": "Suppression impossible"
     }
   },
   "auth": {
