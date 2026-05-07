@@ -16,6 +16,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, useResolvedColorScheme } from '@/ui/theme/theme-provider';
 import { ToastContainer } from '@/ui/components/toast';
+import { VersionGateProvider } from '@/ui/version-gate/version-gate-provider';
 import { bootstrapDatabase } from '@/infra/db/bootstrap';
 import { ensureAnonymousSession } from '@/infra/services/ensure-session';
 import { useAutoBackup } from '@/state/hooks/use-auto-backup';
@@ -93,12 +94,14 @@ function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
-          <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
-        </Stack>
+        <VersionGateProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
+            <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
+          </Stack>
+        </VersionGateProvider>
         <ToastContainer />
         <StatusBar
           style="auto"
