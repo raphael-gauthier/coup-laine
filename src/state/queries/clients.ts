@@ -22,7 +22,7 @@ export const clientsKeys = {
   byId: (id: string) => [...clientsKeys.all, 'byId', id] as const,
 };
 
-export type ClientsFilter = 'all' | 'waiting';
+export type ClientsFilter = 'all' | 'waiting' | 'outstanding';
 
 export function useClients(filter: ClientsFilter = 'all') {
   return useQuery({

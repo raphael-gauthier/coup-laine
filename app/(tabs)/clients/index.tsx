@@ -7,7 +7,6 @@ import { Plus, UserRound } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { motion } from '@/ui/motion/motion-tokens';
-import { PressScale } from '@/ui/motion/press-scale';
 import { Surface } from '@/ui/primitives/surface';
 import { Button } from '@/ui/primitives/button';
 import { Fab } from '@/ui/primitives/fab';
@@ -33,7 +32,6 @@ export default function ClientsListScreen() {
   const mutedFg = useMutedForegroundColor();
   const [filter, setFilter] = useState<ClientsFilter>('all');
   const [search, setSearch] = useState('');
-  const [outstandingOnly, setOutstandingOnly] = useState(false);
 
   const { data: allClients = [], isLoading, isError, refetch } = useClients(filter);
   const { data: statusMap } = useClientStatusMap();
@@ -51,7 +49,7 @@ export default function ClientsListScreen() {
       });
     }
     // Apply outstanding filter
-    if (outstandingOnly && outstandingIds) {
+    if (filter === 'outstanding' && outstandingIds) {
       list = list.filter((c) => outstandingIds.has(c.id));
     }
     // Apply text search
@@ -59,7 +57,7 @@ export default function ClientsListScreen() {
       list = list.filter((c) => matchesAny([c.displayName, c.addressCity], search));
     }
     return list;
-  }, [allClients, search, enabledStatuses, statusMap, outstandingOnly, outstandingIds]);
+  }, [allClients, search, enabledStatuses, statusMap, filter, outstandingIds]);
 
   return (
     <Surface className="flex-1">
@@ -79,22 +77,9 @@ export default function ClientsListScreen() {
           options={[
             { value: 'all', label: t('clients.filter_all') },
             { value: 'waiting', label: t('clients.filter_waiting') },
+            { value: 'outstanding', label: t('clients.filters.outstanding') },
           ]}
         />
-        <View className="flex-row gap-2">
-          <PressScale
-            onPress={() => setOutstandingOnly((v) => !v)}
-            accessibilityLabel={t('clients.filters.outstanding')}
-          >
-            <Surface
-              className={`rounded-full px-3 py-2 ${outstandingOnly ? 'bg-primary dark:bg-primary-dark' : 'border border-border dark:border-border-dark'}`}
-            >
-              <Text className={outstandingOnly ? 'text-primary-foreground dark:text-primary-dark-foreground text-xs font-medium' : 'text-xs font-medium'}>
-                {t('clients.filters.outstanding')}
-              </Text>
-            </Surface>
-          </PressScale>
-        </View>
       </View>
 
       {isError ? (
