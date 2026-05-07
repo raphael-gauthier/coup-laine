@@ -26,7 +26,7 @@ export async function fetchVersionConfig(
   platform: Platform,
   options: { signal?: AbortSignal } = {},
 ): Promise<VersionConfig | null> {
-  const url = `${env.versionCheckUrl}?platform=${platform}`;
+  const url = `${env.supabaseUrl}/functions/v1/version-check?platform=${platform}`;
 
   const internalCtrl = new AbortController();
   const timeoutId = setTimeout(() => internalCtrl.abort(), TIMEOUT_MS);

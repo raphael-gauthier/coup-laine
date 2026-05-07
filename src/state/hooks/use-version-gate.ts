@@ -37,25 +37,24 @@ export function useVersionGate(): GateState {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [platform, query.dataUpdatedAt]);
 
-  return useMemo<GateState>(() => {
-    // Web build or other non-mobile target → never gate.
+  const state = useMemo<GateState>(() => {
     if (!platform) return { kind: 'decided', decision: { kind: 'ok' } };
-
     if (query.isPending) return { kind: 'loading' };
 
     const result = query.data;
     if (!result || result.status === 'unavailable' || result.config === null) {
-      // Fail open.
-      Sentry.addBreadcrumb({
-        category: 'version-gate',
-        level: 'info',
-        message: 'version-gate.check.success',
-        data: { platform, installed, decision: 'ok-fail-open', fromCache: false },
-      });
       return { kind: 'decided', decision: { kind: 'ok' } };
     }
+    return {
+      kind: 'decided',
+      decision: evaluateVersionStatus(installed, result.config),
+    };
+  }, [platform, installed, query.isPending, query.data]);
 
-    const decision = evaluateVersionStatus(installed, result.config);
+  // Emit success breadcrumb once per decision change.
+  useEffect(() => {
+    if (state.kind !== 'decided' || !platform) return;
+    const result = query.data;
     Sentry.addBreadcrumb({
       category: 'version-gate',
       level: 'info',
@@ -63,11 +62,12 @@ export function useVersionGate(): GateState {
       data: {
         platform,
         installed,
-        latest: result.config.latestVersion,
-        decision: decision.kind,
-        fromCache: result.status === 'stale',
+        latest: result?.config?.latestVersion,
+        decision: state.decision.kind,
+        fromCache: result?.status === 'stale',
       },
     });
-    return { kind: 'decided', decision };
-  }, [platform, installed, query.isPending, query.data]);
+  }, [state, platform, installed, query.data]);
+
+  return state;
 }

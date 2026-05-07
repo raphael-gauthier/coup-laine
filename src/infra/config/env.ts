@@ -10,5 +10,4 @@ export const env = {
   supabaseAnonKey: required('EXPO_PUBLIC_SUPABASE_ANON_KEY', process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY),
   maptilerApiKey: required('EXPO_PUBLIC_MAPTILER_API_KEY', process.env.EXPO_PUBLIC_MAPTILER_API_KEY),
   orsBaseUrl: required('EXPO_PUBLIC_ORS_BASE_URL', process.env.EXPO_PUBLIC_ORS_BASE_URL),
-  versionCheckUrl: required('EXPO_PUBLIC_VERSION_CHECK_URL', process.env.EXPO_PUBLIC_VERSION_CHECK_URL),
 };

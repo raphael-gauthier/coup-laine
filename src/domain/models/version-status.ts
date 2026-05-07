@@ -18,4 +18,9 @@ export type VersionDecision =
       security: boolean;
       storeUrl: string;
     }
-  | { kind: 'force-update'; minSupported: string; storeUrl: string };
+  | {
+      kind: 'force-update';
+      minSupported: string;
+      security: boolean;
+      storeUrl: string;
+    };

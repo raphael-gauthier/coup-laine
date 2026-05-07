@@ -17,7 +17,7 @@ export function VersionGateProvider({ children }: { children: ReactNode }) {
 
   if (decision.kind === 'force-update') {
     return (
-      <ForceUpdateScreen storeUrl={decision.storeUrl} security={false} />
+      <ForceUpdateScreen storeUrl={decision.storeUrl} security={decision.security} />
     );
   }
 

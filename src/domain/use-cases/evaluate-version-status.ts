@@ -9,6 +9,7 @@ export function evaluateVersionStatus(
     return {
       kind: 'force-update',
       minSupported: config.minSupportedVersion,
+      security: config.securityFlag,
       storeUrl: config.storeUrl,
     };
   }

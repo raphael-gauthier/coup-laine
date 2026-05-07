@@ -39,8 +39,14 @@ describe('evaluateVersionStatus', () => {
     expect(evaluateVersionStatus('0.9.0', baseConfig)).toEqual({
       kind: 'force-update',
       minSupported: '0.10.0',
+      security: false,
       storeUrl: 'https://apps.apple.com/app/id123',
     });
+  });
+
+  it('propagates security flag on force-update', () => {
+    const decision = evaluateVersionStatus('0.9.0', { ...baseConfig, securityFlag: true });
+    expect(decision).toMatchObject({ kind: 'force-update', security: true });
   });
 
   it('treats malformed installed version as ok (fail-open)', () => {

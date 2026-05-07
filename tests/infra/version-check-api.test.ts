@@ -6,7 +6,6 @@ jest.mock('@/infra/config/env', () => ({
     supabaseAnonKey: 'anon-key',
     maptilerApiKey: 'maptiler-key',
     orsBaseUrl: 'https://test.supabase.co/functions/v1/ors-proxy',
-    versionCheckUrl: 'https://test.supabase.co/functions/v1/version-check',
   },
 }));
 

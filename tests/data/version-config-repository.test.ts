@@ -8,11 +8,14 @@ jest.mock('@/infra/config/env', () => ({
     supabaseAnonKey: 'anon-key',
     maptilerApiKey: 'maptiler-key',
     orsBaseUrl: 'https://test.supabase.co/functions/v1/ors-proxy',
-    versionCheckUrl: 'https://test.supabase.co/functions/v1/version-check',
   },
 }));
 
 jest.mock('expo-secure-store');
+
+jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
+}));
 
 const FRESH_CONFIG = {
   platform: 'ios' as const,
