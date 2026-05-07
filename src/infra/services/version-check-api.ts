@@ -1,7 +1,7 @@
 import { env } from '@/infra/config/env';
 import type { Platform, VersionConfig } from '@/domain/models/version-status';
 
-const TIMEOUT_MS = 3000;
+const TIMEOUT_MS = 8000;
 
 function isVersionConfig(x: unknown): x is VersionConfig {
   if (!x || typeof x !== 'object') return false;

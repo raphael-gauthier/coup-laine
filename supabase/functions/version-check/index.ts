@@ -84,6 +84,6 @@ serve(async (req: Request) => {
       storeUrl: data.store_url,
     },
     200,
-    { 'Cache-Control': 'public, max-age=300' },
+    { 'Cache-Control': 'public, max-age=60' },
   );
 });

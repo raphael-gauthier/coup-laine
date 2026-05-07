@@ -8,10 +8,12 @@ export function VersionGateProvider({ children }: { children: ReactNode }) {
   const gate = useVersionGate();
   const { loaded: snoozeLoaded, isSnoozed, snoozeFor } = useSoftUpdateSnooze();
 
-  // While the gate query is in-flight or the snooze record is loading, render
-  // nothing. The Expo splash screen is still visible, so the user sees a
-  // single static splash instead of a flash of UI.
-  if (gate.kind === 'loading' || !snoozeLoaded) return null;
+  // While the snooze record is loading (a fast SecureStore read), render
+  // nothing. We don't block on the gate query though — the network call can
+  // take seconds on cold start and we don't want a black screen after the
+  // splash hides. If a force-update decision arrives later, we swap the UI.
+  if (!snoozeLoaded) return null;
+  if (gate.kind === 'loading') return <>{children}</>;
 
   const decision = gate.decision;
 
