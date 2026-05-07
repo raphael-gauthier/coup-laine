@@ -490,8 +490,7 @@
       "cta": {
         "update": "Mettre à jour",
         "export": "Exporter mes données",
-        "deleteAccount": "Supprimer mon compte",
-        "signInToManageData": "Connectez-vous pour gérer vos données."
+        "deleteAccount": "Supprimer mon compte"
       },
       "yourData": "Vos données"
     },

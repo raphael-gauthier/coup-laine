@@ -79,34 +79,27 @@ export function ForceUpdateScreen({ storeUrl, security }: Props) {
             {t('versionGate.force.cta.update')}
           </Button>
 
-          <View className="w-full gap-3 mt-8">
-            <Text variant="muted" className="text-sm uppercase tracking-wide">
-              {t('versionGate.force.yourData')}
-            </Text>
-
-            {isLoggedIn ? (
-              <>
-                <Button
-                  variant="secondary"
-                  onPress={handleExport}
-                  loading={exportData.isPending}
-                >
-                  {t('versionGate.force.cta.export')}
-                </Button>
-                <Button
-                  variant="ghost"
-                  onPress={() => setDeleteDialogOpen(true)}
-                  loading={deleteAccount.isPending}
-                >
-                  {t('versionGate.force.cta.deleteAccount')}
-                </Button>
-              </>
-            ) : (
-              <Text variant="muted" className="text-sm">
-                {t('versionGate.force.cta.signInToManageData')}
+          {isLoggedIn && (
+            <View className="w-full gap-3 mt-8">
+              <Text variant="muted" className="text-sm uppercase tracking-wide">
+                {t('versionGate.force.yourData')}
               </Text>
-            )}
-          </View>
+              <Button
+                variant="secondary"
+                onPress={handleExport}
+                loading={exportData.isPending}
+              >
+                {t('versionGate.force.cta.export')}
+              </Button>
+              <Button
+                variant="ghost"
+                onPress={() => setDeleteDialogOpen(true)}
+                loading={deleteAccount.isPending}
+              >
+                {t('versionGate.force.cta.deleteAccount')}
+              </Button>
+            </View>
+          )}
         </View>
       </ScrollView>
 
