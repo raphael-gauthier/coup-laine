@@ -482,6 +482,29 @@
       "app_version": "Version de l'app : {{version}}"
     }
   },
+  "versionGate": {
+    "force": {
+      "title": "Mise à jour requise",
+      "subtitle": "Cette version n'est plus prise en charge. Mettez à jour pour continuer.",
+      "securityNote": "Cette mise à jour corrige un problème de sécurité.",
+      "cta": {
+        "update": "Mettre à jour",
+        "export": "Exporter mes données",
+        "deleteAccount": "Supprimer mon compte",
+        "signInToManageData": "Connectez-vous pour gérer vos données."
+      },
+      "yourData": "Vos données"
+    },
+    "soft": {
+      "title": "Une mise à jour est disponible",
+      "securityNote": "⚠️ Mise à jour de sécurité recommandée.",
+      "fallbackNotes": "Quelques améliorations et correctifs.",
+      "cta": {
+        "update": "Mettre à jour",
+        "later": "Plus tard"
+      }
+    }
+  },
   "cloud": {
     "row_label": "Cloud",
     "row_hint_logged_out": "Connecte-toi pour sauvegarder tes données.",
