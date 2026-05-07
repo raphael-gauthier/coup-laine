@@ -3,7 +3,7 @@
     "name": "Coup'Laine",
     "slug": "coupe-laine",
     "description": "Compagnon quotidien du tondeur de mouton.",
-    "version": "0.10.1",
+    "version": "0.11.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "couplaine",
@@ -32,7 +32,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "fr.raphaelgauthier.couplaine",
-      "versionCode": 6,
+      "versionCode": 7,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
