@@ -467,6 +467,7 @@
   },
   "statuses": {
     "screen_title": "Statuts",
+    "row_hint": "Libellés, couleurs et statuts personnalisés",
     "section_system": "Statuts système",
     "section_manual": "Mes statuts",
     "new_status": "Nouveau statut",

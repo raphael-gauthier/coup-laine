@@ -54,6 +54,7 @@ export default function SettingsScreen() {
         <SectionHeader title={t('settings.section_map')} />
         <SettingsRow
           label={t('statuses.screen_title')}
+          hint={t('statuses.row_hint')}
           onPress={() => router.push('/(tabs)/settings/statuses' as never)}
         />
 
