@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { View, Platform } from 'react-native';
+import { TextInput, View, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GripVertical, Trash2, Plus, ChevronRight, AlertTriangle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { PressScale } from '@/ui/motion/press-scale';
 import { formatMinutes } from '@/lib/format-minutes';
 import { DraggableList } from '@/ui/components/draggable-list';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
+import { ScheduleTourSheet } from '@/ui/components/schedule-tour-sheet';
 import { confirm } from '@/ui/components/confirm-dialog';
 import { TourMapPreview, type PreviewStop } from '@/ui/components/tour-map-preview';
 import { useClients } from '@/state/queries/clients';
@@ -20,7 +21,7 @@ import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
 import { computeClientTravelFee } from '@/domain/use-cases/compute-client-travel-fee';
 import { useBaseAddress, useAllSettings } from '@/state/queries/settings';
-import { useForegroundColor } from '@/ui/theme/colors';
+import { useForegroundColor, useOnContrastColor } from '@/ui/theme/colors';
 import type { TourStatus } from '@/domain/models/tour';
 import type { TourStopService } from '@/domain/models/tour-stop-service';
 
@@ -33,18 +34,27 @@ export interface DraftStop {
 
 interface Props {
   initialStops: DraftStop[];
-  initialDate?: string;
-  initialTime?: string;
+  initialDate?: string | null;
+  initialTime?: string | null;
+  initialTitle?: string | null;
   initialId?: string;
+  tourStatus?: TourStatus;            // 'draft' | 'planned' | 'completed' — default 'draft'
   saving?: boolean;
-  onSubmit: (input: {
-    scheduledDate: string;
-    departureTime: string;
-    status: TourStatus;
+  onSaveDraft?: (input: {
+    title: string | null;
     stops: DraftStop[];
     totalDistanceKm: number;
     totalMinutes: number;
   }) => void;
+  onSchedule: (input: {
+    title: string | null;
+    scheduledDate: string;
+    departureTime: string;
+    stops: DraftStop[];
+    totalDistanceKm: number;
+    totalMinutes: number;
+  }) => void;
+  onDelete?: () => void;             // visible only when status='draft' AND initialId is present
   onAddClients: () => void;
   onRemoveStop: (clientId: string) => void;
   onReorderStops: (next: DraftStop[]) => void;
@@ -55,20 +65,24 @@ const DEFAULT_BRACKET_KM = 10;
 const DEFAULT_FEE_PER_BRACKET = 8;
 
 export function TourDraftEditor({
-  initialStops, initialDate, initialTime,
-  saving, onSubmit, onAddClients, onRemoveStop, onReorderStops, onUpdateStopServices,
+  initialStops, initialDate, initialTime, initialTitle, initialId,
+  tourStatus = 'draft',
+  saving, onSaveDraft, onSchedule, onDelete,
+  onAddClients, onRemoveStop, onReorderStops, onUpdateStopServices,
 }: Props) {
   const { t } = useTranslation();
-  const today = new Date();
-  const [date, setDate] = useState<Date>(initialDate ? parseISO(initialDate) : today);
-  const [time, setTime] = useState(initialTime ?? '08:00');
+  const [title, setTitle] = useState<string | null>(initialTitle ?? null);
+  const [date, setDate] = useState<Date | null>(initialDate ? parseISO(initialDate) : null);
+  const [time, setTime] = useState<string | null>(initialTime ?? null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [scheduleSheetVisible, setScheduleSheetVisible] = useState(false);
 
   const { data: clients = [] } = useClients('all');
   const { data: base } = useBaseAddress();
   const { data: allSettings } = useAllSettings();
   const fg = useForegroundColor();
+  const onContrast = useOnContrastColor();
   const bracketKm = parseFloat(allSettings?.tour_bracket_km ?? '') || DEFAULT_BRACKET_KM;
   const feePerBracket = parseFloat(allSettings?.tour_fee_eur_per_bracket ?? '') || DEFAULT_FEE_PER_BRACKET;
   const [pickerClientId, setPickerClientId] = useState<string | null>(null);
@@ -107,7 +121,7 @@ export function TourDraftEditor({
   const arrivals = useMemo(
     () =>
       estimateTourArrivals({
-        departureTime: time,
+        departureTime: time ?? '08:00',
         stops: initialStops.map((s) => ({
           clientId: s.clientId,
           plannedServices: s.plannedServices,
@@ -147,7 +161,7 @@ export function TourDraftEditor({
     [perStopFeeCents]
   );
 
-  const submit = async () => {
+  const submitSchedule = async (scheduledDate: string, departureTime: string) => {
     if (initialStops.length === 0) return;
     const stopsWithoutServices = initialStops.filter((s) => s.plannedServices.length === 0);
     if (stopsWithoutServices.length > 0) {
@@ -159,10 +173,10 @@ export function TourDraftEditor({
       });
       if (!ok) return;
     }
-    onSubmit({
-      scheduledDate: format(date, 'yyyy-MM-dd'),
-      departureTime: time,
-      status: 'planned',
+    onSchedule({
+      title,
+      scheduledDate,
+      departureTime,
       stops: initialStops.map((s) => ({
         ...s,
         clientNameSnapshot: clientsById.get(s.clientId)?.displayName ?? null,
@@ -170,6 +184,37 @@ export function TourDraftEditor({
       totalDistanceKm,
       totalMinutes,
     });
+  };
+
+  const submitDraft = () => {
+    if (initialStops.length === 0) return;
+    if (!onSaveDraft) return;
+    onSaveDraft({
+      title,
+      stops: initialStops.map((s) => ({
+        ...s,
+        clientNameSnapshot: clientsById.get(s.clientId)?.displayName ?? null,
+      })),
+      totalDistanceKm,
+      totalMinutes,
+    });
+  };
+
+  const onConfirmSchedule = (input: { scheduledDate: string; departureTime: string }) => {
+    setScheduleSheetVisible(false);
+    void submitSchedule(input.scheduledDate, input.departureTime);
+  };
+
+  const onDeletePress = async () => {
+    if (!onDelete) return;
+    const ok = await confirm({
+      title: t('tours.delete_draft_confirm_title'),
+      message: t('tours.delete_draft_confirm_message'),
+      confirmLabel: t('common.delete'),
+      cancelLabel: t('common.cancel'),
+      destructive: true,
+    });
+    if (ok) onDelete();
   };
 
   const previewStops = useMemo<PreviewStop[]>(() => {
@@ -188,59 +233,77 @@ export function TourDraftEditor({
 
   const Header = (
     <View style={{ gap: 16, paddingTop: 16, paddingBottom: 8 }}>
+      {tourStatus === 'draft' ? (
+        <View className="gap-2">
+          <Text className="text-sm font-medium">{t('tours.title_label')}</Text>
+          <TextInput
+            value={title ?? ''}
+            onChangeText={(v) => setTitle(v.length > 0 ? v : null)}
+            placeholder={t('tours.title_placeholder')}
+            className="rounded-2xl px-4 py-3 bg-muted dark:bg-muted-dark"
+            style={{ color: fg }}
+            placeholderTextColor="#5C4E40"
+          />
+        </View>
+      ) : null}
+
       {base && previewStops.length > 0 ? (
         <TourMapPreview base={{ lat: base.lat, lon: base.lon }} stops={previewStops} />
       ) : null}
 
-      <View className="gap-2">
-        <Text className="text-sm font-medium">{t('tours.scheduled_date')}</Text>
-        <PressScale
-          onPress={() => setShowDatePicker(true)}
-          accessibilityLabel={t('tours.scheduled_date')}
-        >
-          <Surface variant="muted" className="rounded-2xl px-4 py-3">
-            <Text>{format(date, 'PPPP', { locale: fr })}</Text>
-          </Surface>
-        </PressScale>
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            onChange={(_, d) => {
-              setShowDatePicker(Platform.OS === 'ios');
-              if (d) setDate(d);
-            }}
-          />
-        )}
-      </View>
+      {tourStatus !== 'draft' ? (
+        <>
+          <View className="gap-2">
+            <Text className="text-sm font-medium">{t('tours.scheduled_date')}</Text>
+            <PressScale
+              onPress={() => setShowDatePicker(true)}
+              accessibilityLabel={t('tours.scheduled_date')}
+            >
+              <Surface variant="muted" className="rounded-2xl px-4 py-3">
+                <Text>{date ? format(date, 'PPPP', { locale: fr }) : t('tours.title_placeholder')}</Text>
+              </Surface>
+            </PressScale>
+            {showDatePicker ? (
+              <DateTimePicker
+                value={date ?? new Date()}
+                mode="date"
+                onChange={(_, d) => {
+                  setShowDatePicker(Platform.OS === 'ios');
+                  if (d) setDate(d);
+                }}
+              />
+            ) : null}
+          </View>
 
-      <View className="gap-2">
-        <Text className="text-sm font-medium">{t('tours.departure_time')}</Text>
-        <PressScale
-          onPress={() => setShowTimePicker(true)}
-          accessibilityLabel={t('tours.departure_time')}
-        >
-          <Surface variant="muted" className="rounded-2xl px-4 py-3">
-            <Text>{time}</Text>
-          </Surface>
-        </PressScale>
-        {showTimePicker && (
-          <DateTimePicker
-            value={(() => {
-              const [h, m] = time.split(':').map(Number);
-              const d = new Date();
-              d.setHours(h ?? 0, m ?? 0, 0, 0);
-              return d;
-            })()}
-            mode="time"
-            is24Hour
-            onChange={(_, d) => {
-              setShowTimePicker(Platform.OS === 'ios');
-              if (d) setTime(format(d, 'HH:mm'));
-            }}
-          />
-        )}
-      </View>
+          <View className="gap-2">
+            <Text className="text-sm font-medium">{t('tours.departure_time')}</Text>
+            <PressScale
+              onPress={() => setShowTimePicker(true)}
+              accessibilityLabel={t('tours.departure_time')}
+            >
+              <Surface variant="muted" className="rounded-2xl px-4 py-3">
+                <Text>{time ?? t('tours.title_placeholder')}</Text>
+              </Surface>
+            </PressScale>
+            {showTimePicker ? (
+              <DateTimePicker
+                value={(() => {
+                  const [h, m] = (time ?? '08:00').split(':').map(Number);
+                  const d = new Date();
+                  d.setHours(h ?? 0, m ?? 0, 0, 0);
+                  return d;
+                })()}
+                mode="time"
+                is24Hour
+                onChange={(_, d) => {
+                  setShowTimePicker(Platform.OS === 'ios');
+                  if (d) setTime(format(d, 'HH:mm'));
+                }}
+              />
+            ) : null}
+          </View>
+        </>
+      ) : null}
 
       <Surface variant="muted" className="rounded-2xl px-4 py-3">
         <View className="flex-row justify-between">
@@ -270,6 +333,17 @@ export function TourDraftEditor({
         </Button>
       </View>
       <Text variant="muted" className="text-xs">{t('tours.reorder_hint')}</Text>
+
+      {tourStatus === 'draft' && initialId && onDelete ? (
+        <Button
+          variant="danger"
+          onPress={() => void onDeletePress()}
+          accessibilityLabel={t('tours.delete_draft_cta')}
+        >
+          <Trash2 size={16} color={onContrast} />
+          <Text variant="onPrimary" className="font-semibold">{t('tours.delete_draft_cta')}</Text>
+        </Button>
+      ) : null}
     </View>
   );
 
@@ -350,13 +424,25 @@ export function TourDraftEditor({
       }}
     />
     </View>
-    <View className="px-4 pt-3 pb-6 border-t border-border dark:border-border-dark bg-background dark:bg-background-dark">
+    <View className="px-4 pt-3 pb-6 border-t border-border dark:border-border-dark bg-background dark:bg-background-dark flex-row gap-2">
+      {tourStatus === 'draft' && onSaveDraft ? (
+        <Button
+          variant="secondary"
+          className="flex-1"
+          onPress={submitDraft}
+          disabled={initialStops.length === 0 || saving}
+          accessibilityLabel={t('tours.save_as_draft')}
+        >
+          <Text className="font-semibold">{t('tours.save_as_draft')}</Text>
+        </Button>
+      ) : null}
       <Button
-        onPress={() => void submit()}
-        loading={saving}
+        className="flex-1"
+        onPress={() => setScheduleSheetVisible(true)}
         disabled={initialStops.length === 0 || saving}
+        accessibilityLabel={t('tours.schedule_cta')}
       >
-        {t('common.save')}
+        <Text variant="onPrimary" className="font-semibold">{t('tours.schedule_cta')}</Text>
       </Button>
     </View>
     {pickerClientId && pickerClient ? (
@@ -374,6 +460,13 @@ export function TourDraftEditor({
         onClose={() => setPickerClientId(null)}
       />
     ) : null}
+    <ScheduleTourSheet
+      visible={scheduleSheetVisible}
+      initialDate={date}
+      initialTime={time}
+      onClose={() => setScheduleSheetVisible(false)}
+      onConfirm={onConfirmSchedule}
+    />
     </>
   );
 }
