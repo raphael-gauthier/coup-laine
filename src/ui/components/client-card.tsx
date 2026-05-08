@@ -6,12 +6,10 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { haptics } from '@/ui/motion/haptics';
 import type { Client } from '@/domain/models/client';
-import { useClientStatusMap } from '@/state/queries/clients';
+import { useDisplayedStatusMap } from '@/state/queries/clients';
 import { useSpecies, useAnimalCategories } from '@/state/queries/species';
-import { useAllSettings } from '@/state/queries/settings';
-import { clientStatusColor } from '@/lib/client-status-color';
+import { useResolvedColorScheme } from '@/ui/theme/theme-provider';
 import { formatAnimalCountsBySpecies } from '@/lib/animal-counts-summary';
-import { cn } from '@/lib/cn';
 
 interface Props {
   client: Client;
@@ -22,12 +20,12 @@ interface Props {
 
 export function ClientCard({ client, onPress, onToggleWaiting, distanceKm }: Props) {
   const { t } = useTranslation();
-  const { data: statusMap } = useClientStatusMap();
-  const { data: settings } = useAllSettings();
+  const { data: statusMap } = useDisplayedStatusMap();
+  const scheme = useResolvedColorScheme();
   const { data: species = [] } = useSpecies();
   const { data: categories = [] } = useAnimalCategories();
-  const status = statusMap?.get(client.id) ?? 'default';
-  const colors = clientStatusColor(status, settings as Record<string, string | null>);
+  const status = statusMap?.get(client.id);
+  const hex = status ? (scheme === 'dark' ? status.colorDark : status.colorLight) : '#94A3B8';
   const animalsText = formatAnimalCountsBySpecies(client.animalCounts, species, categories);
   const addressLine = [client.addressPostcode, client.addressCity].filter(Boolean).join(' ');
 
@@ -43,11 +41,7 @@ export function ClientCard({ client, onPress, onToggleWaiting, distanceKm }: Pro
         variant="muted"
         className="flex-row items-center rounded-2xl px-4 py-3 gap-3"
       >
-        {colors.bgHex ? (
-          <View style={{ width: 4, height: 56, borderRadius: 2, backgroundColor: colors.bgHex }} />
-        ) : (
-          <View className={cn('w-1 h-14 rounded-full', colors.bgClass)} />
-        )}
+        <View style={{ width: 4, height: 56, borderRadius: 2, backgroundColor: hex }} />
         <View className="flex-1">
           <Text className="font-semibold" numberOfLines={1}>{client.displayName}</Text>
           {addressLine ? (
