@@ -23,6 +23,7 @@ function newClient(id: string, overrides: Partial<{ displayName: string; isWaiti
     animalCounts: [{ categoryId: 'cat1', count: 5 }],
     markerColorHex: '#ff0000',
     anonymizedAt: null,
+    manualStatusId: null,
     createdAt: NOW,
     updatedAt: NOW,
   };

@@ -38,6 +38,7 @@ const sample = (over: Partial<Record<string, unknown>> = {}) => ({
   animalCounts: [],
   markerColorHex: null,
   anonymizedAt: null,
+  manualStatusId: null,
   createdAt: NOW,
   updatedAt: NOW,
   ...over,

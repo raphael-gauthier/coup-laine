@@ -17,6 +17,7 @@ export const Client = z.object({
   animalCounts: AnimalCountList,
   markerColorHex: z.string().nullable(),
   anonymizedAt: z.string().nullable(),
+  manualStatusId: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

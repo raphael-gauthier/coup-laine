@@ -22,6 +22,7 @@ const sample = {
   animalCounts: [{ categoryId: 'sheep-adult', count: 12 }],
   markerColorHex: null,
   anonymizedAt: null,
+  manualStatusId: null,
   createdAt: NOW,
   updatedAt: NOW,
 };
@@ -109,7 +110,7 @@ describe('ClientRepository.listClientIdsWithOutstanding', () => {
         latitude: null, longitude: null,
         isWaiting: false, isBanned: false, needsDistanceRecompute: false,
         lastShearingDate: null, animalCounts: [], markerColorHex: null,
-        anonymizedAt: null, createdAt: 'x', updatedAt: 'x',
+        anonymizedAt: null, manualStatusId: null, createdAt: 'x', updatedAt: 'x',
       });
     }
 

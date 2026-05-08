@@ -20,6 +20,7 @@ const baseClient: Client = {
   animalCounts: [{ categoryId: 'cat1', count: 5 }],
   markerColorHex: '#ff0000',
   anonymizedAt: null,
+  manualStatusId: null,
   createdAt: '2025-01-01T00:00:00.000Z',
   updatedAt: '2025-06-15T00:00:00.000Z',
 };

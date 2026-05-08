@@ -85,6 +85,7 @@ export function useUpsertClient() {
         animalCounts: input.animalCounts,
         markerColorHex: existing?.markerColorHex ?? null,
         anonymizedAt: existing?.anonymizedAt ?? null,
+        manualStatusId: existing?.manualStatusId ?? null,
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       };

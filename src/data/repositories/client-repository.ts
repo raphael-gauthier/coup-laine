@@ -21,6 +21,7 @@ function toRow(c: Client) {
     animalCounts: JSON.stringify(c.animalCounts),
     markerColorHex: c.markerColorHex,
     anonymizedAt: c.anonymizedAt,
+    manualStatusId: c.manualStatusId,
     createdAt: c.createdAt,
     updatedAt: c.updatedAt,
   };
@@ -42,6 +43,7 @@ interface ClientRow {
   animalCounts: string;
   markerColorHex: string | null;
   anonymizedAt: string | null;
+  manualStatusId: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -55,6 +57,7 @@ function fromRow(r: ClientRow): Client {
     needsDistanceRecompute: r.needsDistanceRecompute === 1,
     animalCounts: JSON.parse(r.animalCounts),
     anonymizedAt: r.anonymizedAt,
+    manualStatusId: r.manualStatusId,
   });
 }
 
@@ -106,6 +109,13 @@ export class ClientRepository {
     await this.db
       .update(clients)
       .set({ isBanned: isBanned ? 1 : 0, updatedAt })
+      .where(eq(clients.id, id));
+  }
+
+  async setManualStatus(id: string, statusId: string | null, updatedAt: string): Promise<void> {
+    await this.db
+      .update(clients)
+      .set({ manualStatusId: statusId, updatedAt })
       .where(eq(clients.id, id));
   }
 
