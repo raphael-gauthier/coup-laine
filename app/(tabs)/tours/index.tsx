@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
-import { Plus, Route as RouteIcon } from 'lucide-react-native';
+import { Plus, Route as RouteIcon, FileText } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { motion } from '@/ui/motion/motion-tokens';
@@ -20,7 +20,7 @@ import { useTours } from '@/state/queries/tours';
 import type { TourStatus } from '@/domain/models/tour';
 import { useMutedForegroundColor } from '@/ui/theme/colors';
 
-type Filter = 'planned' | 'completed';
+type Filter = 'draft' | 'planned' | 'completed';
 
 export default function ToursListScreen() {
   const { t } = useTranslation();
@@ -33,6 +33,25 @@ export default function ToursListScreen() {
 
   const closeSheet = () => setCreateSheetVisible(false);
 
+  const renderEmpty = () => {
+    if (filter === 'draft') {
+      return (
+        <EmptyState
+          icon={<FileText size={48} color={mutedFg} />}
+          title={t('tours.draft_empty_title')}
+          message={t('tours.draft_empty_message')}
+        />
+      );
+    }
+    return (
+      <EmptyState
+        icon={<RouteIcon size={48} color={mutedFg} />}
+        title={t('tours.empty_filtered_title')}
+        message={t('tours.empty_filtered_message')}
+      />
+    );
+  };
+
   return (
     <Surface className="flex-1">
       <ScreenHeader variant="root" title={t('tours.list_title')} />
@@ -42,7 +61,8 @@ export default function ToursListScreen() {
           value={filter}
           onChange={setFilter}
           options={[
-            { value: 'planned', label: t('tours.filter_planned') },
+            { value: 'draft',     label: t('tours.filter_draft') },
+            { value: 'planned',   label: t('tours.filter_planned') },
             { value: 'completed', label: t('tours.filter_completed') },
           ]}
         />
@@ -53,11 +73,7 @@ export default function ToursListScreen() {
       ) : isLoading ? (
         <ListSkeleton />
       ) : tours.length === 0 ? (
-        <EmptyState
-          icon={<RouteIcon size={48} color={mutedFg} />}
-          title={t('tours.empty_filtered_title')}
-          message={t('tours.empty_filtered_message')}
-        />
+        renderEmpty()
       ) : (
         <FlashList
           data={tours}

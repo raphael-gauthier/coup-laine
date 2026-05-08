@@ -70,7 +70,7 @@ export default function ClientDetailScreen() {
         if (s.clientId !== id) continue;
         if (!s.completedAt) continue;
         if (s.payment.isPaid) continue;
-        out.push({ stop: s, tourId: tour.id, scheduledDate: tour.scheduledDate });
+        out.push({ stop: s, tourId: tour.id, scheduledDate: tour.scheduledDate ?? '' });
       }
     }
     return out;
