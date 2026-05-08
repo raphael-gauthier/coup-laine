@@ -10,10 +10,13 @@ import { computeClientKpis } from '@/domain/use-cases/compute-client-kpis';
 import { computeTourKpis } from '@/domain/use-cases/compute-tour-kpis';
 import { computeServiceKpis } from '@/domain/use-cases/compute-service-kpis';
 import { computeMapKpis } from '@/domain/use-cases/compute-map-kpis';
-import { computeClientStatus, type ClientStatus } from '@/domain/use-cases/client-status';
+import { computeClientStatus } from '@/domain/use-cases/client-status';
+import { resolveDisplayedStatus } from '@/domain/use-cases/resolve-displayed-status';
 import { computeClientTravelFee } from '@/domain/use-cases/compute-client-travel-fee';
 import { resolveBaseDistance } from '@/domain/use-cases/resolve-base-distance';
 import { animalsTotal } from '@/lib/animals-total';
+import type { Status, SystemStatusKey } from '@/domain/models/status';
+import { StatusRepository } from '@/data/repositories/status-repository';
 
 const clientRepo = new ClientRepository(db);
 const tourRepo = new TourRepository(db);
@@ -142,9 +145,8 @@ export function useMapKpis() {
   return useQuery({
     queryKey: kpisKeys.map,
     queryFn: async () => {
-      const clients = await clientRepo.listAll();
+      const clientsList = await clientRepo.listAll();
       const seasonStartedAt = (await settingsRepo.get('season_started_at')) ?? '2025-05-01';
-      // Build maps of completed/planned tour dates per client
       const completed = await tourRepo.listByStatus('completed');
       const planned = await tourRepo.listByStatus('planned');
       const completedByClient = new Map<string, string[]>();
@@ -163,9 +165,26 @@ export function useMapKpis() {
           plannedByClient.set(s.clientId, arr);
         }
       }
-      const statusByClientId = new Map<string, ClientStatus>();
-      for (const c of clients) {
-        const status = computeClientStatus({
+
+      const statusRepo = new StatusRepository(db);
+      const allStatuses = await statusRepo.list();
+      const bySys = new Map<string, Status>();
+      const byId = new Map<string, Status>();
+      for (const s of allStatuses) {
+        if (s.systemKey) bySys.set(s.systemKey, s);
+        byId.set(s.id, s);
+      }
+      const registry = {
+        bySystemKey: (k: SystemStatusKey): Status => {
+          const r = bySys.get(k);
+          if (!r) throw new Error(`System status missing: ${k}`);
+          return r;
+        },
+        byId: (id: string): Status | null => byId.get(id) ?? null,
+      };
+      const statusByClientId = new Map<string, Status>();
+      for (const c of clientsList) {
+        const sysKey = computeClientStatus({
           isBanned: c.isBanned,
           isWaiting: c.isWaiting,
           animalsTotal: animalsTotal(c.animalCounts),
@@ -173,7 +192,7 @@ export function useMapKpis() {
           completedTourDates: completedByClient.get(c.id) ?? [],
           plannedTourDates: plannedByClient.get(c.id) ?? [],
         });
-        statusByClientId.set(c.id, status);
+        statusByClientId.set(c.id, resolveDisplayedStatus({ manualStatusId: c.manualStatusId }, sysKey, registry));
       }
       return computeMapKpis({ statusByClientId });
     },

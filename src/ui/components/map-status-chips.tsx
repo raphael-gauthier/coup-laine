@@ -18,13 +18,10 @@ const CHEVRON_HEX = { light: '#5C4E40', dark: '#B4A490' };
 export function MapStatusChips() {
   const { t } = useTranslation();
   const { activeFilter, setFilter } = useMapFiltersStore();
-  const { data: kpisRaw } = useMapKpis();
+  const { data: kpis } = useMapKpis();
   const { data: registry } = useStatusRegistry();
   const scheme = useResolvedColorScheme();
   const bgHex = BG_HEX[scheme];
-
-  // TODO(T22): proper typing comes from useMapKpis refactor
-  const kpis = kpisRaw as unknown as Map<string, number> | undefined;
 
   const all = registry?.list ?? [];
   const total = all.reduce((acc, s) => acc + (kpis?.get(s.id) ?? 0), 0);

@@ -1,26 +1,15 @@
-import type { ClientStatus } from './client-status';
+import type { Status } from '@/domain/models/status';
 
 interface Input {
-  statusByClientId: Map<string, ClientStatus>;
+  statusByClientId: Map<string, Status>;
 }
 
-export interface MapKpis {
-  total: number;
-  default: number;
-  waiting: number;
-  scheduled: number;
-  done: number;
-  noAnimals: number;
-  banned: number;
-}
+export type MapKpis = Map<string, number>;
 
 export function computeMapKpis({ statusByClientId }: Input): MapKpis {
-  const result: MapKpis = {
-    total: statusByClientId.size,
-    default: 0, waiting: 0, scheduled: 0, done: 0, noAnimals: 0, banned: 0,
-  };
+  const out = new Map<string, number>();
   for (const status of statusByClientId.values()) {
-    result[status]++;
+    out.set(status.id, (out.get(status.id) ?? 0) + 1);
   }
-  return result;
+  return out;
 }
