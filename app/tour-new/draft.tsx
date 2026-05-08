@@ -34,7 +34,7 @@ export default function NewTourDraftScreen() {
 
   useEffect(() => {
     if (picked.length === 0) {
-      router.push('/(tabs)/tours/new/pick-clients' as never);
+      router.push('/tour-new/pick-clients' as never);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -45,7 +45,7 @@ export default function NewTourDraftScreen() {
       <TourDraftEditor
         initialStops={stops}
         saving={upsert.isPending}
-        onAddClients={() => router.push('/(tabs)/tours/new/pick-clients' as never)}
+        onAddClients={() => router.push('/tour-new/pick-clients' as never)}
         onRemoveStop={toggle}
         onReorderStops={(next) => setOrder(next.map((s) => s.clientId))}
         onUpdateStopServices={setStopServices}

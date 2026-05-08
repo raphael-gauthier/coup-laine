@@ -91,11 +91,11 @@ export default function ToursListScreen() {
         onClose={closeSheet}
         onPickManual={() => {
           closeSheet();
-          router.push('/(tabs)/tours/new/draft' as never);
+          router.push('/tour-new/draft' as never);
         }}
         onPickOptimized={() => {
           closeSheet();
-          router.push('/(tabs)/tours/new/optimized-config' as never);
+          router.push('/tour-new/optimized-config' as never);
         }}
       />
     </Surface>

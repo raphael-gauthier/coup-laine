@@ -65,7 +65,7 @@ export default function EditTourScreen() {
         initialTime={data.tour.departureTime}
         initialStops={stops}
         saving={upsert.isPending}
-        onAddClients={() => router.push('/(tabs)/tours/new/pick-clients' as never)}
+        onAddClients={() => router.push('/tour-new/pick-clients' as never)}
         onRemoveStop={toggle}
         onReorderStops={(next) => setOrder(next.map((s) => s.clientId))}
         onUpdateStopServices={setStopServices}

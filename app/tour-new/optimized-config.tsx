@@ -121,7 +121,7 @@ export default function OptimizedConfigScreen() {
       });
       reset();
       setOrder(orderedIds);
-      router.push('/(tabs)/tours/new/draft' as never);
+      router.push('/tour-new/draft' as never);
     } catch (err) {
       void haptics.error();
       setErrorMsg(

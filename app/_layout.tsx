@@ -99,6 +99,7 @@ function App() {
             <Stack.Screen name="index" />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="onboarding" options={{ headerShown: false, animation: 'fade' }} />
+            <Stack.Screen name="tour-new" options={{ headerShown: false }} />
             <Stack.Screen name="auth" options={{ headerShown: false, presentation: 'modal' }} />
           </Stack>
         </VersionGateProvider>
