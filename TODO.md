@@ -14,6 +14,9 @@ PDF facture par client par tournée. Reportée : pas de plan court terme.
 Le `priceCentsSnapshot` sur `TourStopPrestation` (livré en #6) servira de
 source quand le sujet sera repris.
 
+### 8. Système de tutorial et d'aide — priorité moyenne
+Aider les nouveaux utilisateurs à prendre en main l'app : onboarding contextuel, tooltips, écran d'aide, ou parcours guidé pour les flows clés (création client, planification de tournée, complétion, catalogue de prestations, sauvegarde cloud). Périmètre exact à cadrer en spec.
+
 ---
 
 ## Livrées
