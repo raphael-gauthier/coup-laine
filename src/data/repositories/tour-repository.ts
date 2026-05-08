@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import { tours, tourStops } from '@/infra/db/schema';
 import type { Db } from '@/infra/db/client';
 import { Tour, type TourStatus } from '@/domain/models/tour';
@@ -135,7 +135,19 @@ export class TourRepository {
   }
 
   async listByStatus(status: TourStatus): Promise<TourWithStops[]> {
-    const tRows = await this.db.select().from(tours).where(eq(tours.status, status));
+    const orderColumn = (() => {
+      switch (status) {
+        case 'draft':     return desc(tours.updatedAt);
+        case 'planned':   return asc(tours.scheduledDate);
+        case 'completed': return desc(tours.scheduledDate);
+      }
+    })();
+    const tRows = await this.db
+      .select()
+      .from(tours)
+      .where(eq(tours.status, status))
+      .orderBy(orderColumn);
+
     const result: TourWithStops[] = [];
     for (const tr of tRows) {
       const sRows = await this.db
