@@ -1,8 +1,8 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
-import { Search, ChevronRight, X, Route as RouteIcon } from 'lucide-react-native';
+import { Search, ChevronRight, X, Route as RouteIcon, Crosshair } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -15,6 +15,7 @@ import { EmptyState } from '@/ui/components/empty-state';
 import { Map, type MapHandle } from '@/ui/components/map';
 import { ClientPin } from '@/ui/components/client-pin';
 import { ClientCard } from '@/ui/components/client-card';
+import { ClientPinPopup } from '@/ui/components/client-pin-popup';
 import { ProximityCircle } from '@/ui/components/proximity-circle';
 import { PressScale } from '@/ui/motion/press-scale';
 import { useClients, useClient, useToggleWaiting } from '@/state/queries/clients';
@@ -37,6 +38,7 @@ export default function ProximityScreen() {
   const mutedFg = useMutedForegroundColor();
   const { data: base } = useBaseAddress();
   const propose = useProposeOptimizedTour();
+  const [selectedClient, setSelectedClient] = useState<GeoClient | null>(null);
 
   const nearby = useMemo(() => {
     if (!pivot || pivot.latitude == null || pivot.longitude == null) return [];
@@ -195,19 +197,42 @@ export default function ProximityScreen() {
               radiusKm={radiusKm}
             />
             <ClientPin
-              client={pivot as typeof pivot & { latitude: number; longitude: number }}
-              onPress={() => router.push(`/(tabs)/clients/${pivot.id}`)}
+              client={pivot as GeoClient}
+              onPress={() => setSelectedClient(pivot as GeoClient)}
             />
             {nearbyClients
               .filter((c) => c.latitude != null && c.longitude != null)
-              .map((c) => (
-                <ClientPin
-                  key={c.id}
-                  client={c as typeof c & { latitude: number; longitude: number }}
-                  onPress={() => router.push(`/(tabs)/clients/${c.id}`)}
-                />
-              ))}
+              .map((c) => {
+                const gc = c as GeoClient;
+                return (
+                  <ClientPin
+                    key={gc.id}
+                    client={gc}
+                    onPress={() => setSelectedClient(gc)}
+                  />
+                );
+              })}
           </Map>
+          {selectedClient ? (
+            <ClientPinPopup
+              client={selectedClient}
+              onClose={() => setSelectedClient(null)}
+              planAction={{
+                label: t('proximity.set_as_pivot'),
+                icon: Crosshair,
+                disabled: selectedClient.id === pivot.id,
+                onPress: () => {
+                  setPivotId(selectedClient.id);
+                  setSelectedClient(null);
+                  mapRef.current?.flyTo(
+                    selectedClient.longitude,
+                    selectedClient.latitude,
+                    12,
+                  );
+                },
+              }}
+            />
+          ) : null}
         </View>
       )}
 
