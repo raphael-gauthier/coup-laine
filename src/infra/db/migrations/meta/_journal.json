@@ -50,6 +50,13 @@
       "when": 1778544000001,
       "tag": "0006_add_wero_payment_method",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1778544000002,
+      "tag": "0007_rename_travel_fee_settings",
+      "breakpoints": true
     }
   ]
 }

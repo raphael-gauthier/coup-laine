@@ -49,8 +49,8 @@ async function seedSettingsDefaults(repo: SettingsRepository) {
     if ((await repo.get(key)) === null) await repo.set(key, value);
   };
   await setIfMissing('default_radius_km', '15');
-  await setIfMissing('bracket_km', '10');
-  await setIfMissing('travel_fee_euros_per_bracket', '8');
+  await setIfMissing('tour_bracket_km', '10');
+  await setIfMissing('tour_fee_eur_per_bracket', '8');
   await setIfMissing('season_started_at', defaultSeasonStart());
   for (const [k, v] of Object.entries(MARKER_DEFAULTS)) {
     await setIfMissing(k, v);
