@@ -26,9 +26,12 @@ interface Props {
   departureTime: string;
   onPress?: () => void;
   showPaymentBadge?: boolean;
+  /** Used when the stop hasn't persisted arrival/departure yet (planned tours). */
+  fallbackArrivalTime?: string;
+  fallbackDepartureTime?: string;
 }
 
-export function TourStopRow({ stop, client, departureTime, onPress, showPaymentBadge }: Props) {
+export function TourStopRow({ stop, client, departureTime, onPress, showPaymentBadge, fallbackArrivalTime, fallbackDepartureTime }: Props) {
   const { t } = useTranslation();
   const services = stop.actualServices ?? stop.plannedServices;
   const revenueCents = services.reduce((s, p) => s + p.qty * p.priceCentsSnapshot, 0);
@@ -36,8 +39,12 @@ export function TourStopRow({ stop, client, departureTime, onPress, showPaymentB
     ? services.map((p) => `${p.nameSnapshot} ×${p.qty}`).join(', ') + ` → ${formatEur(revenueCents)}`
     : null;
 
-  const arrivalStr = minutesToTime(stop.arrivalMinutes, departureTime);
-  const departureStr = minutesToTime(stop.departureMinutes, departureTime);
+  const arrivalStr = stop.arrivalMinutes != null
+    ? minutesToTime(stop.arrivalMinutes, departureTime)
+    : fallbackArrivalTime ?? '—';
+  const departureStr = stop.departureMinutes != null
+    ? minutesToTime(stop.departureMinutes, departureTime)
+    : fallbackDepartureTime ?? '—';
 
   const displayName = stop.clientNameSnapshot ?? client?.displayName ?? stop.clientId;
 

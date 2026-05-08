@@ -24,7 +24,7 @@ import { useMutedForegroundColor, useOnContrastColor } from '@/ui/theme/colors';
 import type { MatrixCoord } from '@/infra/services/ors-routing';
 
 const MIN_RADIUS_KM = 1;
-const MAX_RADIUS_KM = 50;
+const MAX_RADIUS_KM = 150;
 const DEFAULT_RADIUS_KM = 10;
 
 export default function OptimizedConfigScreen() {

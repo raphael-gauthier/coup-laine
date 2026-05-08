@@ -13,6 +13,7 @@ interface Input {
 
 export interface ArrivalStop extends InputStop {
   arrivalTime: string;
+  departureTime: string;
   arrivalMinutes: number;
   estimatedMinutes: number;
 }
@@ -48,6 +49,7 @@ export function estimateTourArrivals(input: Input): ArrivalStop[] {
     result.push({
       ...stop,
       arrivalTime: formatHHmm(cursor),
+      departureTime: formatHHmm(cursor + minutes),
       arrivalMinutes,
       estimatedMinutes: minutes,
     });

@@ -68,6 +68,33 @@ export default function TourDetailScreen() {
 
   const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
 
+  const arrivals = useMemo(() => {
+    if (!data || !base || data.stops.length === 0) return null;
+    const distanceKm = (from: string, to: string): number => {
+      const get = (key: string) =>
+        key === 'BASE'
+          ? { lat: base.lat, lon: base.lon }
+          : (() => {
+              const c = clientsById.get(key);
+              return c?.latitude != null && c?.longitude != null
+                ? { lat: c.latitude, lon: c.longitude }
+                : null;
+            })();
+      const a = get(from);
+      const b = get(to);
+      if (!a || !b) return 0;
+      return haversineDistanceKm(a, b);
+    };
+    return estimateTourArrivals({
+      departureTime: data.tour.departureTime,
+      stops: data.stops.map((s) => ({
+        clientId: s.clientId,
+        plannedServices: s.plannedServices,
+      })),
+      travelMinutesBetween: (from, to) => Math.round(distanceKm(from, to) * 1.5),
+    });
+  }, [data, base, clientsById]);
+
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!data) return <Surface className="flex-1" />;
 
@@ -141,30 +168,7 @@ export default function TourDetailScreen() {
         <ServiceAggregationSummary tourId={tour.id} />
 
         {/* Map with route geometry if present */}
-        {base && stops.length > 0 ? (() => {
-          const distanceKm = (from: string, to: string): number => {
-            const get = (key: string) =>
-              key === 'BASE'
-                ? { lat: base.lat, lon: base.lon }
-                : (() => {
-                    const c = clientsById.get(key);
-                    return c?.latitude != null && c?.longitude != null
-                      ? { lat: c.latitude, lon: c.longitude }
-                      : null;
-                  })();
-            const a = get(from);
-            const b = get(to);
-            if (!a || !b) return 0;
-            return haversineDistanceKm(a, b);
-          };
-          const arrivals = estimateTourArrivals({
-            departureTime: tour.departureTime,
-            stops: stops.map((s) => ({
-              clientId: s.clientId,
-              plannedServices: s.plannedServices,
-            })),
-            travelMinutesBetween: (from, to) => Math.round(distanceKm(from, to) * 1.5),
-          });
+        {base && stops.length > 0 && arrivals ? (() => {
           const previewStops: PreviewStop[] = stops
             .map((s, i): PreviewStop | null => {
               const c = clientsById.get(s.clientId);
@@ -191,13 +195,15 @@ export default function TourDetailScreen() {
         {/* Stops list */}
         <View className="gap-2">
           <Text className="text-sm font-medium">{t('tours.stops_section')}</Text>
-          {stops.map((stop) => (
+          {stops.map((stop, i) => (
             <TourStopRow
               key={stop.id}
               stop={stop}
               client={clientsById.get(stop.clientId)}
               departureTime={tour.departureTime}
               showPaymentBadge={tour.status === 'completed'}
+              fallbackArrivalTime={arrivals?.[i]?.arrivalTime}
+              fallbackDepartureTime={arrivals?.[i]?.departureTime}
               onPress={tour.status === 'completed'
                 ? () => setPaymentSheet({ stopId: stop.id, payment: stop.payment })
                 : undefined}
