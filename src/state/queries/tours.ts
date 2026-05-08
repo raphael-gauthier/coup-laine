@@ -45,18 +45,6 @@ export interface UpsertTourStopInput {
   notes: string | null;
 }
 
-export interface UpsertTourInput {
-  id?: string;
-  scheduledDate: string;
-  departureTime: string;
-  baseLat: number;
-  baseLng: number;
-  status: TourStatus;
-  stops: UpsertTourStopInput[];
-  totalDistanceKm: number | null;
-  totalMinutes: number | null;
-}
-
 function buildStops(tourId: string, inputs: UpsertTourStopInput[]): TourStop[] {
   return inputs.map((s, index) => ({
     id: s.id ?? newId(),
@@ -164,45 +152,6 @@ export function useScheduleTour() {
         updatedAt: now,
       };
       assertTourInvariants(tour);
-      const stops = buildStops(tourId, input.stops);
-      await tourRepo.upsertTour(tour, stops);
-      return { tour, stops };
-    },
-    onSuccess: ({ tour }) => {
-      void qc.invalidateQueries({ queryKey: toursKeys.all });
-      void qc.invalidateQueries({ queryKey: ['clients'] });
-      void qc.invalidateQueries({ queryKey: ['kpis'] });
-      qc.removeQueries({ queryKey: toursKeys.byId(tour.id) });
-    },
-  });
-}
-
-export function useUpsertTour() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: UpsertTourInput) => {
-      const now = new Date().toISOString();
-      const existing = input.id ? await tourRepo.byId(input.id) : null;
-      const tourId = input.id ?? newId();
-      const tour: Tour = {
-        id: tourId,
-        scheduledDate: input.scheduledDate,
-        departureTime: input.departureTime,
-        title: existing?.tour.title ?? null,
-        baseLat: input.baseLat,
-        baseLng: input.baseLng,
-        status: input.status,
-        totalDistanceKm: input.totalDistanceKm,
-        totalDriveSeconds: existing?.tour.totalDriveSeconds ?? null,
-        totalMinutes: input.totalMinutes,
-        totalRevenueCents: existing?.tour.totalRevenueCents ?? null,
-        totalAnimalsCount: existing?.tour.totalAnimalsCount ?? null,
-        routeGeometry: existing?.tour.routeGeometry ?? null,
-        notes: existing?.tour.notes ?? null,
-        completedAt: existing?.tour.completedAt ?? null,
-        createdAt: existing?.tour.createdAt ?? now,
-        updatedAt: now,
-      };
       const stops = buildStops(tourId, input.stops);
       await tourRepo.upsertTour(tour, stops);
       return { tour, stops };
