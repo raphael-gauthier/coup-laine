@@ -100,13 +100,10 @@ export function ServicePickerSheet({
   const [selected, setSelected] = useState<Record<string, SelectedEntry>>({});
   const [hydrated, setHydrated] = useState(false);
 
-  // Hydrate on first render where data is loaded. Auto-fill suggested with
-  // qty from the client's animal count for that category.
+  // Hydrate from initialSelection only. Suggested services are surfaced in
+  // their own section but left unchecked so the user makes an explicit choice.
   useEffect(() => {
     if (hydrated) return;
-    // Wait for the services catalog to be present, otherwise `suggested`
-    // is empty for the wrong reason and we lock the user in with no
-    // pre-selection.
     if (services.length === 0) return;
     const next: Record<string, SelectedEntry> = {};
     for (const s of initialSelection) {
@@ -115,24 +112,9 @@ export function ServicePickerSheet({
         priceDraft: priceEditable ? centsToDraft(s.priceCentsSnapshot) : undefined,
       };
     }
-    for (const p of suggested) {
-      if (next[p.id]) continue;
-      const count = p.categoryId ? countByCategoryId.get(p.categoryId) ?? 1 : 1;
-      next[p.id] = {
-        qty: Math.max(1, count),
-        priceDraft: priceEditable ? centsToDraft(p.priceCents ?? 0) : undefined,
-      };
-    }
     setSelected(next);
     setHydrated(true);
-  }, [
-    hydrated,
-    services.length,
-    initialSelection,
-    suggested,
-    countByCategoryId,
-    priceEditable,
-  ]);
+  }, [hydrated, services.length, initialSelection, priceEditable]);
 
   const toggle = (id: string) => {
     void haptics.selection();
