@@ -25,7 +25,7 @@ import { useProposeOptimizedTour } from '@/state/queries/use-propose-optimized-t
 import { errorToast } from '@/ui/components/error-toast';
 import type { Client } from '@/domain/models/client';
 import { findNearbyClients } from '@/domain/use-cases/find-nearby-clients';
-import { useMutedForegroundColor } from '@/ui/theme/colors';
+import { useMutedForegroundColor, useOnContrastColor } from '@/ui/theme/colors';
 
 export default function ProximityScreen() {
   const { t } = useTranslation();
@@ -36,6 +36,7 @@ export default function ProximityScreen() {
   const { data: allClients = [], isLoading: clientsLoading } = useClients('all');
   const toggle = useToggleWaiting();
   const mutedFg = useMutedForegroundColor();
+  const onContrast = useOnContrastColor();
   const { data: base } = useBaseAddress();
   const propose = useProposeOptimizedTour();
   const [selectedClient, setSelectedClient] = useState<GeoClient | null>(null);
@@ -244,11 +245,11 @@ export default function ProximityScreen() {
             accessibilityLabel={t('proximity.create_tour_cta', { count: geocodedCandidates.length })}
           >
             {propose.isPending ? (
-              <ActivityIndicator />
+              <ActivityIndicator color={onContrast} />
             ) : (
-              <RouteIcon size={16} color="#5C4E40" />
+              <RouteIcon size={16} color={onContrast} />
             )}
-            <Text className="font-semibold">
+            <Text variant="onPrimary" className="font-semibold">
               {t('proximity.create_tour_cta', { count: geocodedCandidates.length })}
             </Text>
           </Button>
