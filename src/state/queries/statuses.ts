@@ -105,6 +105,8 @@ export function useDeleteManualStatus() {
   });
 }
 
+const displayedStatusMapKey = [...clientsKeys.all, 'displayedStatusMap'] as const;
+
 export function useAssignManualStatus() {
   const qc = useQueryClient();
   return useMutation({
@@ -115,7 +117,30 @@ export function useAssignManualStatus() {
       }
       await clientRepo.setManualStatus(clientId, statusId, new Date().toISOString());
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: clientsKeys.all }),
+    // Optimistic update: patch the displayed status map before the heavy refetch
+    // completes, so the badge / card bar / pin / popup flip color instantly.
+    // Only applies when assigning (statusId provided) — clearing falls through
+    // to the onSuccess invalidation since reverting requires recomputing the
+    // derived status, which we can't do client-side without re-querying.
+    onMutate: async ({ clientId, statusId }) => {
+      if (statusId === null) return { previousMap: undefined };
+      await qc.cancelQueries({ queryKey: displayedStatusMapKey });
+      const previousMap = qc.getQueryData<Map<string, Status>>(displayedStatusMapKey);
+      const list = await repo.list();
+      const target = list.find((s) => s.id === statusId);
+      if (previousMap && target && target.kind === 'manual') {
+        const next = new Map(previousMap);
+        next.set(clientId, target);
+        qc.setQueryData<Map<string, Status>>(displayedStatusMapKey, next);
+      }
+      return { previousMap };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previousMap !== undefined) {
+        qc.setQueryData(displayedStatusMapKey, ctx.previousMap);
+      }
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: clientsKeys.all }),
   });
 }
 
