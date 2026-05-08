@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
-import { Search, ChevronRight, X } from 'lucide-react-native';
+import { Search, ChevronRight, X, Route as RouteIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -19,6 +19,10 @@ import { ProximityCircle } from '@/ui/components/proximity-circle';
 import { PressScale } from '@/ui/motion/press-scale';
 import { useClients, useClient, useToggleWaiting } from '@/state/queries/clients';
 import { useProximityStore } from '@/state/stores/proximity-store';
+import { useBaseAddress } from '@/state/queries/settings';
+import { useProposeOptimizedTour } from '@/state/queries/use-propose-optimized-tour';
+import { errorToast } from '@/ui/components/error-toast';
+import type { Client } from '@/domain/models/client';
 import { findNearbyClients } from '@/domain/use-cases/find-nearby-clients';
 import { useMutedForegroundColor } from '@/ui/theme/colors';
 
@@ -31,6 +35,8 @@ export default function ProximityScreen() {
   const { data: allClients = [], isLoading: clientsLoading } = useClients('all');
   const toggle = useToggleWaiting();
   const mutedFg = useMutedForegroundColor();
+  const { data: base } = useBaseAddress();
+  const propose = useProposeOptimizedTour();
 
   const nearby = useMemo(() => {
     if (!pivot || pivot.latitude == null || pivot.longitude == null) return [];
@@ -50,6 +56,37 @@ export default function ProximityScreen() {
       })
       .filter((c): c is NonNullable<typeof c> => c != null);
   }, [nearby, allClients]);
+
+  type GeoClient = Client & { latitude: number; longitude: number };
+
+  const geocodedCandidates = useMemo<GeoClient[]>(() => {
+    if (!pivot) return [];
+    const all: (typeof pivot)[] = [pivot, ...nearbyClients];
+    return all.filter(
+      (c): c is GeoClient => c.latitude != null && c.longitude != null,
+    );
+  }, [pivot, nearbyClients]);
+
+  const onCreateTour = () => {
+    if (!base || geocodedCandidates.length < 2) return;
+    propose.mutate(
+      {
+        baseCoord: { lat: base.lat, lon: base.lon },
+        candidates: geocodedCandidates.map((c) => ({
+          id: c.id,
+          lat: c.latitude,
+          lon: c.longitude,
+        })),
+      },
+      {
+        onError: (err) => {
+          errorToast(
+            err instanceof Error ? err.message : t('tours.optimized_propose_failed'),
+          );
+        },
+      },
+    );
+  };
 
   if (clientsLoading && allClients.length === 0) {
     return (
@@ -173,6 +210,25 @@ export default function ProximityScreen() {
           </Map>
         </View>
       )}
+
+      {geocodedCandidates.length >= 2 && base ? (
+        <View className="absolute bottom-4 left-4 right-4">
+          <Button
+            onPress={onCreateTour}
+            disabled={propose.isPending}
+            accessibilityLabel={t('proximity.create_tour_cta', { count: geocodedCandidates.length })}
+          >
+            {propose.isPending ? (
+              <ActivityIndicator />
+            ) : (
+              <RouteIcon size={16} color="#5C4E40" />
+            )}
+            <Text className="font-semibold">
+              {t('proximity.create_tour_cta', { count: geocodedCandidates.length })}
+            </Text>
+          </Button>
+        </View>
+      ) : null}
     </Surface>
   );
 }
