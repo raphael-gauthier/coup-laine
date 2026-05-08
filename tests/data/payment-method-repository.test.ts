@@ -3,11 +3,11 @@ import { PaymentMethodRepository } from '@/data/repositories/payment-method-repo
 import { clients, tours, tourStops } from '@/infra/db/schema';
 
 describe('PaymentMethodRepository', () => {
-  it('listAll returns the four seeded methods sorted by ordering', async () => {
+  it('listAll returns the seeded methods sorted by ordering', async () => {
     const { db, close } = createTestDb();
     const repo = new PaymentMethodRepository(db);
     const all = await repo.listAll();
-    expect(all.map((m) => m.id)).toEqual(['pm-cash', 'pm-check', 'pm-transfer', 'pm-card']);
+    expect(all.map((m) => m.id)).toEqual(['pm-cash', 'pm-check', 'pm-transfer', 'pm-card', 'pm-wero']);
     close();
   });
 

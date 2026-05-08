@@ -32,6 +32,7 @@ const PAYMENT_METHODS_SEED: { id: string; label: string; ordering: number }[] = 
   { id: 'pm-check', label: 'Chèque', ordering: 2 },
   { id: 'pm-transfer', label: 'Virement', ordering: 3 },
   { id: 'pm-card', label: 'Carte bancaire', ordering: 4 },
+  { id: 'pm-wero', label: 'Wero', ordering: 5 },
 ];
 
 async function seedPaymentMethods() {

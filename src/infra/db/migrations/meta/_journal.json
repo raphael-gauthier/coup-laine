@@ -43,6 +43,13 @@
       "when": 1778544000000,
       "tag": "0005_anonymized_at",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1778544000001,
+      "tag": "0006_add_wero_payment_method",
+      "breakpoints": true
     }
   ]
 }
