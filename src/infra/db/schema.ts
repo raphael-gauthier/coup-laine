@@ -19,6 +19,7 @@ export const clients = sqliteTable(
     animalCounts: text('animal_counts').notNull().default('[]'),
     markerColorHex: text('marker_color_hex'),
     anonymizedAt: text('anonymized_at'),
+    manualStatusId: text('manual_status_id').references(() => statuses.id, { onDelete: 'set null' }),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
   },
@@ -27,6 +28,7 @@ export const clients = sqliteTable(
     bannedIdx: index('clients_is_banned_idx').on(t.isBanned),
     recomputeIdx: index('clients_needs_recompute_idx').on(t.needsDistanceRecompute),
     lastShearingIdx: index('clients_last_shearing_idx').on(t.lastShearingDate),
+    manualStatusIdx: index('clients_manual_status_id_idx').on(t.manualStatusId),
   })
 );
 
@@ -160,3 +162,21 @@ export const settings = sqliteTable('settings', {
   key: text('key').primaryKey(),
   value: text('value').notNull(),
 });
+
+export const statuses = sqliteTable(
+  'statuses',
+  {
+    id: text('id').primaryKey(),
+    kind: text('kind').notNull(),
+    systemKey: text('system_key'),
+    label: text('label').notNull(),
+    colorLight: text('color_light').notNull(),
+    colorDark: text('color_dark').notNull(),
+    sortOrder: integer('sort_order').notNull(),
+    createdAt: text('created_at').notNull(),
+  },
+  (t) => ({
+    kindIdx: index('statuses_kind_idx').on(t.kind),
+    systemKeyIdx: index('statuses_system_key_idx').on(t.systemKey),
+  })
+);
