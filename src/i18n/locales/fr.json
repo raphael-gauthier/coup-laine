@@ -153,6 +153,7 @@
     "no_geocoded_title": "Aucun client géolocalisé",
     "no_geocoded_message": "Aucun client n'a d'adresse géocodée. Édite une fiche client et choisis une adresse via l'auto-complétion.",
     "pivot_label": "Pivot",
+    "clear_pivot": "Retirer le pivot",
     "radius_label": "Rayon",
     "view_list": "Liste",
     "view_map": "Carte",
