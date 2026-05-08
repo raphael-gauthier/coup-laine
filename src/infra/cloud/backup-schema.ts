@@ -173,9 +173,87 @@ export const BackupSnapshotV4Schema = z.object({
 
 export type ValidatedBackupSnapshotV4 = z.infer<typeof BackupSnapshotV4Schema>;
 
+// =============================================================
+// v5 schema: adds statuses table, manualStatusId on clients.
+// =============================================================
+
+const StatusRow = z.object({
+  id: z.string(),
+  kind: z.string(),
+  systemKey: optStr,
+  label: z.string(),
+  colorLight: z.string(),
+  colorDark: z.string(),
+  sortOrder: z.number().int(),
+  createdAt: z.string(),
+});
+
+const ClientRowV5 = ClientRow.extend({
+  manualStatusId: optStr,
+});
+
+export const BackupSnapshotV5Schema = z.object({
+  schemaVersion: z.literal(5),
+  createdAt: z.string(),
+  tables: z.object({
+    clients: z.array(ClientRowV5),
+    species: z.array(SpeciesRow),
+    animal_categories: z.array(AnimalCategoryRow),
+    services: z.array(ServiceRow),
+    tours: z.array(TourRow),
+    tour_stops: z.array(TourStopRow),
+    manual_history_entries: z.array(ManualHistoryEntryRow),
+    distance_matrix: z.array(DistanceMatrixRow),
+    settings: z.array(SettingsRow),
+    statuses: z.array(StatusRow),
+  }),
+});
+
+export type ValidatedBackupSnapshotV5 = z.infer<typeof BackupSnapshotV5Schema>;
+
+const SYSTEM_STATUS_SEEDS_V5 = [
+  { id: 'sys_default',   kind: 'system', systemKey: 'default',   label: 'Par défaut',        colorLight: '#94A3B8', colorDark: '#64748B', sortOrder: 10 },
+  { id: 'sys_waiting',   kind: 'system', systemKey: 'waiting',   label: 'En attente de RDV', colorLight: '#C88226', colorDark: '#DC9E4E', sortOrder: 20 },
+  { id: 'sys_scheduled', kind: 'system', systemKey: 'scheduled', label: 'Planifié',          colorLight: '#A1602F', colorDark: '#C68A58', sortOrder: 30 },
+  { id: 'sys_done',      kind: 'system', systemKey: 'done',      label: 'Réalisé',           colorLight: '#5C7548', colorDark: '#98B282', sortOrder: 40 },
+  { id: 'sys_noAnimals', kind: 'system', systemKey: 'noAnimals', label: 'Sans animaux',      colorLight: '#EAE0D3', colorDark: '#302820', sortOrder: 50 },
+  { id: 'sys_banned',    kind: 'system', systemKey: 'banned',    label: 'Banni',             colorLight: '#B23832', colorDark: '#DC605A', sortOrder: 60 },
+];
+
+const LEGACY_COLOR_KEY_BY_SYSTEM_KEY: Record<string, string> = {
+  default:   'marker_default_color',
+  waiting:   'marker_waiting_color',
+  scheduled: 'marker_scheduled_color',
+  done:      'marker_done_color',
+  noAnimals: 'marker_no_animals_color',
+  banned:    'marker_banned_color',
+};
+
+export function migrateV4ToV5(v4: ValidatedBackupSnapshotV4): ValidatedBackupSnapshotV5 {
+  const settingsByKey = new Map(v4.tables.settings.map((s) => [s.key, s.value]));
+  const seededStatuses = SYSTEM_STATUS_SEEDS_V5.map((seed) => {
+    const legacyKey = LEGACY_COLOR_KEY_BY_SYSTEM_KEY[seed.systemKey];
+    const override = legacyKey ? settingsByKey.get(legacyKey) : undefined;
+    return override
+      ? { ...seed, colorLight: override, colorDark: override, createdAt: v4.createdAt }
+      : { ...seed, createdAt: v4.createdAt };
+  });
+  const remainingSettings = v4.tables.settings.filter((s) => !Object.values(LEGACY_COLOR_KEY_BY_SYSTEM_KEY).includes(s.key));
+  return {
+    schemaVersion: 5,
+    createdAt: v4.createdAt,
+    tables: {
+      ...v4.tables,
+      clients: v4.tables.clients.map((c) => ({ ...c, manualStatusId: null })),
+      settings: remainingSettings,
+      statuses: seededStatuses,
+    },
+  };
+}
+
 // Backward-compatible aliases — other files importing these continue to work.
-export const BackupSnapshotSchema = BackupSnapshotV4Schema;
-export type ValidatedBackupSnapshot = ValidatedBackupSnapshotV4;
+export const BackupSnapshotSchema = BackupSnapshotV5Schema;
+export type ValidatedBackupSnapshot = ValidatedBackupSnapshotV5;
 
 // =============================================================
 // v2 (pre-travel-fees-rework) backup schema, kept for migration.
