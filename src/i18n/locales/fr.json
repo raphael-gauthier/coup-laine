@@ -158,7 +158,9 @@
     "view_list": "Liste",
     "view_map": "Carte",
     "empty_title": "Aucun client dans le rayon",
-    "empty_message": "Augmente le rayon ou choisis un autre pivot."
+    "empty_message": "Augmente le rayon ou choisis un autre pivot.",
+    "create_tour_cta": "Créer tournée ({{count}})",
+    "set_as_pivot": "Définir comme pivot"
   },
   "tours": {
     "list_title": "Tournées",
