@@ -5,9 +5,12 @@ import { TourRepository } from '@/data/repositories/tour-repository';
 import { SettingsRepository } from '@/data/repositories/settings-repository';
 import { DistanceMatrixSync } from '@/data/distance-matrix-sync';
 import { computeClientStatus, type ClientStatus } from '@/domain/use-cases/client-status';
+import { resolveDisplayedStatus } from '@/domain/use-cases/resolve-displayed-status';
 import { findCommunesWithWaiting, type CommuneCount } from '@/domain/use-cases/find-communes-with-waiting';
 import { animalsTotal } from '@/lib/animals-total';
 import type { Client } from '@/domain/models/client';
+import type { Status, SystemStatusKey } from '@/domain/models/status';
+import { StatusRepository } from '@/data/repositories/status-repository';
 import { newId } from '@/lib/id';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import { recomputeKeys } from '@/state/queries/recompute';
@@ -252,6 +255,63 @@ export function useClientStatusMap() {
           completedTourDates: completedByClient.get(c.id) ?? [],
           plannedTourDates: plannedByClient.get(c.id) ?? [],
         }));
+      }
+      return out;
+    },
+  });
+}
+
+export function useDisplayedStatusMap() {
+  return useQuery({
+    queryKey: [...clientsKeys.all, 'displayedStatusMap'],
+    queryFn: async (): Promise<Map<string, Status>> => {
+      const clientsList = await repo.listAll();
+      const seasonStartedAt = (await settingsRepo.get('season_started_at')) ?? '2025-05-01';
+      const completed = await tourRepo.listByStatus('completed');
+      const planned = await tourRepo.listByStatus('planned');
+      const completedByClient = new Map<string, string[]>();
+      const plannedByClient = new Map<string, string[]>();
+      for (const { tour, stops } of completed) {
+        for (const s of stops) {
+          const arr = completedByClient.get(s.clientId) ?? [];
+          arr.push(tour.scheduledDate ?? '');
+          completedByClient.set(s.clientId, arr);
+        }
+      }
+      for (const { tour, stops } of planned) {
+        for (const s of stops) {
+          const arr = plannedByClient.get(s.clientId) ?? [];
+          arr.push(tour.scheduledDate ?? '');
+          plannedByClient.set(s.clientId, arr);
+        }
+      }
+      const statusRepo = new StatusRepository(db);
+      const allStatuses = await statusRepo.list();
+      const bySys = new Map<string, Status>();
+      const byId = new Map<string, Status>();
+      for (const s of allStatuses) {
+        if (s.systemKey) bySys.set(s.systemKey, s);
+        byId.set(s.id, s);
+      }
+      const registry = {
+        bySystemKey: (k: SystemStatusKey): Status => {
+          const r = bySys.get(k);
+          if (!r) throw new Error(`System status missing: ${k}`);
+          return r;
+        },
+        byId: (id: string): Status | null => byId.get(id) ?? null,
+      };
+      const out = new Map<string, Status>();
+      for (const c of clientsList) {
+        const sysKey = computeClientStatus({
+          isBanned: c.isBanned,
+          isWaiting: c.isWaiting,
+          animalsTotal: animalsTotal(c.animalCounts),
+          seasonStartedAt,
+          completedTourDates: completedByClient.get(c.id) ?? [],
+          plannedTourDates: plannedByClient.get(c.id) ?? [],
+        });
+        out.set(c.id, resolveDisplayedStatus({ manualStatusId: c.manualStatusId }, sysKey, registry));
       }
       return out;
     },
