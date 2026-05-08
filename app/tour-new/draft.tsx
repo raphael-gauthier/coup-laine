@@ -111,7 +111,7 @@ export default function NewTourDraftScreen() {
               onSuccess: () => {
                 void haptics.success();
                 reset();
-                router.replace('/(tabs)/tours' as never);
+                router.replace('/(tabs)/tours?filter=draft' as never);
               },
               onError: (err) => {
                 mutationErrorToast(t('tours.save_failed_title'), err);
@@ -147,7 +147,7 @@ export default function NewTourDraftScreen() {
               onSuccess: () => {
                 void haptics.success();
                 reset();
-                router.replace('/(tabs)/tours' as never);
+                router.replace('/(tabs)/tours?filter=planned' as never);
               },
               onError: (err) => {
                 mutationErrorToast(t('tours.save_failed_title'), err);
@@ -160,7 +160,7 @@ export default function NewTourDraftScreen() {
             onSuccess: () => {
               void haptics.success();
               reset();
-              router.replace('/(tabs)/tours' as never);
+              router.replace('/(tabs)/tours?filter=draft' as never);
             },
             onError: (err) => {
               mutationErrorToast(t('tours.delete_failed_title'), err);

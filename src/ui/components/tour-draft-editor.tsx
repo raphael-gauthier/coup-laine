@@ -334,16 +334,6 @@ export function TourDraftEditor({
       </View>
       <Text variant="muted" className="text-xs">{t('tours.reorder_hint')}</Text>
 
-      {tourStatus === 'draft' && initialId && onDelete ? (
-        <Button
-          variant="danger"
-          onPress={() => void onDeletePress()}
-          accessibilityLabel={t('tours.delete_draft_cta')}
-        >
-          <Trash2 size={16} color={onContrast} />
-          <Text variant="onPrimary" className="font-semibold">{t('tours.delete_draft_cta')}</Text>
-        </Button>
-      ) : null}
     </View>
   );
 
@@ -425,6 +415,16 @@ export function TourDraftEditor({
     />
     </View>
     <View className="px-4 pt-3 pb-6 border-t border-border dark:border-border-dark bg-background dark:bg-background-dark flex-row gap-2">
+      {tourStatus === 'draft' && initialId && onDelete ? (
+        <Button
+          variant="danger"
+          onPress={() => void onDeletePress()}
+          accessibilityLabel={t('tours.delete_draft_cta')}
+          disabled={saving}
+        >
+          <Trash2 size={16} color={onContrast} />
+        </Button>
+      ) : null}
       {tourStatus === 'draft' && onSaveDraft ? (
         <Button
           variant="secondary"

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Plus, Route as RouteIcon, FileText } from 'lucide-react-native';
@@ -26,7 +26,15 @@ export default function ToursListScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const mutedFg = useMutedForegroundColor();
-  const [filter, setFilter] = useState<Filter>('planned');
+  const params = useLocalSearchParams<{ filter?: Filter }>();
+  const [filter, setFilter] = useState<Filter>(params.filter ?? 'planned');
+
+  useEffect(() => {
+    if (params.filter && params.filter !== filter) {
+      setFilter(params.filter);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.filter]);
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
 
   const { data: tours = [], isError, isLoading, refetch } = useTours(filter as TourStatus);

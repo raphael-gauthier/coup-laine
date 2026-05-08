@@ -176,7 +176,7 @@
     "create_optimized_hint": "Choisis une commune et un rayon, puis sélectionne les clients à inclure.",
     "draft_status_label": "Brouillon",
     "draft_fallback_title": "Brouillon du {{date}}",
-    "save_as_draft": "Enregistrer brouillon",
+    "save_as_draft": "Enregistrer",
     "schedule_cta": "Planifier",
     "schedule_sheet_title": "Planifier la tournée",
     "schedule_sheet_confirm": "Confirmer",
