@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { X, ChevronRight, Compass, Route as RouteIcon, Phone, MessageSquare, Clock } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -23,14 +24,22 @@ import { useProximityStore } from '@/state/stores/proximity-store';
 import type { Client } from '@/domain/models/client';
 import { cn } from '@/lib/cn';
 
+export interface PlanAction {
+  label: string;
+  icon?: LucideIcon;
+  onPress: () => void;
+  disabled?: boolean;
+}
+
 interface Props {
   client: Client & { latitude: number; longitude: number };
   onClose: () => void;
   arrivalTime?: string;
   onNavigate?: () => void;
+  planAction?: PlanAction;
 }
 
-export function ClientPinPopup({ client, onClose, arrivalTime, onNavigate }: Props) {
+export function ClientPinPopup({ client, onClose, arrivalTime, onNavigate, planAction }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const { data: statusMap } = useClientStatusMap();
@@ -208,15 +217,24 @@ export function ClientPinPopup({ client, onClose, arrivalTime, onNavigate }: Pro
             <Compass size={16} color="#5C4E40" />
             <Text className="font-semibold">{t('map.pin_popup_itinerary')}</Text>
           </Button>
-          <Button
-            className="flex-1"
-            variant="secondary"
-            onPress={openPlan}
-            accessibilityLabel={t('map.pin_popup_plan')}
-          >
-            <RouteIcon size={16} color="#5C4E40" />
-            <Text className="font-semibold">{t('map.pin_popup_plan')}</Text>
-          </Button>
+          {(() => {
+            const PlanIcon = planAction?.icon ?? RouteIcon;
+            const planLabel = planAction?.label ?? t('map.pin_popup_plan');
+            const planOnPress = planAction?.onPress ?? openPlan;
+            const planDisabled = planAction?.disabled ?? false;
+            return (
+              <Button
+                className="flex-1"
+                variant="secondary"
+                onPress={planOnPress}
+                disabled={planDisabled}
+                accessibilityLabel={planLabel}
+              >
+                <PlanIcon size={16} color="#5C4E40" />
+                <Text className="font-semibold">{planLabel}</Text>
+              </Button>
+            );
+          })()}
         </View>
 
         {/* Action buttons — row 2: Appeler + SMS */}
