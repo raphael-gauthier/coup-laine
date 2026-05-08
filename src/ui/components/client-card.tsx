@@ -17,9 +17,10 @@ interface Props {
   client: Client;
   onPress: () => void;
   onToggleWaiting: () => void;
+  distanceKm?: number;
 }
 
-export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
+export function ClientCard({ client, onPress, onToggleWaiting, distanceKm }: Props) {
   const { t } = useTranslation();
   const { data: statusMap } = useClientStatusMap();
   const { data: settings } = useAllSettings();
@@ -83,6 +84,10 @@ export function ClientCard({ client, onPress, onToggleWaiting }: Props) {
           >
             <TriangleAlert size={12} color="#FFFFFF" />
           </Surface>
+        ) : distanceKm != null ? (
+          <Text variant="muted" className="font-mono text-sm">
+            {distanceKm.toFixed(1)} km
+          </Text>
         ) : (
           <ChevronRight size={18} color="#5C4E40" />
         )}

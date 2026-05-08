@@ -14,9 +14,10 @@ import { SegmentedControl } from '@/ui/components/segmented-control';
 import { EmptyState } from '@/ui/components/empty-state';
 import { Map, type MapHandle } from '@/ui/components/map';
 import { ClientPin } from '@/ui/components/client-pin';
+import { ClientCard } from '@/ui/components/client-card';
 import { ProximityCircle } from '@/ui/components/proximity-circle';
 import { PressScale } from '@/ui/motion/press-scale';
-import { useClients, useClient } from '@/state/queries/clients';
+import { useClients, useClient, useToggleWaiting } from '@/state/queries/clients';
 import { useProximityStore } from '@/state/stores/proximity-store';
 import { findNearbyClients } from '@/domain/use-cases/find-nearby-clients';
 import { useMutedForegroundColor } from '@/ui/theme/colors';
@@ -28,6 +29,7 @@ export default function ProximityScreen() {
   const { pivotId, radiusKm, view, setRadiusKm, setView } = useProximityStore();
   const { data: pivot } = useClient(pivotId ?? undefined);
   const { data: allClients = [], isLoading: clientsLoading } = useClients('all');
+  const toggle = useToggleWaiting();
   const mutedFg = useMutedForegroundColor();
 
   const nearby = useMemo(() => {
@@ -126,22 +128,12 @@ export default function ProximityScreen() {
             contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 32 }}
             ItemSeparatorComponent={() => <View className="h-2" />}
             renderItem={({ item }) => (
-              <PressScale
+              <ClientCard
+                client={item}
+                distanceKm={item.distanceKm}
                 onPress={() => router.push(`/(tabs)/clients/${item.id}`)}
-                accessibilityLabel={item.displayName}
-              >
-                <Surface variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
-                  <View className="flex-1">
-                    <Text className="font-semibold">{item.displayName}</Text>
-                    {item.addressCity ? (
-                      <Text variant="muted" className="text-sm mt-0.5">{item.addressCity}</Text>
-                    ) : null}
-                  </View>
-                  <Text variant="muted" className="font-mono">
-                    {item.distanceKm.toFixed(1)} km
-                  </Text>
-                </Surface>
-              </PressScale>
+                onToggleWaiting={() => toggle.mutate({ id: item.id, isWaiting: !item.isWaiting })}
+              />
             )}
           />
         )
