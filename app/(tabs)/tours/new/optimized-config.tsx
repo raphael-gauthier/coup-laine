@@ -19,9 +19,8 @@ import { useResolveDistanceMatrix } from '@/state/queries/distance-matrix';
 import { useTourDraftStore } from '@/state/stores/tour-draft-store';
 import { computeCommuneAnchor } from '@/domain/use-cases/compute-commune-anchor';
 import { findWaitingClientsInRadius } from '@/domain/use-cases/find-waiting-clients-in-radius';
-import { optimizeTourOrder } from '@/domain/use-cases/tour-order-optimizer';
+import { proposeOptimizedTour } from '@/domain/use-cases/propose-optimized-tour';
 import { useMutedForegroundColor, useOnContrastColor } from '@/ui/theme/colors';
-import type { MatrixCoord } from '@/infra/services/ors-routing';
 
 const MIN_RADIUS_KM = 1;
 const MAX_RADIUS_KM = 150;
@@ -112,22 +111,16 @@ export default function OptimizedConfigScreen() {
     setErrorMsg(null);
     void haptics.selection();
     try {
-      const coords: MatrixCoord[] = [
-        { id: 'BASE', lat: base.lat, lon: base.lon },
-        ...selected.map((s) => {
+      const { orderedIds } = await proposeOptimizedTour({
+        baseCoord: { lat: base.lat, lon: base.lon },
+        candidates: selected.map((s) => {
           const c = clientsById.get(s.id)!;
           return { id: c.id, lat: c.latitude!, lon: c.longitude! };
         }),
-      ];
-      const result = await resolve.mutateAsync(coords);
-      const distanceKm = (from: string, to: string) =>
-        result.matrix.get(`${from}-${to}`)?.distanceKm ?? 0;
-      const ordered = optimizeTourOrder({
-        stopIds: selected.map((s) => s.id),
-        distanceKm,
+        resolveMatrix: resolve.mutateAsync,
       });
       reset();
-      setOrder(ordered);
+      setOrder(orderedIds);
       router.push('/(tabs)/tours/new/draft' as never);
     } catch (err) {
       void haptics.error();
