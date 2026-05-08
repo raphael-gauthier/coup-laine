@@ -1,7 +1,7 @@
 import { View } from 'react-native';
-import { ChevronRight, Calendar } from 'lucide-react-native';
+import { ChevronRight, Calendar, FileText } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { PressScale } from '@/ui/motion/press-scale';
 import { Surface } from '@/ui/primitives/surface';
@@ -19,10 +19,12 @@ interface Props {
 }
 
 const STATUS_BG: Record<TourStatus, string> = {
+  draft: 'bg-muted dark:bg-muted-dark',
   planned: 'bg-waiting dark:bg-waiting-dark',
   completed: 'bg-shorn dark:bg-shorn-dark',
 };
 const STATUS_TEXT: Record<TourStatus, string> = {
+  draft: 'text-muted-foreground dark:text-muted-dark-foreground',
   planned: 'text-primary-foreground dark:text-primary-dark-foreground',
   completed: 'text-primary-foreground dark:text-primary-dark-foreground',
 };
@@ -33,8 +35,48 @@ function formatEur(cents: number): string {
 
 export function TourCard({ tour, stopCount, onPress }: Props) {
   const { t } = useTranslation();
-  const { data: kpis } = useTourKpis(tour.id);
-  const date = format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPPp', { locale: fr });
+  const kpisQuery = useTourKpis(tour.status === 'draft' ? undefined : tour.id);
+  const kpis = kpisQuery.data;
+
+  if (tour.status === 'draft') {
+    const titleDisplay = tour.title ?? t('tours.draft_fallback_title', {
+      date: format(parseISO(tour.createdAt), 'd MMM', { locale: fr }),
+    });
+    const modifiedAt = formatDistanceToNow(parseISO(tour.updatedAt), { locale: fr, addSuffix: true });
+
+    return (
+      <PressScale
+        onPress={() => {
+          void haptics.selection();
+          onPress();
+        }}
+        accessibilityLabel={titleDisplay}
+      >
+        <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-2">
+          <View className="flex-row items-center justify-between">
+            <View className={cn('px-2 py-0.5 rounded-full', STATUS_BG.draft)}>
+              <Text className={cn('text-xs font-semibold', STATUS_TEXT.draft)}>
+                {t('tours.draft_status_label')}
+              </Text>
+            </View>
+            <ChevronRight size={18} color="#5C4E40" />
+          </View>
+          <View className="flex-row items-center gap-1">
+            <FileText size={14} color="#5C4E40" />
+            <Text className="font-semibold">{titleDisplay}</Text>
+          </View>
+          <Text variant="muted" className="text-xs">
+            {t('tours.stop_summary_count_label', { count: stopCount })} · {t('tours.draft_modified_at', { when: modifiedAt })}
+          </Text>
+        </Surface>
+      </PressScale>
+    );
+  }
+
+  // planned / completed (existing rendering, kept identical)
+  const dateString = tour.scheduledDate && tour.departureTime
+    ? format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPPp', { locale: fr })
+    : '';
 
   return (
     <PressScale
@@ -42,7 +84,7 @@ export function TourCard({ tour, stopCount, onPress }: Props) {
         void haptics.selection();
         onPress();
       }}
-      accessibilityLabel={date}
+      accessibilityLabel={dateString}
     >
       <Surface variant="muted" className="rounded-2xl px-4 py-3 gap-2">
         <View className="flex-row items-center justify-between">
@@ -58,7 +100,7 @@ export function TourCard({ tour, stopCount, onPress }: Props) {
 
         <View className="flex-row items-center gap-1">
           <Calendar size={14} color="#5C4E40" />
-          <Text className="font-semibold">{date}</Text>
+          <Text className="font-semibold">{dateString}</Text>
         </View>
 
         {kpis ? (
