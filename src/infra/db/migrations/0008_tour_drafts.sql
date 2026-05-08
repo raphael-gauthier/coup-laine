@@ -1,6 +1,9 @@
 PRAGMA foreign_keys=OFF;
 --> statement-breakpoint
 
+DROP TABLE IF EXISTS __new_tours;
+--> statement-breakpoint
+
 CREATE TABLE __new_tours (
   id text PRIMARY KEY NOT NULL,
   scheduled_date text,
