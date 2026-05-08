@@ -69,7 +69,10 @@ export function useRenameStatus() {
       if (!v.ok) throw new Error('invalid_label');
       return repo.update(id, { label: v.value });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: statusesKeys.list }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: statusesKeys.list });
+      qc.invalidateQueries({ queryKey: clientsKeys.all });
+    },
   });
 }
 
@@ -84,7 +87,10 @@ export function useRecolorStatus() {
       }
       return repo.update(id, { colorLight, colorDark });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: statusesKeys.list }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: statusesKeys.list });
+      qc.invalidateQueries({ queryKey: clientsKeys.all });
+    },
   });
 }
 
