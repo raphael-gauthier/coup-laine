@@ -182,6 +182,7 @@ export class ClientRepository {
       if (u.isBanned !== undefined) updates.isBanned = u.isBanned ? 1 : 0;
       if (u.needsDistanceRecompute !== undefined) updates.needsDistanceRecompute = u.needsDistanceRecompute ? 1 : 0;
       if (u.anonymizedAt !== undefined) updates.anonymizedAt = u.anonymizedAt;
+      if (u.manualStatusId !== undefined) updates.manualStatusId = u.manualStatusId;
       updates.updatedAt = now;
       await this.db.update(clients).set(updates).where(eq(clients.id, id));
     }

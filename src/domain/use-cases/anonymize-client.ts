@@ -55,6 +55,7 @@ export function planAnonymization(
         isWaiting: false,
         isBanned: false,
         needsDistanceRecompute: false,
+        manualStatusId: null,
         anonymizedAt: now,
       },
     },

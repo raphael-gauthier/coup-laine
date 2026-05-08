@@ -95,4 +95,11 @@ describe('planAnonymization', () => {
       { id: 's1', clientNameSnapshot: ANONYMIZED_DISPLAY_NAME, notes: null },
     ]);
   });
+
+  it('clears manualStatusId', () => {
+    // Use a client with a non-null manualStatusId
+    const c = { ...baseClient, manualStatusId: 'm-vip' };
+    const plan = planAnonymization(c, [], [], [], '2026-05-08T00:00:00.000Z');
+    expect(plan.client.updates.manualStatusId).toBeNull();
+  });
 });
