@@ -1,4 +1,5 @@
 PRAGMA foreign_keys=OFF;
+--> statement-breakpoint
 
 CREATE TABLE __new_tours (
   id text PRIMARY KEY NOT NULL,
@@ -19,6 +20,7 @@ CREATE TABLE __new_tours (
   created_at text NOT NULL,
   updated_at text NOT NULL
 );
+--> statement-breakpoint
 
 INSERT INTO __new_tours
 SELECT
@@ -29,8 +31,12 @@ SELECT
   total_revenue_cents, total_animals_count,
   route_geometry, notes, completed_at, created_at, updated_at
 FROM tours;
+--> statement-breakpoint
 
 DROP TABLE tours;
+--> statement-breakpoint
+
 ALTER TABLE __new_tours RENAME TO tours;
+--> statement-breakpoint
 
 PRAGMA foreign_keys=ON;

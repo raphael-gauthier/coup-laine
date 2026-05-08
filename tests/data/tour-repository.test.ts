@@ -31,6 +31,7 @@ const sampleTour = {
   id: 't1',
   scheduledDate: '2026-05-10',
   departureTime: '08:00',
+  title: null,
   baseLat: 48.0,
   baseLng: -3.0,
   status: 'planned' as const,
@@ -118,11 +119,49 @@ describe('TourRepository', () => {
     expect(r?.stops.find((s) => s.id === 's1')?.completedAt).toBe(NOW);
     close();
   });
+
+  it('persists and retrieves a draft tour with null date/time and a title', async () => {
+    const { db, close } = createTestDb();
+    const tRepo = new TourRepository(db);
+    const cRepo = new ClientRepository(db);
+    await cRepo.upsert(sampleClient('c1'));
+
+    const draft = {
+      id: 'draft1',
+      scheduledDate: null,
+      departureTime: null,
+      title: 'Mardi nord',
+      baseLat: 48.0,
+      baseLng: -3.0,
+      status: 'draft' as const,
+      totalDistanceKm: null,
+      totalDriveSeconds: null,
+      totalMinutes: null,
+      totalRevenueCents: null,
+      totalAnimalsCount: null,
+      routeGeometry: null,
+      notes: null,
+      completedAt: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+    };
+
+    await tRepo.upsertTour(draft, []);
+    const fetched = await tRepo.byId('draft1');
+
+    expect(fetched).not.toBeNull();
+    expect(fetched!.tour.status).toBe('draft');
+    expect(fetched!.tour.title).toBe('Mardi nord');
+    expect(fetched!.tour.scheduledDate).toBeNull();
+    expect(fetched!.tour.departureTime).toBeNull();
+    close();
+  });
 });
 
 const baseTour: Omit<Tour, 'id'> = {
   scheduledDate: '2026-05-01',
   departureTime: '08:00',
+  title: null,
   baseLat: 0, baseLng: 0,
   status: 'planned',
   totalDistanceKm: null, totalDriveSeconds: null, totalMinutes: null,
