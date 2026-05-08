@@ -75,8 +75,9 @@ export const paymentMethods = sqliteTable('payment_methods', {
 
 export const tours = sqliteTable('tours', {
   id: text('id').primaryKey(),
-  scheduledDate: text('scheduled_date').notNull(),
-  departureTime: text('departure_time').notNull(),
+  scheduledDate: text('scheduled_date'),
+  departureTime: text('departure_time'),
+  title: text('title'),
   baseLat: real('base_lat').notNull(),
   baseLng: real('base_lng').notNull(),
   status: text('status').notNull(),

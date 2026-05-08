@@ -7,8 +7,9 @@ import { Payment } from '@/domain/models/payment';
 
 interface TourRow {
   id: string;
-  scheduledDate: string;
-  departureTime: string;
+  scheduledDate: string | null;
+  departureTime: string | null;
+  title: string | null;
   baseLat: number;
   baseLng: number;
   status: string;
