@@ -64,6 +64,8 @@ describe('migrateV4ToV5', () => {
       },
     };
     const v5 = migrateV4ToV5(v4);
-    expect(v5.tables.clients[0].manualStatusId).toBeNull();
+    const restored = v5.tables.clients[0];
+    expect(restored).toBeDefined();
+    expect(restored?.manualStatusId).toBeNull();
   });
 });
