@@ -1,6 +1,6 @@
 import { View, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pencil, Trash2, CircleCheck } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { format, parseISO } from 'date-fns';
@@ -61,6 +61,13 @@ export default function TourDetailScreen() {
   const onContrast = useOnContrastColor();
   const fg = useForegroundColor();
   const { data, isError, refetch } = useTour(id);
+
+  useEffect(() => {
+    if (data?.tour.status === 'draft') {
+      router.replace(`/tour-new/draft?id=${data.tour.id}` as never);
+    }
+  }, [data?.tour.status, data?.tour.id, router]);
+
   const deleteMutation = useDeleteTour();
   const { data: clients = [] } = useClients('all');
   const { data: base } = useBaseAddress();
@@ -86,7 +93,7 @@ export default function TourDetailScreen() {
       return haversineDistanceKm(a, b);
     };
     return estimateTourArrivals({
-      departureTime: data.tour.departureTime,
+      departureTime: data.tour.departureTime ?? '08:00',
       stops: data.stops.map((s) => ({
         clientId: s.clientId,
         plannedServices: s.plannedServices,
@@ -97,8 +104,13 @@ export default function TourDetailScreen() {
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!data) return <Surface className="flex-1" />;
-
+  if (data.tour.status === 'draft') return <Surface className="flex-1" />;  // redirect in flight
   const { tour, stops } = data;
+  if (tour.scheduledDate == null || tour.departureTime == null) {
+    return <Surface className="flex-1" />;  // defensive: should not happen for non-draft
+  }
+  const scheduledDate: string = tour.scheduledDate;
+  const departureTime: string = tour.departureTime;
 
   const onDelete = async () => {
     const ok = await confirm({
@@ -145,7 +157,7 @@ export default function TourDetailScreen() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
         {/* Header date + status */}
         <Text className="text-2xl font-bold">
-          {format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPPp', { locale: fr })}
+          {format(parseISO(`${scheduledDate}T${departureTime}:00`), 'PPPp', { locale: fr })}
         </Text>
 
         {/* KPI row */}
@@ -178,7 +190,7 @@ export default function TourDetailScreen() {
                 client: { ...c, latitude: c.latitude, longitude: c.longitude },
                 arrivalTime:
                   s.arrivalMinutes != null
-                    ? minutesToTime(s.arrivalMinutes, tour.departureTime)
+                    ? minutesToTime(s.arrivalMinutes, departureTime)
                     : arrivals[i]?.arrivalTime,
               };
             })
@@ -200,7 +212,7 @@ export default function TourDetailScreen() {
               key={stop.id}
               stop={stop}
               client={clientsById.get(stop.clientId)}
-              departureTime={tour.departureTime}
+              departureTime={departureTime}
               showPaymentBadge={tour.status === 'completed'}
               fallbackArrivalTime={arrivals?.[i]?.arrivalTime}
               fallbackDepartureTime={arrivals?.[i]?.departureTime}
