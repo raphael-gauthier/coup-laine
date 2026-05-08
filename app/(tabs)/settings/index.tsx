@@ -53,9 +53,9 @@ export default function SettingsScreen() {
 
         <SectionHeader title={t('settings.section_map')} />
         <SettingsRow
-          label={t('settings.marker_colors.row_label')}
+          label={t('statuses.screen_title')}
           hint={t('settings.marker_colors.row_hint')}
-          onPress={() => router.push('/(tabs)/settings/marker-colors' as never)}
+          onPress={() => router.push('/(tabs)/settings/statuses' as never)}
         />
 
         <SectionHeader title={t('settings.section_catalog')} />
