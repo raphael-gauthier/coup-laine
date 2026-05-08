@@ -18,5 +18,6 @@ export function createTestDb() {
   const sqlite = new Database(':memory:');
   const db = drizzle(sqlite);
   migrate(db, { migrationsFolder });
+  sqlite.pragma('foreign_keys = ON');
   return { db, close: () => sqlite.close() };
 }
