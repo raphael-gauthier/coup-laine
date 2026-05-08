@@ -15,6 +15,7 @@ import { EmptyState } from '@/ui/components/empty-state';
 import { PressScale } from '@/ui/motion/press-scale';
 import { haptics } from '@/ui/motion/haptics';
 import { useClients, type ClientsFilter } from '@/state/queries/clients';
+import { useStatusRegistry } from '@/state/queries/statuses';
 import { useTourDraftStore } from '@/state/stores/tour-draft-store';
 import { matchesQuery } from '@/lib/text-search';
 import { cn } from '@/lib/cn';
@@ -27,8 +28,10 @@ export default function PickClientsScreen() {
   const [filter, setFilter] = useState<ClientsFilter>('waiting');
   const [search, setSearch] = useState('');
   const { data: clients = [] } = useClients(filter);
+  const { data: registry } = useStatusRegistry();
   const picked = useTourDraftStore((s) => s.pickedClientIds);
   const toggle = useTourDraftStore((s) => s.toggle);
+  const waitingLabel = registry?.bySystemKey('waiting').label ?? t('clients.filter_waiting');
 
   const filtered = useMemo(() => {
     if (!search.trim()) return clients;
@@ -46,7 +49,7 @@ export default function PickClientsScreen() {
           value={filter}
           onChange={setFilter}
           options={[
-            { value: 'waiting', label: t('clients.filter_waiting') },
+            { value: 'waiting', label: waitingLabel },
             { value: 'all', label: t('clients.filter_all') },
           ]}
         />

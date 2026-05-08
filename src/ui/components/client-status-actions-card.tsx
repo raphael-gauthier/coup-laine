@@ -12,6 +12,7 @@ import {
   useDeleteManualHistoryEntry,
 } from '@/state/queries/history';
 import { useAllSettings } from '@/state/queries/settings';
+import { useStatusRegistry } from '@/state/queries/statuses';
 import type { Client } from '@/domain/models/client';
 import type { ClientStatus } from '@/domain/use-cases/client-status';
 import { haptics } from '@/ui/motion/haptics';
@@ -28,7 +29,9 @@ export function ClientStatusActionsCard({ client, status }: Props) {
   const deleteManualEntry = useDeleteManualHistoryEntry();
   const { data: settings } = useAllSettings();
   const { data: manualEntries = [] } = useManualHistoryByClient(client.id);
+  const { data: registry } = useStatusRegistry();
   const qc = useQueryClient();
+  const waitingLabel = registry?.bySystemKey('waiting').label ?? t('clients.is_waiting_label');
 
   const onReset = () => {
     const seasonStart = settings?.season_started_at ?? new Date().getFullYear() + '-01-01';
@@ -66,7 +69,7 @@ export function ClientStatusActionsCard({ client, status }: Props) {
 
       {showWaitingToggle ? (
         <View className="flex-row items-center justify-between">
-          <Text>{t('clients.is_waiting_label')}</Text>
+          <Text>{waitingLabel}</Text>
           <ThemedSwitch
             value={client.isWaiting}
             onValueChange={(v) => toggleWaiting.mutate({ id: client.id, isWaiting: v })}

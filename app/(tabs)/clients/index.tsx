@@ -21,6 +21,7 @@ import { RecomputeBanner } from '@/ui/components/recompute-banner';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { ClientFilterButton } from '@/ui/components/client-status-filter-dialog';
 import { useClients, useToggleWaiting, useDisplayedStatusMap, useClientsWithOutstanding, type ClientsFilter } from '@/state/queries/clients';
+import { useStatusRegistry } from '@/state/queries/statuses';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
 import { matchesAny } from '@/lib/text-search';
 import { useOnContrastColor, useMutedForegroundColor } from '@/ui/theme/colors';
@@ -36,8 +37,10 @@ export default function ClientsListScreen() {
   const { data: allClients = [], isLoading, isError, refetch } = useClients(filter);
   const { data: displayedMap } = useDisplayedStatusMap();
   const { data: outstandingIds } = useClientsWithOutstanding();
+  const { data: registry } = useStatusRegistry();
   const toggle = useToggleWaiting();
   const { enabledStatusIds, uninitialized } = useClientFiltersStore();
+  const waitingLabel = registry?.bySystemKey('waiting').label ?? t('clients.filter_waiting');
 
   const filtered = useMemo(() => {
     let list = allClients;
@@ -77,7 +80,7 @@ export default function ClientsListScreen() {
           onChange={setFilter}
           options={[
             { value: 'all', label: t('clients.filter_all') },
-            { value: 'waiting', label: t('clients.filter_waiting') },
+            { value: 'waiting', label: waitingLabel },
             { value: 'outstanding', label: t('clients.filters.outstanding') },
           ]}
         />
