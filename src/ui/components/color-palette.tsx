@@ -7,7 +7,7 @@ import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
 import { validateColorHex } from '@/domain/use-cases/validate-status';
 
-export const PALETTE_PAIRS: ReadonlyArray<{ light: string; dark: string }> = [
+export const PALETTE_PAIRS: readonly { light: string; dark: string }[] = [
   { light: '#A1602F', dark: '#C68A58' }, { light: '#5C7548', dark: '#98B282' },
   { light: '#C88226', dark: '#DC9E4E' }, { light: '#B23832', dark: '#DC605A' },
   { light: '#7A3B7A', dark: '#A766A7' }, { light: '#3D6A99', dark: '#6E9CC9' },
