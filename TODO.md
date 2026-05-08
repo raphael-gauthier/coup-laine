@@ -6,9 +6,6 @@ Index des fonctionnalités. Le brief détaillé (périmètre, critères d'accept
 
 ## À venir
 
-### 2. Gestion du RGPD — priorité haute
-Mise en conformité RGPD pour les données clients stockées (coordonnées, téléphones, historique de tonte, notes). À couvrir : politique de confidentialité, mentions de collecte, consentement, droit d'accès / rectification / suppression / portabilité (export JSON déjà en place — à compléter par une suppression totale), durée de conservation, mentions légales. À articuler avec la sync cloud (#1) qui change la nature du traitement (du local-only au cloud).
-
 ### 4. Création du business model — priorité moyenne
 Définir le modèle économique de l'app : gratuit / freemium / abonnement / one-shot, segmentation par features (sync cloud, multi-device, catalogue avancé…), pricing, canaux de distribution. Travail produit + business, pas un sujet code. À cadrer avant d'ouvrir l'app au public et de basculer la clé ORS côté backend (coût serveur).
 
@@ -88,6 +85,61 @@ source quand le sujet sera repris.
 - **`default` devient un vrai statut visible.** Initialement `bg-transparent` (badge invisible) ; demande utilisateur en cours de design pour qu'il apparaisse comme chip sur la carte. Couleur seedée gris ardoise (`#94A3B8` / `#64748B`), modifiable dans l'écran Statuts.
 - **Couleurs stockées par paire light/dark.** L'écran legacy `marker-colors.tsx` ne stockait qu'un hex unique partagé entre les deux thèmes. Le nouveau modèle préserve l'accessibilité WCAG AA dans chacun (palette curatée par paires + custom hex applique la même valeur aux deux).
 - **Pas de drag-and-drop pour réordonner les statuts.** Le champ `sortOrder` existe en base (incréments de 10) pour un futur ajout. Pour l'instant : ordre seedé pour les système, ordre de création pour les manuels.
+
+---
+
+### MVP RGPD — surfaces légales, anonymisation client, suppression compte cloud
+**Mergé sur `main`** — 2026-05-06 (3 sous-chantiers indépendants : `761db7f` legal surfaces, `54b3e76` account deletion + portabilité, `681929f` client anonymization)
+**Spec :** `docs/superpowers/specs/2026-05-06-rgpd-mvp-design.md`
+**Plans :** `docs/superpowers/plans/2026-05-06-rgpd-legal-surfaces.md`, `docs/superpowers/plans/2026-05-06-rgpd-account-deletion.md`, `docs/superpowers/plans/2026-05-06-rgpd-client-anonymization.md`
+
+#### Ce qui a été livré
+
+**Section A — Surfaces légales (art. 13 RGPD + LCEN art. 6)**
+- Trois constantes hostées dans `src/infra/config/legal-urls.ts` : `legalNotices` (mentions légales), `privacyPolicy` (politique de confidentialité), `terms` (CGU + accord de sous-traitance art. 28). HTML statique servi sur `ravnkode.com/coup-laine/legal/`.
+- Nouvel écran `app/(tabs)/settings/legal.tsx` accessible depuis la section « Légal » des Réglages : trois lignes ouvrent les docs hébergés via `expo-web-browser` + version de l'app affichée en bas (lue via `expo-constants`).
+- Encart d'information art. 13 sur l'étape « Bienvenue » de l'onboarding (mention de Supabase, OpenRouteService, BAN comme sous-traitants).
+- Encart pré-magic-link sur l'écran de login : mention « En continuant vous acceptez nos CGU et notre politique de confidentialité » avec liens cliquables vers les deux docs.
+- Refacto post-spec : `mentionsLegales` → `legalNotices` partout (identifiants/clés en anglais — convention CLAUDE.md).
+
+**Section B — Anonymisation client (droit à l'effacement art. 17, préservation comptable Code de commerce L123-22)**
+- Nouvelle colonne `clients.anonymized_at` (TEXT nullable, ISO timestamp) — schema bump v0 → v1, champ ajouté au modèle Zod `Client`.
+- Nouveau use case domaine pur `planAnonymization(client, stops, entries, dm, now)` qui produit un plan structuré (updates client + tour stops + manual entries + deletes distance_matrix). Idempotent : retourne un plan vide si le client est déjà anonymisé. 100 % testé.
+- `ClientRepository.anonymize(id, now)` exécute le plan dans un ordre crash-resilient : scrub des rows liées **avant** d'estampiller `anonymizedAt` sur le client, garantissant qu'un retry après crash n'oublie rien (le use case retourne un no-op plan une fois `anonymizedAt` posé). Pas de transaction (drizzle better-sqlite3 transactions sont synchrones et incompatibles avec notre code async — design documenté en commentaire).
+- Champs scrubés : `displayName` → "Client supprimé", `phones` → `[]`, `addressLabel`/`addressCity`/`addressPostcode` → null, `latitude`/`longitude` → null, `animalCounts` → `[]`, `isWaiting`/`isBanned` → false. `tour_stops.clientNameSnapshot` → "Client supprimé", `notes` → null. `manual_history_entries.notes` → null. `distance_matrix` lignes touchées supprimées.
+- Préservé volontairement (compta) : montants, dates, prestations, paiements (`tour_stops.actualServices`, `priceCentsSnapshot`, `paymentMethodLabelSnapshot`, etc.), `lastShearingDate`, identifiants opaques.
+- Filtrage UI partout : `WHERE anonymizedAt IS NULL` ajouté dans `ClientRepository.listAll`, `listWaiting`, `listWithRecomputePending`, et toute requête liste. Écran détail `app/(tabs)/clients/[id].tsx` redirige vers la liste avec un toast « Ce client a été supprimé » si on l'ouvre par URL alors qu'il est anonymisé.
+- UI : bouton « Supprimer ce client » sur la fiche client (variant `destructive`) → `ConfirmTypedDialog` (mot à taper : `SUPPRIMER`). Hook `useAnonymizeClient` (renommé depuis `useDeleteClient` pour refléter la sémantique).
+- Backup format v3 → v4 : nouveau `BackupSnapshotV4Schema` qui ajoute `anonymizedAt` sur le client row. `migrateV3ToV4` symétrique côté restore. Chaîne complète v2 → v3 → v4 préservée. Fix post-merge sur `BackupSnapshotV2Schema` qui doit utiliser `ClientRowV3` (sans `anonymizedAt`) pour parser correctement les anciens snapshots.
+- Étendu rétroactivement à chaque nouveau champ utilisateur : la colonne `manual_status_id` (chantier statuts) est ajoutée au scrub d'anonymisation pour qu'un client anonymisé ne porte plus aucune trace de qualification utilisateur.
+
+**Section C — Suppression compte cloud + export portabilité (art. 17 sur le compte + art. 20)**
+- Nouvelle Edge Function Supabase `supabase/functions/delete-account/` (parallèle à `ors-proxy`) : reçoit le JWT utilisateur, vérifie l'identité via `auth.getUser()`, refuse 403 si session anonyme. Trois étapes idempotentes : (1) liste + remove tous les objets `backups/{uid}/*` du Storage, (2) `delete().eq('user_id', uid)` sur la table `backups`, (3) `auth.admin.deleteUser(uid)` (purge identité Auth + sessions + magic links + refresh tokens). Utilise la nouvelle clé secrète `SUPABASE_SECRET_KEYS` (avec fallback `SUPABASE_SERVICE_ROLE_KEY` legacy).
+- Hook `useDeleteAccount` (`src/state/queries/auth.ts`) : invoke EF → wipe local DB → signOut → ré-ouvre une session anonyme pour garder l'ORS proxy accessible → clear le query cache → onSuccess redirige vers `/onboarding/welcome`. Tests mocktail pour les 3 chemins (succès, 403, erreur EF).
+- Hook `useExportData` : crée un backup à la volée via `useCreateBackup`, télécharge le snapshot JSON décompressé depuis Storage, écrit dans un fichier temporaire via `expo-file-system` (`coup-laine-export-{ISO}.json`), ouvre le share-sheet natif via `expo-sharing.shareAsync`. Nouvelles deps : `expo-file-system` et `expo-sharing`.
+- UI : modif `app/(tabs)/settings/cloud.tsx` — bouton « Télécharger mes données » (variant `secondary`) au-dessus de la nouvelle « Zone de danger » qui contient « Supprimer mon compte cloud » (variant `danger`, visible uniquement si session non-anonyme). Confirmation typée `SUPPRIMER` avant suppression.
+
+**Cross-chantier**
+- Règle ajoutée à `CLAUDE.md` (section « Developer Requests ») : avant tout nouveau champ ou comportement touchant des données personnelles, évaluer l'impact RGPD et flagger explicitement à l'utilisateur (data controller). Cette règle est désormais appliquée à chaque feature (cf chantier statuts qui a étendu le scrub à `manualStatusId`).
+- Force-update screen (`adcec98`) : nouvelle ForceUpdateScreen affichée par `VersionGateProvider` quand l'utilisateur a une version < `minSupported`. Inclut un escape hatch RGPD — possibilité de supprimer son compte / exporter ses données même si l'app est sinon bloquée — pour ne pas verrouiller l'exercice du droit à l'effacement derrière un mur de mise à jour. `5cd297d` masque cette section pour les sessions anonymes (rien à supprimer côté cloud).
+- 19 commits `fix(rgpd): ...` post-merge sur des cas marginaux (filtrage `distance_matrix`, ordre des opérations dans `anonymize`, toast de redirection, copy i18n, EF auth migration vers nouvelle clé).
+
+#### Écarts vs périmètre initial
+
+- Le TODO original mentionnait « consentement bloquant » : la spec a tranché vers l'**information art. 13 sans consentement** (base légale = exécution du contrat, pas le consentement). Ni cookie banner, ni opt-in modal — ce serait inapproprié pour cette base légale.
+- L'export de portabilité existait partiellement (snapshot JSON via les backups cloud) ; il fallait juste exposer un bouton et matérialiser le droit. Fait via `useExportData`.
+- Open questions de la spec (section 11) résolues à la rédaction : URLs `ravnkode.com/coup-laine/legal/`, identité AE inscrite dans les HTML, hébergeur du site légal sélectionné. Documents HTML eux-mêmes hostés hors-repo.
+
+#### Ce qu'il reste à faire (post-MVP)
+
+Les non-goals explicites de la spec (section 2) restent ouverts. À reprendre quand le besoin se manifestera :
+
+- **Mention d'information imprimable destinée aux clients du tondeur** (« v2 RGPD, Section B.bis »). L'utilisateur de l'app collecte des données personnelles de SES clients (les éleveurs) — il est lui-même responsable de traitement vis-à-vis d'eux. Une mention type imprimable (PDF ou bloc copiable) lui permettrait de remplir son obligation art. 13 quand il enregistre un nouveau client. Hors scope MVP, à prévoir avant qu'on ait beaucoup d'utilisateurs en prod.
+- **Durée de conservation configurable**. Aujourd'hui : 3 backups glissants en dur + 10 ans pour la compta (mention dans la politique de confidentialité, pas d'UI). À reprendre si un utilisateur demande à régler la rétention plus finement (ex. sortie du métier, changement d'activité).
+- **Soft-delete du compte cloud avec annulation 30 jours**. Aujourd'hui la suppression est immédiate et irréversible (matérialise mieux le droit à l'effacement, mais zéro filet de sécurité contre les accidents). Si on a un retour utilisateur "j'ai cliqué supprimer par erreur", à envisager.
+- **DPO désigné** + **politique d'incident publique**. Non obligatoire pour AE sous les seuils art. 37 RGPD ; à revisiter si l'app dépasse les seuils ou si on veut afficher un signal de conformité plus fort.
+- **Audit RGPD post-publication** : une fois l'app sortie sur les stores, faire passer le tout par un juriste/DPO externe pour valider que les surfaces (mentions, politique, encarts) tiennent face à un contrôle CNIL. Coût ponctuel à budgéter.
+- **Articulation avec sync cloud Phase 2** (multi-device temps réel) : si un jour on quitte le local-first vers du sync continu, la nature du traitement change (on devient sous-traitant pour des données métier en flux constant et non plus seulement dans des backups). À revoir entièrement la politique de confidentialité, l'accord de sous-traitance, et les durées de conservation à ce moment-là.
 
 ---
 
