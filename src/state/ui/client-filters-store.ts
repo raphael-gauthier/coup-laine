@@ -1,26 +1,26 @@
 import { create } from 'zustand';
-import type { ClientStatus } from '@/domain/use-cases/client-status';
-
-const ALL_STATUSES: ClientStatus[] = ['default', 'waiting', 'scheduled', 'done', 'noAnimals', 'banned'];
 
 interface ClientFiltersState {
-  enabledStatuses: Set<ClientStatus>;
-  setAll: () => void;
+  enabledStatusIds: Set<string>;
+  /** When true, no filter has been applied yet — UI should show all clients regardless of the set. */
+  uninitialized: boolean;
+  initWithAll: (ids: string[]) => void;
+  setAll: (ids: string[]) => void;
   setNone: () => void;
-  toggle: (status: ClientStatus) => void;
-  setStatuses: (statuses: ClientStatus[]) => void;
+  toggle: (id: string) => void;
 }
 
 export const useClientFiltersStore = create<ClientFiltersState>((set) => ({
-  enabledStatuses: new Set(ALL_STATUSES),
-  setAll: () => set({ enabledStatuses: new Set(ALL_STATUSES) }),
-  setNone: () => set({ enabledStatuses: new Set() }),
-  toggle: (status) =>
+  enabledStatusIds: new Set(),
+  uninitialized: true,
+  initWithAll: (ids) => set({ enabledStatusIds: new Set(ids), uninitialized: false }),
+  setAll: (ids) => set({ enabledStatusIds: new Set(ids), uninitialized: false }),
+  setNone: () => set({ enabledStatusIds: new Set(), uninitialized: false }),
+  toggle: (id) =>
     set((state) => {
-      const next = new Set(state.enabledStatuses);
-      if (next.has(status)) next.delete(status);
-      else next.add(status);
-      return { enabledStatuses: next };
+      const next = new Set(state.enabledStatusIds);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return { enabledStatusIds: next, uninitialized: false };
     }),
-  setStatuses: (statuses) => set({ enabledStatuses: new Set(statuses) }),
 }));

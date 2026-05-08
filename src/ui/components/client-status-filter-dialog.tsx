@@ -1,25 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, View, TouchableOpacity } from 'react-native';
-import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { Filter } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
+import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { PressScale } from '@/ui/motion/press-scale';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
+import { useStatusRegistry } from '@/state/queries/statuses';
 import { haptics } from '@/ui/motion/haptics';
-import type { ClientStatus } from '@/domain/use-cases/client-status';
-
-const STATUSES: { status: ClientStatus; labelKey: string }[] = [
-  { status: 'default',   labelKey: 'clients.filter_status_default' },
-  { status: 'waiting',   labelKey: 'clients.filter_status_waiting' },
-  { status: 'scheduled', labelKey: 'clients.filter_status_scheduled' },
-  { status: 'done',      labelKey: 'clients.filter_status_done' },
-  { status: 'noAnimals', labelKey: 'clients.filter_status_no_animals' },
-  { status: 'banned',    labelKey: 'clients.filter_status_banned' },
-];
 
 interface Props {
   visible: boolean;
@@ -28,38 +19,49 @@ interface Props {
 
 export function ClientStatusFilterDialog({ visible, onClose }: Props) {
   const { t } = useTranslation();
-  const { enabledStatuses, toggle } = useClientFiltersStore();
-  // Local draft state
-  const [draft, setDraft] = useState<Set<ClientStatus>>(new Set(enabledStatuses));
+  const { data: registry } = useStatusRegistry();
+  const { enabledStatusIds, uninitialized, setAll, setNone, toggle, initWithAll } = useClientFiltersStore();
 
-  const handleToggle = (status: ClientStatus) => {
+  const all = registry?.list ?? [];
+  const allIds = all.map((s) => s.id);
+
+  // First time the registry is available, initialize the store with all enabled.
+  useEffect(() => {
+    if (uninitialized && all.length > 0) initWithAll(allIds);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uninitialized, all.length]);
+
+  const [draft, setDraft] = useState<Set<string>>(new Set(enabledStatusIds));
+  useEffect(() => { setDraft(new Set(enabledStatusIds)); }, [enabledStatusIds]);
+
+  const handleToggle = (id: string) => {
     const next = new Set(draft);
-    if (next.has(status)) next.delete(status);
-    else next.add(status);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
     setDraft(next);
   };
 
   const handleApply = () => {
-    // Apply draft to store
-    STATUSES.forEach(({ status }) => {
-      const shouldEnable = draft.has(status);
-      const isEnabled = enabledStatuses.has(status);
-      if (shouldEnable !== isEnabled) toggle(status);
-    });
+    if (draft.size === allIds.length) setAll(allIds);
+    else if (draft.size === 0) setNone();
+    else {
+      // diff against current
+      for (const id of allIds) {
+        const has = draft.has(id);
+        const had = enabledStatusIds.has(id);
+        if (has !== had) toggle(id);
+      }
+    }
     void haptics.success();
     onClose();
   };
 
-  const handleAll = () => setDraft(new Set(STATUSES.map((s) => s.status)));
+  const handleAll = () => setDraft(new Set(allIds));
   const handleNone = () => setDraft(new Set());
 
   return (
     <Modal visible={visible} animationType="slide" transparent presentationStyle="overFullScreen">
-      <TouchableOpacity
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }}
-        onPress={onClose}
-        activeOpacity={1}
-      />
+      <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={onClose} activeOpacity={1} />
       <Surface className="rounded-t-3xl px-4 pb-8 pt-4">
         <View className="flex-row items-center justify-between mb-4">
           <Text className="text-lg font-semibold">{t('clients.filter_dialog_title')}</Text>
@@ -69,13 +71,10 @@ export function ClientStatusFilterDialog({ visible, onClose }: Props) {
           </View>
         </View>
 
-        {STATUSES.map(({ status, labelKey }) => (
-          <View key={status} className="flex-row items-center justify-between py-3 border-b border-border dark:border-border-dark">
-            <Text className="text-sm">{t(labelKey)}</Text>
-            <ThemedSwitch
-              value={draft.has(status)}
-              onValueChange={() => handleToggle(status)}
-            />
+        {all.map((s) => (
+          <View key={s.id} className="flex-row items-center justify-between py-3 border-b border-border dark:border-border-dark">
+            <Text className="text-sm">{s.label}</Text>
+            <ThemedSwitch value={draft.has(s.id)} onValueChange={() => handleToggle(s.id)} />
           </View>
         ))}
 
@@ -93,10 +92,7 @@ export function ClientFilterButton() {
   const [visible, setVisible] = useState(false);
   return (
     <>
-      <PressScale
-        onPress={() => setVisible(true)}
-        accessibilityLabel={t('clients.filter_dialog_title')}
-      >
+      <PressScale onPress={() => setVisible(true)} accessibilityLabel={t('clients.filter_dialog_title')}>
         <Filter size={20} color="#5C4E40" />
       </PressScale>
       <ClientStatusFilterDialog visible={visible} onClose={() => setVisible(false)} />

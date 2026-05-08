@@ -20,7 +20,7 @@ import { ErrorState } from '@/ui/components/error-state';
 import { RecomputeBanner } from '@/ui/components/recompute-banner';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { ClientFilterButton } from '@/ui/components/client-status-filter-dialog';
-import { useClients, useToggleWaiting, useClientStatusMap, useClientsWithOutstanding, type ClientsFilter } from '@/state/queries/clients';
+import { useClients, useToggleWaiting, useDisplayedStatusMap, useClientsWithOutstanding, type ClientsFilter } from '@/state/queries/clients';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
 import { matchesAny } from '@/lib/text-search';
 import { useOnContrastColor, useMutedForegroundColor } from '@/ui/theme/colors';
@@ -34,18 +34,19 @@ export default function ClientsListScreen() {
   const [search, setSearch] = useState('');
 
   const { data: allClients = [], isLoading, isError, refetch } = useClients(filter);
-  const { data: statusMap } = useClientStatusMap();
+  const { data: displayedMap } = useDisplayedStatusMap();
   const { data: outstandingIds } = useClientsWithOutstanding();
   const toggle = useToggleWaiting();
-  const { enabledStatuses } = useClientFiltersStore();
+  const { enabledStatusIds, uninitialized } = useClientFiltersStore();
 
   const filtered = useMemo(() => {
     let list = allClients;
-    // Apply status filter
-    if (enabledStatuses.size < 6 && statusMap) {
+    // Apply status filter (only once initialized — initial state means "show all")
+    if (!uninitialized && displayedMap) {
       list = list.filter((c) => {
-        const s = statusMap.get(c.id) ?? 'default';
-        return enabledStatuses.has(s);
+        const status = displayedMap.get(c.id);
+        if (status && !enabledStatusIds.has(status.id)) return false;
+        return true;
       });
     }
     // Apply outstanding filter
@@ -57,7 +58,7 @@ export default function ClientsListScreen() {
       list = list.filter((c) => matchesAny([c.displayName, c.addressCity], search));
     }
     return list;
-  }, [allClients, search, enabledStatuses, statusMap, filter, outstandingIds]);
+  }, [allClients, search, enabledStatusIds, uninitialized, displayedMap, filter, outstandingIds]);
 
   return (
     <Surface className="flex-1">
