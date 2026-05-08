@@ -2,7 +2,7 @@ import { useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
-import { Search, ChevronRight } from 'lucide-react-native';
+import { Search, ChevronRight, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -26,7 +26,7 @@ export default function ProximityScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const mapRef = useRef<MapHandle>(null);
-  const { pivotId, radiusKm, view, setRadiusKm, setView } = useProximityStore();
+  const { pivotId, radiusKm, view, setPivotId, setRadiusKm, setView } = useProximityStore();
   const { data: pivot } = useClient(pivotId ?? undefined);
   const { data: allClients = [], isLoading: clientsLoading } = useClients('all');
   const toggle = useToggleWaiting();
@@ -89,11 +89,19 @@ export default function ProximityScreen() {
           onPress={() => router.push('/(tabs)/proximity/pick-pivot')}
           accessibilityLabel={pivot.displayName}
         >
-          <Surface variant="muted" className="flex-row items-center justify-between rounded-2xl px-4 py-3">
+          <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-2">
             <View className="flex-1">
               <Text variant="muted" className="text-xs">{t('proximity.pivot_label')}</Text>
               <Text className="font-semibold mt-0.5">{pivot.displayName}</Text>
             </View>
+            <PressScale
+              onPress={() => setPivotId(null)}
+              accessibilityLabel={t('proximity.clear_pivot')}
+              hitSlop={8}
+              className="p-1"
+            >
+              <X size={18} color={mutedFg} />
+            </PressScale>
             <ChevronRight size={18} color={mutedFg} />
           </Surface>
         </PressScale>
@@ -148,6 +156,10 @@ export default function ProximityScreen() {
               centerLat={pivot.latitude!}
               centerLon={pivot.longitude!}
               radiusKm={radiusKm}
+            />
+            <ClientPin
+              client={pivot as typeof pivot & { latitude: number; longitude: number }}
+              onPress={() => router.push(`/(tabs)/clients/${pivot.id}`)}
             />
             {nearbyClients
               .filter((c) => c.latitude != null && c.longitude != null)
