@@ -22,6 +22,7 @@ import { ClientStatusBadge } from '@/ui/components/client-status-badge';
 import { ClientContactCard } from '@/ui/components/client-contact-card';
 import { PlannedTourCard } from '@/ui/components/planned-tour-card';
 import { ClientAnimalsSection } from '@/ui/components/client-animals-section';
+import { ClientManualStatusCard } from '@/ui/components/client-manual-status-card';
 import { ClientStatusActionsCard } from '@/ui/components/client-status-actions-card';
 import { LastInterventionsList } from '@/ui/components/last-interventions-list';
 import { ClientOutstandingCard } from '@/ui/components/client-outstanding-card';
@@ -213,6 +214,8 @@ export default function ClientDetailScreen() {
         <ClientAnimalsSection client={client} />
 
         <ClientStatusActionsCard client={client} status={status} />
+
+        <ClientManualStatusCard clientId={client.id} manualStatusId={client.manualStatusId} />
 
         <LastInterventionsList clientId={client.id} />
       </ScrollView>
