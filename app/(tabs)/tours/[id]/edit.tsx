@@ -6,7 +6,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { TourDraftEditor } from '@/ui/components/tour-draft-editor';
 import { ErrorState } from '@/ui/components/error-state';
-import { useTour, useUpsertTour } from '@/state/queries/tours';
+import { useTour, useScheduleTour } from '@/state/queries/tours';
 import { useBaseAddress } from '@/state/queries/settings';
 import { errorToast, mutationErrorToast } from '@/ui/components/error-toast';
 import { haptics } from '@/ui/motion/haptics';
@@ -17,7 +17,7 @@ export default function EditTourScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { data, isError, refetch } = useTour(id);
-  const upsert = useUpsertTour();
+  const scheduleTour = useScheduleTour();
   const { data: base } = useBaseAddress();
   const setOrder = useTourDraftStore((s) => s.setOrder);
   const picked = useTourDraftStore((s) => s.pickedClientIds);
@@ -26,7 +26,6 @@ export default function EditTourScreen() {
   const setStopServices = useTourDraftStore((s) => s.setStopServices);
   const hydrateServices = useTourDraftStore((s) => s.hydrateServices);
 
-  // Hydrate draft store with this tour's stops + services on first load.
   useEffect(() => {
     if (data) {
       setOrder(data.stops.map((s) => s.clientId));
@@ -63,21 +62,25 @@ export default function EditTourScreen() {
         initialId={data.tour.id}
         initialDate={data.tour.scheduledDate}
         initialTime={data.tour.departureTime}
+        initialTitle={data.tour.title}
         initialStops={stops}
-        saving={upsert.isPending}
+        tourStatus={data.tour.status}
+        saving={scheduleTour.isPending}
         onAddClients={() => router.push('/tour-new/pick-clients' as never)}
         onRemoveStop={toggle}
         onReorderStops={(next) => setOrder(next.map((s) => s.clientId))}
         onUpdateStopServices={setStopServices}
-        onSubmit={(input) => {
+        onSchedule={(input) => {
           if (!base) {
             errorToast(t('tours.errors.base_missing_title'), t('tours.errors.base_missing_message'));
             return;
           }
-          upsert.mutate(
+          scheduleTour.mutate(
             {
               id: data.tour.id,
-              ...input,
+              title: input.title,
+              scheduledDate: input.scheduledDate,
+              departureTime: input.departureTime,
               baseLat: base.lat,
               baseLng: base.lon,
               stops: input.stops.map((s) => ({
@@ -88,6 +91,8 @@ export default function EditTourScreen() {
                 estimatedMinutes: null,
                 notes: s.notes,
               })),
+              totalDistanceKm: input.totalDistanceKm,
+              totalMinutes: input.totalMinutes,
             },
             {
               onSuccess: () => {
