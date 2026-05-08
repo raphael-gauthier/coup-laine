@@ -237,7 +237,7 @@ export default function ProximityScreen() {
         </View>
       )}
 
-      {geocodedCandidates.length >= 2 && base ? (
+      {geocodedCandidates.length >= 2 && base && !selectedClient ? (
         <View className="absolute bottom-4 left-4 right-4">
           <Button
             onPress={onCreateTour}
