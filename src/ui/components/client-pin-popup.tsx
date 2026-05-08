@@ -12,17 +12,16 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
-import { clientStatusColor } from '@/lib/client-status-color';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import { normalizePhone } from '@/lib/phone-normalizer';
 import { pluralizeFr } from '@/lib/text-pluralization';
-import { useClientStatusMap } from '@/state/queries/clients';
-import { useAllSettings, useBaseAddress } from '@/state/queries/settings';
+import { useDisplayedStatusMap } from '@/state/queries/clients';
+import { useBaseAddress } from '@/state/queries/settings';
 import { useClientKpis } from '@/state/queries/kpis';
 import { useSpecies, useAnimalCategories } from '@/state/queries/species';
 import { useProximityStore } from '@/state/stores/proximity-store';
+import { useResolvedColorScheme } from '@/ui/theme/theme-provider';
 import type { Client } from '@/domain/models/client';
-import { cn } from '@/lib/cn';
 
 export interface PlanAction {
   label: string;
@@ -42,16 +41,16 @@ interface Props {
 export function ClientPinPopup({ client, onClose, arrivalTime, onNavigate, planAction }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
-  const { data: statusMap } = useClientStatusMap();
-  const { data: settings } = useAllSettings();
+  const { data: map } = useDisplayedStatusMap();
+  const scheme = useResolvedColorScheme();
   const { data: base } = useBaseAddress();
   const { data: kpis } = useClientKpis(client.id);
   const { data: speciesList = [] } = useSpecies();
   const { data: categories = [] } = useAnimalCategories();
   const setPivotId = useProximityStore((s) => s.setPivotId);
 
-  const status = statusMap?.get(client.id) ?? 'default';
-  const colors = clientStatusColor(status, settings as Record<string, string | null>);
+  const status = map?.get(client.id);
+  const statusHex = status ? (scheme === 'dark' ? status.colorDark : status.colorLight) : null;
 
   const distanceKm = base
     ? Math.round(haversineDistanceKm({ lat: base.lat, lon: base.lon }, { lat: client.latitude, lon: client.longitude }))
@@ -153,26 +152,20 @@ export function ClientPinPopup({ client, onClose, arrivalTime, onNavigate, planA
             <Text className="flex-1 text-xl font-bold" numberOfLines={1}>
               {client.displayName}
             </Text>
-            {colors.bgHex ? (
+            {status && statusHex ? (
               <View
                 style={{
                   paddingHorizontal: 10,
                   paddingVertical: 3,
                   borderRadius: 12,
-                  backgroundColor: colors.bgHex,
+                  backgroundColor: statusHex,
                 }}
               >
                 <Text className="text-xs font-semibold" style={{ color: '#FFFFFF' }}>
-                  {t(`map.status_${status}`)}
+                  {status.label}
                 </Text>
               </View>
-            ) : (
-              <View className={cn('px-2.5 py-1 rounded-full', colors.bgClass)}>
-                <Text className={cn('text-xs font-semibold', colors.textClass)}>
-                  {t(`map.status_${status}`)}
-                </Text>
-              </View>
-            )}
+            ) : null}
             <ChevronRight size={18} color="#5C4E40" />
           </View>
 
