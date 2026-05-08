@@ -96,3 +96,19 @@ The Expo SQLite migrator skips any journal entry whose `when` is ≤ `max(when)`
 
 - When hand-writing a migration's journal entry in `src/infra/db/migrations/meta/_journal.json`, set `when: Date.now()` at the moment of editing. **Do not pick a "clean" date** — it can collide with an earlier entry's auto-generated `Date.now()`.
 - After **any** edit to `_journal.json` or to a `*.sql` file under `src/infra/db/migrations/`, run `pnpm db:bundle`. The bundle script (`scripts/bundle-migrations.mjs`) regenerates `migrations.js` (loaded at runtime) **and** validates that every entry's `when` is strictly greater than the max of all preceding `when` values. If you see a `Migration "…" has when=…` error from `pnpm db:bundle`, bump that entry's `when` to at least `previousMax + 1` — never silence it via the `KNOWN_HISTORICAL_VIOLATIONS` allowlist (that list is for already-shipped violations only; bumping a shipped migration's `when` would force destructive re-execution on user DBs).
+
+**Drizzle migrations — `--> statement-breakpoint` is mandatory in multi-statement SQL.**
+
+`expo-sqlite`'s `prepareSync` compiles only the **first** SQL statement in a string; trailing statements are silently dropped. The migrator wraps all of a migration's statements in one transaction and INSERTs into `__drizzle_migrations` on success. If your `.sql` file is multi-statement and lacks `--> statement-breakpoint` separators, only the first statement runs, the migrator records the migration as applied, and **the schema change never lands**. The bug surfaces later as `no such column …` runtime errors, and the migrator refuses to retry because `__drizzle_migrations` claims success.
+
+- Every `.sql` migration that contains more than one SQL statement **MUST** have `--> statement-breakpoint` between every pair of statements (including before/after `PRAGMA` lines). Look at `0001_r1_flutter_parity.sql` for the canonical pattern.
+- `migrations.js` is a **runtime artifact** loaded by the app, not a build-time generated file. After any edit to a `.sql` or `_journal.json`, run `pnpm db:bundle` AND **commit the regenerated `migrations.js` in the same commit**. Forgetting this means the runtime keeps loading the previous (often broken) bundle.
+- Prefer **idempotent migration SQL**: when recreating a table, start with `DROP TABLE IF EXISTS __new_X;` so a second run after a partial earlier failure can recover cleanly.
+
+**Drizzle migrations — user data is sacred. Never tell the user to wipe.**
+
+User data persistence is non-negotiable. The app is the user's source of truth for their business. A migration mistake is **always** recoverable via a follow-up migration; it is **never** acceptable to tell the user to clear app storage, uninstall/reinstall, factory-reset, or otherwise lose data.
+
+- When a migration error reaches a user, the only acceptable recovery path is to ship a **corrective migration** that fixes the schema in place. Common pattern: bump the failing migration's `when` value past the highest `created_at` users may have for it (so the migrator re-attempts), and make the SQL idempotent against any partial state (e.g. `DROP TABLE IF EXISTS __new_X`, `INSERT OR IGNORE`, `ALTER TABLE … IF NOT EXISTS …` workarounds).
+- Before merging any migration: run `pnpm jest tests/data/` (the repo tests boot a real SQLite DB and apply migrations end-to-end) AND boot the dev client against a populated DB to confirm the migration applies cleanly. `pnpm db:bundle` alone is not sufficient — it only validates `when` ordering, not that the SQL actually executes.
+- If you suspect a migration shipped half-applied, **stop and design a recovery migration before any other action**. Don't suggest a wipe as a workaround, even temporarily — the user reads the suggestion and may act on it, losing their data.
