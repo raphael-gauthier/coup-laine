@@ -2,11 +2,13 @@ import { supabase } from '@/infra/services/supabase';
 import { db } from '@/infra/db/client';
 import * as schema from '@/infra/db/schema';
 import {
+  BackupSnapshotV5Schema,
   BackupSnapshotV4Schema,
   BackupSnapshotV3Schema,
   BackupSnapshotV2Schema,
   migrateV2ToV3,
   migrateV3ToV4,
+  migrateV4ToV5,
   type ValidatedBackupSnapshot,
 } from './backup-schema';
 
@@ -38,6 +40,7 @@ async function dumpAllTables(): Promise<BackupSnapshot['tables']> {
     manual_history_entries: await db.select().from(schema.manualHistoryEntries),
     distance_matrix: await db.select().from(schema.distanceMatrix),
     settings: await db.select().from(schema.settings),
+    statuses: await db.select().from(schema.statuses),
   };
 }
 
@@ -51,8 +54,10 @@ async function wipeAndRestore(tables: BackupSnapshot['tables']): Promise<void> {
     await tx.delete(schema.species);
     await tx.delete(schema.services);
     await tx.delete(schema.clients);
+    await tx.delete(schema.statuses);
     await tx.delete(schema.settings);
 
+    for (const row of tables.statuses) await tx.insert(schema.statuses).values(row as typeof schema.statuses.$inferInsert);
     for (const row of tables.species) await tx.insert(schema.species).values(row as typeof schema.species.$inferInsert);
     for (const row of tables.animal_categories) await tx.insert(schema.animalCategories).values(row as typeof schema.animalCategories.$inferInsert);
     for (const row of tables.services) await tx.insert(schema.services).values(row as typeof schema.services.$inferInsert);
@@ -68,7 +73,7 @@ async function wipeAndRestore(tables: BackupSnapshot['tables']): Promise<void> {
 export async function createBackup(): Promise<string> {
   const uid = await userId();
   const snapshot: BackupSnapshot = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     createdAt: new Date().toISOString(),
     tables: await dumpAllTables(),
   };
@@ -120,26 +125,32 @@ export async function restoreBackup(name: string): Promise<void> {
   const text = await data.text();
   const json = JSON.parse(text);
 
+  const v5 = BackupSnapshotV5Schema.safeParse(json);
+  if (v5.success) {
+    await wipeAndRestore(v5.data.tables);
+    return;
+  }
+
   const v4 = BackupSnapshotV4Schema.safeParse(json);
   if (v4.success) {
-    await wipeAndRestore(v4.data.tables);
+    await wipeAndRestore(migrateV4ToV5(v4.data).tables);
     return;
   }
 
   const v3 = BackupSnapshotV3Schema.safeParse(json);
   if (v3.success) {
-    await wipeAndRestore(migrateV3ToV4(v3.data).tables);
+    await wipeAndRestore(migrateV4ToV5(migrateV3ToV4(v3.data)).tables);
     return;
   }
 
   const v2 = BackupSnapshotV2Schema.safeParse(json);
   if (v2.success) {
     const v3FromV2 = migrateV2ToV3(v2.data);
-    await wipeAndRestore(migrateV3ToV4(v3FromV2).tables);
+    await wipeAndRestore(migrateV4ToV5(migrateV3ToV4(v3FromV2)).tables);
     return;
   }
 
-  throw new Error(`Invalid backup format: ${v4.error.issues[0]?.message ?? 'unknown error'}`);
+  throw new Error(`Invalid backup format: ${v5.error.issues[0]?.message ?? 'unknown error'}`);
 }
 
 export async function deleteBackup(name: string): Promise<void> {
