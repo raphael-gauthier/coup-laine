@@ -42,7 +42,7 @@ export function useClientKpis(clientId: string | undefined) {
         stops
           .filter((s) => s.clientId === clientId)
           .map((s) => ({
-            date: tour.scheduledDate,
+            date: tour.scheduledDate ?? '',
             services: s.actualServices ?? s.plannedServices,
             travelFeeCents: s.travelFeeCents,
           }))
@@ -125,8 +125,8 @@ export function useServiceKpis() {
       const completedTours = await tourRepo.listByStatus('completed');
       const fromTours = completedTours.flatMap(({ tour, stops }) =>
         stops
-          .filter(() => tour.scheduledDate.slice(0, 7) === yyyymm)
-          .map((s) => ({ date: tour.scheduledDate, services: s.actualServices ?? s.plannedServices }))
+          .filter(() => (tour.scheduledDate ?? '').slice(0, 7) === yyyymm)
+          .map((s) => ({ date: tour.scheduledDate ?? '', services: s.actualServices ?? s.plannedServices }))
       );
       // Note: manual entries this month would also count — for now, tours are the main source. Add manual later if needed.
       return computeServiceKpis({
@@ -152,14 +152,14 @@ export function useMapKpis() {
       for (const { tour, stops } of completed) {
         for (const s of stops) {
           const arr = completedByClient.get(s.clientId) ?? [];
-          arr.push(tour.scheduledDate);
+          arr.push(tour.scheduledDate ?? '');
           completedByClient.set(s.clientId, arr);
         }
       }
       for (const { tour, stops } of planned) {
         for (const s of stops) {
           const arr = plannedByClient.get(s.clientId) ?? [];
-          arr.push(tour.scheduledDate);
+          arr.push(tour.scheduledDate ?? '');
           plannedByClient.set(s.clientId, arr);
         }
       }

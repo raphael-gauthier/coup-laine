@@ -80,8 +80,9 @@ const ServiceRow = z.object({
 
 const TourRow = z.object({
   id: z.string(),
-  scheduledDate: z.string(),
-  departureTime: z.string(),
+  scheduledDate: optStr,
+  departureTime: optStr,
+  title: optStr,
   baseLat: z.number(),
   baseLng: z.number(),
   status: z.string(),

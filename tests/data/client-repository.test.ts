@@ -115,7 +115,7 @@ describe('ClientRepository.listClientIdsWithOutstanding', () => {
 
     // c1: completed unpaid stop -> outstanding
     await tourRepo.upsertTour(
-      { id: 't1', scheduledDate: '2026-05-01', departureTime: '08:00',
+      { id: 't1', scheduledDate: '2026-05-01', departureTime: '08:00', title: null,
         baseLat: 0, baseLng: 0, status: 'completed',
         totalDistanceKm: null, totalDriveSeconds: null, totalMinutes: null,
         totalRevenueCents: null, totalAnimalsCount: null,
@@ -137,7 +137,7 @@ describe('ClientRepository.listClientIdsWithOutstanding', () => {
 
     // c3: planned tour stop unpaid -> NOT outstanding (not completed)
     await tourRepo.upsertTour(
-      { id: 't2', scheduledDate: '2026-06-01', departureTime: '08:00',
+      { id: 't2', scheduledDate: '2026-06-01', departureTime: '08:00', title: null,
         baseLat: 0, baseLng: 0, status: 'planned',
         totalDistanceKm: null, totalDriveSeconds: null, totalMinutes: null,
         totalRevenueCents: null, totalAnimalsCount: null,

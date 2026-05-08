@@ -32,7 +32,7 @@ export function useClientHistory(clientId: string | undefined) {
           .map((s) => ({
             tourId: tour.id,
             stopId: s.id,
-            date: tour.scheduledDate,
+            date: tour.scheduledDate ?? '',
             services: s.actualServices ?? s.plannedServices,
             travelFeeCents: s.travelFeeCents,
             notes: s.notes,

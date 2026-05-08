@@ -9,6 +9,7 @@ import { EMPTY_PAYMENT } from '@/domain/models/payment';
 import type { Payment } from '@/domain/models/payment';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import i18n from '@/i18n';
+import { assertTourInvariants } from '@/domain/use-cases/assert-tour-invariants';
 
 const tourRepo = new TourRepository(db);
 const clientRepo = new ClientRepository(db);
@@ -56,6 +57,126 @@ export interface UpsertTourInput {
   totalMinutes: number | null;
 }
 
+function buildStops(tourId: string, inputs: UpsertTourStopInput[]): TourStop[] {
+  return inputs.map((s, index) => ({
+    id: s.id ?? newId(),
+    tourId,
+    clientId: s.clientId,
+    clientNameSnapshot: s.clientNameSnapshot ?? null,
+    ordering: index,
+    arrivalMinutes: s.arrivalMinutes,
+    departureMinutes: null,
+    estimatedMinutes: s.estimatedMinutes,
+    travelFeeCents: null,
+    plannedServices: s.plannedServices,
+    actualServices: null,
+    notes: s.notes,
+    completedAt: null,
+    payment: EMPTY_PAYMENT,
+  }));
+}
+
+export interface SaveDraftInput {
+  id?: string;
+  title: string | null;
+  baseLat: number;
+  baseLng: number;
+  stops: UpsertTourStopInput[];
+  totalDistanceKm: number | null;
+  totalMinutes: number | null;
+}
+
+export function useSaveDraft() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: SaveDraftInput) => {
+      const now = new Date().toISOString();
+      const existing = input.id ? await tourRepo.byId(input.id) : null;
+      const tourId = input.id ?? newId();
+      const tour: Tour = {
+        id: tourId,
+        scheduledDate: null,
+        departureTime: null,
+        title: input.title,
+        baseLat: input.baseLat,
+        baseLng: input.baseLng,
+        status: 'draft',
+        totalDistanceKm: input.totalDistanceKm,
+        totalDriveSeconds: existing?.tour.totalDriveSeconds ?? null,
+        totalMinutes: input.totalMinutes,
+        totalRevenueCents: existing?.tour.totalRevenueCents ?? null,
+        totalAnimalsCount: existing?.tour.totalAnimalsCount ?? null,
+        routeGeometry: existing?.tour.routeGeometry ?? null,
+        notes: existing?.tour.notes ?? null,
+        completedAt: null,
+        createdAt: existing?.tour.createdAt ?? now,
+        updatedAt: now,
+      };
+      assertTourInvariants(tour);
+      const stops = buildStops(tourId, input.stops);
+      await tourRepo.upsertTour(tour, stops);
+      return { tour, stops };
+    },
+    onSuccess: ({ tour }) => {
+      void qc.invalidateQueries({ queryKey: toursKeys.all });
+      void qc.invalidateQueries({ queryKey: ['kpis'] });
+      qc.removeQueries({ queryKey: toursKeys.byId(tour.id) });
+    },
+  });
+}
+
+export interface ScheduleTourInput {
+  id?: string;
+  title: string | null;
+  scheduledDate: string;
+  departureTime: string;
+  baseLat: number;
+  baseLng: number;
+  stops: UpsertTourStopInput[];
+  totalDistanceKm: number | null;
+  totalMinutes: number | null;
+}
+
+export function useScheduleTour() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: ScheduleTourInput) => {
+      const now = new Date().toISOString();
+      const existing = input.id ? await tourRepo.byId(input.id) : null;
+      const tourId = input.id ?? newId();
+      const tour: Tour = {
+        id: tourId,
+        scheduledDate: input.scheduledDate,
+        departureTime: input.departureTime,
+        title: input.title,
+        baseLat: input.baseLat,
+        baseLng: input.baseLng,
+        status: 'planned',
+        totalDistanceKm: input.totalDistanceKm,
+        totalDriveSeconds: existing?.tour.totalDriveSeconds ?? null,
+        totalMinutes: input.totalMinutes,
+        totalRevenueCents: existing?.tour.totalRevenueCents ?? null,
+        totalAnimalsCount: existing?.tour.totalAnimalsCount ?? null,
+        routeGeometry: existing?.tour.routeGeometry ?? null,
+        notes: existing?.tour.notes ?? null,
+        completedAt: null,
+        createdAt: existing?.tour.createdAt ?? now,
+        updatedAt: now,
+      };
+      assertTourInvariants(tour);
+      const stops = buildStops(tourId, input.stops);
+      await tourRepo.upsertTour(tour, stops);
+      return { tour, stops };
+    },
+    onSuccess: ({ tour }) => {
+      void qc.invalidateQueries({ queryKey: toursKeys.all });
+      void qc.invalidateQueries({ queryKey: ['clients'] });
+      void qc.invalidateQueries({ queryKey: ['kpis'] });
+      qc.removeQueries({ queryKey: toursKeys.byId(tour.id) });
+    },
+  });
+}
+
 export function useUpsertTour() {
   const qc = useQueryClient();
   return useMutation({
@@ -67,6 +188,7 @@ export function useUpsertTour() {
         id: tourId,
         scheduledDate: input.scheduledDate,
         departureTime: input.departureTime,
+        title: existing?.tour.title ?? null,
         baseLat: input.baseLat,
         baseLng: input.baseLng,
         status: input.status,
@@ -81,22 +203,7 @@ export function useUpsertTour() {
         createdAt: existing?.tour.createdAt ?? now,
         updatedAt: now,
       };
-      const stops: TourStop[] = input.stops.map((s, index) => ({
-        id: s.id ?? newId(),
-        tourId,
-        clientId: s.clientId,
-        clientNameSnapshot: s.clientNameSnapshot ?? null,
-        ordering: index,
-        arrivalMinutes: s.arrivalMinutes,
-        departureMinutes: null,
-        estimatedMinutes: s.estimatedMinutes,
-        travelFeeCents: null,
-        plannedServices: s.plannedServices,
-        actualServices: null,
-        notes: s.notes,
-        completedAt: null,
-        payment: EMPTY_PAYMENT,
-      }));
+      const stops = buildStops(tourId, input.stops);
       await tourRepo.upsertTour(tour, stops);
       return { tour, stops };
     },
@@ -117,7 +224,9 @@ export function useNextPlannedTourForClient(clientId: string | undefined) {
       const planned = await tourRepo.listByStatus('planned');
       const matching = planned
         .filter(({ stops }) => stops.some((s) => s.clientId === clientId))
-        .sort((a, b) => a.tour.scheduledDate.localeCompare(b.tour.scheduledDate));
+        .sort((a, b) =>
+          (a.tour.scheduledDate ?? '').localeCompare(b.tour.scheduledDate ?? ''),
+        );
       return matching[0] ?? null;
     },
     enabled: !!clientId,
@@ -166,7 +275,7 @@ export function useCompleteWithBilan() {
           if (!client) continue;
           await clientRepo.upsert({
             ...client,
-            lastShearingDate: result.tour.scheduledDate,
+            lastShearingDate: result.tour.scheduledDate ?? completedAt.slice(0, 10),
             isWaiting: false,
             updatedAt: completedAt,
           });
@@ -227,7 +336,7 @@ export function useCompleteTour() {
         if (!client) continue;
         await clientRepo.upsert({
           ...client,
-          lastShearingDate: tour.scheduledDate,
+          lastShearingDate: tour.scheduledDate ?? completedAt.slice(0, 10),
           isWaiting: false,
           updatedAt: completedAt,
         });

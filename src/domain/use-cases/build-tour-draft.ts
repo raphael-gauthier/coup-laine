@@ -37,6 +37,7 @@ export function buildTourDraft({
     id: tourId,
     scheduledDate,
     departureTime,
+    title: null,
     baseLat: base.lat,
     baseLng: base.lon,
     status: 'planned',

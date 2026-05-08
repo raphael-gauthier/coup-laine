@@ -230,14 +230,14 @@ export function useClientStatusMap() {
       for (const { tour, stops } of completed) {
         for (const s of stops) {
           const arr = completedByClient.get(s.clientId) ?? [];
-          arr.push(tour.scheduledDate);
+          arr.push(tour.scheduledDate ?? '');
           completedByClient.set(s.clientId, arr);
         }
       }
       for (const { tour, stops } of planned) {
         for (const s of stops) {
           const arr = plannedByClient.get(s.clientId) ?? [];
-          arr.push(tour.scheduledDate);
+          arr.push(tour.scheduledDate ?? '');
           plannedByClient.set(s.clientId, arr);
         }
       }
