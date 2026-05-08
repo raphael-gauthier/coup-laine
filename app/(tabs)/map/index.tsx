@@ -14,7 +14,7 @@ import { MapSearchOverlay } from '@/ui/components/map-search-overlay';
 import { MapLayerDialog } from '@/ui/components/map-layer-dialog';
 import { EmptyState } from '@/ui/components/empty-state';
 import { ErrorState } from '@/ui/components/error-state';
-import { useClients, useClientStatusMap } from '@/state/queries/clients';
+import { useClients, useDisplayedStatusMap } from '@/state/queries/clients';
 import { useBaseAddress } from '@/state/queries/settings';
 import { useMapFiltersStore } from '@/state/ui/map-filters-store';
 import { useMapLayersStore } from '@/state/ui/map-layers-store';
@@ -29,7 +29,7 @@ export default function MapScreen() {
   const mapRef = useRef<MapHandle>(null);
   const { data: clients = [], isError, isLoading, refetch } = useClients('all');
   const { data: base } = useBaseAddress();
-  const { data: statusMap } = useClientStatusMap();
+  const { data: displayedMap } = useDisplayedStatusMap();
   const { activeFilter } = useMapFiltersStore();
   const { showClientPins, showBasePin } = useMapLayersStore();
   const mutedFg = useMutedForegroundColor();
@@ -42,9 +42,12 @@ export default function MapScreen() {
   );
 
   const visibleClients = useMemo(() => {
-    if (activeFilter === 'all') return geocoded;
-    return geocoded.filter((c) => statusMap?.get(c.id) === activeFilter);
-  }, [geocoded, activeFilter, statusMap]);
+    if (activeFilter === null) return geocoded;
+    return geocoded.filter((c) => {
+      const displayed = displayedMap?.get(c.id);
+      return displayed?.id === activeFilter;
+    });
+  }, [geocoded, activeFilter, displayedMap]);
 
   const initialCenter = base ? { lat: base.lat, lon: base.lon } : undefined;
 

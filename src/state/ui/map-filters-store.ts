@@ -1,14 +1,12 @@
 import { create } from 'zustand';
-import type { ClientStatus } from '@/domain/use-cases/client-status';
 
-export type MapFilter = ClientStatus | 'all';
-
+/** null means "all". Otherwise, a Status row id. */
 interface MapFiltersState {
-  activeFilter: MapFilter;
-  setFilter: (f: MapFilter) => void;
+  activeFilter: string | null;
+  setFilter: (f: string | null) => void;
 }
 
 export const useMapFiltersStore = create<MapFiltersState>((set) => ({
-  activeFilter: 'all',
+  activeFilter: null,
   setFilter: (activeFilter) => set({ activeFilter }),
 }));
