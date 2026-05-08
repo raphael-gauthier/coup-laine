@@ -9,9 +9,6 @@ Index des fonctionnalités. Le brief détaillé (périmètre, critères d'accept
 ### 2. Gestion du RGPD — priorité haute
 Mise en conformité RGPD pour les données clients stockées (coordonnées, téléphones, historique de tonte, notes). À couvrir : politique de confidentialité, mentions de collecte, consentement, droit d'accès / rectification / suppression / portabilité (export JSON déjà en place — à compléter par une suppression totale), durée de conservation, mentions légales. À articuler avec la sync cloud (#1) qui change la nature du traitement (du local-only au cloud).
 
-### 3. Personnalisation des statuts client — priorité moyenne
-Les statuts (`waiting`, `scheduled`, `done`, `noSheep`, `banned`) ont libellés et couleurs en dur. À l'onboarding + dans Réglages, l'utilisateur doit pouvoir les nommer et choisir leurs couleurs. Les couleurs sont déjà persistées (`Settings.markerXxxColor`) ; il faut ajouter les libellés en base et brancher l'UI dessus partout (badges, légende carte, filtres, fiche).
-
 ### 4. Création du business model — priorité moyenne
 Définir le modèle économique de l'app : gratuit / freemium / abonnement / one-shot, segmentation par features (sync cloud, multi-device, catalogue avancé…), pricing, canaux de distribution. Travail produit + business, pas un sujet code. À cadrer avant d'ouvrir l'app au public et de basculer la clé ORS côté backend (coût serveur).
 
@@ -23,6 +20,76 @@ source quand le sujet sera repris.
 ---
 
 ## Livrées
+
+### Personnalisation des statuts client
+**Mergé sur `main`** — 2026-05-08 (HEAD `64edbb3`, 31 commits depuis la spec `508c1da`)
+**Spec :** `docs/superpowers/specs/2026-05-08-configurable-client-statuses-design.md`
+**Plan :** `docs/superpowers/plans/2026-05-08-configurable-client-statuses.md`
+
+#### Ce qui a été livré
+
+**Données**
+- Nouvelle table Drizzle `statuses` (id, kind `'system' | 'manual'`, systemKey nullable, label, colorLight, colorDark, sortOrder, createdAt) — source unique pour les statuts système ET les statuts manuels créés par l'utilisateur.
+- Nouvelle colonne `clients.manual_status_id` (FK → `statuses(id)` ON DELETE SET NULL, indexée).
+- Migration `0009_statuses` (hand-written, suit le pattern 0005/0008) : crée la table, seed les 6 statuts système avec libellés FR + paires de hex `colorLight`/`colorDark` reprenant les tokens du thème pixel-perfect, copie les overrides legacy `marker_*_color` du store `settings` dans **les deux** champs `colorLight` et `colorDark`, supprime les clés legacy de `settings`.
+- Backup format v4 → v5 : nouveau `BackupSnapshotV5Schema`, `migrateV4ToV5` symétrique côté restore (seed des 6 lignes système + carry-over des `marker_*_color` legacy + `manualStatusId: null` partout). Chaîne complète v2 → v3 → v4 → v5 préservée.
+
+**Domaine**
+- `Status` Zod schema + `SystemStatusKey` enum (`'default'|'waiting'|'scheduled'|'done'|'noAnimals'|'banned'`).
+- `computeClientStatus()` **inchangé** — continue à dériver un `systemKey` depuis les flags métier (`isWaiting`, `isBanned`, `animalsTotal`, dates de tournées). Aucune modification de la logique métier.
+- Nouveau `resolveDisplayedStatus(client, derivedKey, registry)` pur : si `manualStatusId` défini ET ligne manuelle existe → retourne celle-ci, sinon fallback sur la ligne système. 4 cas testés.
+- `validateStatusLabel` (trim, non-vide, ≤ 30 chars) + `validateColorPair` (`#RRGGBB` strict pour les deux hex, plus de `transparent`).
+- `planAnonymization` étendu : `manualStatusId` mis à `null` au scrub (RGPD — un client anonymisé ne porte plus aucune trace de qualification utilisateur).
+
+**Couche données**
+- `StatusRepository` : `list / byId / bySystemKey / createManual / update / deleteManual / countClientsUsing`. `deleteManual` lève sur les lignes système (défense en profondeur). `createManual` calcule `sortOrder = max + 10`.
+- `ClientRepository.setManualStatus(id, statusId, updatedAt)` ajouté ; `Client` Zod model étend `manualStatusId: z.string().nullable()`.
+- Helper test `tests/data/_helpers/test-db.ts` active `pragma foreign_keys = ON` pour aligner les tests sur la prod (sans cela, `ON DELETE SET NULL` était silencieusement ignoré dans les tests).
+
+**State & React Query**
+- `useStatusRegistry()` exposé : retourne `{ list, bySystemKey, byId }`.
+- `useDisplayedStatusMap()` : `Map<clientId, Status>` qui résout l'override manuel — source de vérité pour l'**affichage** et le **filtrage par statut**.
+- `useClientStatusMap()` **inchangé** — reste l'autorité pour la **logique métier** (toggle « En attente », création de tournée, recompute, etc.).
+- Hooks de mutation : `useCreateManualStatus`, `useRenameStatus`, `useRecolorStatus`, `useDeleteManualStatus`, `useAssignManualStatus`, `useCountClientsUsingStatus`. Toutes invalident `statusesKeys.list` ; rename/recolor/delete/assign invalident aussi `clientsKeys.all` pour rafraîchir badges/pin/popup/card/chips/KPIs.
+
+**UI — Réglages**
+- Nouvel écran `app/(tabs)/settings/statuses.tsx` : sections « Statuts système » (6 lignes renommables/recolorables, non supprimables) et « Mes statuts » (CRUD complet) + bouton « Nouveau statut ».
+- `<ColorPalette>` : grille de 24 swatches `{ light, dark }` coordonnés (chaque swatch est un demi-disque diagonal montrant les deux variants), + bouton « Couleur personnalisée » pour saisir un hex unique réutilisé dans les deux thèmes.
+- `<StatusEditSheet>` : édition unifiée label + paire de couleurs ; bouton Supprimer (manuels uniquement) avec dialog de confirmation et **décompte des clients qui utilisent ce statut**.
+- L'ancien écran `marker-colors.tsx` est supprimé. Le lien dans `settings/index.tsx` pointe désormais vers Statuts.
+
+**UI — Fiche client**
+- Nouvelle carte `<ClientManualStatusCard>` insérée à côté de `<ClientStatusActionsCard>`. Affiche le statut manuel courant ou « Aucun », bouton « Choisir un statut » → bottom sheet `<ManualStatusPicker>` (liste des manuels + option « Aucun (statut auto) » + raccourci « Créer un statut »). Bouton « Retirer » quand un manuel est défini.
+- `<ClientStatusActionsCard>` reste en place et continue à raisonner sur le `systemKey` métier — toggle « En attente » et « Réinitialiser le statut » inchangés.
+
+**UI — Affichage**
+- `<ClientStatusBadge>`, `<ClientCard>`, `<ClientPin>`, `<ClientPinPopup>` consomment `useDisplayedStatusMap` et choisissent `colorLight` ou `colorDark` via `useResolvedColorScheme()`.
+- Le statut système `default` devient un statut visible normal (gris ardoise par défaut) — fini le `bg-transparent` invisible. Apparaît comme chip sur la carte et badge sur les fiches.
+- `<MapStatusChips>` (onglet Carte) : la rangée se construit depuis `useStatusRegistry().list` + un pseudo-chip « Tous ». Le statut « Par défaut » et les statuts manuels apparaissent automatiquement avec leur compte.
+- `<ClientStatusFilterDialog>` (icône filtre liste clients) : checkboxes générées depuis le registry, tri par `sortOrder`. Filter store passe de `Set<ClientStatus>` à `Set<statusId>` avec un flag `uninitialized` pour préserver la sémantique « tout coché par défaut ».
+- `useMapKpis` retourne `Map<statusId, number>` au lieu d'un objet à clés fixes ; calcul basé sur `useDisplayedStatusMap` pour que les overrides manuels soient correctement comptés.
+- Suite à un retour utilisateur post-livraison : SegmentedControl `Tous / En attente de RDV / Outstanding` (liste clients + écran « Nouvelle tournée → choisir clients ») et libellé du toggle « En attente de RDV » dans la fiche client récupèrent désormais `registry.bySystemKey('waiting').label` au lieu d'un `t('clients.filter_waiting')` hardcodé. Renommer le statut système se propage partout.
+
+**Cleanup**
+- Suppression de `src/lib/client-status-color.ts` (les couleurs vivent désormais sur les lignes `Status`).
+- Suppression de `src/ui/components/color-picker-sheet.tsx` (orphelin après suppression de marker-colors).
+- Stripping des clés i18n mortes : `clients.filter_status_*`, `map.status_*`, `map.chip_<status>` (sauf `chip_all`), bloc `settings.marker_colors` entier.
+- Pruning du `SettingKey` union : 6 `marker_*_color` retirés.
+- Légère amélioration d'infra test : `transformIgnorePatterns` étendu à `uuid` (premier test data à transitivement importer `newId()` qui charge `uuid@14` ESM).
+
+**Tests**
+- ~199 tests verts au total (180 vitest + 85 jest, dont 19 nouveaux). Nouveaux : validateurs (12 cas), `resolveDisplayedStatus` (4 cas), migration 0009 (seed + carry-over `marker_*_color`), `StatusRepository` (6 cas), FK ON DELETE SET NULL, anonymisation `manualStatusId` cleared, `migrateV4ToV5` (3 cas dont carry-over).
+
+#### Écarts vs périmètre initial
+
+- **Statuts manuels ajoutés au-delà du périmètre initial.** Le TODO original demandait uniquement « renommer les statuts existants + choisir leurs couleurs ». Pendant le brainstorming, l'utilisateur a élargi le scope pour permettre la création/suppression de statuts purement manuels (assignés à un client par override de l'affichage). Décision actée dans la spec.
+- **Onboarding non touché.** Le TODO mentionnait « à l'onboarding + dans Réglages » ; seuls les Réglages ont été câblés. Pas de UX d'onboarding pour la personnalisation initiale — décision pendant le brainstorming pour rester scope-contained ; à reprendre si le besoin se manifeste.
+- **Statuts système non supprimables**, par décision explicite. Une suppression « réelle » impliquerait de modifier la logique métier (toggle `isWaiting`, complétion auto en `done`, filtrage tournée, etc.) et sortait du périmètre. Renommage + recoloration suffisent ; les manuels couvrent les besoins de qualification additionnels.
+- **`default` devient un vrai statut visible.** Initialement `bg-transparent` (badge invisible) ; demande utilisateur en cours de design pour qu'il apparaisse comme chip sur la carte. Couleur seedée gris ardoise (`#94A3B8` / `#64748B`), modifiable dans l'écran Statuts.
+- **Couleurs stockées par paire light/dark.** L'écran legacy `marker-colors.tsx` ne stockait qu'un hex unique partagé entre les deux thèmes. Le nouveau modèle préserve l'accessibilité WCAG AA dans chacun (palette curatée par paires + custom hex applique la même valeur aux deux).
+- **Pas de drag-and-drop pour réordonner les statuts.** Le champ `sortOrder` existe en base (incréments de 10) pour un futur ajout. Pour l'instant : ordre seedé pour les système, ordre de création pour les manuels.
+
+---
 
 ### Synchronisation cloud Phase 1 — backup/restore + ORS proxy
 **Mergé sur `main`** — 2026-05-XX (à compléter avec le SHA de merge)

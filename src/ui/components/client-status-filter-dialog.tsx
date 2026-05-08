@@ -20,16 +20,20 @@ interface Props {
 export function ClientStatusFilterDialog({ visible, onClose }: Props) {
   const { t } = useTranslation();
   const { data: registry } = useStatusRegistry();
-  const { enabledStatusIds, uninitialized, setAll, setNone, toggle, initWithAll } = useClientFiltersStore();
+  const { enabledStatusIds, uninitialized, setAll, setNone, toggle, initWithAll, reconcileWith } = useClientFiltersStore();
 
   const all = registry?.list ?? [];
   const allIds = all.map((s) => s.id);
+  const allIdsKey = allIds.join(',');
 
-  // First time the registry is available, initialize the store with all enabled.
+  // Initialize the store with all enabled the first time the registry is available.
+  // Afterwards, reconcile so newly-created statuses default to enabled — without
+  // re-enabling any status the user has explicitly unchecked.
   useEffect(() => {
     if (uninitialized && all.length > 0) initWithAll(allIds);
+    else if (!uninitialized) reconcileWith(allIds);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uninitialized, all.length]);
+  }, [uninitialized, allIdsKey]);
 
   const [draft, setDraft] = useState<Set<string>>(new Set(enabledStatusIds));
   useEffect(() => { setDraft(new Set(enabledStatusIds)); }, [enabledStatusIds]);
