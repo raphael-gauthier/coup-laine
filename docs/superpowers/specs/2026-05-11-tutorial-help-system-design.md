@@ -38,7 +38,7 @@ Cette spec couvre la **Phase 1 — MVP**. Elle pose toute l'infrastructure (tabl
 - 3 sheets contextuelles : `sheet.clients`, `sheet.tours`, `sheet.completion`.
 - 2 coach-marks 1re fois : `coachmark.first_client`, `coachmark.first_tour`.
 - ~46 clés i18n (FR — l'app est FR-only, pas de fichier `en.json` à maintenir).
-- 5 captures d'écran statiques en double variant (light + dark) = 10 fichiers `.webp` dans `assets/help/`.
+- 5 composants **previews in-app** (copies visuellement fidèles, sans données réelles) : `ClientCardDemo`, `ClientFilterDemo`, `TourCardDemo`, `TourPlanningDemo`, `CompletionRowDemo`. Pas de captures `.webp` (pivot post-design — voir §6.2).
 
 ### 2.2 Phase 2 — non couverte ici, suivie dans le TODO
 
@@ -233,11 +233,9 @@ La bottom sheet de contenu. Chaque sheet est un composant React dédié dans `sr
   <HelpSection icon={Users} title={t('help.clients.what_is_title')}>
     <Text>{t('help.clients.what_is_body')}</Text>
   </HelpSection>
-  <HelpScreenshot
-    source={require('@/assets/help/clients-list-light.webp')}
-    darkSource={require('@/assets/help/clients-list-dark.webp')}
-    caption={t('help.clients.caption_list')}
-  />
+  <HelpPreview caption={t('help.clients.caption_list')}>
+    <ClientCardDemo />
+  </HelpPreview>
   <HelpSection icon={Plus} title={t('help.clients.how_to_add_title')}>
     <Text>{t('help.clients.how_to_add_body')}</Text>
   </HelpSection>
@@ -247,7 +245,10 @@ La bottom sheet de contenu. Chaque sheet est un composant React dédié dans `sr
 
 Sous-composants :
 - **`<HelpSection icon title>`** — bloc avec icône à gauche, titre + paragraphe.
-- **`<HelpScreenshot source darkSource caption />`** — image responsive (max-height fixé, conserve ratio), bascule auto light/dark via `useResolvedColorScheme()`. Caption en `text-xs muted`. Wrap dans une `Surface variant="muted"` arrondie pour démarquer.
+- **`<HelpPreview caption?>`** — frame `Surface variant="muted"` arrondie qui enveloppe n'importe quel JSX (typiquement un composant `*Demo`) avec une caption optionnelle. Pas d'image, pas d'asset.
+- **Composants `*Demo` (`src/ui/help/previews/*.tsx`)** — 5 composants visuellement fidèles aux surfaces réelles (`ClientCardDemo`, `ClientFilterDemo`, `TourCardDemo`, `TourPlanningDemo`, `CompletionRowDemo`), sans dépendances aux hooks de données réels. Données hardcodées au contexte tondeur (Famille Le Goff, Plouhinec, etc.).
+
+**Pivot post-design (2026-05-11) :** la conception initiale prévoyait des `<HelpScreenshot>` chargeant des `.webp` depuis `assets/help/`. Pivot vers des previews in-app pour éliminer la maintenance des captures à chaque refonte UI et garantir un rendu light/dark correct par construction. Trade-off accepté : risque de divergence visuelle entre demos et composants réels — mitigé par `src/ui/help/previews/README.md` qui documente la convention de maintenance.
 
 Décisions UI :
 - Sheet **scrollable** (les screenshots peuvent rendre le contenu long). Hauteur 85 % de la viewport, snap au plein écran si overflow.
@@ -390,21 +391,19 @@ settings.help.replay_success       "Tutoriels réinitialisés"
 settings.help.counter              "{{seen}} tutoriels vus sur {{total}}"
 ```
 
-### 8.4 Captures statiques
+### 8.4 Previews in-app
 
-`assets/help/`, format `.webp` (compression compatible RN), 2 variants chacune (light + dark) :
+5 composants dans `src/ui/help/previews/`, chacun ~30-60 lignes de JSX pur, hardcodé au contexte métier (tondeur ovin) :
 
-```
-clients-list-light.webp / clients-list-dark.webp
-clients-filter-light.webp / clients-filter-dark.webp
-tours-list-light.webp / tours-list-dark.webp
-tours-planning-light.webp / tours-planning-dark.webp
-completion-main-light.webp / completion-main-dark.webp
-```
+| Demo | Mirrors | Utilisé par |
+| --- | --- | --- |
+| `client-card-demo.tsx` | `src/ui/components/client-card.tsx` | help-sheet-clients (caption_list) |
+| `client-filter-demo.tsx` | `src/ui/components/client-status-filter-dialog.tsx` | help-sheet-clients (caption_filter) |
+| `tour-card-demo.tsx` | tour list row | help-sheet-tours (caption_list) |
+| `tour-planning-demo.tsx` | tour planning UI | help-sheet-tours (caption_planning) |
+| `completion-row-demo.tsx` | prestation row in `complete.tsx` | help-sheet-completion (caption_main) |
 
-5 captures × 2 variants = **10 fichiers**. Cibler ~800 px de large, ratio adapté à l'écran capturé. La prise de capture est manuelle (un script `scripts/capture-help-screenshots.md` documente le pas-à-pas).
-
-**Production des captures** : le contenu textuel et les clés i18n sont produits à l'implémentation à partir du contenu de cette spec. Les captures elles-mêmes sont produites par l'utilisateur sur un appareil de dev (light + dark) et déposées dans `assets/help/`. Le plan d'implémentation détaillera le workflow.
+**Convention de maintenance** documentée dans `src/ui/help/previews/README.md` : mettre à jour le demo correspondant à chaque évolution **visible** (layout, padding, style de badge, couleurs structurantes) du composant réel mirroré. Les ajustements de tokens / espacement mineurs ne déclenchent pas une mise à jour. Pas de production de captures, pas d'asset binaire.
 
 ## 9. Tests
 
@@ -452,14 +451,14 @@ Découpage existant du repo : domain → vitest, data/infra → jest. Aucun test
 ### 10.1 Risques techniques
 
 - **Mesure de position du `<CoachMark>` flaky en RN** : `View.measure()` peut renvoyer des coordonnées avant que l'écran soit pleinement layout. Mitigation : envelopper dans `requestAnimationFrame` ou utiliser `onLayout` de l'ancre. À expérimenter en début d'impl ; si trop fragile, fallback sur un coach-mark « fixed bottom » sans flèche d'ancre (légère perte UX, acceptable).
-- **Captures à refaire à chaque redesign UI** : engagement de maintenance. Le projet a vécu 3 refontes UI majeures en 2 mois. Coût estimé : 30–60 min de re-capture par refonte. Acceptable.
+- **Previews à maintenir alignés avec les composants réels** : depuis le pivot post-design (cf §6.2), les previews sont des composants `*Demo` séparés des composants réels. Risque de divergence visuelle si une refonte oublie de propager les changements. Mitigation : `src/ui/help/previews/README.md` documente la convention + l'idéal est une pass de revue de ce dossier à chaque refonte UI majeure. Coût bien moindre qu'avant (édition de JSX vs production de captures), et la divergence éventuelle reste cosmétique (pas un crash, juste un demo qui ne ressemble plus exactement au réel).
 - **Clés `sheet.*` pas vues sur les écrans pas encore couverts en Phase 2** : si on ajoute `sheet.map` en Phase 2, son `?` apparaîtra avec la pastille « pas vu » même chez les users existants. C'est le comportement attendu (c'est *une nouvelle feature pour eux*) — pas un bug.
 
 ### 10.2 Décisions à trancher à l'implémentation (non bloquantes pour la spec)
 
 - Position exacte du `<HelpButton>` dans le `<ScreenHeader>` (existant) — gauche du titre, droite, à côté des autres actions. Décision à l'œil au moment de l'impl.
 - Wording exact des CTAs (« Compris » vs « OK » vs « Fermer »). Itérable post-merge.
-- Bascule light/dark des screenshots via 2 fichiers `.webp` (`*-light` / `*-dark`) ou via un wrapper qui adapte la luminosité. **Décision : 2 fichiers**, sans complication d'image processing à runtime.
+- ~~Bascule light/dark des screenshots via 2 fichiers `.webp`~~ — **caduc depuis le pivot vers les previews in-app** (§6.2). Les composants `*Demo` utilisent les primitives `<Surface>`, `<Text>` qui adaptent automatiquement leur couleur via `useResolvedColorScheme()`.
 
 ### 10.3 Pas un risque
 
@@ -474,7 +473,7 @@ La Phase 1 est mergeable quand :
 2. Les 11 tests automatisés (domain + data + backup) sont verts.
 3. La checklist de validation manuelle (§9.5) est entièrement cochée sur dev client (Android au minimum, iOS si disponible).
 4. Le contenu i18n est complet en FR.
-5. Les 10 captures `.webp` sont en place dans `assets/help/`.
+5. Les 5 composants previews `src/ui/help/previews/*Demo.tsx` rendent visuellement (à la lecture) en cohérence avec les composants réels qu'ils mirrorent. Le README de maintenance est en place.
 6. Les écrans Clients / Tournées / Complétion ont leur `<HelpButton>` ; les écrans Clients / Tournées ont leur `<CoachMark>` empty state.
 7. L'écran Réglages > Aide & tutoriels existe et le reset fonctionne end-to-end.
 8. Aucune `any` introduite, `pnpm typecheck` vert, `pnpm lint` vert.

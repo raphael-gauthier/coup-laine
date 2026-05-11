@@ -71,6 +71,13 @@
       "when": 1778544000011,
       "tag": "0009_statuses",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1778544000012,
+      "tag": "0010_tutorial_progress",
+      "breakpoints": true
     }
   ]
 }

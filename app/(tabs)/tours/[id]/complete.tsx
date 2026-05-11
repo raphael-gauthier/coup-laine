@@ -14,6 +14,10 @@ import { ScreenHeader } from '@/ui/components/screen-header';
 import { StopCompletionEditor } from '@/ui/components/stop-completion-editor';
 import { OffPlanServicePicker } from '@/ui/components/off-plan-service-picker';
 import { confirm } from '@/ui/components/confirm-dialog';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetCompletion } from '@/ui/help/sheets/help-sheet-completion';
+import { useHelpSheet } from '@/ui/help/hooks';
 import { useTour, useCompleteWithBilan } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
 import { useAnimalCategories, useSpecies } from '@/state/queries/species';
@@ -65,6 +69,7 @@ export default function CompleteTourScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const onContrast = useOnContrastColor();
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetCompletion);
   const { data, isError, refetch } = useTour(id);
   const { data: clients = [] } = useClients('all');
   const { data: categories = [] } = useAnimalCategories();
@@ -253,7 +258,10 @@ export default function CompleteTourScreen() {
 
   return (
     <Surface className="flex-1">
-      <ScreenHeader title={t('tours.complete_title')} />
+      <ScreenHeader
+        title={t('tours.complete_title')}
+        rightSlot={<HelpButton tutorialKey={TUTORIAL_KEYS.sheetCompletion} onPress={helpSheet.open} />}
+      />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
         <Text className="text-2xl font-bold">
           {format(parseISO(`${tour.scheduledDate}T${tour.departureTime}:00`), 'PPP', { locale: fr })}
@@ -331,6 +339,8 @@ export default function CompleteTourScreen() {
         onPick={onPickOffPlan}
         onClose={() => setOffPlanForStopId(null)}
       />
+
+      <HelpSheetCompletion visible={helpSheet.isOpen} onClose={helpSheet.close} />
     </Surface>
   );
 }

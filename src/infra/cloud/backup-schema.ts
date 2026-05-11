@@ -251,9 +251,49 @@ export function migrateV4ToV5(v4: ValidatedBackupSnapshotV4): ValidatedBackupSna
   };
 }
 
+// =============================================================
+// v6 schema: adds tutorial_progress table.
+// =============================================================
+
+const TutorialProgressRow = z.object({
+  key: z.string(),
+  seenAt: z.string(),
+});
+
+export const BackupSnapshotV6Schema = z.object({
+  schemaVersion: z.literal(6),
+  createdAt: z.string(),
+  tables: z.object({
+    clients: z.array(ClientRowV5),
+    species: z.array(SpeciesRow),
+    animal_categories: z.array(AnimalCategoryRow),
+    services: z.array(ServiceRow),
+    tours: z.array(TourRow),
+    tour_stops: z.array(TourStopRow),
+    manual_history_entries: z.array(ManualHistoryEntryRow),
+    distance_matrix: z.array(DistanceMatrixRow),
+    settings: z.array(SettingsRow),
+    statuses: z.array(StatusRow),
+    tutorial_progress: z.array(TutorialProgressRow),
+  }),
+});
+
+export type ValidatedBackupSnapshotV6 = z.infer<typeof BackupSnapshotV6Schema>;
+
+export function migrateV5ToV6(v5: ValidatedBackupSnapshotV5): ValidatedBackupSnapshotV6 {
+  return {
+    schemaVersion: 6,
+    createdAt: v5.createdAt,
+    tables: {
+      ...v5.tables,
+      tutorial_progress: [],
+    },
+  };
+}
+
 // Backward-compatible aliases — other files importing these continue to work.
-export const BackupSnapshotSchema = BackupSnapshotV5Schema;
-export type ValidatedBackupSnapshot = ValidatedBackupSnapshotV5;
+export const BackupSnapshotSchema = BackupSnapshotV6Schema;
+export type ValidatedBackupSnapshot = ValidatedBackupSnapshotV6;
 
 // =============================================================
 // v2 (pre-travel-fees-rework) backup schema, kept for migration.
