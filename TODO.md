@@ -14,15 +14,57 @@ PDF facture par client par tournée. Reportée : pas de plan court terme.
 Le `priceCentsSnapshot` sur `TourStopPrestation` (livré en #6) servira de
 source quand le sujet sera repris.
 
-### 8b. Système de tutorial et d'aide — Phase 2 (post-MVP)
-Phase 1 livrée (cf bloc Livrées) avec l'infra complète + 3 sheets + 2 coach-marks. Phase 2 = pure addition de contenu sur l'infra existante :
-- 7 sheets restantes : Carte, Fiche client, Détail tournée, Catalogue prestations, Statuts, Cloud, Paramètres root.
-- 5 coach-marks à seuils métier : sauvegarde cloud (5+ clients OU 1re tournée complétée), découverte catalogue (après 1re tournée), statuts manuels (10+ clients), suggestions à proximité (à la 2e tournée), payment methods perso (au 1er bilan avec paiement).
-Pattern à suivre : pour chaque sheet, créer un fichier `src/ui/help/sheets/help-sheet-X.tsx` + ajouter `<HelpButton>` dans le header de l'écran X. Pour chaque coach-mark, ajouter une instance `<CoachMark>` avec son `shouldShow` predicate dans l'écran cible. Maintenir les composants `*Demo` à jour si on en ajoute de nouveaux (`src/ui/help/previews/README.md`).
-
 ---
 
 ## Livrées
+
+### Système de tutorial et d'aide — Phase 2
+**Mergé sur `main`** — 2026-05-11 (HEAD `28d7aa0`, 14 commits depuis la spec)
+**Spec :** `docs/superpowers/specs/2026-05-11-tutorial-help-system-phase-2-design.md`
+**Plan :** `docs/superpowers/plans/2026-05-11-tutorial-help-system-phase-2.md`
+
+#### Ce qui a été livré
+
+**Catalogue & politique anti-fatigue**
+- Extension du catalogue `TUTORIAL_KEYS` : 12 nouvelles clés (7 sheets + 5 coach-marks discovery). Total : 17 clés.
+- `isEssentialCoachmark()` distingue les 2 coach-marks essentiels Phase 1 (`first_client`, `first_tour`) des 5 nouveaux discovery.
+- Nouveau module `src/ui/help/session-store.ts` (boolean module-level, pas de Zustand/Context) : `discoveryFiredThisSession` reset au cold start, préservé en background/foreground.
+- `useCoachMark` modifié : un coach-mark `discovery` ne fire que si `!hasDiscoveryFiredThisSession()`. Les essentiels ignorent le gate. Side-effect via `useEffect` : le 1er discovery visible « brûle » le token de session.
+- `useResetTutorials.onSuccess` reset aussi le flag de session — « Rejouer » ré-arme immédiatement les discovery dans la session courante.
+
+**7 nouvelles sheets contextuelles**
+- `<HelpSheetMap>`, `<HelpSheetClientDetail>`, `<HelpSheetTourDetail>`, `<HelpSheetServicesCatalog>`, `<HelpSheetStatuses>`, `<HelpSheetCloud>`, `<HelpSheetSettings>`.
+- 3 d'entre elles embarquent un demo (`TourStopListDemo`, `ServiceRowDemo`, `StatusRowDemo`) ; les 4 autres sont text + icônes lucide uniquement.
+- `<HelpButton>` câblé dans le header de chaque écran cible : Carte (floating à `top:12 right:64` à gauche du Layers button après fix d'overlap), Fiche client, Détail tournée, Catalogue prestations, Statuts, Cloud (logged-out + main branches), Paramètres root.
+
+**5 nouveaux coach-marks à seuils métier (discovery)**
+- `coachmark.cloud_backup` — Clients header, fire si `(allClients ≥ 5 OR completedTours ≥ 1) AND session anonyme`. Anchored sur `<HelpButton>`.
+- `coachmark.manual_statuses` — Clients filter button, fire si `allClients ≥ 10`. **Priority chain** : gated off si `cloud_backup` est visible (cloud > qualification).
+- `coachmark.discover_catalog` — Tours header, fire si `completedTours ≥ 1`. Anchored sur `<HelpButton>`.
+- `coachmark.proximity_suggestions` — TourDraft pick-clients, fire à la 2e+ création de tournée (`allTours ≥ 1`). Anchored sur le `<SegmentedControl>`. **À noter** : pointe la feature `findClientsNearAnchors` (use case existant en domain depuis Phase 1 « édition de tournée + proximité ») mais l'UI section « Suggérés à proximité » n'est pas câblée. Le coach-mark fire quand même comme « early signal » ; à repositionner sur la vraie section quand elle sera ajoutée.
+- `coachmark.payment_methods` — Completion screen header, fire si `useHasAnyPaidStop()` retourne true (au moins 1 stop avec `is_paid=1` en DB). Anchored sur `<HelpButton>`. Nouveau hook React Query `useHasAnyPaidStop` (cheap `SELECT id FROM tour_stops WHERE is_paid=1 LIMIT 1`).
+
+**3 nouveaux composants preview demos** dans `src/ui/help/previews/` :
+- `service-row-demo.tsx` — mirroir de `ServiceRow` du catalogue (nom + catégorie + prix + durée).
+- `status-row-demo.tsx` — mirroir d'une status row (cercle hex + label + hex display, light/dark via `useResolvedColorScheme`).
+- `tour-stop-list-demo.tsx` — mirroir de 3 stops (heure / nom / résumé prestations).
+- README de maintenance étendu avec 3 nouvelles entrées.
+
+**Contenu i18n**
+- ~85 nouvelles clés FR : `help.{map,client_detail,tour_detail,services_catalog,statuses,cloud,settings}` + `coachmark.{cloud_backup,discover_catalog,manual_statuses,proximity_suggestions,payment_methods}`.
+
+**Tests**
+- 4 nouveaux tests automatisés : `isEssentialCoachmark` (3 cas) + session store (3 cas, isolement via `beforeEach(resetSessionDiscoveryFlag)`).
+- Total suite : 191 vitest + 98 jest, 25 suites — tous verts. Typecheck + lint PASS.
+
+#### Bugs trouvés et corrigés en cours d'implémentation
+
+- **Overlap Map HelpButton vs MapLayerDialog** : le `<HelpButton>` placé en floating `top:8 right:8` se chevauchait avec le bouton Layers à `top:12 right:12`. Fix en commit `f28e241` : repositionné à `top:12 right:64` (à gauche du Layers button sur la même rangée), wrapped dans une `Surface rounded-full p-1` avec shadow matché pour cohérence visuelle.
+
+#### Écarts vs périmètre initial
+
+- **`coachmark.proximity_suggestions` orphelin de feature UI** : la spec et le plan supposaient une section visible « Suggérés à proximité » dans le picker de clients (mention dans la spec d'édition de tournée Phase 1). Audit du code en cours d'impl : `findClientsNearAnchors` existe en domain mais n'est **pas câblé** dans `pick-clients.tsx` ni ailleurs en UI. Décision (validée par l'utilisateur) : garder le coach-mark, anchored sur `<SegmentedControl>` à la place. Le wording reste tel quel — le user qui le voit retient l'idée. À repositionner quand la feature sera réellement câblée.
+- **Cloud screen avec 2 branches `<ScreenHeader>`** (logged-out early return + main render). Le `<HelpButton>` est wired dans les deux pour rester cohérent.
 
 ### Système de tutorial et d'aide — Phase 1 (MVP)
 **Mergé sur `main`** — 2026-05-11 (HEAD `f27d6c9`, 30 commits depuis la spec)
