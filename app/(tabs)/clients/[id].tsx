@@ -44,6 +44,10 @@ import { useDangerColor, useForegroundColor, useMutedForegroundColor, useWaiting
 import { computeClientOutstanding } from '@/domain/use-cases/compute-client-outstanding';
 import type { TourStop } from '@/domain/models/tour-stop';
 import type { Payment } from '@/domain/models/payment';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetClientDetail } from '@/ui/help/sheets/help-sheet-client-detail';
+import { useHelpSheet } from '@/ui/help/hooks';
 
 export default function ClientDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -92,6 +96,7 @@ export default function ClientDetailScreen() {
 
   const [stopSheet, setStopSheet] = useState<{ stopId: string; tourId: string; payment: Payment } | null>(null);
   const [entrySheet, setEntrySheet] = useState<{ entryId: string; clientId: string; payment: Payment } | null>(null);
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetClientDetail);
 
   if (isError) return <ErrorState onRetry={() => refetch()} />;
   if (!client) return <Surface className="flex-1" />;
@@ -173,6 +178,7 @@ export default function ClientDetailScreen() {
             >
               <MoreVertical size={18} color={fg} />
             </Button>
+            <HelpButton tutorialKey={TUTORIAL_KEYS.sheetClientDetail} onPress={helpSheet.open} />
           </View>
         }
       />
@@ -283,6 +289,8 @@ export default function ClientDetailScreen() {
         onConfirm={handleDeleteConfirmed}
         onCancel={() => setDeleteDialogOpen(false)}
       />
+
+      <HelpSheetClientDetail visible={helpSheet.isOpen} onClose={helpSheet.close} />
     </Surface>
   );
 }

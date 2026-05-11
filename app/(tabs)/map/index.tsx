@@ -20,12 +20,17 @@ import { useMapFiltersStore } from '@/state/ui/map-filters-store';
 import { useMapLayersStore } from '@/state/ui/map-layers-store';
 import { useMutedForegroundColor } from '@/ui/theme/colors';
 import type { Client } from '@/domain/models/client';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetMap } from '@/ui/help/sheets/help-sheet-map';
+import { useHelpSheet } from '@/ui/help/hooks';
 
 type GeoClient = Client & { latitude: number; longitude: number };
 
 export default function MapScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetMap);
   const mapRef = useRef<MapHandle>(null);
   const { data: clients = [], isError, isLoading, refetch } = useClients('all');
   const { data: base } = useBaseAddress();
@@ -114,7 +119,14 @@ export default function MapScreen() {
             onClose={() => setSelectedClient(null)}
           />
         ) : null}
+
+        {/* Floating help button — top-right corner */}
+        <View style={{ position: 'absolute', top: 8, right: 8 }}>
+          <HelpButton tutorialKey={TUTORIAL_KEYS.sheetMap} onPress={helpSheet.open} />
+        </View>
       </View>
+
+      <HelpSheetMap visible={helpSheet.isOpen} onClose={helpSheet.close} />
     </Surface>
   );
 }

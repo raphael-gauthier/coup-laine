@@ -27,6 +27,10 @@ import { computeTourPaymentKpis } from '@/domain/use-cases/compute-tour-payment-
 import { estimateTourArrivals } from '@/domain/use-cases/estimate-tour-arrivals';
 import { haversineDistanceKm } from '@/lib/haversine-distance';
 import type { Payment } from '@/domain/models/payment';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetTourDetail } from '@/ui/help/sheets/help-sheet-tour-detail';
+import { useHelpSheet } from '@/ui/help/hooks';
 
 function minutesToTime(minutes: number, departureTime: string): string {
   const [bh, bm] = departureTime.split(':').map(Number);
@@ -72,6 +76,7 @@ export default function TourDetailScreen() {
   const { data: clients = [] } = useClients('all');
   const { data: base } = useBaseAddress();
   const [paymentSheet, setPaymentSheet] = useState<{ stopId: string; payment: Payment } | null>(null);
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetTourDetail);
 
   const clientsById = useMemo(() => new globalThis.Map(clients.map((c) => [c.id, c])), [clients]);
 
@@ -151,6 +156,7 @@ export default function TourDetailScreen() {
             <Button size="sm" variant="danger" onPress={onDelete} accessibilityLabel={t('tours.delete')}>
               <Trash2 size={16} color={onContrast} />
             </Button>
+            <HelpButton tutorialKey={TUTORIAL_KEYS.sheetTourDetail} onPress={helpSheet.open} />
           </View>
         }
       />
@@ -242,6 +248,8 @@ export default function TourDetailScreen() {
         initial={paymentSheet?.payment ?? null}
         onClose={() => setPaymentSheet(null)}
       />
+
+      <HelpSheetTourDetail visible={helpSheet.isOpen} onClose={helpSheet.close} />
     </Surface>
   );
 }

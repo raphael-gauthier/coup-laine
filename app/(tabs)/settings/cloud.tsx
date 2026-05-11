@@ -19,6 +19,10 @@ import { useSession, useSignOut, useDeleteAccount } from '@/state/queries/auth';
 import { useBackups, useCreateBackup, useRestoreBackup, useDeleteBackup, useExportData } from '@/state/queries/backups';
 import { successToast } from '@/ui/components/error-toast';
 import { useOnContrastColor, useForegroundColor } from '@/ui/theme/colors';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetCloud } from '@/ui/help/sheets/help-sheet-cloud';
+import { useHelpSheet } from '@/ui/help/hooks';
 
 export default function CloudScreen() {
   const { t } = useTranslation();
@@ -35,17 +39,22 @@ export default function CloudScreen() {
   const { data: backups = [], isError, isLoading, refetch } = useBackups();
   const [restoreDialogName, setRestoreDialogName] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetCloud);
 
   if (!session || session.user.is_anonymous) {
     return (
       <Surface className="flex-1">
-        <ScreenHeader title={t('cloud.screen_title')} />
+        <ScreenHeader
+          title={t('cloud.screen_title')}
+          rightSlot={<HelpButton tutorialKey={TUTORIAL_KEYS.sheetCloud} onPress={helpSheet.open} />}
+        />
         <View className="flex-1 px-6 items-center justify-center gap-6">
           <Text className="text-center" variant="muted">{t('cloud.row_hint_logged_out')}</Text>
           <Button onPress={() => router.push('/auth/login' as never)}>
             {t('cloud.sign_in_cta')}
           </Button>
         </View>
+        <HelpSheetCloud visible={helpSheet.isOpen} onClose={helpSheet.close} />
       </Surface>
     );
   }
@@ -112,7 +121,10 @@ export default function CloudScreen() {
 
   return (
     <Surface className="flex-1">
-      <ScreenHeader title={t('cloud.screen_title')} />
+      <ScreenHeader
+        title={t('cloud.screen_title')}
+        rightSlot={<HelpButton tutorialKey={TUTORIAL_KEYS.sheetCloud} onPress={helpSheet.open} />}
+      />
       <ConfirmTypedDialog
         visible={restoreDialogName != null}
         title={t('cloud.restore_confirm_title')}
@@ -243,6 +255,8 @@ export default function CloudScreen() {
           </Button>
         </View>
       </ScrollView>
+
+      <HelpSheetCloud visible={helpSheet.isOpen} onClose={helpSheet.close} />
     </Surface>
   );
 }

@@ -13,6 +13,10 @@ import { useStatusRegistry } from '@/state/queries/statuses';
 import { useResolvedColorScheme } from '@/ui/theme/theme-provider';
 import { haptics } from '@/ui/motion/haptics';
 import type { Status } from '@/domain/models/status';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetStatuses } from '@/ui/help/sheets/help-sheet-statuses';
+import { useHelpSheet } from '@/ui/help/hooks';
 
 export default function StatusesScreen() {
   const { t } = useTranslation();
@@ -23,10 +27,14 @@ export default function StatusesScreen() {
   const all = registry?.list ?? [];
   const system = all.filter((s) => s.kind === 'system');
   const manual = all.filter((s) => s.kind === 'manual');
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetStatuses);
 
   return (
     <Surface className="flex-1">
-      <ScreenHeader title={t('statuses.screen_title')} />
+      <ScreenHeader
+        title={t('statuses.screen_title')}
+        rightSlot={<HelpButton tutorialKey={TUTORIAL_KEYS.sheetStatuses} onPress={helpSheet.open} />}
+      />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 12 }}>
         <Text variant="muted" className="text-xs uppercase">{t('statuses.section_system')}</Text>
         {system.map((s) => (
@@ -56,6 +64,8 @@ export default function StatusesScreen() {
         status={editing === 'new' ? null : editing}
         onClose={() => setEditing(null)}
       />
+
+      <HelpSheetStatuses visible={helpSheet.isOpen} onClose={helpSheet.close} />
     </Surface>
   );
 }

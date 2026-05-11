@@ -6,15 +6,24 @@ import { SectionHeader } from '@/ui/primitives/section-header';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { SettingsRow } from '@/ui/components/settings-row';
 import { useSession } from '@/state/queries/auth';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetSettings } from '@/ui/help/sheets/help-sheet-settings';
+import { useHelpSheet } from '@/ui/help/hooks';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { data: session } = useSession();
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetSettings);
 
   return (
     <Surface className="flex-1">
-      <ScreenHeader variant="root" title={t('settings.title')} />
+      <ScreenHeader
+        variant="root"
+        title={t('settings.title')}
+        rightSlot={<HelpButton tutorialKey={TUTORIAL_KEYS.sheetSettings} onPress={helpSheet.open} />}
+      />
       <ScrollView contentContainerClassName="px-4 pb-8">
 
         <SectionHeader title={t('settings.section_app')} />
@@ -96,6 +105,8 @@ export default function SettingsScreen() {
           onPress={() => router.push('/(tabs)/settings/help' as never)}
         />
       </ScrollView>
+
+      <HelpSheetSettings visible={helpSheet.isOpen} onClose={helpSheet.close} />
     </Surface>
   );
 }
