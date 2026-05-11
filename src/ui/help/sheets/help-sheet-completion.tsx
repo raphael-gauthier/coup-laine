@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { ClipboardCheck, Minus, PlusCircle, Wallet } from 'lucide-react-native';
 import { Text } from '@/ui/primitives/text';
-import { HelpSheet, HelpSection, HelpScreenshot } from '@/ui/help/help-sheet';
+import { HelpSheet, HelpSection, HelpPreview } from '@/ui/help/help-sheet';
+import { CompletionRowDemo } from '@/ui/help/previews/completion-row-demo';
 
 interface Props {
   visible: boolean;
@@ -17,11 +18,9 @@ export function HelpSheetCompletion({ visible, onClose }: Props) {
         <Text>{t('help.completion.what_is_body')}</Text>
       </HelpSection>
 
-      <HelpScreenshot
-        source={require('../../../../assets/help/completion-main-light.webp')}
-        darkSource={require('../../../../assets/help/completion-main-dark.webp')}
-        caption={t('help.completion.caption_main')}
-      />
+      <HelpPreview caption={t('help.completion.caption_main')}>
+        <CompletionRowDemo />
+      </HelpPreview>
 
       <HelpSection icon={Minus} title={t('help.completion.adjust_title')}>
         <Text>{t('help.completion.adjust_body')}</Text>

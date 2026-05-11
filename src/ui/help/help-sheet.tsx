@@ -1,13 +1,12 @@
 // src/ui/help/help-sheet.tsx
 import type { ReactNode } from 'react';
-import { Modal, View, ScrollView, TouchableOpacity, Image, type ImageSourcePropType } from 'react-native';
+import { Modal, View, ScrollView, TouchableOpacity } from 'react-native';
 import { X, type LucideIcon } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
 import { PressScale } from '@/ui/motion/press-scale';
-import { useResolvedColorScheme } from '@/ui/theme/theme-provider';
 
 interface HelpSheetProps {
   visible: boolean;
@@ -74,24 +73,15 @@ export function HelpSection({ icon: Icon, title, children }: HelpSectionProps) {
   );
 }
 
-interface HelpScreenshotProps {
-  source: ImageSourcePropType;
-  darkSource: ImageSourcePropType;
+interface HelpPreviewProps {
   caption?: string;
+  children: ReactNode;
 }
 
-export function HelpScreenshot({ source, darkSource, caption }: HelpScreenshotProps) {
-  const scheme = useResolvedColorScheme();
-  const chosen = scheme === 'dark' ? darkSource : source;
-
+export function HelpPreview({ caption, children }: HelpPreviewProps) {
   return (
-    <Surface variant="muted" className="rounded-2xl p-3 gap-2 items-center">
-      <Image
-        source={chosen}
-        resizeMode="contain"
-        style={{ width: '100%', height: 200 }}
-        accessibilityIgnoresInvertColors
-      />
+    <Surface variant="muted" className="rounded-2xl p-3 gap-2 items-stretch">
+      <View className="items-center">{children}</View>
       {caption ? (
         <Text variant="muted" className="text-xs text-center">
           {caption}

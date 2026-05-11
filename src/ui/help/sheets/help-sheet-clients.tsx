@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { Users, Plus, CircleDot, Search } from 'lucide-react-native';
 import { Text } from '@/ui/primitives/text';
-import { HelpSheet, HelpSection, HelpScreenshot } from '@/ui/help/help-sheet';
+import { HelpSheet, HelpSection, HelpPreview } from '@/ui/help/help-sheet';
+import { ClientCardDemo } from '@/ui/help/previews/client-card-demo';
+import { ClientFilterDemo } from '@/ui/help/previews/client-filter-demo';
 
 interface Props {
   visible: boolean;
@@ -17,11 +19,9 @@ export function HelpSheetClients({ visible, onClose }: Props) {
         <Text>{t('help.clients.what_is_body')}</Text>
       </HelpSection>
 
-      <HelpScreenshot
-        source={require('../../../../assets/help/clients-list-light.webp')}
-        darkSource={require('../../../../assets/help/clients-list-dark.webp')}
-        caption={t('help.clients.caption_list')}
-      />
+      <HelpPreview caption={t('help.clients.caption_list')}>
+        <ClientCardDemo />
+      </HelpPreview>
 
       <HelpSection icon={Plus} title={t('help.clients.how_to_add_title')}>
         <Text>{t('help.clients.how_to_add_body')}</Text>
@@ -35,11 +35,9 @@ export function HelpSheetClients({ visible, onClose }: Props) {
         <Text>{t('help.clients.filter_body')}</Text>
       </HelpSection>
 
-      <HelpScreenshot
-        source={require('../../../../assets/help/clients-filter-light.webp')}
-        darkSource={require('../../../../assets/help/clients-filter-dark.webp')}
-        caption={t('help.clients.caption_filter')}
-      />
+      <HelpPreview caption={t('help.clients.caption_filter')}>
+        <ClientFilterDemo />
+      </HelpPreview>
     </HelpSheet>
   );
 }
