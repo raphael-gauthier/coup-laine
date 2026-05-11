@@ -22,6 +22,9 @@ updates.
 | `tour-card-demo.tsx` | `src/ui/components/tour-card.tsx` |
 | `tour-planning-demo.tsx` | tour stop rows in `app/(tabs)/tours/[id].tsx` (via `TourStopRow`) |
 | `completion-row-demo.tsx` | `src/ui/components/stop-completion-editor.tsx` |
+| `service-row-demo.tsx` | catalog row in `app/(tabs)/settings/services/index.tsx` |
+| `status-row-demo.tsx` | status row in `app/(tabs)/settings/statuses.tsx` |
+| `tour-stop-list-demo.tsx` | tour stop row in `app/(tabs)/tours/[id].tsx` |
 
 ## Why not reuse the real components
 
