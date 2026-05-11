@@ -120,9 +120,22 @@ export default function MapScreen() {
           />
         ) : null}
 
-        {/* Floating help button — top-right corner */}
-        <View style={{ position: 'absolute', top: 8, right: 8 }}>
-          <HelpButton tutorialKey={TUTORIAL_KEYS.sheetMap} onPress={helpSheet.open} />
+        {/* Floating help button — top-right, left of the layers button */}
+        <View
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 64,
+            shadowColor: '#000',
+            shadowOpacity: 0.15,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 4,
+          }}
+        >
+          <Surface className="rounded-full p-1">
+            <HelpButton tutorialKey={TUTORIAL_KEYS.sheetMap} onPress={helpSheet.open} />
+          </Surface>
         </View>
       </View>
 
