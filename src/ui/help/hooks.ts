@@ -1,9 +1,14 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { TutorialKey } from '@/domain/tutorial/keys';
+import { isEssentialCoachmark } from '@/domain/tutorial/keys';
 import {
   useIsTutorialSeen,
   useMarkTutorialSeen,
 } from '@/state/queries/tutorial';
+import {
+  hasDiscoveryFiredThisSession,
+  markDiscoveryFired,
+} from '@/ui/help/session-store';
 
 export interface HelpSheetController {
   isOpen: boolean;
@@ -42,13 +47,24 @@ export function useCoachMark(
   const hasBeenSeen = useIsTutorialSeen(key);
   const markSeen = useMarkTutorialSeen();
 
+  const isEssential = isEssentialCoachmark(key);
+  const sessionGate = isEssential || !hasDiscoveryFiredThisSession();
+
   const dismiss = useCallback(() => {
     setLocallyDismissed(true);
     if (!hasBeenSeen) markSeen.mutate(key);
   }, [hasBeenSeen, key, markSeen]);
 
-  return {
-    isVisible: shouldShow && !hasBeenSeen && !locallyDismissed,
-    dismiss,
-  };
+  const isVisible = shouldShow && !hasBeenSeen && !locallyDismissed && sessionGate;
+
+  // Side-effect: when a discovery coach-mark first becomes visible this
+  // session, burn the session token so no other discovery coach-mark fires
+  // until the next cold start.
+  useEffect(() => {
+    if (isVisible && !isEssential) {
+      markDiscoveryFired();
+    }
+  }, [isVisible, isEssential]);
+
+  return { isVisible, dismiss };
 }

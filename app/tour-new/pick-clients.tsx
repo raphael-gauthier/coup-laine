@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
@@ -16,10 +16,14 @@ import { PressScale } from '@/ui/motion/press-scale';
 import { haptics } from '@/ui/motion/haptics';
 import { useClients, type ClientsFilter } from '@/state/queries/clients';
 import { useStatusRegistry } from '@/state/queries/statuses';
+import { useTours } from '@/state/queries/tours';
 import { useTourDraftStore } from '@/state/stores/tour-draft-store';
 import { matchesQuery } from '@/lib/text-search';
 import { cn } from '@/lib/cn';
 import { useOnContrastColor } from '@/ui/theme/colors';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { CoachMark } from '@/ui/help/coach-mark';
+import { useCoachMark } from '@/ui/help/hooks';
 
 export default function PickClientsScreen() {
   const { t } = useTranslation();
@@ -33,6 +37,13 @@ export default function PickClientsScreen() {
   const toggle = useTourDraftStore((s) => s.toggle);
   const waitingLabel = registry?.bySystemKey('waiting').label ?? t('clients.filter_waiting');
 
+  const proximityAnchorRef = useRef<View>(null);
+  const { data: allToursForProximity = [] } = useTours();
+  const proximityCoach = useCoachMark(
+    TUTORIAL_KEYS.coachmarkProximitySuggestions,
+    allToursForProximity.length >= 1,
+  );
+
   const filtered = useMemo(() => {
     if (!search.trim()) return clients;
     return clients.filter((c) => matchesQuery(c.displayName, search));
@@ -45,14 +56,16 @@ export default function PickClientsScreen() {
 
       <View className="px-4 pt-2 gap-3">
         <SearchBar value={search} onChange={setSearch} placeholder={t('clients.search_placeholder')} />
-        <SegmentedControl<ClientsFilter>
-          value={filter}
-          onChange={setFilter}
-          options={[
-            { value: 'waiting', label: waitingLabel },
-            { value: 'all', label: t('clients.filter_all') },
-          ]}
-        />
+        <View ref={proximityAnchorRef} collapsable={false}>
+          <SegmentedControl<ClientsFilter>
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: 'waiting', label: waitingLabel },
+              { value: 'all', label: t('clients.filter_all') },
+            ]}
+          />
+        </View>
       </View>
 
       {filtered.length === 0 ? (
@@ -106,6 +119,14 @@ export default function PickClientsScreen() {
           </Button>
         </View>
       ) : null}
+      <CoachMark
+        visible={proximityCoach.isVisible}
+        onDismiss={proximityCoach.dismiss}
+        anchorRef={proximityAnchorRef}
+        arrowDirection="up"
+        title={t('coachmark.proximity_suggestions.title')}
+        body={t('coachmark.proximity_suggestions.body')}
+      />
     </Surface>
   );
 }

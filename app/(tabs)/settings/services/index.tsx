@@ -18,6 +18,10 @@ import { useServices, useAnimalCategories, useSpecies } from '@/state/queries/sp
 import { haptics } from '@/ui/motion/haptics';
 import { useOnContrastColor, useMutedForegroundColor } from '@/ui/theme/colors';
 import { formatMinutes } from '@/lib/format-minutes';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetServicesCatalog } from '@/ui/help/sheets/help-sheet-services-catalog';
+import { useHelpSheet } from '@/ui/help/hooks';
 
 export default function ServicesListScreen() {
   const { t } = useTranslation();
@@ -29,6 +33,7 @@ export default function ServicesListScreen() {
   const { data: speciesList = [] } = useSpecies();
 
   const [archivedExpanded, setArchivedExpanded] = useState(false);
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetServicesCatalog);
 
   const grouped = useMemo(() => {
     const categoriesById = new Map(categories.map((c) => [c.id, c]));
@@ -69,7 +74,10 @@ export default function ServicesListScreen() {
 
   return (
     <Surface className="flex-1">
-      <ScreenHeader title={t('catalogs.services.list_title')} />
+      <ScreenHeader
+        title={t('catalogs.services.list_title')}
+        rightSlot={<HelpButton tutorialKey={TUTORIAL_KEYS.sheetServicesCatalog} onPress={helpSheet.open} />}
+      />
       {isLoading ? (
         <ListSkeleton />
       ) : isEmpty ? (
@@ -152,6 +160,8 @@ export default function ServicesListScreen() {
         onPress={() => router.push('/(tabs)/settings/services/new' as never)}
         accessibilityLabel={t('catalogs.services.new_title')}
       />
+
+      <HelpSheetServicesCatalog visible={helpSheet.isOpen} onClose={helpSheet.close} />
     </Surface>
   );
 }

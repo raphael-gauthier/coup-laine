@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { db } from '@/infra/db/client';
 import { TutorialProgressRepository } from '@/data/repositories/tutorial-progress-repository';
 import type { TutorialKey } from '@/domain/tutorial/keys';
+import { resetSessionDiscoveryFlag } from '@/ui/help/session-store';
 
 const repo = new TutorialProgressRepository(db);
 
@@ -49,6 +50,7 @@ export function useResetTutorials() {
       await repo.resetAll();
     },
     onSuccess: () => {
+      resetSessionDiscoveryFlag();
       qc.invalidateQueries({ queryKey: tutorialKeys.list });
     },
   });

@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { sql } from 'drizzle-orm';
 import { db } from '@/infra/db/client';
+import { tourStops } from '@/infra/db/schema';
 import { TourRepository } from '@/data/repositories/tour-repository';
 import { ClientRepository } from '@/data/repositories/client-repository';
 import type { Tour, TourStatus } from '@/domain/models/tour';
@@ -302,6 +304,25 @@ export function useCompleteTour() {
     },
     onError: (err) => {
       mutationErrorToast(i18n.t('tours.errors.complete_failed_title'), err);
+    },
+  });
+}
+
+export const tourStopsKeys = {
+  all: ['tour_stops'] as const,
+  hasAnyPaid: ['tour_stops', 'hasAnyPaid'] as const,
+};
+
+export function useHasAnyPaidStop() {
+  return useQuery({
+    queryKey: tourStopsKeys.hasAnyPaid,
+    queryFn: async () => {
+      const rows = await db
+        .select({ id: tourStops.id })
+        .from(tourStops)
+        .where(sql`${tourStops.isPaid} = 1`)
+        .limit(1);
+      return rows.length > 0;
     },
   });
 }

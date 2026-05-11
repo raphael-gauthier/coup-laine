@@ -55,6 +55,13 @@ export default function ToursListScreen() {
     !isLoading && !isError && allClientsForCoachmark.length >= 1 && tours.length === 0,
   );
 
+  const headerHelpAnchorRef = useRef<View>(null);
+  const { data: completedToursForCatalog = [] } = useTours('completed');
+  const catalogCoach = useCoachMark(
+    TUTORIAL_KEYS.coachmarkDiscoverCatalog,
+    !isLoading && !isError && completedToursForCatalog.length >= 1,
+  );
+
   const closeSheet = () => setCreateSheetVisible(false);
 
   const renderEmpty = () => {
@@ -81,7 +88,11 @@ export default function ToursListScreen() {
       <ScreenHeader
         variant="root"
         title={t('tours.list_title')}
-        rightSlot={<HelpButton tutorialKey={TUTORIAL_KEYS.sheetTours} onPress={helpSheet.open} />}
+        rightSlot={
+          <View ref={headerHelpAnchorRef} collapsable={false}>
+            <HelpButton tutorialKey={TUTORIAL_KEYS.sheetTours} onPress={helpSheet.open} />
+          </View>
+        }
       />
 
       <View className="px-4 pt-1">
@@ -153,6 +164,14 @@ export default function ToursListScreen() {
         arrowDirection="up"
         title={t('coachmark.first_tour.title')}
         body={t('coachmark.first_tour.body')}
+      />
+      <CoachMark
+        visible={catalogCoach.isVisible}
+        onDismiss={catalogCoach.dismiss}
+        anchorRef={headerHelpAnchorRef}
+        arrowDirection="up"
+        title={t('coachmark.discover_catalog.title')}
+        body={t('coachmark.discover_catalog.body')}
       />
     </Surface>
   );

@@ -20,12 +20,17 @@ import { useMapFiltersStore } from '@/state/ui/map-filters-store';
 import { useMapLayersStore } from '@/state/ui/map-layers-store';
 import { useMutedForegroundColor } from '@/ui/theme/colors';
 import type { Client } from '@/domain/models/client';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetMap } from '@/ui/help/sheets/help-sheet-map';
+import { useHelpSheet } from '@/ui/help/hooks';
 
 type GeoClient = Client & { latitude: number; longitude: number };
 
 export default function MapScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetMap);
   const mapRef = useRef<MapHandle>(null);
   const { data: clients = [], isError, isLoading, refetch } = useClients('all');
   const { data: base } = useBaseAddress();
@@ -114,7 +119,27 @@ export default function MapScreen() {
             onClose={() => setSelectedClient(null)}
           />
         ) : null}
+
+        {/* Floating help button — top-right, left of the layers button */}
+        <View
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 64,
+            shadowColor: '#000',
+            shadowOpacity: 0.15,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 2 },
+            elevation: 4,
+          }}
+        >
+          <Surface className="rounded-full p-1">
+            <HelpButton tutorialKey={TUTORIAL_KEYS.sheetMap} onPress={helpSheet.open} />
+          </Surface>
+        </View>
       </View>
+
+      <HelpSheetMap visible={helpSheet.isOpen} onClose={helpSheet.close} />
     </Surface>
   );
 }

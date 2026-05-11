@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -17,8 +17,9 @@ import { confirm } from '@/ui/components/confirm-dialog';
 import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
 import { HelpButton } from '@/ui/help/help-button';
 import { HelpSheetCompletion } from '@/ui/help/sheets/help-sheet-completion';
-import { useHelpSheet } from '@/ui/help/hooks';
-import { useTour, useCompleteWithBilan } from '@/state/queries/tours';
+import { CoachMark } from '@/ui/help/coach-mark';
+import { useHelpSheet, useCoachMark } from '@/ui/help/hooks';
+import { useTour, useCompleteWithBilan, useHasAnyPaidStop } from '@/state/queries/tours';
 import { useClients } from '@/state/queries/clients';
 import { useAnimalCategories, useSpecies } from '@/state/queries/species';
 import { computeClientTravelFee } from '@/domain/use-cases/compute-client-travel-fee';
@@ -70,6 +71,9 @@ export default function CompleteTourScreen() {
   const { t } = useTranslation();
   const onContrast = useOnContrastColor();
   const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetCompletion);
+  const paymentAnchorRef = useRef<View>(null);
+  const { data: hasAnyPaid = false } = useHasAnyPaidStop();
+  const paymentCoach = useCoachMark(TUTORIAL_KEYS.coachmarkPaymentMethods, hasAnyPaid);
   const { data, isError, refetch } = useTour(id);
   const { data: clients = [] } = useClients('all');
   const { data: categories = [] } = useAnimalCategories();
@@ -260,7 +264,11 @@ export default function CompleteTourScreen() {
     <Surface className="flex-1">
       <ScreenHeader
         title={t('tours.complete_title')}
-        rightSlot={<HelpButton tutorialKey={TUTORIAL_KEYS.sheetCompletion} onPress={helpSheet.open} />}
+        rightSlot={
+          <View ref={paymentAnchorRef} collapsable={false}>
+            <HelpButton tutorialKey={TUTORIAL_KEYS.sheetCompletion} onPress={helpSheet.open} />
+          </View>
+        }
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
         <Text className="text-2xl font-bold">
@@ -341,6 +349,15 @@ export default function CompleteTourScreen() {
       />
 
       <HelpSheetCompletion visible={helpSheet.isOpen} onClose={helpSheet.close} />
+
+      <CoachMark
+        visible={paymentCoach.isVisible}
+        onDismiss={paymentCoach.dismiss}
+        anchorRef={paymentAnchorRef}
+        arrowDirection="up"
+        title={t('coachmark.payment_methods.title')}
+        body={t('coachmark.payment_methods.body')}
+      />
     </Surface>
   );
 }

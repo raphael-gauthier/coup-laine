@@ -517,6 +517,80 @@
       "payment_title": "Enregistrer le paiement",
       "payment_body": "Tu peux noter le mode de paiement utilisé pour chaque client (espèces, virement, chèque…). Cette info reste dans l'historique.",
       "caption_main": "L'écran de bilan, prestation par prestation"
+    },
+    "map": {
+      "title": "La carte",
+      "what_is_title": "Vue d'ensemble géographique",
+      "what_is_body": "La carte affiche tous tes clients géolocalisés. Chaque pin est coloré selon le statut du client. La maison représente ton point de départ.",
+      "filter_title": "Filtrer par statut",
+      "filter_body": "Tape sur les chips en bas (« Tous », « En attente », « Planifié »…) pour n'afficher qu'une catégorie de clients.",
+      "popup_title": "Détails au tap",
+      "popup_body": "Tape sur un pin pour ouvrir une fiche rapide avec le nom, l'adresse et les actions Appeler / SMS.",
+      "kpis_title": "Compteurs en temps réel",
+      "kpis_body": "Les chiffres en bas indiquent combien de clients correspondent à chaque statut, en tenant compte du filtre actif."
+    },
+    "client_detail": {
+      "title": "La fiche client",
+      "what_is_title": "Tout sur un client",
+      "what_is_body": "La fiche client centralise les coordonnées, les animaux, l'historique des tontes et les actions rapides (appeler, planifier, supprimer).",
+      "edit_title": "Modifier les infos",
+      "edit_body": "Tape sur le crayon en haut pour éditer le nom, l'adresse, les téléphones, les compteurs d'animaux.",
+      "history_title": "L'historique",
+      "history_body": "L'historique liste toutes les tontes faites pour ce client, qu'elles viennent d'une tournée ou d'une saisie manuelle. Tape sur une ligne pour la consulter ou la modifier.",
+      "manual_status_title": "Le statut manuel",
+      "manual_status_body": "Tu peux assigner manuellement un statut à un client (par exemple « VIP » ou « Difficile »). Ça l'override les statuts automatiques.",
+      "delete_title": "Supprimer un client",
+      "delete_body": "« Supprimer ce client » anonymise sa fiche : son nom devient « Client supprimé », ses coordonnées sont effacées, mais ses tournées passées restent dans l'historique pour ta compta. Tape SUPPRIMER pour confirmer."
+    },
+    "tour_detail": {
+      "title": "Le détail d'une tournée",
+      "what_is_title": "Vue par arrêt",
+      "what_is_body": "L'écran liste tes arrêts dans l'ordre, avec l'heure prévue, les prestations à faire et le revenu attendu.",
+      "edit_title": "Modifier une tournée planifiée",
+      "edit_body": "Tape sur le crayon (en haut à droite) pour ajouter, retirer ou réordonner les clients. Disponible uniquement tant que la tournée n'est pas complétée.",
+      "complete_title": "Finir une tournée",
+      "complete_body": "Quand tu termines la journée sur le terrain, tape sur « Faire le bilan ». Tu pourras ajuster les prestations réellement faites et enregistrer les paiements.",
+      "delete_title": "Supprimer une tournée",
+      "delete_body": "Tu peux supprimer une tournée planifiée ou complétée. Pour une tournée complétée, l'historique des clients reste préservé.",
+      "caption_main": "L'écran de détail d'une tournée"
+    },
+    "services_catalog": {
+      "title": "Le catalogue de prestations",
+      "what_is_title": "Tes services et tarifs",
+      "what_is_body": "Le catalogue contient toutes les prestations que tu factures (« Tonte petit mouton », « Parage », etc.). Chaque prestation a un tarif et une durée.",
+      "create_title": "Créer une prestation",
+      "create_body": "Tape sur « Nouvelle prestation ». Donne-lui un nom, un prix, une durée. Tu peux la rattacher à une catégorie d'animal pour qu'elle apparaisse au bon moment dans la planification.",
+      "archive_title": "Archiver, ne pas supprimer",
+      "archive_body": "Tu ne peux pas supprimer une prestation déjà utilisée dans une tournée — tu peux l'archiver. Elle disparaît du picker mais reste lisible dans l'historique.",
+      "caption_main": "L'écran du catalogue de prestations"
+    },
+    "statuses": {
+      "title": "Les statuts client",
+      "what_is_title": "Statuts système et personnalisés",
+      "what_is_body": "Six statuts système (« En attente », « Planifié », « Fait », etc.) sont calculés automatiquement par l'app. Tu peux aussi créer des statuts personnalisés (« VIP », « Difficile »…) pour qualifier finement.",
+      "rename_title": "Renommer & recolorier",
+      "rename_body": "Tape sur n'importe quel statut (système ou perso) pour changer son nom et ses couleurs (light + dark thème).",
+      "manual_title": "Statut manuel sur un client",
+      "manual_body": "Depuis la fiche d'un client, tu peux lui assigner un statut perso. Cet override remplace l'affichage du statut automatique partout (carte, liste, badges).",
+      "caption_main": "L'écran de gestion des statuts"
+    },
+    "cloud": {
+      "title": "La sauvegarde cloud",
+      "what_is_title": "Pourquoi sauvegarder",
+      "what_is_body": "Sans sauvegarde cloud, tes données ne vivent que sur ce téléphone. Si tu changes d'appareil ou si tu le perds, tout est perdu. La sauvegarde cloud chiffre tes données et les stocke à Paris.",
+      "login_title": "Se connecter",
+      "login_body": "Tape sur « Se connecter au cloud » et entre ton email. Tu recevras un lien magique : tape dessus depuis ton mobile, et tu es connecté. Pas de mot de passe à retenir.",
+      "auto_title": "Sauvegarde automatique",
+      "auto_body": "Une fois connecté, l'app sauvegarde automatiquement toutes les 24 h. Tu peux aussi déclencher une sauvegarde manuelle quand tu veux.",
+      "restore_title": "Restaurer un backup",
+      "restore_body": "Sur un nouvel appareil, connecte-toi avec le même email et choisis une sauvegarde à restaurer. Confirmation typée RESTAURER pour éviter les fausses manip."
+    },
+    "settings": {
+      "title": "Les Réglages",
+      "what_is_title": "Tout configurer ici",
+      "what_is_body": "Cet écran est ton centre de contrôle : adresse de départ, séance d'horaires, catalogue, statuts, sauvegarde cloud, paramètres légaux.",
+      "sections_title": "Lis les sections",
+      "sections_body": "Chaque section regroupe des réglages liés. Survole les hints sous chaque entrée pour comprendre ce que tu vas modifier."
     }
   },
   "coachmark": {
@@ -528,6 +602,26 @@
     "first_tour": {
       "title": "Maintenant, planifie ta première tournée",
       "body": "Tu as au moins un client. Tape sur « Nouvelle tournée » pour organiser ta journée."
+    },
+    "cloud_backup": {
+      "title": "Pense à sauvegarder",
+      "body": "Tu as plusieurs clients enregistrés. Active la sauvegarde cloud pour ne rien perdre si tu changes de téléphone."
+    },
+    "discover_catalog": {
+      "title": "Personnalise tes prestations",
+      "body": "Tu as déjà fait une tournée. Ajuste ton catalogue de prestations dans Réglages pour gagner du temps à la planification."
+    },
+    "manual_statuses": {
+      "title": "Crée tes propres statuts",
+      "body": "Tu commences à avoir pas mal de clients. Tu peux les qualifier avec des statuts personnalisés (VIP, difficile, etc.)."
+    },
+    "proximity_suggestions": {
+      "title": "Profite des suggestions à proximité",
+      "body": "Quand tu planifies, l'app te suggère les clients en attente proches de tes arrêts. Pratique pour grouper les visites."
+    },
+    "payment_methods": {
+      "title": "Personnalise les modes de paiement",
+      "body": "Tu peux ajouter ou renommer les modes de paiement (espèces, virement, chèque, Wero…) dans Réglages."
     }
   },
   "statuses": {
