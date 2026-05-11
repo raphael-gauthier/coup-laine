@@ -14,12 +14,74 @@ PDF facture par client par tournée. Reportée : pas de plan court terme.
 Le `priceCentsSnapshot` sur `TourStopPrestation` (livré en #6) servira de
 source quand le sujet sera repris.
 
-### 8. Système de tutorial et d'aide — priorité moyenne
-Aider les nouveaux utilisateurs à prendre en main l'app : onboarding contextuel, tooltips, écran d'aide, ou parcours guidé pour les flows clés (création client, planification de tournée, complétion, catalogue de prestations, sauvegarde cloud). Périmètre exact à cadrer en spec.
+### 8b. Système de tutorial et d'aide — Phase 2 (post-MVP)
+Phase 1 livrée (cf bloc Livrées) avec l'infra complète + 3 sheets + 2 coach-marks. Phase 2 = pure addition de contenu sur l'infra existante :
+- 7 sheets restantes : Carte, Fiche client, Détail tournée, Catalogue prestations, Statuts, Cloud, Paramètres root.
+- 5 coach-marks à seuils métier : sauvegarde cloud (5+ clients OU 1re tournée complétée), découverte catalogue (après 1re tournée), statuts manuels (10+ clients), suggestions à proximité (à la 2e tournée), payment methods perso (au 1er bilan avec paiement).
+Pattern à suivre : pour chaque sheet, créer un fichier `src/ui/help/sheets/help-sheet-X.tsx` + ajouter `<HelpButton>` dans le header de l'écran X. Pour chaque coach-mark, ajouter une instance `<CoachMark>` avec son `shouldShow` predicate dans l'écran cible. Maintenir les composants `*Demo` à jour si on en ajoute de nouveaux (`src/ui/help/previews/README.md`).
 
 ---
 
 ## Livrées
+
+### Système de tutorial et d'aide — Phase 1 (MVP)
+**Mergé sur `main`** — 2026-05-11 (HEAD `f27d6c9`, 30 commits depuis la spec)
+**Spec :** `docs/superpowers/specs/2026-05-11-tutorial-help-system-design.md`
+**Plan :** `docs/superpowers/plans/2026-05-11-tutorial-help-system.md`
+
+#### Ce qui a été livré
+
+**Infrastructure**
+- Nouvelle table Drizzle `tutorial_progress` (key PK + seenAt ISO) — store local de progression UI, indépendant des entités métier, pas de FK.
+- Migration hand-written `0010_tutorial_progress` (single-statement, sans trailing breakpoint pour rester compatible avec `migrate()`). Bundle régénéré et committé.
+- Backup format v5 → v6 : `BackupSnapshotV6Schema` + `migrateV5ToV6` (init `tutorial_progress: []`). Restore cascade complète v2 → v3 → v4 → v5 → v6 préservée. **Sync cloud des tutos vus** : un user qui restaure un backup retrouve l'état exact des bulles d'aide vues.
+- Filtre `validateTutorialKey` dans `wipeAndRestore` (défense en profondeur contre clés inconnues d'une version plus récente).
+
+**Domaine & data**
+- `TUTORIAL_KEYS` const + `TutorialKey` type + `validateTutorialKey` (5 clés Phase 1 : 3 sheets + 2 coach-marks). Préfixes `sheet.*` / `coachmark.*` réservés pour Phase 2.
+- `TutorialProgressRowSchema` Zod + `TutorialProgressRow` type.
+- `TutorialProgressRepository` (`list` / `isSeen` / `markSeen` (INSERT OR IGNORE — idempotent) / `resetAll`).
+
+**State & React Query**
+- `useTutorialProgress` (single query, retourne `{ seen: Set<string>, count }`) + sélecteurs dérivés `useIsTutorialSeen(key)`.
+- Mutations `useMarkTutorialSeen` / `useResetTutorials` qui invalident `tutorialKeys.list`.
+- Hooks haut-niveau `useHelpSheet(key)` (avec `open` qui marque seen avant ouverture, pour clear le pulse même sur peek transient) et `useCoachMark(key, shouldShow)` (AND avec `!hasBeenSeen` + flag local `dismissed` pour éviter le flash de stale state à la fermeture).
+
+**Composants UI réutilisables**
+- `<HelpButton tutorialKey onPress>` — icône `?` lucide dans le header avec pastille `bg-primary` 8×8 en top-right si `!hasBeenSeen`. Haptic + accessibilité.
+- `<HelpSheet visible onClose title>` + `<HelpSection icon title>` + `<HelpPreview caption?>` — bottom sheet Modal-based (cohérent avec le reste de l'app, pas de `@gorhom/bottom-sheet`), 85% viewport max, scrollable, bouton « Compris » full-width.
+- `<CoachMark visible onDismiss anchorRef arrowDirection title? body>` — overlay non-bloquant positionné via `measureInWindow` + RAF deferral. FadeIn/FadeOut depuis Reanimated avec durées via `motion-tokens.ts`. Tap-anywhere pour dismiss.
+
+**Pivot post-design : previews in-app au lieu de captures `.webp`**
+- 5 composants demos dans `src/ui/help/previews/` (`ClientCardDemo`, `ClientFilterDemo`, `TourCardDemo`, `TourPlanningDemo`, `CompletionRowDemo`) — copies visuelles fidèles des composants réels avec données hardcodées (Famille Le Goff, Plouhinec, etc.). Light/dark automatique via primitives. Aucun asset binaire.
+- README `src/ui/help/previews/README.md` documente la convention de maintenance : mettre à jour le demo à chaque évolution **visible** du composant réel mirroré (table de correspondance fournie).
+- Trade-off accepté : risque de divergence visuelle, mitigé par la doc.
+
+**Contenu Phase 1**
+- 3 sheets contextuelles : `<HelpSheetClients>`, `<HelpSheetTours>`, `<HelpSheetCompletion>` — chacune ~5 sections texte + 1-2 previews + caption.
+- 2 coach-marks 1re fois :
+  - `coachmark.first_client` sur l'empty state Clients (déclencheur : `!isLoading && !isError && allClients.length === 0` — pre-filter, donc ne fire pas sur un filtre vide).
+  - `coachmark.first_tour` sur l'empty state Tours (déclencheur : `!isLoading && !isError && allClientsForCoachmark.length >= 1 && tours.length === 0` — gate sur 1+ client pour ne pas overlap avec le coach-mark Clients sur l'autre tab).
+- Écran `app/(tabs)/settings/help.tsx` avec compteur « X tutoriels vus sur Y » + bouton « Rejouer les tutoriels » (confirm dialog non-typé via `confirm()`, success toast).
+- ~46 clés i18n FR : `help.{button_label,button_hint,dismiss_cta,clients,tours,completion}`, `coachmark.{dismiss_label,first_client,first_tour}`, `settings.{section_help,help.*}`. `common.confirm` ajouté.
+- Section « Aide » dans Réglages root.
+
+**Tests**
+- 18 tests automatisés ajoutés : `validateTutorialKey` (3), `TutorialProgressRowSchema` (2), `TutorialProgressRepository` (6), `migration-0010` (2), `backup-v6` (5 dont round-trip + unknown-key tolerance ajoutés en review). Total suite : 185 vitest + 98 jest, 25 suites — tous verts.
+- Typecheck + lint PASS.
+
+#### Bugs trouvés et corrigés en cours d'implémentation
+
+- **Trailing `--> statement-breakpoint` dans `0010_tutorial_progress.sql`** : initialement ajouté en plan pour "future-proofing", a cassé `drizzle migrate()` (RangeError sur statement vide après split). Fix en commit `2e4725e` : retiré le trailing breakpoint, aligné avec le pattern des autres migrations (0009 etc. sans breakpoint final). Test migration-0010 réécrit pour utiliser `migrate()` proprement au lieu d'un loop SQL hand-rolled.
+- **`useCoachMark.dismiss` sans flip local** : flash de stale state d'~1 frame entre tap et invalidation React Query. Fix en `c73234e` : ajout d'un `useState(false)` `locallyDismissed` flippé immédiatement, mirror du pattern `useHelpSheet`.
+
+#### Écarts vs périmètre initial
+
+- **Pivot des captures `.webp` vers les previews in-app** (post-design, validé en cours d'impl). Le design initial prévoyait 10 fichiers `.webp` (5 captures × light/dark) à produire manuellement. Pivot vers 5 composants `*Demo` (JSX pur, light/dark auto, pas de maintenance d'assets) — voir §6.2 et §8.4 de la spec mises à jour. Bénéfice : zéro asset à refresh à chaque refonte UI. Coût : risque de divergence demo/réel, mitigé par `src/ui/help/previews/README.md`.
+- **Volume i18n légèrement supérieur** : ~46 clés au lieu des ~42 estimées dans la spec initiale (le compte exact incluant `common.confirm`, `settings.section_help`, `coachmark.dismiss_label` arrive à 46+).
+
+### Personnalisation des statuts client
+**Mergé sur `main`** — 2026-05-08 (HEAD `64edbb3`, 31 commits depuis la spec `508c1da`)
 
 ### Personnalisation des statuts client
 **Mergé sur `main`** — 2026-05-08 (HEAD `64edbb3`, 31 commits depuis la spec `508c1da`)
