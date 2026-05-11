@@ -8,6 +8,7 @@ import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { PressScale } from '@/ui/motion/press-scale';
 import { haptics } from '@/ui/motion/haptics';
+import { motion } from '@/ui/motion/motion-tokens';
 
 interface Props {
   visible: boolean;
@@ -100,8 +101,8 @@ export function CoachMark({
       >
         <View style={{ flex: 1 }}>
           <Animated.View
-            entering={FadeIn.duration(200)}
-            exiting={FadeOut.duration(150)}
+            entering={FadeIn.duration(motion.duration.fast)}
+            exiting={FadeOut.duration(motion.duration.fast)}
             style={{
               position: 'absolute',
               left,
