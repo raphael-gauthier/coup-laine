@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
@@ -19,6 +19,12 @@ import { CreateTourSheet } from '@/ui/components/create-tour-sheet';
 import { useTours } from '@/state/queries/tours';
 import type { TourStatus } from '@/domain/models/tour';
 import { useMutedForegroundColor } from '@/ui/theme/colors';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetTours } from '@/ui/help/sheets/help-sheet-tours';
+import { CoachMark } from '@/ui/help/coach-mark';
+import { useHelpSheet, useCoachMark } from '@/ui/help/hooks';
+import { useClients } from '@/state/queries/clients';
 
 type Filter = 'draft' | 'planned' | 'completed';
 
@@ -38,6 +44,16 @@ export default function ToursListScreen() {
   const [createSheetVisible, setCreateSheetVisible] = useState(false);
 
   const { data: tours = [], isError, isLoading, refetch } = useTours(filter as TourStatus);
+
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetTours);
+  const emptyCtaRef = useRef<View>(null);
+  const { data: allClientsForCoachmark = [] } = useClients('all');
+  // Spec §7.2: only fire when 1+ clients AND 0 tours, to avoid overlapping
+  // with the first-client coach-mark on the sibling tab.
+  const coachmark = useCoachMark(
+    TUTORIAL_KEYS.coachmarkFirstTour,
+    !isLoading && !isError && allClientsForCoachmark.length >= 1 && tours.length === 0,
+  );
 
   const closeSheet = () => setCreateSheetVisible(false);
 
@@ -62,7 +78,11 @@ export default function ToursListScreen() {
 
   return (
     <Surface className="flex-1">
-      <ScreenHeader variant="root" title={t('tours.list_title')} />
+      <ScreenHeader
+        variant="root"
+        title={t('tours.list_title')}
+        rightSlot={<HelpButton tutorialKey={TUTORIAL_KEYS.sheetTours} onPress={helpSheet.open} />}
+      />
 
       <View className="px-4 pt-1">
         <SegmentedControl<Filter>
@@ -81,7 +101,9 @@ export default function ToursListScreen() {
       ) : isLoading ? (
         <ListSkeleton />
       ) : tours.length === 0 ? (
-        renderEmpty()
+        <View ref={emptyCtaRef} collapsable={false}>
+          {renderEmpty()}
+        </View>
       ) : (
         <FlashList
           data={tours}
@@ -121,6 +143,16 @@ export default function ToursListScreen() {
           closeSheet();
           router.push('/tour-new/optimized-config' as never);
         }}
+      />
+
+      <HelpSheetTours visible={helpSheet.isOpen} onClose={helpSheet.close} />
+      <CoachMark
+        visible={coachmark.isVisible}
+        onDismiss={coachmark.dismiss}
+        anchorRef={emptyCtaRef}
+        arrowDirection="up"
+        title={t('coachmark.first_tour.title')}
+        body={t('coachmark.first_tour.body')}
       />
     </Surface>
   );
