@@ -51,3 +51,59 @@ describe('BackupSnapshotV6Schema', () => {
     expect(parsed.tables.tutorial_progress).toHaveLength(1);
   });
 });
+
+describe('round-trip preservation', () => {
+  it('parses a v6 snapshot with tutorial_progress rows and preserves them', () => {
+    const snapshot = {
+      schemaVersion: 6 as const,
+      createdAt: '2026-05-11T10:00:00.000Z',
+      tables: {
+        clients: [],
+        species: [],
+        animal_categories: [],
+        services: [],
+        tours: [],
+        tour_stops: [],
+        manual_history_entries: [],
+        distance_matrix: [],
+        settings: [],
+        statuses: [],
+        tutorial_progress: [
+          { key: 'sheet.clients', seenAt: '2026-05-11T10:00:00.000Z' },
+          { key: 'coachmark.first_client', seenAt: '2026-05-11T11:00:00.000Z' },
+        ],
+      },
+    };
+    const parsed = BackupSnapshotV6Schema.parse(snapshot);
+    expect(parsed.tables.tutorial_progress).toEqual(snapshot.tables.tutorial_progress);
+  });
+});
+
+describe('unknown-key tolerance at the schema layer', () => {
+  it('parses a v6 snapshot containing an unknown tutorial key (the wipeAndRestore loop filters at restore-time)', () => {
+    const snapshot = {
+      schemaVersion: 6 as const,
+      createdAt: '2026-05-11T10:00:00.000Z',
+      tables: {
+        clients: [],
+        species: [],
+        animal_categories: [],
+        services: [],
+        tours: [],
+        tour_stops: [],
+        manual_history_entries: [],
+        distance_matrix: [],
+        settings: [],
+        statuses: [],
+        tutorial_progress: [
+          { key: 'sheet.from-the-future', seenAt: '2026-05-11T10:00:00.000Z' },
+        ],
+      },
+    };
+    // The schema is permissive — validation of known-keys happens via validateTutorialKey
+    // in src/infra/cloud/backups.ts at restore time, not in the schema itself.
+    const parsed = BackupSnapshotV6Schema.parse(snapshot);
+    expect(parsed.tables.tutorial_progress).toHaveLength(1);
+    expect(parsed.tables.tutorial_progress[0]?.key).toBe('sheet.from-the-future');
+  });
+});
