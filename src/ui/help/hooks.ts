@@ -38,15 +38,17 @@ export function useCoachMark(
   key: TutorialKey,
   shouldShow: boolean,
 ): CoachMarkController {
+  const [locallyDismissed, setLocallyDismissed] = useState(false);
   const hasBeenSeen = useIsTutorialSeen(key);
   const markSeen = useMarkTutorialSeen();
 
   const dismiss = useCallback(() => {
+    setLocallyDismissed(true);
     if (!hasBeenSeen) markSeen.mutate(key);
   }, [hasBeenSeen, key, markSeen]);
 
   return {
-    isVisible: shouldShow && !hasBeenSeen,
+    isVisible: shouldShow && !hasBeenSeen && !locallyDismissed,
     dismiss,
   };
 }
