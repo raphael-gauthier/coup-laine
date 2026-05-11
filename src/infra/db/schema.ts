@@ -180,3 +180,8 @@ export const statuses = sqliteTable(
     systemKeyIdx: index('statuses_system_key_idx').on(t.systemKey),
   })
 );
+
+export const tutorialProgress = sqliteTable('tutorial_progress', {
+  key: text('key').primaryKey(),
+  seenAt: text('seen_at').notNull(),
+});
