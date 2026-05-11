@@ -22,6 +22,8 @@ import { ScreenHeader } from '@/ui/components/screen-header';
 import { ClientFilterButton } from '@/ui/components/client-status-filter-dialog';
 import { useClients, useToggleWaiting, useDisplayedStatusMap, useClientsWithOutstanding, type ClientsFilter } from '@/state/queries/clients';
 import { useStatusRegistry } from '@/state/queries/statuses';
+import { useTours } from '@/state/queries/tours';
+import { useSession } from '@/state/queries/auth';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
 import { matchesAny } from '@/lib/text-search';
 import { useOnContrastColor, useMutedForegroundColor } from '@/ui/theme/colors';
@@ -75,6 +77,30 @@ export default function ClientsListScreen() {
     !isLoading && !isError && allClients.length === 0,
   );
 
+  // Phase 2 anchors and predicates
+  const headerHelpAnchorRef = useRef<View>(null);
+  const filterAnchorRef = useRef<View>(null);
+
+  const { data: session } = useSession();
+  const isCloudOptedIn = !!session && !session.user.is_anonymous;
+
+  const { data: completedTours = [] } = useTours('completed');
+  const completedToursCount = completedTours.length;
+
+  const cloudCoach = useCoachMark(
+    TUTORIAL_KEYS.coachmarkCloudBackup,
+    !isLoading && !isError
+      && !isCloudOptedIn
+      && (allClients.length >= 5 || completedToursCount >= 1),
+  );
+
+  const statusesCoach = useCoachMark(
+    TUTORIAL_KEYS.coachmarkManualStatuses,
+    !isLoading && !isError
+      && allClients.length >= 10
+      && !cloudCoach.isVisible,
+  );
+
   return (
     <Surface className="flex-1">
       <ScreenHeader
@@ -82,8 +108,12 @@ export default function ClientsListScreen() {
         title={t('clients.list_title')}
         rightSlot={
           <View className="flex-row items-center gap-1">
-            <ClientFilterButton />
-            <HelpButton tutorialKey={TUTORIAL_KEYS.sheetClients} onPress={helpSheet.open} />
+            <View ref={filterAnchorRef} collapsable={false}>
+              <ClientFilterButton />
+            </View>
+            <View ref={headerHelpAnchorRef} collapsable={false}>
+              <HelpButton tutorialKey={TUTORIAL_KEYS.sheetClients} onPress={helpSheet.open} />
+            </View>
           </View>
         }
       />
@@ -164,6 +194,22 @@ export default function ClientsListScreen() {
         arrowDirection="up"
         title={t('coachmark.first_client.title')}
         body={t('coachmark.first_client.body')}
+      />
+      <CoachMark
+        visible={cloudCoach.isVisible}
+        onDismiss={cloudCoach.dismiss}
+        anchorRef={headerHelpAnchorRef}
+        arrowDirection="up"
+        title={t('coachmark.cloud_backup.title')}
+        body={t('coachmark.cloud_backup.body')}
+      />
+      <CoachMark
+        visible={statusesCoach.isVisible}
+        onDismiss={statusesCoach.dismiss}
+        anchorRef={filterAnchorRef}
+        arrowDirection="up"
+        title={t('coachmark.manual_statuses.title')}
+        body={t('coachmark.manual_statuses.body')}
       />
     </Surface>
   );
