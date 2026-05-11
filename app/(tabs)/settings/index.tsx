@@ -88,6 +88,13 @@ export default function SettingsScreen() {
           hint={t('settings.legal.row_hint')}
           onPress={() => router.push('/(tabs)/settings/legal' as never)}
         />
+
+        <SectionHeader title={t('settings.section_help')} />
+        <SettingsRow
+          label={t('settings.help.row_label')}
+          hint={t('settings.help.row_hint')}
+          onPress={() => router.push('/(tabs)/settings/help' as never)}
+        />
       </ScrollView>
     </Surface>
   );
