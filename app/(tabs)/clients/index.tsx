@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
@@ -25,6 +25,11 @@ import { useStatusRegistry } from '@/state/queries/statuses';
 import { useClientFiltersStore } from '@/state/ui/client-filters-store';
 import { matchesAny } from '@/lib/text-search';
 import { useOnContrastColor, useMutedForegroundColor } from '@/ui/theme/colors';
+import { TUTORIAL_KEYS } from '@/domain/tutorial/keys';
+import { HelpButton } from '@/ui/help/help-button';
+import { HelpSheetClients } from '@/ui/help/sheets/help-sheet-clients';
+import { CoachMark } from '@/ui/help/coach-mark';
+import { useHelpSheet, useCoachMark } from '@/ui/help/hooks';
 
 export default function ClientsListScreen() {
   const { t } = useTranslation();
@@ -63,12 +68,24 @@ export default function ClientsListScreen() {
     return list;
   }, [allClients, search, enabledStatusIds, uninitialized, displayedMap, filter, outstandingIds]);
 
+  const helpSheet = useHelpSheet(TUTORIAL_KEYS.sheetClients);
+  const emptyCtaRef = useRef<View>(null);
+  const coachmark = useCoachMark(
+    TUTORIAL_KEYS.coachmarkFirstClient,
+    !isLoading && !isError && allClients.length === 0,
+  );
+
   return (
     <Surface className="flex-1">
       <ScreenHeader
         variant="root"
         title={t('clients.list_title')}
-        rightSlot={<ClientFilterButton />}
+        rightSlot={
+          <View className="flex-row items-center gap-1">
+            <ClientFilterButton />
+            <HelpButton tutorialKey={TUTORIAL_KEYS.sheetClients} onPress={helpSheet.open} />
+          </View>
+        }
       />
 
       <RecomputeBanner />
@@ -91,24 +108,26 @@ export default function ClientsListScreen() {
       ) : isLoading ? (
         <ListSkeleton />
       ) : filtered.length === 0 ? (
-        <EmptyState
-          icon={<UserRound size={48} color={mutedFg} />}
-          title={search ? t('clients.empty_filtered_title') : t('clients.empty_title')}
-          message={search ? t('clients.empty_filtered_message') : t('clients.empty_message')}
-          action={
-            !search ? (
-              <Button
-                onPress={() => router.push('/(tabs)/clients/new')}
-                accessibilityLabel={t('clients.empty_cta')}
-              >
-                <Plus size={16} color={onContrast} />
-                <Text variant="onPrimary" className="font-semibold">
-                  {t('clients.empty_cta')}
-                </Text>
-              </Button>
-            ) : undefined
-          }
-        />
+        <View ref={emptyCtaRef} collapsable={false}>
+          <EmptyState
+            icon={<UserRound size={48} color={mutedFg} />}
+            title={search ? t('clients.empty_filtered_title') : t('clients.empty_title')}
+            message={search ? t('clients.empty_filtered_message') : t('clients.empty_message')}
+            action={
+              !search ? (
+                <Button
+                  onPress={() => router.push('/(tabs)/clients/new')}
+                  accessibilityLabel={t('clients.empty_cta')}
+                >
+                  <Plus size={16} color={onContrast} />
+                  <Text variant="onPrimary" className="font-semibold">
+                    {t('clients.empty_cta')}
+                  </Text>
+                </Button>
+              ) : undefined
+            }
+          />
+        </View>
       ) : (
         <FlashList
           data={filtered}
@@ -135,6 +154,16 @@ export default function ClientsListScreen() {
         icon={Plus}
         onPress={() => router.push('/(tabs)/clients/new')}
         accessibilityLabel={t('clients.empty_cta')}
+      />
+
+      <HelpSheetClients visible={helpSheet.isOpen} onClose={helpSheet.close} />
+      <CoachMark
+        visible={coachmark.isVisible}
+        onDismiss={coachmark.dismiss}
+        anchorRef={emptyCtaRef}
+        arrowDirection="up"
+        title={t('coachmark.first_client.title')}
+        body={t('coachmark.first_client.body')}
       />
     </Surface>
   );
