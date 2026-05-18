@@ -21,22 +21,21 @@ describe('migration 0010 — tutorial_progress', () => {
     expect(rows).toEqual([]);
   });
 
-  it('accepts INSERT and enforces PK uniqueness', async () => {
+  it('accepts INSERT and enforces PK uniqueness', () => {
     const db = freshDb();
     migrate(db, { migrationsFolder: MIGRATIONS_FOLDER });
-    await db.insert(schema.tutorialProgress).values({
-      key: 'sheet.clients',
-      seenAt: '2026-05-11T10:00:00.000Z',
-    });
-    const rows = await db.select().from(schema.tutorialProgress);
+    db.insert(schema.tutorialProgress)
+      .values({ key: 'sheet.clients', seenAt: '2026-05-11T10:00:00.000Z' })
+      .run();
+    const rows = db.select().from(schema.tutorialProgress).all();
     expect(rows).toHaveLength(1);
     expect(rows[0]?.key).toBe('sheet.clients');
 
-    await expect(
-      db.insert(schema.tutorialProgress).values({
-        key: 'sheet.clients',
-        seenAt: '2026-05-11T11:00:00.000Z',
-      }),
-    ).rejects.toThrow();
+    expect(() =>
+      db
+        .insert(schema.tutorialProgress)
+        .values({ key: 'sheet.clients', seenAt: '2026-05-11T11:00:00.000Z' })
+        .run(),
+    ).toThrow(/UNIQUE/);
   });
 });
