@@ -627,6 +627,16 @@
       "body": "Tu peux ajouter ou renommer les modes de paiement (espèces, virement, chèque, Wero…) dans Réglages."
     }
   },
+  "dateField": {
+    "placeholder": "JJ/MM/AAAA",
+    "invalid": "Date invalide (JJ/MM/AAAA)",
+    "open_picker": "Ouvrir le calendrier"
+  },
+  "timeField": {
+    "placeholder": "HH:MM",
+    "invalid": "Heure invalide (HH:MM)",
+    "open_picker": "Ouvrir le sélecteur d'heure"
+  },
   "statuses": {
     "screen_title": "Statuts",
     "row_hint": "Libellés, couleurs et statuts personnalisés",
