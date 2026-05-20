@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { Platform, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { format, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { parseISO } from 'date-fns';
 import { ChevronDown } from 'lucide-react-native';
 
 import { Surface } from '@/ui/primitives/surface';
@@ -11,6 +9,7 @@ import { Text } from '@/ui/primitives/text';
 import { PressScale } from '@/ui/motion/press-scale';
 import { ThemedSwitch } from '@/ui/primitives/themed-switch';
 import { PaymentMethodPicker } from '@/ui/components/payment-method-picker';
+import { DateField } from '@/ui/components/date-field';
 import type { Payment } from '@/domain/models/payment';
 import type { PaymentMethod } from '@/domain/models/payment-method';
 
@@ -20,12 +19,13 @@ interface Props {
   methodError?: string | null;
   // When true, the form requires a methodId regardless of isPaid (manual history).
   requireMethodAlways?: boolean;
+  /** Bubbles paid-at field validity so a host can disable its Save button. */
+  onPaidAtValidityChange?: (valid: boolean) => void;
 }
 
-export function PaymentEditor({ value, onChange, methodError, requireMethodAlways }: Props) {
+export function PaymentEditor({ value, onChange, methodError, requireMethodAlways, onPaidAtValidityChange }: Props) {
   const { t } = useTranslation();
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const onPickMethod = (m: PaymentMethod) => {
     onChange({
@@ -83,24 +83,12 @@ export function PaymentEditor({ value, onChange, methodError, requireMethodAlway
       </View>
 
       {value.isPaid ? (
-        <View className="gap-2">
-          <Text className="text-sm">{t('payments.paid_at')}</Text>
-          <PressScale onPress={() => setDatePickerOpen(true)} accessibilityLabel={t('payments.paid_at')}>
-            <Surface className="rounded-2xl px-4 py-3">
-              <Text>{value.paidAt ? format(parseISO(value.paidAt), 'PPP', { locale: fr }) : '—'}</Text>
-            </Surface>
-          </PressScale>
-          {datePickerOpen ? (
-            <DateTimePicker
-              value={value.paidAt ? parseISO(value.paidAt) : new Date()}
-              mode="date"
-              onChange={(_, d) => {
-                setDatePickerOpen(Platform.OS === 'ios');
-                if (d) onChange({ ...value, paidAt: d.toISOString() });
-              }}
-            />
-          ) : null}
-        </View>
+        <DateField
+          label={t('payments.paid_at')}
+          value={value.paidAt ? parseISO(value.paidAt) : null}
+          onChange={(d) => onChange({ ...value, paidAt: d ? d.toISOString() : null })}
+          onValidityChange={onPaidAtValidityChange}
+        />
       ) : null}
 
       <PaymentMethodPicker
