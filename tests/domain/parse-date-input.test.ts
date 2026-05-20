@@ -29,6 +29,11 @@ describe('parseDateInput', () => {
   it('rejects a non-existent calendar date as invalid', () => {
     expect(parseDateInput('31/02/2026')).toEqual({ ok: false, reason: 'invalid' });
   });
+
+  it('accepts Feb 29 in a leap year but rejects it otherwise', () => {
+    expect(parseDateInput('29/02/2024').ok).toBe(true);
+    expect(parseDateInput('29/02/2025')).toEqual({ ok: false, reason: 'invalid' });
+  });
 });
 
 describe('parseTimeInput', () => {

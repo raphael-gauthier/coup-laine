@@ -11,7 +11,7 @@ export type TimeParseResult =
   | { ok: true; value: string }
   | { ok: false; reason: 'empty' | 'invalid' };
 
-/** Parse a `JJ/MM/AAAA` string into a Date, rejecting incomplete or
+/** Parse a `DD/MM/YYYY` string into a Date, rejecting incomplete or
  *  non-existent calendar dates (e.g. 31/02). */
 export function parseDateInput(text: string): DateParseResult {
   const trimmed = text.trim();
