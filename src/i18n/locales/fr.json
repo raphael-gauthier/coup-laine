@@ -50,6 +50,8 @@
     "new_title": "Nouveau client",
     "edit_title": "Modifier",
     "detail_title": "Client",
+    "just_created_banner_title": "Client enregistré",
+    "just_created_banner_cta": "Ajouter un autre client",
     "display_name": "Nom",
     "display_name_placeholder": "Ex. Famille Le Goff",
     "address": "Adresse",
@@ -385,6 +387,7 @@
       "grand_total": "Total facturé",
       "add_services": "Ajouter des prestations",
       "edit_services": "Modifier les prestations",
+      "save_and_add_another": "Enregistrer et ajouter une autre",
       "delete": "Supprimer",
       "delete_confirm_title": "Supprimer cette entrée ?",
       "delete_confirm_message": "Cette action est définitive."

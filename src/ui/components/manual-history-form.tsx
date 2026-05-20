@@ -29,7 +29,8 @@ interface Props {
   initial?: ManualHistoryEntry;
   clientId: string;
   saving?: boolean;
-  onSubmit: (input: UpsertManualHistoryInput) => void;
+  allowAddAnother?: boolean;
+  onSubmit: (input: UpsertManualHistoryInput, opts: { addAnother: boolean }) => void | Promise<void>;
   onCancel?: () => void;
 }
 
@@ -43,9 +44,9 @@ const schema = z.object({
   notes: z.string(),
 });
 
-export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCancel }: Props) {
+export function ManualHistoryForm({ initial, clientId, saving, allowAddAnother, onSubmit, onCancel }: Props) {
   const { t } = useTranslation();
-  const { control, handleSubmit } = useForm<FormValues>({
+  const { control, handleSubmit, reset } = useForm<FormValues>({
     defaultValues: {
       date: initial?.date ? parseISO(initial.date) : new Date(),
       notes: initial?.notes ?? '',
@@ -70,25 +71,41 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
     [services]
   );
 
-  const onValid = (values: FormValues) => {
-    // Method always required for manual history (per spec asymmetry)
-    if (!payment.methodId) {
-      setMethodError(t('payments.method_required'));
-      void haptics.error();
-      return;
-    }
-    setMethodError(null);
+  const buildInput = (values: FormValues): UpsertManualHistoryInput => ({
+    id: initial?.id,
+    clientId,
+    date: format(values.date, 'yyyy-MM-dd'),
+    notes: values.notes.trim() || null,
+    services,
+    travelFeeCents: travelFeeCents > 0 ? travelFeeCents : null,
+    payment,
+  });
 
-    onSubmit({
-      id: initial?.id,
-      clientId,
-      date: format(values.date, 'yyyy-MM-dd'),
-      notes: values.notes.trim() || null,
-      services,
-      travelFeeCents: travelFeeCents > 0 ? travelFeeCents : null,
-      payment,
-    });
-  };
+  const submit = (addAnother: boolean) =>
+    handleSubmit(async (values) => {
+      // Method always required for manual history (per spec asymmetry)
+      if (!payment.methodId) {
+        setMethodError(t('payments.method_required'));
+        void haptics.error();
+        return;
+      }
+      setMethodError(null);
+
+      try {
+        await onSubmit(buildInput(values), { addAnother });
+      } catch {
+        // Mutation failed (handled upstream via toast); keep the form intact.
+        return;
+      }
+
+      if (addAnother) {
+        reset({ date: new Date(), notes: '' });
+        setServices([]);
+        setTravelFeeCents(0);
+        setPayment({ ...EMPTY_PAYMENT, isPaid: true });
+        setMethodError(null);
+      }
+    }, onInvalid);
 
   const onInvalid = () => {
     void haptics.error();
@@ -199,10 +216,16 @@ export function ManualHistoryForm({ initial, clientId, saving, onSubmit, onCance
             {t('common.cancel')}
           </Button>
         ) : null}
-        <Button className="flex-1" onPress={handleSubmit(onValid, onInvalid)} loading={saving}>
+        <Button className="flex-1" onPress={submit(false)} loading={saving}>
           {t('common.save')}
         </Button>
       </View>
+
+      {allowAddAnother ? (
+        <Button variant="secondary" onPress={submit(true)} disabled={saving}>
+          {t('history.manual.save_and_add_another')}
+        </Button>
+      ) : null}
 
       <ServicePickerSheet
         visible={pickerOpen}

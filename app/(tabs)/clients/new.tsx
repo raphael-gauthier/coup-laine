@@ -22,9 +22,12 @@ export default function NewClientScreen() {
         onCancel={() => router.back()}
         onSubmit={(input) =>
           upsert.mutate(input, {
-            onSuccess: () => {
+            onSuccess: (client) => {
               void haptics.success();
-              router.back();
+              router.replace({
+                pathname: '/(tabs)/clients/[id]',
+                params: { id: client.id, justCreated: '1' },
+              });
             },
             onError: (err) => {
               mutationErrorToast(t('clients.save_failed_title'), err);

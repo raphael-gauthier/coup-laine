@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import { View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Plus, UserRound } from 'lucide-react-native';
@@ -42,6 +42,15 @@ export default function ClientsListScreen() {
   const [search, setSearch] = useState('');
 
   const { data: allClients = [], isLoading, isError, refetch } = useClients(filter);
+
+  // Refresh on focus: a client created via the post-creation flow (which lands
+  // on the detail screen rather than returning here) must show up when the user
+  // navigates back to the list.
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
+    }, [refetch])
+  );
   const { data: displayedMap } = useDisplayedStatusMap();
   const { data: outstandingIds } = useClientsWithOutstanding();
   const { data: registry } = useStatusRegistry();
