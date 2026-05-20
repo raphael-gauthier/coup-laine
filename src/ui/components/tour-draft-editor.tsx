@@ -1,10 +1,8 @@
 import { useState, useMemo } from 'react';
-import { TextInput, View, Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { TextInput, View } from 'react-native';
 import { GripVertical, Trash2, Plus, ChevronRight, AlertTriangle } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { format, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { parseISO } from 'date-fns';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
@@ -14,6 +12,8 @@ import { formatMinutes } from '@/lib/format-minutes';
 import { DraggableList } from '@/ui/components/draggable-list';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { ScheduleTourSheet } from '@/ui/components/schedule-tour-sheet';
+import { DateField } from '@/ui/components/date-field';
+import { TimeField } from '@/ui/components/time-field';
 import { confirm } from '@/ui/components/confirm-dialog';
 import { TourMapPreview, type PreviewStop } from '@/ui/components/tour-map-preview';
 import { useClients } from '@/state/queries/clients';
@@ -74,8 +74,6 @@ export function TourDraftEditor({
   const [title, setTitle] = useState<string | null>(initialTitle ?? null);
   const [date, setDate] = useState<Date | null>(initialDate ? parseISO(initialDate) : null);
   const [time, setTime] = useState<string | null>(initialTime ?? null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [scheduleSheetVisible, setScheduleSheetVisible] = useState(false);
 
   const { data: clients = [] } = useClients('all');
@@ -253,55 +251,19 @@ export function TourDraftEditor({
 
       {tourStatus !== 'draft' ? (
         <>
-          <View className="gap-2">
-            <Text className="text-sm font-medium">{t('tours.scheduled_date')}</Text>
-            <PressScale
-              onPress={() => setShowDatePicker(true)}
-              accessibilityLabel={t('tours.scheduled_date')}
-            >
-              <Surface variant="muted" className="rounded-2xl px-4 py-3">
-                <Text>{date ? format(date, 'PPPP', { locale: fr }) : t('tours.title_placeholder')}</Text>
-              </Surface>
-            </PressScale>
-            {showDatePicker ? (
-              <DateTimePicker
-                value={date ?? new Date()}
-                mode="date"
-                onChange={(_, d) => {
-                  setShowDatePicker(Platform.OS === 'ios');
-                  if (d) setDate(d);
-                }}
-              />
-            ) : null}
-          </View>
+          <DateField
+            label={t('tours.scheduled_date')}
+            value={date}
+            onChange={setDate}
+            required={false}
+          />
 
-          <View className="gap-2">
-            <Text className="text-sm font-medium">{t('tours.departure_time')}</Text>
-            <PressScale
-              onPress={() => setShowTimePicker(true)}
-              accessibilityLabel={t('tours.departure_time')}
-            >
-              <Surface variant="muted" className="rounded-2xl px-4 py-3">
-                <Text>{time ?? t('tours.title_placeholder')}</Text>
-              </Surface>
-            </PressScale>
-            {showTimePicker ? (
-              <DateTimePicker
-                value={(() => {
-                  const [h, m] = (time ?? '08:00').split(':').map(Number);
-                  const d = new Date();
-                  d.setHours(h ?? 0, m ?? 0, 0, 0);
-                  return d;
-                })()}
-                mode="time"
-                is24Hour
-                onChange={(_, d) => {
-                  setShowTimePicker(Platform.OS === 'ios');
-                  if (d) setTime(format(d, 'HH:mm'));
-                }}
-              />
-            ) : null}
-          </View>
+          <TimeField
+            label={t('tours.departure_time')}
+            value={time}
+            onChange={setTime}
+            required={false}
+          />
         </>
       ) : null}
 
