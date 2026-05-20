@@ -1,14 +1,12 @@
 import { useState } from 'react';
-import { ScrollView, View, Platform } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { format, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
-import { PressScale } from '@/ui/motion/press-scale';
+import { DateField } from '@/ui/components/date-field';
 import { ScreenHeader } from '@/ui/components/screen-header';
 import { mutationErrorToast } from '@/ui/components/error-toast';
 import { useAllSettings, useSetSetting } from '@/state/queries/settings';
@@ -24,7 +22,7 @@ export default function SeasonScreen() {
     : new Date();
 
   const [date, setDate] = useState<Date>(savedDate);
-  const [showPicker, setShowPicker] = useState(false);
+  const [dateValid, setDateValid] = useState(true);
 
   const onSave = () => {
     const value = format(date, 'yyyy-MM-dd');
@@ -53,30 +51,18 @@ export default function SeasonScreen() {
           <Text variant="muted" className="text-sm">{t('settings.season.help_text')}</Text>
         </Surface>
 
-        <View className="gap-2">
-          <Text className="text-sm font-medium">{t('settings.season.date_label')}</Text>
-          <PressScale onPress={() => setShowPicker(true)} accessibilityLabel={t('settings.season.date_label')}>
-            <Surface variant="muted" className="rounded-2xl px-4 py-3">
-              <Text>{format(date, 'PPPP', { locale: fr })}</Text>
-            </Surface>
-          </PressScale>
-          {showPicker ? (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              onChange={(_, d) => {
-                setShowPicker(Platform.OS === 'ios');
-                if (d) setDate(d);
-              }}
-            />
-          ) : null}
-        </View>
+        <DateField
+          label={t('settings.season.date_label')}
+          value={date}
+          onChange={(d) => { if (d) setDate(d); }}
+          onValidityChange={setDateValid}
+        />
 
         <Button variant="secondary" onPress={onReset}>
           {t('settings.season.reset_today')}
         </Button>
 
-        <Button onPress={onSave} loading={setSettingMutation.isPending}>
+        <Button onPress={onSave} loading={setSettingMutation.isPending} disabled={!dateValid}>
           {t('common.save')}
         </Button>
 
