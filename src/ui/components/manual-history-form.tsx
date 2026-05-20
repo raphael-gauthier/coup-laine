@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isSameDay } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -59,6 +59,10 @@ export function ManualHistoryForm({ initial, clientId, saving, allowAddAnother, 
   const [payment, setPayment] = useState<Payment>(initial?.payment ?? {
     ...EMPTY_PAYMENT,
     isPaid: true,
+    // Default the payment date to the intervention date — they match in ~99%
+    // of cases. The intervention date field keeps them in sync until the user
+    // edits the payment date themselves (see the date field's onChange below).
+    paidAt: (initial?.date ? parseISO(initial.date) : new Date()).toISOString(),
   });
   const [travelFeeCents, setTravelFeeCents] = useState<number>(initial?.travelFeeCents ?? 0);
   const [methodError, setMethodError] = useState<string | null>(null);
@@ -98,10 +102,11 @@ export function ManualHistoryForm({ initial, clientId, saving, allowAddAnother, 
       }
 
       if (addAnother) {
-        reset({ date: new Date(), notes: '' });
+        const next = new Date();
+        reset({ date: next, notes: '' });
         setServices([]);
         setTravelFeeCents(0);
-        setPayment({ ...EMPTY_PAYMENT, isPaid: true });
+        setPayment({ ...EMPTY_PAYMENT, isPaid: true, paidAt: next.toISOString() });
         setMethodError(null);
       }
     }, onInvalid);
@@ -119,7 +124,19 @@ export function ManualHistoryForm({ initial, clientId, saving, allowAddAnother, 
           <DateField
             label={t('history.manual.date')}
             value={field.value}
-            onChange={(d) => { if (d) field.onChange(d); }}
+            onChange={(d) => {
+              if (!d) return;
+              const prevDate = field.value;
+              field.onChange(d);
+              // Mirror the new date onto the payment date, but only while the two
+              // are still in sync (or the payment date is unset). Once the user
+              // sets a different payment date themselves, leave it untouched.
+              setPayment((p) => {
+                if (!p.isPaid) return p;
+                const stillSynced = p.paidAt == null || isSameDay(parseISO(p.paidAt), prevDate);
+                return stillSynced ? { ...p, paidAt: d.toISOString() } : p;
+              });
+            }}
             onValidityChange={setDateValid}
           />
         )}
