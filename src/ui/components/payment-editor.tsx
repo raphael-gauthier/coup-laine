@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { parseISO } from 'date-fns';
@@ -26,6 +26,10 @@ interface Props {
 export function PaymentEditor({ value, onChange, methodError, requireMethodAlways, onPaidAtValidityChange }: Props) {
   const { t } = useTranslation();
   const [pickerOpen, setPickerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!value.isPaid) onPaidAtValidityChange?.(true);
+  }, [value.isPaid, onPaidAtValidityChange]);
 
   const onPickMethod = (m: PaymentMethod) => {
     onChange({
