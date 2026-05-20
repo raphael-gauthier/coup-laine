@@ -6,6 +6,7 @@ import {
   ChevronRight,
   MoreVertical,
   Pencil,
+  Plus,
   Search,
   Trash2,
 } from 'lucide-react-native';
@@ -50,7 +51,7 @@ import { HelpSheetClientDetail } from '@/ui/help/sheets/help-sheet-client-detail
 import { useHelpSheet } from '@/ui/help/hooks';
 
 export default function ClientDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, justCreated } = useLocalSearchParams<{ id: string; justCreated?: string }>();
   const router = useRouter();
   const { t } = useTranslation();
   const fg = useForegroundColor();
@@ -184,6 +185,22 @@ export default function ClientDetailScreen() {
       />
 
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 32, gap: 16 }}>
+        {justCreated === '1' ? (
+          <PressScale
+            onPress={() => router.push('/(tabs)/clients/new')}
+            accessibilityLabel={t('clients.just_created_banner_cta')}
+          >
+            <Surface variant="muted" className="flex-row items-center rounded-2xl px-4 py-3 gap-3">
+              <View className="flex-1">
+                <Text className="text-sm font-medium">{t('clients.just_created_banner_title')}</Text>
+                <Text variant="muted" className="text-xs mt-0.5">
+                  {t('clients.just_created_banner_cta')}
+                </Text>
+              </View>
+              <Plus size={18} color={fg} />
+            </Surface>
+          </PressScale>
+        ) : null}
         <Text className="text-2xl font-bold">{client.displayName}</Text>
 
         <ClientStatusBadge clientId={client.id} />
