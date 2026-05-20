@@ -26,6 +26,7 @@ export function StopPaymentSheet({ visible, stopId, tourId, initial, onClose }: 
     methodId: null, methodLabelSnapshot: null, isPaid: false, paidAt: null,
   });
   const [error, setError] = useState<string | null>(null);
+  const [paidAtValid, setPaidAtValid] = useState(true);
   const mark = useMarkStopPayment();
 
   useEffect(() => { if (visible && initial) setDraft(initial); }, [visible, initial]);
@@ -54,8 +55,8 @@ export function StopPaymentSheet({ visible, stopId, tourId, initial, onClose }: 
             <X size={22} color="#5C4E40" />
           </PressScale>
         </View>
-        <PaymentEditor value={draft} onChange={setDraft} methodError={error} />
-        <Button className="mt-4" onPress={onSave} loading={mark.isPending}>
+        <PaymentEditor value={draft} onChange={setDraft} methodError={error} onPaidAtValidityChange={setPaidAtValid} />
+        <Button className="mt-4" onPress={onSave} loading={mark.isPending} disabled={!paidAtValid}>
           {t('common.save')}
         </Button>
       </Surface>

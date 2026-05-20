@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react';
-import { ScrollView, View, Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { ScrollView, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { format, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { format, parseISO, isSameDay } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,8 +9,8 @@ import { z } from 'zod';
 import { Surface } from '@/ui/primitives/surface';
 import { Text } from '@/ui/primitives/text';
 import { Button } from '@/ui/primitives/button';
-import { PressScale } from '@/ui/motion/press-scale';
 import { FormField } from '@/ui/components/form-field';
+import { DateField } from '@/ui/components/date-field';
 import { RHFTextField } from '@/ui/components/rhf-text-field';
 import { ServicePickerSheet } from '@/ui/components/service-picker-sheet';
 import { PaymentEditor } from '@/ui/components/payment-editor';
@@ -54,12 +52,17 @@ export function ManualHistoryForm({ initial, clientId, saving, allowAddAnother, 
     resolver: zodResolver(schema),
     mode: 'onTouched',
   });
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateValid, setDateValid] = useState(true);
+  const [paidAtValid, setPaidAtValid] = useState(true);
   const [services, setServices] = useState<TourStopService[]>(initial?.services ?? []);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [payment, setPayment] = useState<Payment>(initial?.payment ?? {
     ...EMPTY_PAYMENT,
     isPaid: true,
+    // Default the payment date to the intervention date — they match in ~99%
+    // of cases. The intervention date field keeps them in sync until the user
+    // edits the payment date themselves (see the date field's onChange below).
+    paidAt: (initial?.date ? parseISO(initial.date) : new Date()).toISOString(),
   });
   const [travelFeeCents, setTravelFeeCents] = useState<number>(initial?.travelFeeCents ?? 0);
   const [methodError, setMethodError] = useState<string | null>(null);
@@ -99,10 +102,11 @@ export function ManualHistoryForm({ initial, clientId, saving, allowAddAnother, 
       }
 
       if (addAnother) {
-        reset({ date: new Date(), notes: '' });
+        const next = new Date();
+        reset({ date: next, notes: '' });
         setServices([]);
         setTravelFeeCents(0);
-        setPayment({ ...EMPTY_PAYMENT, isPaid: true });
+        setPayment({ ...EMPTY_PAYMENT, isPaid: true, paidAt: next.toISOString() });
         setMethodError(null);
       }
     }, onInvalid);
@@ -116,24 +120,25 @@ export function ManualHistoryForm({ initial, clientId, saving, allowAddAnother, 
       <Controller
         control={control}
         name="date"
-        render={({ field, fieldState }) => (
-          <FormField label={t('history.manual.date')} error={fieldState.error?.message}>
-            <PressScale onPress={() => setShowDatePicker(true)} accessibilityLabel={t('history.manual.date')}>
-              <Surface variant="muted" className="rounded-2xl px-4 py-3">
-                <Text>{format(field.value, 'PPP', { locale: fr })}</Text>
-              </Surface>
-            </PressScale>
-            {showDatePicker && (
-              <DateTimePicker
-                value={field.value}
-                mode="date"
-                onChange={(_, d) => {
-                  setShowDatePicker(Platform.OS === 'ios');
-                  if (d) field.onChange(d);
-                }}
-              />
-            )}
-          </FormField>
+        render={({ field }) => (
+          <DateField
+            label={t('history.manual.date')}
+            value={field.value}
+            onChange={(d) => {
+              if (!d) return;
+              const prevDate = field.value;
+              field.onChange(d);
+              // Mirror the new date onto the payment date, but only while the two
+              // are still in sync (or the payment date is unset). Once the user
+              // sets a different payment date themselves, leave it untouched.
+              setPayment((p) => {
+                if (!p.isPaid) return p;
+                const stillSynced = p.paidAt == null || isSameDay(parseISO(p.paidAt), prevDate);
+                return stillSynced ? { ...p, paidAt: d.toISOString() } : p;
+              });
+            }}
+            onValidityChange={setDateValid}
+          />
         )}
       />
 
@@ -208,6 +213,7 @@ export function ManualHistoryForm({ initial, clientId, saving, allowAddAnother, 
         onChange={setPayment}
         methodError={methodError}
         requireMethodAlways
+        onPaidAtValidityChange={setPaidAtValid}
       />
 
       <View className="flex-row gap-2 mt-4">
@@ -216,13 +222,13 @@ export function ManualHistoryForm({ initial, clientId, saving, allowAddAnother, 
             {t('common.cancel')}
           </Button>
         ) : null}
-        <Button className="flex-1" onPress={submit(false)} loading={saving}>
+        <Button className="flex-1" onPress={submit(false)} loading={saving} disabled={!dateValid || !paidAtValid}>
           {t('common.save')}
         </Button>
       </View>
 
       {allowAddAnother ? (
-        <Button variant="secondary" onPress={submit(true)} disabled={saving}>
+        <Button variant="secondary" onPress={submit(true)} disabled={saving || !dateValid || !paidAtValid}>
           {t('history.manual.save_and_add_another')}
         </Button>
       ) : null}
