@@ -5,6 +5,7 @@ import { ScreenHeader } from '@/ui/components/screen-header';
 import { ManualHistoryForm } from '@/ui/components/manual-history-form';
 import { useUpsertManualHistoryEntry } from '@/state/queries/history';
 import { haptics } from '@/ui/motion/haptics';
+import { mutationErrorToast } from '@/ui/components/error-toast';
 
 export default function NewManualHistoryScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -18,12 +19,18 @@ export default function NewManualHistoryScreen() {
       <ManualHistoryForm
         clientId={id}
         saving={upsert.isPending}
+        allowAddAnother
         onCancel={() => router.back()}
-        onSubmit={(input) =>
-          upsert.mutate(input, {
-            onSuccess: () => { void haptics.success(); router.back(); },
-          })
-        }
+        onSubmit={async (input, { addAnother }) => {
+          try {
+            await upsert.mutateAsync(input);
+          } catch (err) {
+            mutationErrorToast(t('history.errors.save_failed_title'), err);
+            throw err;
+          }
+          void haptics.success();
+          if (!addAnother) router.back();
+        }}
       />
     </Surface>
   );
